@@ -6,6 +6,11 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 
 import "./index.scss";
+import HomePage from "./pages/HomePage/HomePage.tsx";
+import BdayPage from "./pages/BdayPage/BdayPage.tsx";
+import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
+import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
+import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,27 +18,33 @@ const router = createBrowserRouter([
     {
         path: "/",
         element: <>
+            <HomePage />
+            <br />
             <p>Major refactor in progress. Website should be back up in a few days.</p>
         </>
     },
     {
         path: "/bday",
         element: <>
+            <BdayPage />
         </>
     },
     {
         path: "/countdown",
         element: <>
+            <CountdownPage />
         </>
     },
     {
         path: "/elements",
         element: <>
+            <ElementsPage />
         </>
     },
     {
         path: "/unix",
         element: <>
+            <UnixPage />
         </>
     }
 ]);
