@@ -50,8 +50,7 @@ const router = createBrowserRouter([
 ]);
 
 const rootElement = document.getElementById("root");
-// @ts-ignore
-const root = createRoot(rootElement);
+const root = createRoot(rootElement!);
 
 root.render(
     <StrictMode>
