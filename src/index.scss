@@ -1,5 +1,5 @@
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "Mulish", "Inter", "system-ui", "sans-serif";
     line-height: 1.5;
     font-weight: 400;
     background-color: var(--background-c);
@@ -12,47 +12,52 @@
     // TODO: Review -light and -dark variants
     // Colors (prefer pastel colors)
     --primary-c: rgba(184, 226, 242, 1); // #B8E2F2FF
-    --primary-light-c: rgba(184, 226, 242, 0.5);
-    --primary-dark-c: rgba(184, 226, 242, 0.8);
+    --primary-light-c: rgba(203, 234, 246, 1); // 88% HSL
+    --primary-lighter-c: rgba(212, 237, 247, 1); // 90% HSL
+    --primary-dark-c: rgba(182, 225, 242, 1);
 
     --secondary-c: rgba(215, 174, 226, 1); // #D8C0F0FF
-    --secondary-light-c: rgba(215, 174, 226, 0.5);
-    --secondary-dark-c: rgba(215, 174, 226, 0.8);
+    --secondary-light-c: rgba(218, 180, 228, 1);
+    --secondary-dark-c: rgba(210, 165, 223, 1);
 
     --accent-c: rgba(76, 192, 134, 1); // #4CC086FF
-    --accent-light-c: rgba(76, 192, 134, 0.5);
-    --accent-dark-c: rgba(76, 192, 134, 0.8);
+    --accent-light-c: rgba(76, 192, 134, 1);
+    --accent-dark-c: rgba(76, 192, 134, 1);
 
     --background-c: rgba(251, 250, 249, 1); // #FBFAF9FF
-    --background-light-c: rgba(251, 250, 249, 0.5);
-    --background-dark-c: rgba(251, 250, 249, 0.8);
+    --background-light-c: rgba(251, 250, 249, 1);
+    --background-dark-c: rgba(251, 250, 249, 1);
 
-    --text-c: rgba(7, 7, 7, 1); // #080808FF
-    --text-light-c: rgba(8, 8, 8, 1);
-    --text-dark-c: rgba(6, 6, 6, 1);
+    --text-c: rgba(32, 32, 32, 1); // #080808FF
+    --text-light-c: rgba(38, 38, 38, 1);
+    --text-dark-c: rgba(26, 26, 26, 1);
 
-    --border-c: rgba(150, 150, 150, 1); // #969696FF
-    --border-light-c: rgba(150, 150, 150, 0.5);
-    --border-dark-c: rgba(150, 150, 150, 0.8);
+    --border-c: rgba(150, 150, 150, 0.3); // #969696FF
+    --border-light-c: rgba(150, 150, 150, 0.2);
+    --border-dark-c: rgba(150, 150, 150, 0.4);
+
+    --glow-c: rgba(238, 248, 252, 0.40);
 
     --success-c: rgba(76, 192, 134, 1); // #4CC086FF
     --warning-c: rgb(255, 234, 97, 1); // #FFEA61FF
     --danger-c: rgb(255, 105, 97, 1); // #FF6961FF
     --info-c: rgb(76, 157, 250, 1); // #4C9DFAFF
+
+    --hero-bg-c: rgba(212, 237, 247, 1);
 }
 
 [data-theme="dark"] {
     --primary-c: rgba(16, 64, 128, 1);
-    --primary-light-c: rgba(16, 64, 128, 0.5);
-    --primary-dark-c: rgba(16, 64, 128, 0.8);
+    --primary-light-c: rgba(17, 69, 136, 1);
+    --primary-dark-c: rgba(15, 60, 118, 1);
 
     --secondary-c: rgba(215, 174, 226, 1);
-    --secondary-light-c: rgba(215, 174, 226, 0.5);
-    --secondary-dark-c: rgba(215, 174, 226, 0.8);
+    --secondary-light-c: rgba(219, 184, 229, 1);
+    --secondary-dark-c: rgba(208, 161, 221, 1);
 
     --accent-c: rgba(76, 192, 134, 1);
-    --accent-light-c: rgba(76, 192, 134, 0.5);
-    --accent-dark-c: rgba(76, 192, 134, 0.8);
+    --accent-light-c: rgba(76, 192, 134, 1);
+    --accent-dark-c: rgba(76, 192, 134, 1);
 
     --background-c: rgba(4, 8, 16, 1);
     --background-light-c: rgba(4, 8, 16, 0.5);
@@ -70,6 +75,8 @@
     --warning-c: rgb(255, 234, 97, 1);
     --danger-c: rgb(255, 105, 97, 1);
     --info-c: rgb(76, 157, 250, 1);
+
+    --hero-bg-c: rgba(184, 226, 242, 1);
 }
 
 body {
@@ -115,4 +122,24 @@ p, h1, h2, h3, h4, h5, h6 {
         transform: scaleX(1);
         transform-origin: left;
     }
+}
+
+.text-block {
+    overflow: hidden;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.blink_anim {
+    animation: blink 1s infinite;
 }

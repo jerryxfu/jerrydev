@@ -1,0 +1,123 @@
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: var(--hero-bg-c);
+    justify-content: center;
+    height: 100vh;
+    transition: background-color 0.75s;
+}
+
+.hero_container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 3%;
+    margin-left: 6%;
+
+    transition: color 0.50s;
+
+    // color: var(--darkest-color);
+
+    z-index: 1;
+
+    @media screen and (max-width: 480px) {
+        margin-left: 4%;
+        margin-top: 0;
+    }
+}
+
+.hero_hero-text {
+    font-weight: 300;
+    font-size: 7rem;
+
+    overflow: hidden;
+    line-height: 6rem;
+
+    @media screen and (max-width: 1024px) {
+        line-height: 5rem;
+        font-size: 6rem;
+    }
+
+    @media screen and (max-width: 480px) {
+        line-height: 4.20rem;
+        font-size: 5rem;
+    }
+}
+
+.hero_text-small {
+    font-weight: 400;
+    font-size: 2rem;
+    margin-left: 0.55rem;
+
+    overflow: hidden;
+
+    @media screen and (max-width: 1024px) {
+        font-size: 1.75rem;
+    }
+
+    @media screen and (max-width: 480px) {
+        font-size: 1.5rem;
+    }
+}
+
+.hero_shadow {
+    width: 100vw;
+    box-shadow: 0 0 48px 32px var(--primary-light-c);
+    transition: box-shadow 0.75s;
+}
+
+.hero_glowing-separator {
+    margin: 0.75rem 0;
+    width: 0;
+    opacity: 0;
+    box-shadow: inset 0 0 8px 8px var(--glow-c),
+    0 0 8px 8px var(--glow-c),
+    inset 0 0 0 3px var(--glow-c),
+    0 0 0 3px var(--glow-c);
+
+    @media screen and (max-width: 480px) {
+        margin: 0.50rem 0;
+    }
+}
+
+.hero_about-container {
+    margin: 3.25rem 7% 0;
+
+    a {
+        color: inherit;
+    }
+
+    @media screen and (max-width: 480px) {
+        margin: 2.75rem 5% 0;
+    }
+}
+
+.hero_about {
+    color: var(--text-light-c);
+    font-size: 105%;
+    line-height: 2;
+
+    @media screen and (max-width: 480px) {
+        font-size: revert;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+    }
+}
+
+.hero_typing-text {
+    height: 2rem;
+    margin-top: 1.75rem;
+    margin-left: 6%;
+
+    @media screen and (max-width: 1024px) {
+        font-size: 96%;
+    }
+
+    @media screen and (max-width: 480px) {
+        font-size: 92%;
+        margin: 2.25rem 4% 0;
+        text-align: center;
+    }
+}
