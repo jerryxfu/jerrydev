@@ -1,5 +1,5 @@
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "Mulish", "Inter", "system-ui", "sans-serif";
     line-height: 1.5;
     font-weight: 400;
     background-color: var(--background-c);
@@ -28,9 +28,9 @@
     --background-light-c: rgba(251, 250, 249, 1);
     --background-dark-c: rgba(251, 250, 249, 1);
 
-    --text-c: rgba(8, 8, 8, 1); // #080808FF
-    --text-light-c: rgba(9, 9, 9, 1);
-    --text-dark-c: rgba(7, 7, 7, 1);
+    --text-c: rgba(32, 32, 32, 1); // #080808FF
+    --text-light-c: rgba(38, 38, 38, 1);
+    --text-dark-c: rgba(26, 26, 26, 1);
 
     --border-c: rgba(150, 150, 150, 0.3); // #969696FF
     --border-light-c: rgba(150, 150, 150, 0.2);
@@ -43,7 +43,7 @@
     --danger-c: rgb(255, 105, 97, 1); // #FF6961FF
     --info-c: rgb(76, 157, 250, 1); // #4C9DFAFF
 
-    --hero-bg-c: rgba(208, 235, 246, 1);
+    --hero-bg-c: rgba(212, 237, 247, 1);
 }
 
 [data-theme="dark"] {

@@ -197,9 +197,9 @@ export default function Hero() {
 
     useGSAP(() => {
         tl.to(".hero_glowing-separator", {
-            width: "125%",
+            width: "120%",
             opacity: 1,
-            ease: "power1.out",
+            ease: "nativeEase",
             duration: 1.20
         });
     });
@@ -207,7 +207,7 @@ export default function Hero() {
     useGSAP(() => {
         tl.from([".hero_hero-text"], {
             yPercent: 100,
-            ease: "power1.out",
+            ease: "nativeEase",
             duration: 1.10
         }, 0.40);
     });
@@ -215,7 +215,7 @@ export default function Hero() {
     useGSAP(() => {
         tl.from([".hero_text-small"], {
             yPercent: -100,
-            ease: "power1.out",
+            ease: "nativeEase",
             duration: 0.9
         }, 0.80);
     });
@@ -224,7 +224,7 @@ export default function Hero() {
         tl.from(".hero_about", {
             yPercent: 100,
             y: 50,
-            ease: "power2.out",
+            ease: "nativeEase",
             duration: 1,
             stagger: 0.15
         }, 1.20);
@@ -233,7 +233,7 @@ export default function Hero() {
     useGSAP(() => {
         tl.from(".hero_typing-text", {
             opacity: 0,
-            ease: "power1.out",
+            ease: "nativeEase",
             duration: 1
         });
     });
@@ -249,22 +249,22 @@ export default function Hero() {
                     <div className="hero_glowing-separator" />
 
                     <div className="text-block">
-                        <h1 className="hero_hero-text-small">I'm Jerry!</h1>
+                        <h1 className="hero_text-small">I'm Jerry!</h1>
                     </div>
-
-                    <div className="text hero__about-container">
-                        <div className="text-block"><p className="hero__about">
-                            Hey there, I'm Jerry - a coding enthusiast residing in 🍁Canada🦫!
-                        </p></div>
-                        <div className="text-block"><p className="hero__about">
-                            AI, machine learning, computer vision, networking, game engines.
-                        </p></div>
-                    </div>
-
-                    <p className="hero_typing-text p-text">
-                        {headerText}<span id="caret" className={isBlinking ? "blink_anim" : ""}>|</span>
-                    </p>
                 </div>
+
+                <div className="text hero_about-container">
+                    <div className="text-block"><p className="hero_about">
+                        Hey there, I'm Jerry - a coding enthusiast residing in 🍁Canada🦫!
+                    </p></div>
+                    <div className="text-block"><p className="hero_about">
+                        AI, machine learning, computer vision, networking, game engines.
+                    </p></div>
+                </div>
+
+                <p className="hero_typing-text p-text">
+                    {headerText}<span id="caret" className={isBlinking ? "blink_anim" : ""}>|</span>
+                </p>
             </div>
             <div className="hero_shadow" />
         </>

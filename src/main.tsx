@@ -3,7 +3,7 @@ import {createRoot} from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 
 import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
+import {CustomEase, ScrollTrigger, TextPlugin} from "gsap/all";
 
 import "./index.scss";
 import HomePage from "./pages/HomePage/HomePage.tsx";
@@ -12,15 +12,21 @@ import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
 import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
 import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
+
+CustomEase.create("nativeEase", "0.250, 0.100, 0.250, 1.000");
+CustomEase.create("customEaseOut", "0.250, 0.100, 0.580, 1.000");
+
+gsap.defaults({
+    ease: "nativeEase"
+});
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <>
             <HomePage />
-            <br />
-            <p>Major refactor in progress. Website should be back up in a few days.</p>
+            <p style={{fontSize: "150%"}}>!!! Major refactor in progress. Website should be back up in a few days. !!!</p>
         </>
     },
     {

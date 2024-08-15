@@ -47,7 +47,7 @@
 }
 
 .hero_text-small {
-    font-weight: 300;
+    font-weight: 400;
     font-size: 2rem;
     margin-left: 0.55rem;
 
@@ -95,6 +95,7 @@
 }
 
 .hero_about {
+    color: var(--text-light-c);
     font-size: 105%;
     line-height: 2;
 
