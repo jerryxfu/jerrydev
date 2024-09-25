@@ -1,0 +1,38 @@
+.skillcard {
+    display: flex;
+    align-items: center;
+    width: 256px;
+    padding: 12px;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.skillcard_logo {
+    object-fit: contain;
+    width: 60px;
+    height: 60px;
+    margin: 0 12px 0 0;
+}
+
+.skillcard_content {
+    //flex: 1;
+}
+
+.skillcard_title {
+}
+
+.skillcard_description {
+}
+
+.skillcard_progress {
+    width: 8rem;
+    margin: 6px 0;
+}
+
+.skillcard_chip {
+    position: absolute !important;
+    top: 10px;
+    right: 10px;
+}

@@ -241,6 +241,10 @@ export default function Hero() {
     return (
         <>
             <div className="hero">
+                <p style={{opacity: "50%", fontSize: "135%"}}>
+                    !!!Major refactor in progress, website should be back soon!!!
+                    Visit <a href={"https://aspectofjerry.dev"}>https://aspectofjerry.dev</a> for the old website
+                </p>
                 <div className="hero_container">
                     <div className="text-block">
                         <h1 className="hero_hero-text">Hello</h1>

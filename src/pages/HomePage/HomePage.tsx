@@ -10,13 +10,13 @@ import Footer from "../../components/Footer/Footer.tsx";
 export default function HomePage() {
     return (
         <div>
-            <Navbar/>
-            <Hero/>
-            <About/>
-            <Skills/>
-            <Contact/>
-            <Projects/>
-            <Footer/>
+            <Navbar />
+            <Hero />
+            <About />
+            <Skills />
+            <Contact />
+            <Projects />
+            <Footer />
         </div>
     );
 };
