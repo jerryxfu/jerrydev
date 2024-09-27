@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Chip} from "@mui/joy";
 import {LinearProgress} from "@mui/material";
 import "./SkillCard.scss";
@@ -14,8 +14,11 @@ export default function SkillCard({logo, title, description, score, url, chipTex
     const [progress, setProgress] = useState<number>(0);
     const [buffer, setBuffer] = useState<number>(0);
 
+    useMemo(() => {
+        setProgress(score === 5 ? score * 20 - 10 : score * 20);
+    }, [score])
+
     useEffect(() => {
-        setProgress(score === 5 ? score * 20 - 15 : score * 20);
         const updateBuffer = () => {
             const minBuffer = progress + 8;
             const maxBuffer = progress + 11;
