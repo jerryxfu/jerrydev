@@ -2,79 +2,90 @@
     font-family: "Mulish", "Inter", "system-ui", "sans-serif";
     line-height: 1.5;
     font-weight: 400;
-    background-color: var(--background-c);
+    background-color: var(--bg-c);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
     scroll-behavior: smooth;
 
-    // TODO: Review -light and -dark variants
-    // Colors (prefer pastel colors)
-    --primary-c: rgba(184, 226, 242, 1); // #B8E2F2FF
-    --primary-light-c: rgba(203, 234, 246, 1); // 88% HSL
-    --primary-lighter-c: rgba(212, 237, 247, 1); // 90% HSL
-    --primary-dark-c: rgba(182, 225, 242, 1);
+    --primary-c: rgba(186, 226, 242, 1); // #bae2f2
+    --primary-lt-c: rgba(204, 233, 245, 1); // 88% HSL
+    --primary-ltx-c: rgba(212, 237, 247, 1); // 90% HSL
+    --primary-da-c: rgba(169, 219, 239, 1); // 80% HSL
 
     --secondary-c: rgba(215, 174, 226, 1); // #D8C0F0FF
-    --secondary-light-c: rgba(218, 180, 228, 1);
-    --secondary-dark-c: rgba(210, 165, 223, 1);
+    --secondary-lt-c: rgba(218, 180, 228, 1);
+    --secondary-da-c: rgba(210, 165, 223, 1);
 
-    --accent-c: rgba(76, 192, 134, 1); // #4CC086FF
-    --accent-light-c: rgba(76, 192, 134, 1);
-    --accent-dark-c: rgba(76, 192, 134, 1);
+    --accent-c: rgba(76, 192, 134, 1);
+    --accent-lt-c: rgba(76, 192, 134, 1);
+    --accent-da-c: rgba(76, 192, 134, 1);
 
-    --background-c: rgba(251, 250, 249, 1); // #FBFAF9FF
-    --background-light-c: rgba(251, 250, 249, 1);
-    --background-dark-c: rgba(251, 250, 249, 1);
+    --bg-c: rgba(251, 250, 249, 1);
+    --bg-lt-c: rgba(254, 254, 254, 1);
+    --bg-da-c: rgba(248, 247, 246, 1);
 
-    --text-c: rgba(32, 32, 32, 1); // #080808FF
-    --text-light-c: rgba(38, 38, 38, 1);
-    --text-dark-c: rgba(26, 26, 26, 1);
+    --text-c: rgba(28, 28, 28, 1);
+    --text-lt-c: rgba(30, 30, 30, 1);
+    --text-da-c: rgba(26, 26, 26, 1);
 
-    --border-c: rgba(150, 150, 150, 0.3); // #969696FF
-    --border-light-c: rgba(150, 150, 150, 0.2);
-    --border-dark-c: rgba(150, 150, 150, 0.4);
+    --border-c: rgba(150, 150, 150, 0.80);
+    --border-lt-c: rgba(150, 150, 150, 0.5);
+    --border-da-c: rgb(140, 140, 140, 0.4);
 
     --glow-c: rgba(238, 248, 252, 0.40);
 
-    --success-c: rgba(76, 192, 134, 1); // #4CC086FF
-    --warning-c: rgb(255, 234, 97, 1); // #FFEA61FF
-    --danger-c: rgb(255, 105, 97, 1); // #FF6961FF
-    --info-c: rgb(76, 157, 250, 1); // #4C9DFAFF
+    --success-c: rgba(76, 192, 134, 1);
+    --warning-c: rgb(255, 234, 97, 1);
+    --danger-c: rgb(255, 105, 97, 1);
+    --info-c: rgb(76, 157, 250, 1);
+
+    --pink: #ff64f9;
+    --red: #ff6565;
+    --orange: #ff6d1b;
+    --yellow: #ffee55;
+    --green: #5bff89;
+    --blue: #4d8aff;
+    --purple: #6b5fff;
+    --gold: #ffd700;
 
     --hero-bg-c: rgba(212, 237, 247, 1);
 }
 
 [data-theme="dark"] {
     --primary-c: rgba(16, 64, 128, 1);
-    --primary-light-c: rgba(17, 69, 136, 1);
-    --primary-dark-c: rgba(15, 60, 118, 1);
+    --primary-lt-c: rgba(17, 69, 136, 1);
+    --primary-da-c: rgba(15, 60, 118, 1);
 
     --secondary-c: rgba(215, 174, 226, 1);
-    --secondary-light-c: rgba(219, 184, 229, 1);
-    --secondary-dark-c: rgba(208, 161, 221, 1);
+    --secondary-lt-c: rgba(219, 184, 229, 1);
+    --secondary-da-c: rgba(208, 161, 221, 1);
 
     --accent-c: rgba(76, 192, 134, 1);
-    --accent-light-c: rgba(76, 192, 134, 1);
-    --accent-dark-c: rgba(76, 192, 134, 1);
+    --accent-lt-c: rgba(76, 192, 134, 1);
+    --accent-da-c: rgba(76, 192, 134, 1);
 
-    --background-c: rgba(4, 8, 16, 1);
-    --background-light-c: rgba(4, 8, 16, 0.5);
-    --background-dark-c: rgba(4, 8, 16, 0.8);
+    --bg-c: rgba(4, 8, 16, 1);
+    --bg-lt-c: rgba(4, 8, 16, 0.5);
+    --bg-da-c: rgba(4, 8, 16, 0.8);
 
     --text-c: rgba(251, 250, 249, 1);
-    --text-light-c: rgba(252, 251, 250, 1);
-    --text-dark-c: rgba(250, 249, 248, 1);
+    --text-lt-c: rgba(252, 251, 250, 1);
+    --text-da-c: rgba(250, 249, 248, 1);
 
     --border-c: rgba(150, 150, 150, 1);
-    --border-light-c: rgba(150, 150, 150, 0.5);
-    --border-dark-c: rgba(150, 150, 150, 0.8);
+    --border-lt-c: rgba(150, 150, 150, 0.5);
+    --border-da-c: rgba(150, 150, 150, 0.8);
 
-    --success-c: rgba(76, 192, 134, 1);
-    --warning-c: rgb(255, 234, 97, 1);
-    --danger-c: rgb(255, 105, 97, 1);
-    --info-c: rgb(76, 157, 250, 1);
+    --pink: #ff64f9;
+    --red: #ff6565;
+    --orange: #ff6d1b;
+    --yellow: #ffee55;
+    --green: #5bff89;
+    --blue: #4d8aff;
+    --purple: #6b5fff;
+    --gold: #ffd700;
 
     --hero-bg-c: rgba(184, 226, 242, 1);
 }
@@ -93,7 +104,7 @@ p, h1, h2, h3, h4, h5, h6 {
     line-height: 1.5;
     font-weight: 400;
 
-    color: var(--text-light-c);
+    color: var(--text-lt-c);
 }
 
 .text {
@@ -122,10 +133,6 @@ p, h1, h2, h3, h4, h5, h6 {
         transform: scaleX(1);
         transform-origin: left;
     }
-}
-
-.text-block {
-    overflow: hidden;
 }
 
 @keyframes blink {

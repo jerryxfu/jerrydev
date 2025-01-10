@@ -1,0 +1,75 @@
+.opening-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    overflow: hidden;
+}
+
+.top-half,
+.bottom-half {
+    position: absolute;
+    width: 100%;
+    height: 50%;
+    // total animation time: 1300ms
+    animation: slideAway 1175ms forwards ease;
+    animation-delay: 125ms;
+
+    -moz-box-shadow: 0 0 16px 0 var(--border-da-c);
+    -webkit-box-shadow: 0 0 16px 0 var(--border-da-c);
+    box-shadow: 0 0 16px 0 var(--border-da-c);
+}
+
+.top-half {
+    top: 0;
+    background-color: var(--primary-c);
+}
+
+.bottom-half {
+    bottom: 0;
+    background-color: var(--secondary-c);
+}
+
+@keyframes slideAway {
+    to {
+        height: 0;
+        visibility: hidden;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .top-half,
+    .bottom-half {
+        height: 100%;
+        width: 50%;
+        animation: none;
+    }
+
+    .top-half {
+        left: 0;
+        animation: slideLeft 1150ms forwards ease;
+        animation-delay: 150ms;
+    }
+
+    .bottom-half {
+        right: 0;
+        animation: slideRight 1150ms forwards ease;
+        animation-delay: 150ms;
+    }
+
+    @keyframes slideLeft {
+        to {
+            width: 0;
+            visibility: hidden;
+        }
+    }
+
+    @keyframes slideRight {
+        to {
+            width: 0;
+            visibility: hidden;
+        }
+    }
+}

@@ -21,12 +21,15 @@ gsap.defaults({
     ease: "nativeEase"
 });
 
+export const dev = process.env.NODE_ENV === "development";
+
+export const api_base_url = dev ? `http://localhost:3001` : "https://api.jerrydev.net";
+
 const router = createBrowserRouter([
     {
         path: "/",
         element: <>
             <HomePage />
-            <p style={{fontSize: "150%"}}>!!! Major refactor in progress. Website should be back up in a few days. !!!</p>
         </>
     },
     {
@@ -60,6 +63,8 @@ const root = createRoot(rootElement!);
 
 root.render(
     <StrictMode>
+        {/*<AuthProvider>*/}
         <RouterProvider router={router} />
+        {/*</AuthProvider>*/}
     </StrictMode>
 );

@@ -1,9 +1,9 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 
 import "./Hero.scss";
-
+import SplitType from "split-type";
 
 const texts: { [key: number]: string[] } = {
     0: [
@@ -160,6 +160,15 @@ export default function Hero() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isBlinking, setIsBlinking] = useState(false);
 
+    const dividerRef = useRef(null);
+    const heroTitleRef = useRef(null);
+    const bonRef = useRef(null);
+    const jourRef = useRef(null);
+    const subtitleRef = useRef(null);
+    const typingTextRef = useRef(null);
+    const line1Ref = useRef(null);
+    const line2Ref = useRef(null);
+
     useEffect(() => {
         const typeText = () => {
             setIsBlinking(false);
@@ -193,84 +202,114 @@ export default function Hero() {
         }
     }, [charIndex, combinedTexts, isDeleting, textIndex]);
 
-    const tl = gsap.timeline();
-
     useGSAP(() => {
-        tl.to(".hero_glowing-separator", {
+        const tl = gsap.timeline();
+
+        // Expand divider
+        tl.to(dividerRef.current, {
             width: "120%",
             opacity: 1,
             ease: "nativeEase",
             duration: 1.20
         });
-    });
 
-    useGSAP(() => {
-        tl.from([".hero_hero-text"], {
+        // Slide up "Bon(jour)"
+        tl.from([bonRef.current, jourRef.current], {
             yPercent: 100,
             ease: "nativeEase",
-            duration: 1.10
-        }, 0.40);
-    });
+            duration: 1.00
+        }, 0.50);
 
-    useGSAP(() => {
-        tl.from([".hero_text-small"], {
-            yPercent: -100,
+        // Slide "Bon" to the left
+        tl.from(heroTitleRef.current, {
+            x: "17%",
+            duration: 0.75,
+            ease: "nativeEase"
+        }, 1.45);
+
+        // Slide in "jour" to the right (appear)
+        tl.from([jourRef.current], {
+            x: "-100%",
+            duration: 0.75,
+            ease: "nativeEase"
+        }, 1.45);
+
+        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
+        const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});
+
+        tl.from(subtitleSplit.chars, {
+            y: "-100%",
             ease: "nativeEase",
-            duration: 0.9
-        }, 0.80);
-    });
+            stagger: 0.02,
+            duration: 0.75
+        }, 1.50);
 
-    useGSAP(() => {
-        tl.from(".hero_about", {
+        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
+        const line1Split = new SplitType(line1Ref.current, {types: "words"});
+        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
+        const line2Split = new SplitType(line2Ref.current, {types: "words"});
+
+
+        tl.from(line1Split.words, {
             yPercent: 100,
-            y: 50,
+            y: 25,
+            opacity: 0,
             ease: "nativeEase",
             duration: 1,
-            stagger: 0.15
-        }, 1.20);
-    });
+            stagger: 0.05
+        }, 1.90);
 
-    useGSAP(() => {
-        tl.from(".hero_typing-text", {
+        tl.from(line2Split.words, {
+            yPercent: 100,
+            y: 25,
+            opacity: 0,
+            ease: "nativeEase",
+            duration: 1,
+            stagger: 0.05
+        }, 2.10);
+
+        tl.from(typingTextRef.current, {
             opacity: 0,
             ease: "nativeEase",
             duration: 1
-        });
+        }, 2.90);
     });
 
     return (
         <>
             <div className="hero">
-                <p style={{opacity: "50%", fontSize: "135%"}}>
-                    !!!Major refactor in progress, website should be back soon!!!
-                    Visit <a href={"https://aspectofjerry.dev"}>https://aspectofjerry.dev</a> for the old website
-                </p>
                 <div className="hero_container">
-                    <div className="text-block">
-                        <h1 className="hero_hero-text">Hello</h1>
+                    {/*<div style={{overflow: "hidden"}}>*/}
+                    <div className={"hero_title"} ref={heroTitleRef}>
+                        <h1 ref={bonRef} className="hero_title-part1">Bon</h1>
+                        <div className="hero_title-mask">
+                            <h1 ref={jourRef} className="hero_title-part2">jour</h1>
+                        </div>
                     </div>
+                    {/*</div>*/}
 
-                    <div className="hero_glowing-separator" />
+                    <div className="hero_glowing-separator" ref={dividerRef} />
 
-                    <div className="text-block">
-                        <h1 className="hero_text-small">I'm Jerry!</h1>
+                    <div style={{overflow: "hidden"}}>
+                        <h1 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h1>
                     </div>
                 </div>
 
                 <div className="text hero_about-container">
-                    <div className="text-block"><p className="hero_about">
+                    <div style={{overflow: "hidden"}}><p className="hero_line" ref={line1Ref}>
                         Hey there, I'm Jerry - a coding enthusiast residing in 🍁Canada🦫!
                     </p></div>
-                    <div className="text-block"><p className="hero_about">
-                        AI, machine learning, computer vision, networking, game engines.
+                    <div style={{overflow: "hidden"}}><p className="hero_line" ref={line2Ref}>
+                        AI, Deep learning, Computer vision, Networking, Game engines, Science.
                     </p></div>
                 </div>
 
-                <p className="hero_typing-text p-text">
+                <p className="hero_typing-text p-text" ref={typingTextRef}>
                     {headerText}<span id="caret" className={isBlinking ? "blink_anim" : ""}>|</span>
                 </p>
             </div>
             <div className="hero_shadow" />
         </>
     );
-};
+}
+;
