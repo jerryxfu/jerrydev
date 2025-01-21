@@ -41,7 +41,7 @@ export default function SkillCard({logo, title, description, score, url, chipTex
                 <p className="skillcard_description">{description}</p>
                 <LinearProgress variant="buffer" value={progress} valueBuffer={buffer} className="skillcard_progress" />
             </div>
-            <Chip className="skillcard_chip">{chipText}</Chip>
+            <Chip className="skillcard_chip" size={"sm"}>{chipText}</Chip>
         </div>
     );
 }

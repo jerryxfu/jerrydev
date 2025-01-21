@@ -152,7 +152,7 @@ export default function Hero() {
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
     // combine general and month-specific texts
-    const combinedTexts = useMemo(() => [...texts[0], ...texts[currentMonth]], [currentMonth]);
+    const combinedTexts = useMemo(() => [...(texts[0] || []), ...(texts[currentMonth] || [])], [currentMonth]);
 
     const [headerText, setHeaderText] = useState("");
     const [textIndex, setTextIndex] = useState(Math.floor(Math.random() * combinedTexts.length));
@@ -173,7 +173,7 @@ export default function Hero() {
         const typeText = () => {
             setIsBlinking(false);
             if (!isDeleting) {
-                setHeaderText((prev) => prev + combinedTexts[textIndex][charIndex]);
+                setHeaderText((prev) => prev + combinedTexts[textIndex]![charIndex]);
                 setCharIndex((prev) => prev + 1);
             } else {
                 setHeaderText((prev) => prev.slice(0, -1));
@@ -181,7 +181,7 @@ export default function Hero() {
             }
         };
 
-        if (!isDeleting && charIndex < combinedTexts[textIndex].length) {
+        if (!isDeleting && charIndex < combinedTexts[textIndex]!.length) {
             const timeout = setTimeout(typeText, 45); // typing delay
             return () => clearTimeout(timeout);
         } else if (isDeleting && charIndex > 0) {

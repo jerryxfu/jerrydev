@@ -1,19 +1,19 @@
 .skillcard {
     display: flex;
     align-items: center;
-    width: 256px;
-    padding: 12px;
+    width: 15rem;
+    padding: 0.20rem;
     border: 1px solid #dddddd;
     border-radius: 8px;
-    margin-bottom: 10px;
+    //margin-bottom: 10px;
     position: relative;
 }
 
 .skillcard_logo {
     object-fit: contain;
-    width: 60px;
-    height: 60px;
-    margin: 0 12px 0 0;
+    width: 48px;
+    height: 48px;
+    margin: 0 14px 0;
 }
 
 .skillcard_content {
@@ -27,8 +27,8 @@
 }
 
 .skillcard_progress {
-    width: 8rem;
-    margin: 6px 0;
+    width: 9rem;
+    margin: 5px 0;
 }
 
 .skillcard_chip {

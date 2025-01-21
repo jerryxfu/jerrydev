@@ -3,7 +3,6 @@ import useThemeSwitcher from "../../hooks/useThemeSwitcher";
 import "./Navbar.scss";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
-import {useAuth} from "../../context/AuthContext.tsx";
 import MenuIcon from "@mui/icons-material/Menu";
 import {Drawer, IconButton} from "@mui/joy";
 
@@ -66,7 +65,7 @@ export default function Navbar() {
 
             <button className="navbar_theme-button" style={{marginRight: "3rem"}} onClick={toggleTheme}>
                 <div className="navbar_theme-circle" />
-                <p className="text" style={{textTransform: "capitalize"}}>{currentTheme.toString().replace("-", " ")}</p>
+                <p className="text" style={{textTransform: "capitalize"}}>{currentTheme?.toString().replace("-", " ")}</p>
             </button>
 
             <Drawer

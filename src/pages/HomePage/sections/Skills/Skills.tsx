@@ -1,6 +1,6 @@
 import React from "react";
 import SectionTitle from "../../../../components/SectionTitle/SectionTitle.tsx";
-
+import "./Skills.scss";
 import _djs from "../../../../assets/tech_stack/djs.png";
 import _html from "../../../../assets/tech_stack/html.png";
 import _java from "../../../../assets/tech_stack/java.svg";
@@ -9,7 +9,6 @@ import _kotlin from "../../../../assets/tech_stack/kotlin.svg";
 import _python from "../../../../assets/tech_stack/python.png";
 import _pytorch from "../../../../assets/tech_stack/pytorch.png";
 import _react from "../../../../assets/tech_stack/react.svg";
-import _reactnative from "../../../assets/tech_stack/reactnative.svg";
 import _sass from "../../../../assets/tech_stack/sass.png";
 import _tensorflow from "../../../../assets/tech_stack/tensorflow.svg";
 import _wpilib from "../../../../assets/tech_stack/wpilib.png";
@@ -114,17 +113,19 @@ export default function Skills() {
         <div>
             <SectionTitle text={"Skills"} />
 
-            {tech_stack.map((tech, index) => (
-                <SkillCard
-                    key={index}
-                    logo={tech.iconUrl}
-                    title={tech.name}
-                    description={tech.description}
-                    score={tech.score}
-                    url={tech.url}
-                    chipText={"active"}
-                />
-            ))}
+            <div className="skills_list">
+                {tech_stack.map((tech, index) => (
+                    <SkillCard
+                        key={index}
+                        logo={tech.iconUrl}
+                        title={tech.name}
+                        description={tech.description}
+                        score={tech.score}
+                        url={tech.url}
+                        chipText={"active"}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
