@@ -1,5 +1,7 @@
 :root {
-    font-family: "Mulish", "Inter", "system-ui", "sans-serif";
+    font-family: "Outfit", "sans-serif", "system-ui";
+    font-style: normal;
+    font-optical-sizing: auto;
     line-height: 1.5;
     font-weight: 400;
     background-color: var(--bg-c);
@@ -102,7 +104,7 @@ p, h1, h2, h3, h4, h5, h6 {
 .p-text {
     font-size: 1.10rem;
     line-height: 1.5;
-    font-weight: 400;
+    font-weight: 350;
 
     color: var(--text-lt-c);
 }
@@ -111,6 +113,7 @@ p, h1, h2, h3, h4, h5, h6 {
     font-size: 1.18rem;
     line-height: 1.5;
     margin: 0;
+    font-weight: 400;
 
     color: var(--text-c);
 }
