@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
     const logout = async () => {
         try {
-            const res = await axios.post(api_base_url + "/auth/logout", {}, {withCredentials: true})
+            const res = await axios.post(api_base_url + "/auth/logout", {}, {withCredentials: true});
 
             console.log("Logout response:", res.status, res.data.isAuthenticated);
             switch (res.status) {

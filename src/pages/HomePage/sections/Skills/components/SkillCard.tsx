@@ -16,7 +16,7 @@ export default function SkillCard({logo, title, description, score, url, chipTex
 
     useMemo(() => {
         setProgress(score === 5 ? score * 20 - 10 : score * 20);
-    }, [score])
+    }, [score]);
 
     useEffect(() => {
         const updateBuffer = () => {
