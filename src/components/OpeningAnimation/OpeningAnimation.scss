@@ -4,32 +4,44 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 999;
+    z-index: 900;
     overflow: hidden;
 }
+
 
 .top-half,
 .bottom-half {
     position: absolute;
     width: 100%;
     height: 50%;
-    // total animation time: 1300ms
     animation: slideAway 1175ms forwards ease;
-    animation-delay: 125ms;
+    animation-delay: 1000ms;
 
     -moz-box-shadow: 0 0 16px 0 var(--border-da-c);
     -webkit-box-shadow: 0 0 16px 0 var(--border-da-c);
     box-shadow: 0 0 16px 0 var(--border-da-c);
 }
 
+.hello-text {
+    display: flex;
+    position: absolute;
+    z-index: 910;
+    font-size: 6rem;
+    color: white;
+    align-content: center;
+    opacity: 1;
+}
+
 .top-half {
     top: 0;
-    background-color: var(--primary-c);
+    //background-color: var(--primary-c);
+    background-color: black;
 }
 
 .bottom-half {
     bottom: 0;
-    background-color: var(--secondary-c);
+    //background-color: var(--secondary-c);
+    background-color: black;
 }
 
 @keyframes slideAway {

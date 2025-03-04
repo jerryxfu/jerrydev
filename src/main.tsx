@@ -11,6 +11,7 @@ import BdayPage from "./pages/BdayPage/BdayPage.tsx";
 import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
 import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
 import UnixPage from "./pages/UnixPage/UnixPage.tsx";
+import OpeningAnimation from "./components/OpeningAnimation/OpeningAnimation.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -29,6 +30,8 @@ const router = createBrowserRouter([
     {
         path: "/",
         element: <>
+            {/*{!dev && <OpeningAnimation />}*/}
+            <OpeningAnimation />
             <HomePage />
         </>
     },

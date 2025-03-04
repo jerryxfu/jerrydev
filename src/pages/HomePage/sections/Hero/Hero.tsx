@@ -209,34 +209,36 @@ export default function Hero() {
     useGSAP(() => {
         const tl = gsap.timeline();
 
+        const open_animation_delay = 1; // sec
+
         // Expand divider
         tl.to(dividerRef.current, {
             width: "130%",
             opacity: 1,
             ease: "nativeEase",
-            duration: 1.20
-        });
+            duration: 1.20,
+        }, open_animation_delay);
 
         // Slide up "Bon(jour)"
         tl.from([bonRef.current, jourRef.current], {
             yPercent: 100,
             ease: "nativeEase",
-            duration: 1.00
-        }, 0.50);
+            duration: 0.90
+        }, 0.25 + open_animation_delay);
 
         // Slide "Bon" to the left
         tl.from(heroTitleRef.current, {
             x: "17%",
             duration: 0.75,
             ease: "nativeEase"
-        }, 1.45);
+        }, 1.15 + open_animation_delay);
 
         // Slide in "jour" to the right (appear)
         tl.from([jourRef.current], {
             x: "-100%",
             duration: 0.75,
             ease: "nativeEase"
-        }, 1.45);
+        }, 1.15 + open_animation_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});
@@ -246,7 +248,7 @@ export default function Hero() {
             ease: "nativeEase",
             stagger: 0.02,
             duration: 0.75
-        }, 1.50);
+        }, 1.15 + open_animation_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const line1Split = new SplitType(line1Ref.current, {types: "words"});
@@ -261,7 +263,7 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 1.90);
+        }, 1.25 + open_animation_delay);
 
         tl.from(line2Split.words, {
             yPercent: 100,
@@ -270,13 +272,13 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 2.10);
+        }, 1.75 + open_animation_delay);
 
         tl.from(typingTextRef.current, {
             opacity: 0,
             ease: "nativeEase",
             duration: 1
-        }, 2.90);
+        }, 2.25 + open_animation_delay);
     });
 
     return (
