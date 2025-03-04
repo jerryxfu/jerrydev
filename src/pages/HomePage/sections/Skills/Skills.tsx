@@ -85,16 +85,7 @@ const tech_stack = [
         score: 4,
         url: "https://react.dev/"
     },
-    {name: "Sass/CSS", color: "#ffa6d2", iconUrl: _sass, score: 3, url: "https://sass-lang.com/"},
-    {name: "TensorFlow", color: "#ffe1a6", iconUrl: _tensorflow, score: 1, url: "https://www.tensorflow.org/"},
-    {
-        name: "WPILib",
-        color: "#ffa6af",
-        description: "First Robotics Competition (FRC)",
-        iconUrl: _wpilib,
-        score: 3,
-        url: "https://docs.wpilib.org/en/stable/"
-    }
+    {name: "Sass/CSS", color: "#ffa6d2", iconUrl: _sass, score: 3, url: "https://sass-lang.com/"}
 ];
 
 const dev_tools = [

@@ -1,11 +1,11 @@
 .hero {
     display: flex;
+    position: relative;
     flex-direction: column;
+    width: 100%;
     align-items: flex-start;
-    background-color: var(--hero-bg-c);
     justify-content: center;
     height: 100vh;
-    transition: background-color 0.75s;
 
     padding-left: 7%;
 
@@ -53,13 +53,11 @@
 }
 
 .hero_title-part1 {
-    color: inherit;
     font-size: inherit;
     font-weight: inherit;
 }
 
 .hero_title-part2 {
-    color: inherit;
     font-size: inherit;
     scale: 1; // gsap, do not remove
     display: inline-block;

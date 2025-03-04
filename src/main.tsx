@@ -23,7 +23,7 @@ gsap.defaults({
 
 export const dev = process.env.NODE_ENV === "development";
 
-export const api_base_url = dev ? `http://localhost:3001` : "https://api.jerrydev.net";
+export const api_base_url = dev ? `http://localhost:3001` : "https://api.jerryxf.net";
 
 const router = createBrowserRouter([
     {

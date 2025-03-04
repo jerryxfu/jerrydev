@@ -1,7 +1,8 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React from "react";
 import {Chip} from "@mui/joy";
-import {LinearProgress} from "@mui/material";
 import "./SkillCard.scss";
+import "../../../../../styles/gradient-mesh-javascript.scss";
+import "../../../../../styles/gradient-mesh-kotlin.scss";
 
 export default function SkillCard({logo, title, description, score, url, chipText}: {
     logo: string,
@@ -11,35 +12,16 @@ export default function SkillCard({logo, title, description, score, url, chipTex
     url: string
     chipText: string,
 }) {
-    const [progress, setProgress] = useState<number>(0);
-    const [buffer, setBuffer] = useState<number>(0);
-
-    useMemo(() => {
-        setProgress(score === 5 ? score * 20 - 10 : score * 20);
-    }, [score]);
-
-    useEffect(() => {
-        const updateBuffer = () => {
-            const minBuffer = progress + 8;
-            const maxBuffer = progress + 11;
-            const newBuffer = Math.random() * (maxBuffer - minBuffer) + minBuffer;
-            setBuffer(newBuffer);
-        };
-        updateBuffer();
-        const interval = setInterval(updateBuffer, 1350);
-
-        return () => clearInterval(interval);
-    }, [score]);
-
     return (
         <div className="skillcard">
+            <div className={`gradient-mesh-${title.toLowerCase().replace(" ", "-")}`} style={{zIndex: "-1", opacity: 0.35}} />
             <a href={url} target="_blank" rel="noopener noreferrer">
                 <img src={logo} alt={`${title} logo`} className="skillcard_logo" />
             </a>
             <div className="skillcard_content">
                 <h3 className="skillcard_title">{title}</h3>
                 <p className="skillcard_description">{description}</p>
-                <LinearProgress variant="buffer" value={progress} valueBuffer={buffer} className="skillcard_progress" />
+
             </div>
             <Chip className="skillcard_chip" size={"sm"}>{chipText}</Chip>
         </div>

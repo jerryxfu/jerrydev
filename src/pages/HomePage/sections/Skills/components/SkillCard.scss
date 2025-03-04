@@ -2,11 +2,12 @@
     display: flex;
     align-items: center;
     width: 15rem;
-    padding: 0.20rem;
+    //padding: 0.20rem;
     border: 1px solid #dddddd;
     border-radius: 8px;
     //margin-bottom: 10px;
     position: relative;
+    overflow: hidden;
 }
 
 .skillcard_logo {

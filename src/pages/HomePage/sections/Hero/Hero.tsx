@@ -1,6 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
+import "../../../../styles/gradient-mesh-default.scss";
+import "../../../../styles/gradient-mesh2.scss";
+import "../../../../styles/gradient-mesh-pink.scss";
+import "../../../../styles/gradient-mesh-cottoncandy.scss";
 
 import "./Hero.scss";
 import SplitType from "split-type";
@@ -207,7 +211,7 @@ export default function Hero() {
 
         // Expand divider
         tl.to(dividerRef.current, {
-            width: "120%",
+            width: "130%",
             opacity: 1,
             ease: "nativeEase",
             duration: 1.20
@@ -276,7 +280,8 @@ export default function Hero() {
     });
 
     return (
-        <>
+        <div style={{overflow: "hidden"}}>
+            <div className="gradient-mesh-default" />
             <div className="hero">
                 <div className="hero_container">
                     {/*<div style={{overflow: "hidden"}}>*/}
@@ -308,8 +313,8 @@ export default function Hero() {
                     {headerText}<span id="caret" className={isBlinking ? "blink_anim" : ""}>|</span>
                 </p>
             </div>
-            <div className="hero_shadow" />
-        </>
+            {/*<div className="hero_shadow" />*/}
+        </div>
     );
 }
-;
+
