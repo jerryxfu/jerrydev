@@ -17,9 +17,9 @@
     animation: slideAway 1175ms forwards ease;
     animation-delay: 1000ms;
 
-    -moz-box-shadow: 0 0 16px 0 var(--border-da-c);
-    -webkit-box-shadow: 0 0 16px 0 var(--border-da-c);
-    box-shadow: 0 0 16px 0 var(--border-da-c);
+    //-moz-box-shadow: 0 0 16px 0 var(--border-da-c);
+    //-webkit-box-shadow: 0 0 16px 0 var(--border-da-c);
+    //box-shadow: 0 0 16px 0 var(--border-da-c);
 }
 
 .hello-text {
@@ -27,6 +27,7 @@
     position: absolute;
     z-index: 910;
     font-size: 6rem;
+    //color: black;
     color: white;
     align-content: center;
     opacity: 1;

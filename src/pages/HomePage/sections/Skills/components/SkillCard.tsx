@@ -3,6 +3,7 @@ import {Chip} from "@mui/joy";
 import "./SkillCard.scss";
 import "../../../../../styles/gradient-mesh-javascript.scss";
 import "../../../../../styles/gradient-mesh-kotlin.scss";
+import "../../../../../assets/tech_stack/gradient-javascript.svg";
 
 export default function SkillCard({logo, title, description, score, url, chipText}: {
     logo: string,
@@ -12,9 +13,13 @@ export default function SkillCard({logo, title, description, score, url, chipTex
     url: string
     chipText: string,
 }) {
+    console.log(`../../../../../assets/tech_stack/gradient-${title.toLowerCase().replace(/[^A-Za-z0-9 ]/g, "-")}.svg`);
     return (
         <div className="skillcard">
-            <div className={`gradient-mesh-${title.toLowerCase().replace(" ", "-")}`} style={{zIndex: "-1", opacity: 0.35}} />
+            <img src={`../../../../../assets/tech_stack/gradient-${title.toLowerCase().replace(/[^A-Za-z0-9 ]/g, "-")}.svg`} alt={`${title} gradient`}
+                 className="skillcard_bg" />
+            {/*<img src="../../../../../assets/tech_stack/gradient-javascript.svg" alt={`${title} gradient`}*/}
+            {/*     className="skillcard_bg" />*/}
             <a href={url} target="_blank" rel="noopener noreferrer">
                 <img src={logo} alt={`${title} logo`} className="skillcard_logo" />
             </a>

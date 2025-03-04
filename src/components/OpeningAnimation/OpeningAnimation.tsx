@@ -19,23 +19,27 @@ export default function OpeningAnimation() {
     }, []);
 
     useGSAP(() => {
+        const animation_delay = 0.25;
+
         gsap.to([topRef.current, bottomRef.current], {
             backgroundColor: "white",
-            duration: 2
+            duration: 2,
+            delay: animation_delay
         });
         gsap.to(helloRef.current, {
             color: "black",
-            duration: 2
+            duration: 2,
+            delay: animation_delay
         });
         gsap.to([topRef.current, bottomRef.current], {
             opacity: 0,
             duration: 1,
-            delay: 1.175
+            delay: 0.75 + animation_delay
         });
-        gsap.to([helloContainerRef.current, helloRef.current], {
+        gsap.to([helloRef.current], {
             opacity: 0,
             duration: 0.35,
-            delay: 1.175
+            delay: 0.75 + animation_delay
         });
     });
 

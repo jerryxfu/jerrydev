@@ -24,26 +24,13 @@ import SkillCard from "./components/SkillCard.tsx";
 
 const tech_stack = [
     {
-        name: "DiscordJS",
-        color: "#a6adff",
-        iconUrl: _djs,
-        score: 4,
-        url: "https://discord.js.org/#/"
+        name: "DiscordJS", color: "#a6adff", iconUrl: _djs, score: 4, url: "https://discord.js.org/#/"
     },
     {
-        name: "HTML",
-        color: "#ffc1a6",
-        iconUrl: _html,
-        score: 4,
-        url: "https://html.spec.whatwg.org/"
+        name: "HTML", color: "#ffc1a6", iconUrl: _html, score: 4, url: "https://html.spec.whatwg.org/"
     },
     {
-        name: "Java",
-        color: "#a6eaff",
-        description: "Robots (WPILib), Minecraft Forge",
-        iconUrl: _java,
-        score: 5,
-        url: "https://www.java.com/en/"
+        name: "Java", color: "#a6eaff", description: "Robots (WPILib), Minecraft Forge", iconUrl: _java, score: 5, url: "https://www.java.com/en/"
     },
     {
         name: "JavaScript",
@@ -54,36 +41,16 @@ const tech_stack = [
         url: "https://developer.oracle.com/languages/javascript.html"
     },
     {
-        name: "Kotlin",
-        color: "#e6a6ff",
-        description: "Minecraft Forge",
-        iconUrl: _kotlin,
-        score: 1,
-        url: "https://kotlinlang.org/"
+        name: "Kotlin", color: "#e6a6ff", description: "Minecraft Forge", iconUrl: _kotlin, score: 1, url: "https://kotlinlang.org/"
     },
     {
-        name: "Python",
-        color: "#ffeda6",
-        description: "PyTorch, matplotlib",
-        iconUrl: _python,
-        score: 3,
-        url: "https://www.python.org/"
+        name: "Python", color: "#ffeda6", description: "PyTorch, matplotlib", iconUrl: _python, score: 3, url: "https://www.python.org/"
     },
     {
-        name: "PyTorch",
-        color: "#ffb5a6",
-        description: "Object detection",
-        iconUrl: _pytorch,
-        score: 3,
-        url: "https://pytorch.org/"
+        name: "PyTorch", color: "#ffb5a6", description: "Object detection", iconUrl: _pytorch, score: 3, url: "https://pytorch.org/"
     },
     {
-        name: "React",
-        color: "#a6edff",
-        description: "JS/TS, Vite, gsap, mui",
-        iconUrl: _react,
-        score: 4,
-        url: "https://react.dev/"
+        name: "React", color: "#a6edff", description: "JS/TS, Vite, gsap, mui", iconUrl: _react, score: 4, url: "https://react.dev/"
     },
     {name: "Sass/CSS", color: "#ffa6d2", iconUrl: _sass, score: 3, url: "https://sass-lang.com/"}
 ];
