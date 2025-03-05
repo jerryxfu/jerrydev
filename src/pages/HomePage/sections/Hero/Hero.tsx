@@ -209,36 +209,36 @@ export default function Hero() {
     useGSAP(() => {
         const tl = gsap.timeline();
 
-        const open_animation_delay = 1; // sec
+        const open_animation_delay = 1.5; // sec
 
         // Expand divider
         tl.to(dividerRef.current, {
             width: "130%",
             opacity: 1,
             ease: "nativeEase",
-            duration: 1.20,
+            duration: 0.85,
         }, open_animation_delay);
 
         // Slide up "Bon(jour)"
         tl.from([bonRef.current, jourRef.current], {
             yPercent: 100,
             ease: "nativeEase",
-            duration: 0.90
-        }, 0.25 + open_animation_delay);
+            duration: 0.85
+        }, 0.20 + open_animation_delay);
 
         // Slide "Bon" to the left
         tl.from(heroTitleRef.current, {
             x: "17%",
-            duration: 0.75,
+            duration: 0.70,
             ease: "nativeEase"
-        }, 1.15 + open_animation_delay);
+        }, 1.05 + open_animation_delay);
 
         // Slide in "jour" to the right (appear)
         tl.from([jourRef.current], {
             x: "-100%",
-            duration: 0.75,
+            duration: 0.70,
             ease: "nativeEase"
-        }, 1.15 + open_animation_delay);
+        }, 1.05 + open_animation_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});
@@ -278,7 +278,7 @@ export default function Hero() {
             opacity: 0,
             ease: "nativeEase",
             duration: 1
-        }, 2.25 + open_animation_delay);
+        }, 2.5 + open_animation_delay);
     });
 
     return (

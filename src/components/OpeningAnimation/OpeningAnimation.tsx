@@ -13,34 +13,48 @@ export default function OpeningAnimation() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsAnimationComplete(true);
-        }, 2500); // ms
+        }, 3000); // ms
 
         return () => clearTimeout(timer);
     }, []);
 
     useGSAP(() => {
-        const animation_delay = 0.25;
+        const tl = gsap.timeline();
 
-        gsap.to([topRef.current, bottomRef.current], {
+        tl.to([topRef.current, bottomRef.current], {
             backgroundColor: "white",
-            duration: 2,
-            delay: animation_delay
-        });
-        gsap.to(helloRef.current, {
+            ease: "power2.out",
+            duration: 2
+        }, 0.35);
+        tl.to(helloRef.current, {
             color: "black",
-            duration: 2,
-            delay: animation_delay
-        });
-        gsap.to([topRef.current, bottomRef.current], {
+            ease: "power2.out",
+            duration: 2
+        }, 0.35);
+        // slide away
+        tl.to([topRef.current, bottomRef.current], {
+            height: 0,
+            ease: "power1.out",
+            duration: 1
+        }, 1.50);
+        // opacity 0
+        tl.to([topRef.current, bottomRef.current], {
             opacity: 0,
+            ease: "power1.out",
+            duration: 1
+        }, 1.50);
+        // scale up
+        tl.to(helloRef.current, {
+            scale: 12,
             duration: 1,
-            delay: 0.75 + animation_delay
-        });
-        gsap.to([helloRef.current], {
+            ease: "nativeEase",
+        }, 1.50);
+        // opacity 0
+        tl.to(helloRef.current, {
             opacity: 0,
             duration: 0.35,
-            delay: 0.75 + animation_delay
-        });
+            ease: "power1.out",
+        }, 1.50);
     });
 
     if (isAnimationComplete) return null;
