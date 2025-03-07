@@ -8,6 +8,7 @@ import "../../../../styles/gradient-mesh-cottoncandy.scss";
 
 import "./Hero.scss";
 import SplitType from "split-type";
+import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
 
 const texts: { [key: number]: string[] } = {
     0: [
@@ -153,6 +154,9 @@ const texts: { [key: number]: string[] } = {
 };
 
 export default function Hero() {
+    const {currentTheme} = useThemeSwitcher();
+    const [theme, setTheme] = useState("default");
+
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
     // combine general and month-specific texts
@@ -255,7 +259,6 @@ export default function Hero() {
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const line2Split = new SplitType(line2Ref.current, {types: "words"});
 
-
         tl.from(line1Split.words, {
             yPercent: 100,
             y: 25,
@@ -281,9 +284,26 @@ export default function Hero() {
         }, 2.5 + open_animation_delay);
     });
 
+    useEffect(() => {
+        console.log("currentTheme: ", currentTheme);
+        switch (currentTheme) {
+            case "light":
+                setTheme("gradient-mesh-default");
+                break;
+            case "pink":
+                setTheme("gradient-mesh-pink");
+                break;
+            case "cottoncandy":
+                setTheme("gradient-mesh-cottoncandy");
+                break;
+            default:
+                setTheme("gradient-mesh-default");
+        }
+    }, [currentTheme]);
+
     return (
         <div style={{overflow: "hidden"}}>
-            <div className="gradient-mesh-default" />
+            <div className={theme} />
             <div className="hero">
                 <div className="hero_container">
                     {/*<div style={{overflow: "hidden"}}>*/}
@@ -319,4 +339,3 @@ export default function Hero() {
         </div>
     );
 }
-

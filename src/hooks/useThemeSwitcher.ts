@@ -1,7 +1,7 @@
 import {useState, useEffect} from "react";
 
 const useThemeSwitcher = () => {
-    const themes = ["light", "dark"]; // list of data-theme attribute names
+    const themes = ["light", "dark", "pink"]; // list of data-theme attribute names
     const defaultTheme = localStorage.getItem("themeName") || themes[0] || "light";
     const [currentTheme, setCurrentTheme] = useState<string>(defaultTheme);
 
