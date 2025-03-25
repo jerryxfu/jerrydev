@@ -68,9 +68,9 @@
     --accent-lt-c: rgba(76, 192, 134, 1);
     --accent-da-c: rgba(76, 192, 134, 1);
 
-    --bg-c: rgba(4, 8, 16, 1);
-    --bg-lt-c: rgba(4, 8, 16, 0.5);
-    --bg-da-c: rgba(4, 8, 16, 0.8);
+    --bg-c: rgba(16, 16, 16, 1);
+    --bg-lt-c: rgba(24, 24, 24, 1);
+    --bg-da-c: rgba(8, 8, 8, 1);
 
     --text-c: rgba(251, 250, 249, 1);
     --text-lt-c: rgba(252, 251, 250, 1);
@@ -97,9 +97,20 @@ body {
     padding: 0;
 }
 
+.section {
+    max-width: 100%;
+    padding: 1rem 3%;
+
+    @media screen and (max-width: 768px) {
+        padding: 1.2rem 2%;
+    }
+}
+
 p, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     color: var(--text-da-c);
+
+    transition: color 350ms;
 }
 
 .p-text {
@@ -108,6 +119,7 @@ p, h1, h2, h3, h4, h5, h6 {
     font-weight: 350;
 
     color: var(--text-lt-c);
+    transition: color 350ms;
 }
 
 .text {
@@ -117,6 +129,7 @@ p, h1, h2, h3, h4, h5, h6 {
     font-weight: 400;
 
     color: var(--text-c);
+    transition: color 350ms;
 }
 
 .text-underline {

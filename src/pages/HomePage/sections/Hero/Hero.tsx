@@ -1,13 +1,13 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
-import "../../../../styles/gradient-mesh-default.scss";
-import "../../../../styles/gradient-mesh2.scss";
-import "../../../../styles/gradient-mesh-pink.scss";
-import "../../../../styles/gradient-mesh-cottoncandy.scss";
+// import "../../../../assets/styles/gradient-mesh-default.scss";
+// import "../../../../assets/styles/gradient-mesh-celestial.scss";
 
 import "./Hero.scss";
 import SplitType from "split-type";
+import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
+import useParallax from "../../../../hooks/useParallax.ts";
 
 const texts: { [key: number]: string[] } = {
     0: [
@@ -153,7 +153,11 @@ const texts: { [key: number]: string[] } = {
 };
 
 export default function Hero() {
+    const {currentTheme} = useThemeSwitcher();
+    const [themeGradientClass, setThemeGradientClass] = useState("gradient-mesh-default");
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+
+    // useParallax(".hero_parallax-background", 0.5);
 
     // combine general and month-specific texts
     const combinedTexts = useMemo(() => [...(texts[0] || []), ...(texts[currentMonth] || [])], [currentMonth]);
@@ -172,6 +176,22 @@ export default function Hero() {
     const typingTextRef = useRef(null);
     const line1Ref = useRef(null);
     const line2Ref = useRef(null);
+
+    useEffect(() => {
+        switch (currentTheme) {
+            case "dark":
+                import("../../../../assets/styles/gradient-mesh-default.scss");
+                setThemeGradientClass("gradient-mesh-default");
+                break;
+            case "celestial":
+                import("../../../../assets/styles/gradient-mesh-celestial.scss");
+                setThemeGradientClass("gradient-mesh-celestial");
+                break;
+            default:
+                import("../../../../assets/styles/gradient-mesh-default.scss");
+                setThemeGradientClass("gradient-mesh-default");
+        }
+    }, [currentTheme]);
 
     useEffect(() => {
         const typeText = () => {
@@ -283,7 +303,8 @@ export default function Hero() {
 
     return (
         <div style={{overflow: "hidden"}}>
-            <div className="gradient-mesh-default" />
+            <div className={themeGradientClass + " hero_parallax-background"} />
+            {/*<div className="gradient-mesh-default" />*/}
             <div className="hero">
                 <div className="hero_container">
                     {/*<div style={{overflow: "hidden"}}>*/}

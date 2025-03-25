@@ -1,4 +1,5 @@
 import React from "react";
+import "./HomePage.scss";
 import Navbar from "../../components/Navbar/Navbar.tsx";
 import Hero from "./sections/Hero/Hero.tsx";
 import About from "./sections/About/About.tsx";
@@ -9,7 +10,7 @@ import Footer from "../../components/Footer/Footer.tsx";
 
 export default function HomePage() {
     return (
-        <div>
+        <div className="homepage">
             <Navbar />
             <Hero />
             <About />

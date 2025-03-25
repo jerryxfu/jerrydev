@@ -1,0 +1,46 @@
+.contact {
+}
+
+.contact_container {
+    display: flex;
+    flex-direction: row;
+}
+
+.contact_media-container, .contact_right-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+}
+
+.contact_media-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact_media-list {
+    display: flex;
+    flex-direction: row;
+
+}
+
+.contact_right-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact_info-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact_cv {
+    display: flex;
+    flex-direction: column;
+}

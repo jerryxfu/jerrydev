@@ -5,7 +5,7 @@ import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 import MenuIcon from "@mui/icons-material/Menu";
 import {Drawer, IconButton} from "@mui/joy";
-import "../../styles/gradient-mesh-default.scss";
+import "../../assets/styles/gradient-mesh-default.scss";
 
 export default function Navbar() {
     // const {isAuthenticated, logout} = useAuth();
@@ -24,10 +24,10 @@ export default function Navbar() {
     });
 
     const internalLinks = [
-        {href: "#home", label: "Home"},
+        {href: "#", label: "Home"},
         {href: "#skills", label: "Skills"},
         {href: "#experience", label: "Experience"},
-        {href: "contact", label: "Contact"},
+        {href: "#contact-me", label: "Contact"},
         {href: "#projects", label: "Projects"}
     ];
 
