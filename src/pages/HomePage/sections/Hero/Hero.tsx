@@ -180,8 +180,8 @@ export default function Hero() {
     useEffect(() => {
         switch (currentTheme) {
             case "dark":
-                import("../../../../assets/styles/gradient-mesh-default.scss");
-                setThemeGradientClass("gradient-mesh-default");
+                import("../../../../assets/styles/gradient-mesh-dark.scss");
+                setThemeGradientClass("gradient-mesh-dark");
                 break;
             case "celestial":
                 import("../../../../assets/styles/gradient-mesh-celestial.scss");
@@ -190,6 +190,7 @@ export default function Hero() {
             default:
                 import("../../../../assets/styles/gradient-mesh-default.scss");
                 setThemeGradientClass("gradient-mesh-default");
+                break;
         }
     }, [currentTheme]);
 

@@ -12,6 +12,7 @@ import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
 import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
 import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 import OpeningAnimation from "./components/OpeningAnimation/OpeningAnimation.tsx";
+import {ThemeProvider} from "./context/ThemeContext.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -67,7 +68,9 @@ const root = createRoot(rootElement!);
 root.render(
     <StrictMode>
         {/*<AuthProvider>*/}
-        <RouterProvider router={router} />
+        <ThemeProvider>
+            <RouterProvider router={router} />
+        </ThemeProvider>
         {/*</AuthProvider>*/}
     </StrictMode>
 );

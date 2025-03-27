@@ -1,9 +1,6 @@
 import React from "react";
 import {Chip} from "@mui/joy";
 import "./ContactCard.scss";
-import "../../../../../assets/styles/gradient-mesh-javascript.scss";
-import "../../../../../assets/styles/gradient-mesh-kotlin.scss";
-import "../../../../../assets/tech_stack/gradient-javascript.svg";
 
 export default function ContactCard({title, username, image, url, chipText, color}: {
     title: string,

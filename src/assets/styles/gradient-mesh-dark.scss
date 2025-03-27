@@ -1,230 +1,230 @@
-@keyframes gradient-animation-default {
+@keyframes hero-gradient-dark {
     0% {
-        --c-0: hsla(246, 80%, 66%, 1);
-        --x-0: 55%;
-        --y-0: 56%;
-        --s-start-0: 10%;
-        --s-end-0: 71%;
-        --c-1: hsla(295, 84%, 96%, 1);
-        --x-1: 77%;
-        --y-1: 95%;
-        --s-start-1: 11%;
-        --s-end-1: 54%;
-        --c-2: hsla(250, 92%, 76%, 1);
-        --x-2: 39%;
-        --y-2: 37%;
-        --s-start-2: 12%;
-        --s-end-2: 72%;
-        --c-3: hsla(216, 52%, 64%, 1);
-        --x-3: 29%;
-        --y-3: 60%;
-        --s-start-3: 0%;
-        --s-end-3: 87%;
-        --c-4: hsla(315, 77%, 53%, 1);
-        --x-4: 61%;
-        --y-4: 2%;
-        --s-start-4: 5%;
-        --s-end-4: 74%;
+        --c-0: hsla(247, 24%, 20%, 1);
+        --x-0: 49%;
+        --y-0: 80%;
+        --s-start-0: 11%;
+        --s-end-0: 76%;
+        --c-1: hsla(227, 0%, 10%, 1);
+        --x-1: 42%;
+        --y-1: 65%;
+        --s-start-1: 8%;
+        --s-end-1: 65%;
+        --c-2: hsla(234, 16%, 8%, 1);
+        --x-2: 81%;
+        --y-2: 68%;
+        --s-start-2: 20%;
+        --s-end-2: 65%;
+        --c-3: hsla(256, 15%, 25%, 1);
+        --x-3: 62%;
+        --y-3: 0%;
+        --s-start-3: 17%;
+        --s-end-3: 84%;
+        --c-4: hsla(227, 2%, 22%, 1);
+        --x-4: 46%;
+        --y-4: 66%;
+        --s-start-4: 14%;
+        --s-end-4: 75%;
     }
 
     100% {
-        --c-0: hsla(223, 71%, 91%, 1);
-        --x-0: 76%;
-        --y-0: 100%;
-        --s-start-0: 8%;
-        --s-end-0: 74%;
-        --c-1: hsla(351, 99%, 75%, 1);
-        --x-1: 46%;
-        --y-1: 38%;
-        --s-start-1: 17%;
-        --s-end-1: 73%;
-        --c-2: hsla(330, 68%, 74%, 1);
-        --x-2: 2%;
-        --y-2: 5%;
-        --s-start-2: 9%;
-        --s-end-2: 81%;
-        --c-3: hsla(244, 71%, 100%, 1);
-        --x-3: 19%;
-        --y-3: 48%;
-        --s-start-3: 5%;
-        --s-end-3: 79%;
-        --c-4: hsla(242, 51%, 62%, 1);
-        --x-4: 40%;
-        --y-4: 91%;
-        --s-start-4: 6%;
-        --s-end-4: 78%;
+        --c-0: hsla(240, 5%, 13%, 1);
+        --x-0: 70%;
+        --y-0: 62%;
+        --s-start-0: 0%;
+        --s-end-0: 69%;
+        --c-1: hsla(227, 25%, 21%, 1);
+        --x-1: 81%;
+        --y-1: 77%;
+        --s-start-1: 8%;
+        --s-end-1: 83%;
+        --c-2: hsla(252, 8%, 2%, 1);
+        --x-2: 54%;
+        --y-2: 63%;
+        --s-start-2: 12%;
+        --s-end-2: 57%;
+        --c-3: hsla(233, 18%, 11%, 1);
+        --x-3: 72%;
+        --y-3: 21%;
+        --s-start-3: 13%;
+        --s-end-3: 81%;
+        --c-4: hsla(228, 21%, 8%, 1);
+        --x-4: 56%;
+        --y-4: 79%;
+        --s-start-4: 3%;
+        --s-end-4: 87%;
     }
 }
 
 @property --c-0 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(246, 80%, 66%, 1)
+    initial-value: hsla(247, 24%, 20%, 1)
 }
 
 @property --x-0 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 55%
+    initial-value: 49%
 }
 
 @property --y-0 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 56%
+    initial-value: 80%
 }
 
 @property --s-start-0 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 10%
+    initial-value: 11%
 }
 
 @property --s-end-0 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 71%
+    initial-value: 76%
 }
 
 @property --c-1 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(295, 84%, 96%, 1)
+    initial-value: hsla(227, 0%, 10%, 1)
 }
 
 @property --x-1 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 77%
+    initial-value: 42%
 }
 
 @property --y-1 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 95%
+    initial-value: 65%
 }
 
 @property --s-start-1 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 11%
+    initial-value: 8%
 }
 
 @property --s-end-1 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 54%
+    initial-value: 65%
 }
 
 @property --c-2 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(250, 92%, 76%, 1)
+    initial-value: hsla(234, 16%, 8%, 1)
 }
 
 @property --x-2 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 39%
+    initial-value: 81%
 }
 
 @property --y-2 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 37%
+    initial-value: 68%
 }
 
 @property --s-start-2 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 12%
+    initial-value: 20%
 }
 
 @property --s-end-2 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 72%
+    initial-value: 65%
 }
 
 @property --c-3 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(216, 52%, 64%, 1)
+    initial-value: hsla(256, 15%, 25%, 1)
 }
 
 @property --x-3 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 29%
+    initial-value: 62%
 }
 
 @property --y-3 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 60%
+    initial-value: 0%
 }
 
 @property --s-start-3 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 0%
+    initial-value: 17%
 }
 
 @property --s-end-3 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 87%
+    initial-value: 84%
 }
 
 @property --c-4 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(315, 77%, 53%, 1)
+    initial-value: hsla(227, 2%, 22%, 1)
 }
 
 @property --x-4 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 61%
+    initial-value: 46%
 }
 
 @property --y-4 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 2%
+    initial-value: 66%
 }
 
 @property --s-start-4 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 5%
+    initial-value: 14%
 }
 
 @property --s-end-4 {
     syntax: "<percentage>";
     inherits: false;
-    initial-value: 74%
+    initial-value: 75%
 }
 
-.gradient-mesh-default {
-    --c-0: hsla(246, 80%, 66%, 1);
-    --x-0: 55%;
-    --y-0: 56%;
-    --c-1: hsla(295, 84%, 96%, 1);
-    --x-1: 77%;
-    --y-1: 95%;
-    --c-2: hsla(250, 92%, 76%, 1);
-    --x-2: 39%;
-    --y-2: 37%;
-    --c-3: hsla(216, 52%, 64%, 1);
-    --x-3: 29%;
-    --y-3: 60%;
-    --c-4: hsla(315, 77%, 53%, 1);
-    --x-4: 61%;
-    --y-4: 2%;
-    background-color: hsla(314, 100%, 76%, 1);
+.gradient-mesh-dark {
+    --c-0: hsla(247, 24%, 20%, 1);
+    --x-0: 49%;
+    --y-0: 80%;
+    --c-1: hsla(227, 0%, 10%, 1);
+    --x-1: 42%;
+    --y-1: 65%;
+    --c-2: hsla(234, 16%, 8%, 1);
+    --x-2: 81%;
+    --y-2: 68%;
+    --c-3: hsla(256, 15%, 25%, 1);
+    --x-3: 62%;
+    --y-3: 0%;
+    --c-4: hsla(227, 2%, 22%, 1);
+    --x-4: 46%;
+    --y-4: 66%;;
+    background-color: hsla(245, 29%, 5%, 1);
     background-image: radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)), radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)), radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)), radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3)), radial-gradient(circle at var(--x-4) var(--y-4), var(--c-4) var(--s-start-4), transparent var(--s-end-4));
-    animation: gradient-animation-default 8s linear infinite alternate;
+    animation: hero-gradient-dark 10s linear infinite alternate;
     background-blend-mode: normal, normal, normal, normal, normal;
     position: absolute;
     width: 100%;

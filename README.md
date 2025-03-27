@@ -5,6 +5,7 @@ This is the repository for my personal website, [jerrydev.net](https://jerrydev.
 ### Useful development resources
 
 - Color palette generator: [https://mycolor.space/](https://mycolor.space/)
+- Mesh gradient generator: [https://csshero.org/mesherv2/](https://csshero.org/mesherv2/)
 
 <br>
 

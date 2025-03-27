@@ -28,6 +28,13 @@
 
 }
 
+.contact_list-element {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
 .contact_right-container {
     display: flex;
     flex-direction: column;
@@ -38,6 +45,8 @@
 .contact_info-container {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .contact_cv {
