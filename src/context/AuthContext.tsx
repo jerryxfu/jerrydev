@@ -1,6 +1,6 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from "react";
 import axios from "axios";
-import Snackbar from '@mui/joy/Snackbar';
+import Snackbar from "@mui/joy/Snackbar";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 
@@ -20,7 +20,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [logOutsnackbar, setLogOutsnackbar] = useState(false);
+    const [logOutSnackbar, setlogOutSnackbar] = useState(false);
     const [authInternalServerError, setAuthInternalServerError] = useState(false);
     const [errorVerifyingAuthSnackbar, setErrorVerifyingAuthSnackbar] = useState(false);
     const [authUnauthorizedSnackbar, setAuthUnauthorizedSnackbar] = useState(false);
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
             setIsAuthenticated(res.data.isAuthenticated || false);
             return res.data.isAuthenticated;
-        } catch (error) {
+        } catch (err) {
             setIsAuthenticated(false);
             setErrorVerifyingAuthSnackbar(true);
             return false;
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
             }
 
             setIsAuthenticated(false);
-            setLogOutsnackbar(true);
+            setlogOutSnackbar(true);
         } catch (error) {
             console.error("Logout failed", error);
             setAuthInternalServerError(true);
@@ -91,12 +91,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
         <AuthContext.Provider value={{isAuthenticated, checkAuthStatus, logout}}>
             {children}
             <Snackbar
-                open={logOutsnackbar}
+                open={logOutSnackbar}
                 anchorOrigin={{vertical: "top", horizontal: "center"}}
                 color="success"
                 variant="soft"
                 size="lg"
-                onClose={() => setLogOutsnackbar(false)}
+                onClose={() => setlogOutSnackbar(false)}
                 autoHideDuration={5000}
                 endDecorator={<LogoutRoundedIcon />}
             >

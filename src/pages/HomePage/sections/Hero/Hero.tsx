@@ -3,11 +3,9 @@ import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 // import "../../../../assets/styles/gradient-mesh-default.scss";
 // import "../../../../assets/styles/gradient-mesh-celestial.scss";
-
 import "./Hero.scss";
 import SplitType from "split-type";
 import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
-import useParallax from "../../../../hooks/useParallax.ts";
 
 const texts: { [key: number]: string[] } = {
     0: [

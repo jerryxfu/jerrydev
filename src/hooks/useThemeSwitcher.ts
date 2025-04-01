@@ -1,7 +1,11 @@
 import {useTheme} from "../context/ThemeContext";
 
 const useThemeSwitcher = () => {
-    const {currentTheme, toggleTheme} = useTheme();
+    const themeContext = useTheme();
+    if (!themeContext) {
+        throw new Error("useThemeSwitcher must be used within a ThemeProvider");
+    }
+    const {currentTheme, toggleTheme} = themeContext;
     return {currentTheme, toggleTheme};
 };
 

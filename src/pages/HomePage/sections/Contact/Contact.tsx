@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import "./Contact.scss";
 import SectionTitle from "../../../../components/SectionTitle/SectionTitle.tsx";
 import SubTitle from "../../../../components/SubTitle/SubTitle.tsx";
@@ -19,9 +19,18 @@ const medias = [
 
 export default function Contact() {
     const {currentTheme} = useThemeSwitcher();
+    const [themedMedias, setThemedMedias] = useState(medias);
+
+    const updateMediaImage = (mediaName: string, newImage: string) => {
+        setThemedMedias((prevMedias) =>
+            prevMedias.map((media) =>
+                media.title === mediaName ? {...media, image: newImage} : media
+            )
+        );
+    };
 
     useEffect(() => {
-        medias[0]!.image = currentTheme === "light" ? _snapchat_da : _snapchat_lt;
+        updateMediaImage("Snapchat", currentTheme === "light" ? _snapchat_lt : _snapchat_da);
     }, [currentTheme]);
 
     return (
@@ -32,7 +41,7 @@ export default function Contact() {
                 <div className="contact_media-container">
                     <SubTitle text={"Social media"} />
                     <div className="contact_media-list">
-                        {medias.map((media) => (
+                        {themedMedias.map((media) => (
                             <ContactCard
                                 title={media.title}
                                 username={media.username}
@@ -40,6 +49,7 @@ export default function Contact() {
                                 url={media.url}
                                 chipText={media.chipText}
                                 color={media.color}
+                                key={media.title.toLowerCase().replace(" ", "-")}
                             />
                         ))}
                     </div>
@@ -54,7 +64,7 @@ export default function Contact() {
                             </li>
                             <li className="contact_list-element">
                                 <Phone />
-                                <a href="tel:+15146361234">redacted</a>
+                                <a href="tel:+14380000000">redacted</a>
                             </li>
                         </ul>
                     </div>
