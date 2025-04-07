@@ -3,7 +3,7 @@ import React, {createContext, useContext, useState, useEffect} from "react";
 const ThemeContext = createContext<{ currentTheme: string; toggleTheme: () => void } | null>(null);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
-    const themes = ["light", "dark"];
+    const themes = ["light", "dark", "celestial"];
     const defaultTheme = localStorage.getItem("themeName") || themes[0] || "light";
     const [currentTheme, setCurrentTheme] = useState<string>(defaultTheme);
 

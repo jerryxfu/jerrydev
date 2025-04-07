@@ -2,8 +2,8 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     z-index: 900;
     overflow: hidden;
 }
@@ -11,8 +11,13 @@
 .top-half,
 .bottom-half {
     position: absolute;
-    width: 100%;
     height: 50%;
+    width: 100%;
+
+    @media screen and (max-width: 768px) {
+        height: 100%;
+        width: 50%;
+    }
 }
 
 .hello-text {
@@ -20,33 +25,25 @@
     position: absolute;
     z-index: 910;
     font-size: 6rem;
-    color: white;
+    color: black;
     align-content: center;
     opacity: 1;
 }
 
 .top-half {
     top: 0;
-    background-color: black;
+    background-color: white;
+
+    @media screen and (max-width: 768px) {
+        left: 0;
+    }
 }
 
 .bottom-half {
     bottom: 0;
-    background-color: black;
-}
+    background-color: white;
 
-@media screen and (max-width: 768px) {
-    .top-half,
-    .bottom-half {
-        height: 100%;
-        width: 50%;
-    }
-
-    .top-half {
-        left: 0;
-    }
-
-    .bottom-half {
+    @media screen and (max-width: 768px) {
         right: 0;
     }
 }

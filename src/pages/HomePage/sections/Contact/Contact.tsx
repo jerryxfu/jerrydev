@@ -8,13 +8,16 @@ import _discord from "../../../../assets/socials/discord_mark.svg";
 import _instagram from "../../../../assets/socials/instagram_mark.svg";
 import _snapchat_lt from "../../../../assets/socials/snapchat_light.png";
 import _snapchat_da from "../../../../assets/socials/snapchat_dark.png";
+import _github_lt from "../../../../assets/dev_tools/github.svg";
+import _github_da from "../../../../assets/dev_tools/github_white.svg";
 import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, Phone} from "@mui/icons-material";
 
 const medias = [
     {title: "Snapchat", username: "redacted", image: "", url: "", chipText: "private", color: ""},
-    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "", chipText: "media", color: "#ffb5a622"},
-    {title: "Discord", username: "@jerrydev", image: _discord, url: "", chipText: "public", color: "#e6a6ff22"},
+    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a622"},
+    {title: "Discord", username: "@jerrydev", image: _discord, url: "https://discord.com/users/[user id]", chipText: "public", color: "#e6a6ff22"},
+    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "</>", color: "#ffffff22"},
 ];
 
 export default function Contact() {
@@ -31,6 +34,7 @@ export default function Contact() {
 
     useEffect(() => {
         updateMediaImage("Snapchat", currentTheme === "light" ? _snapchat_lt : _snapchat_da);
+        updateMediaImage("Github", currentTheme === "light" ? _github_lt : _github_da);
     }, [currentTheme]);
 
     return (

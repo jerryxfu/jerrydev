@@ -228,7 +228,7 @@ export default function Hero() {
     useGSAP(() => {
         const tl = gsap.timeline();
 
-        const open_animation_delay = 1.5; // sec
+        const open_animation_delay = 0.25; // sec
 
         // Expand divider
         tl.to(dividerRef.current, {
