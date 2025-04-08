@@ -33,8 +33,8 @@ export default function Contact() {
     };
 
     useEffect(() => {
-        updateMediaImage("Snapchat", currentTheme === "light" ? _snapchat_lt : _snapchat_da);
-        updateMediaImage("Github", currentTheme === "light" ? _github_lt : _github_da);
+        updateMediaImage("Snapchat", currentTheme === "dark" ? _snapchat_da : _snapchat_lt);
+        updateMediaImage("Github", currentTheme === "dark" ? _github_da : _github_lt);
     }, [currentTheme]);
 
     return (
@@ -63,11 +63,11 @@ export default function Contact() {
                         <SubTitle text={"Get in touch"} />
                         <ul style={{paddingLeft: 0}}>
                             <li className="contact_list-element">
-                                <AlternateEmailRounded />
+                                <AlternateEmailRounded sx={{marginRight: "0.20rem"}} />
                                 <a href="mailto:jerryfu_mc@outlook.com">jerryfu_mc@outlook.com</a>
                             </li>
                             <li className="contact_list-element">
-                                <Phone />
+                                <Phone sx={{marginRight: "0.20rem"}} />
                                 <a href="tel:+14380000000">redacted</a>
                             </li>
                         </ul>
