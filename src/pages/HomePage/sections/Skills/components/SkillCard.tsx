@@ -13,11 +13,11 @@ export default function SkillCard({image, title, description, score, chipText, u
 }) {
     return (
         <div className="skillcard" style={{backgroundColor: color || "initial"}}>
-            <a href={url || "/"} target="_blank" rel="noopener noreferrer">
-                <img src={image} alt={`${title} icon`} className="skillcard_image" />
+            <a className="skillcard_image" href={url || "/"} target="_blank" rel="noopener noreferrer">
+                <img src={image} alt={`${title} icon`} />
             </a>
             <div className="skillcard_content">
-                <h3 className="skillcard_title">{title}</h3>
+                <h3>{title}</h3>
                 <p className="skillcard_description">{description}</p>
 
             </div>

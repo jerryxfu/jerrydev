@@ -1,8 +1,14 @@
 .skills {
 }
 
-.skills_list {
+.skills_grid {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
+    justify-content: flex-start;
+
+    @media screen and (max-width: 768px) {
+        justify-content: center;
+        //align-items: center;
+    }
 }

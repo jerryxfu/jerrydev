@@ -1,7 +1,6 @@
 import React, {StrictMode} from "react";
 import {createRoot} from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
-
 import gsap from "gsap";
 import {CustomEase, ScrollTrigger, TextPlugin} from "gsap/all";
 

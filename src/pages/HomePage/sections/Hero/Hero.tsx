@@ -1,8 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
-// import "../../../../assets/styles/gradient-mesh-default.scss";
-// import "../../../../assets/styles/gradient-mesh-celestial.scss";
 import "./Hero.scss";
 import SplitType from "split-type";
 import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
@@ -177,9 +175,9 @@ export default function Hero() {
 
     useEffect(() => {
         switch (currentTheme) {
-            case "dark":
-                import("../../../../assets/styles/gradient-mesh-dark.scss");
-                setThemeGradientClass("gradient-mesh-dark");
+            case "night":
+                import("../../../../assets/styles/gradient-mesh-night.scss");
+                setThemeGradientClass("gradient-mesh-night");
                 break;
             case "celestial":
                 import("../../../../assets/styles/gradient-mesh-celestial.scss");

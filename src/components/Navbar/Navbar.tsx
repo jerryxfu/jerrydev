@@ -5,7 +5,6 @@ import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 import MenuIcon from "@mui/icons-material/Menu";
 import {Drawer, IconButton} from "@mui/joy";
-import "../../assets/styles/gradient-mesh-default.scss";
 
 export default function Navbar() {
     // const {isAuthenticated, logout} = useAuth();
@@ -16,10 +15,9 @@ export default function Navbar() {
 
     useGSAP(() => {
         gsap.from(navbarRef.current, {
-            height: "36px",
+            height: "32px",
             ease: "nativeEase",
-            duration: 0.8,
-            delay: 0.5
+            duration: 1.5,
         });
     });
 
@@ -37,7 +35,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="navbar">
+            <nav className="navbar" ref={navbarRef}>
                 <a className="navbar_icon" href="/"><img src="/favicon.png" alt="jerrydev sunset sky with moon icon" /></a>
                 <div className="navbar_menu-button">
                     <IconButton variant="outlined" color="neutral" onClick={() => setIsDrawerOpen(true)}>

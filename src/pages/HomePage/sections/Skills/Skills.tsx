@@ -102,7 +102,7 @@ export default function Skills() {
         <div className="section skills">
             <SectionTitle text={"Skills"} />
 
-            <div className="skills_list">
+            <div className="skills_grid">
                 {tech_stack.map((tech, index) => (
                     <SkillCard
                         key={index}

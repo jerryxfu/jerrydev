@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react";
 import "./Contact.scss";
 import SectionTitle from "../../../../components/SectionTitle/SectionTitle.tsx";
 import SubTitle from "../../../../components/SubTitle/SubTitle.tsx";
+// @ts-ignore
+import baffle from "baffle";
 import ContactCard from "./components/ContactCard.tsx";
 
 import _discord from "../../../../assets/socials/discord_mark.svg";
@@ -14,7 +16,7 @@ import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, Phone} from "@mui/icons-material";
 
 const medias = [
-    {title: "Snapchat", username: "redacted", image: "", url: "", chipText: "private", color: ""},
+    {title: "Snapchat", username: <span className="obfuscate-str">jerryxfu</span>, image: "", url: "", chipText: "private", color: ""},
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a622"},
     {title: "Discord", username: "@jerrydev", image: _discord, url: "https://discord.com/users/[user id]", chipText: "public", color: "#e6a6ff22"},
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "</>", color: "#ffffff22"},
@@ -33,9 +35,22 @@ export default function Contact() {
     };
 
     useEffect(() => {
-        updateMediaImage("Snapchat", currentTheme === "dark" ? _snapchat_da : _snapchat_lt);
-        updateMediaImage("Github", currentTheme === "dark" ? _github_da : _github_lt);
+        updateMediaImage("Snapchat", currentTheme === "night" ? _snapchat_da : _snapchat_lt);
+        updateMediaImage("Github", currentTheme === "night" ? _github_da : _github_lt);
     }, [currentTheme]);
+
+    const baffle_num = baffle(".obfuscate-num", {
+        characters: "0123456789#",
+        speed: 11,
+    });
+
+    const baffle_str = baffle(".obfuscate-str", {
+        characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!._-()",
+        speed: 11,
+    });
+
+    baffle_num.start();
+    baffle_str.start();
 
     return (
         <div className="section contact">
@@ -44,7 +59,7 @@ export default function Contact() {
             <div className="contact_container">
                 <div className="contact_media-container">
                     <SubTitle text={"Social media"} />
-                    <div className="contact_media-list">
+                    <div className="contact_media-grid">
                         {themedMedias.map((media) => (
                             <ContactCard
                                 title={media.title}
@@ -58,7 +73,7 @@ export default function Contact() {
                         ))}
                     </div>
                 </div>
-                <div className="contact_right-container">
+                <div className="contact_media-container">
                     <div className="contact_info-container">
                         <SubTitle text={"Get in touch"} />
                         <ul style={{paddingLeft: 0}}>
@@ -68,7 +83,8 @@ export default function Contact() {
                             </li>
                             <li className="contact_list-element">
                                 <Phone sx={{marginRight: "0.20rem"}} />
-                                <a href="tel:+14380000000">redacted</a>
+                                <a href="tel:+10000000000">+1 (<span className="obfuscate-num">000</span>) <span className="obfuscate-num">000</span>
+                                    -<span className="obfuscate-num">0000</span></a>
                             </li>
                         </ul>
                     </div>
