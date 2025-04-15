@@ -16,7 +16,14 @@ import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, Phone} from "@mui/icons-material";
 
 const medias = [
-    {title: "Snapchat", username: <span className="obfuscate-str">jerryxfu</span>, image: "", url: "", chipText: "private", color: ""},
+    {
+        title: "Snapchat",
+        username: <span className="obfuscate-str contact_obfuscated">jerryxfu</span>,
+        image: "",
+        url: "",
+        chipText: "private",
+        color: ""
+    },
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a622"},
     {title: "Discord", username: "@jerrydev", image: _discord, url: "https://discord.com/users/[user id]", chipText: "public", color: "#e6a6ff22"},
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "</>", color: "#ffffff22"},
@@ -41,12 +48,12 @@ export default function Contact() {
 
     const baffle_num = baffle(".obfuscate-num", {
         characters: "0123456789#",
-        speed: 11,
+        speed: 12,
     });
 
     const baffle_str = baffle(".obfuscate-str", {
         characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!._-()",
-        speed: 11,
+        speed: 12,
     });
 
     baffle_num.start();

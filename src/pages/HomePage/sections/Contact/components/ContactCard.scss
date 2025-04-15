@@ -8,7 +8,7 @@
     border: 1px solid #dddddd;
     border-radius: 8px;
     //margin-bottom: 10px;
-    margin: 1rem;
+    margin: 0.9rem;
     position: relative;
     overflow: hidden;
 
@@ -21,8 +21,8 @@
 
 .contactcard_image {
     object-fit: contain;
-    width: auto;
-    height: 68%;
+    width: 64px;
+    height: 64px;
     margin: 0 10px 0;
 
     img {
@@ -32,8 +32,9 @@
     }
 
     @media screen and (max-width: 768px) {
-        width: 3rem;
-        margin: 0 5px 0;
+        width: 48px;
+        height: 48px;
+        margin: 0 10px 0 5px;
     }
 }
 

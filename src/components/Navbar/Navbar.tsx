@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import useThemeSwitcher from "../../hooks/useThemeSwitcher";
 import "./Navbar.scss";
 import {gsap} from "gsap";
@@ -10,16 +10,52 @@ export default function Navbar() {
     // const {isAuthenticated, logout} = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const {currentTheme, toggleTheme} = useThemeSwitcher();
+    const [isShrunk, setIsShrunk] = useState(false);
 
     const navbarRef = useRef(null);
 
     useGSAP(() => {
+        const opening_delay = 1.2;
+
         gsap.from(navbarRef.current, {
-            height: "32px",
-            ease: "nativeEase",
-            duration: 1.5,
+            y: "-100%",
+            ease: "power2.out",
+            duration: 1.35,
+            delay: opening_delay,
+        });
+
+        gsap.from([".navbar_link"], {
+            easing: "nativeEase",
+            opacity: 0,
+            y: "-125%",
+            delay: opening_delay + 0.15,
+            stagger: 0.06,
+            duration: 1,
         });
     });
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const shouldShrink = window.scrollY > 50;
+
+            if (shouldShrink !== isShrunk) {
+                setIsShrunk(shouldShrink);
+
+                gsap.to(navbarRef.current, {
+                    height: shouldShrink ? "50px" : "68px",
+                    scale: shouldShrink ? 0.95 : 1,
+                    y: shouldShrink ? "6px" : "0px",
+                    padding: shouldShrink ? "0.50rem 0" : "0.50rem 0.25rem",
+                    borderRadius: shouldShrink ? "12px" : 0,
+                    duration: 0.6,
+                    ease: "power1.out",
+                });
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [isShrunk]);
 
     const internalLinks = [
         {href: "#", label: "Home"},
@@ -36,7 +72,8 @@ export default function Navbar() {
     return (
         <>
             <nav className="navbar" ref={navbarRef}>
-                <a className="navbar_icon" href="/"><img src="/favicon.png" alt="jerrydev sunset sky with moon icon" /></a>
+                <a className={`navbar_icon ${isShrunk ? "navbar_icon-shrunk" : ""}`} href="/"><img src="/favicon.png"
+                                                                                                   alt="jerrydev sunset sky with moon icon" /></a>
                 <div className="navbar_menu-button">
                     <IconButton variant="outlined" color="neutral" onClick={() => setIsDrawerOpen(true)}>
                         <MenuIcon />
@@ -45,7 +82,7 @@ export default function Navbar() {
 
                 <ul className="navbar_links">
                     {internalLinks.map((link, index) => (
-                        <li key={index}>
+                        <li key={index} className="navbar_link">
                             <a href={link.href} className="text text-underline">
                                 {link.label}
                             </a>
@@ -55,7 +92,7 @@ export default function Navbar() {
 
                 <ul className="navbar_links navbar_links-external">
                     {externalLinks.map((link, index) => (
-                        <li key={index}>
+                        <li key={index} className="navbar_link">
                             <a href={link.href} className="text text-underline">
                                 {link.label}
                             </a>

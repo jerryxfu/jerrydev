@@ -7,22 +7,26 @@
     padding: 0.20rem;
     border: 1px solid #dddddd;
     border-radius: 8px;
-    margin: 1rem;
+    margin: 0.9rem;
     position: relative;
     overflow: hidden;
 
     @media screen and (max-width: 768px) {
         width: 10.70rem;
-        height: 4.18rem;
+        height: 4rem;
         margin: 0.25rem 0.30rem;
-        padding: 0.05rem;
+        padding: 0 0.1rem;
     }
 }
 
 .skillcard_image {
     object-fit: contain;
-    width: auto;
-    height: 68%;
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
     margin: 0 10px 0;
 
     img {
@@ -32,7 +36,8 @@
     }
 
     @media screen and (max-width: 768px) {
-        width: 3rem;
+        width: 32px;
+        height: 32px;
         margin: 0 5px 0;
     }
 }

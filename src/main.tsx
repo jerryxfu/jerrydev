@@ -31,7 +31,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <>
             {/*{!dev && <OpeningAnimation />}*/}
-            <OpeningAnimation />
+            {/*<OpeningAnimation />*/}
             <HomePage />
         </>
     },

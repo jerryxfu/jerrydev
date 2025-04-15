@@ -19,18 +19,18 @@ export default function OpeningAnimation() {
     }, []);
 
     useGSAP(() => {
-        gsap.to([topRef.current, bottomRef.current], {
-            backgroundColor: "white",
-            ease: "power1.out",
-            duration: 2,
-            delay: 0.2
-        });
-        gsap.to(helloRef.current, {
-            color: "black",
-            ease: "power1.out",
-            duration: 2,
-            delay: 0.2
-        });
+        // gsap.to([topRef.current, bottomRef.current], {
+        //     backgroundColor: "white",
+        //     ease: "power1.out",
+        //     duration: 2,
+        //     delay: 0.2
+        // });
+        // gsap.to(helloRef.current, {
+        //     color: "black",
+        //     ease: "power1.out",
+        //     duration: 2,
+        //     delay: 0.2
+        // });
         // slide away
         gsap.to([topRef.current, bottomRef.current], {
             height: 0,
@@ -68,8 +68,8 @@ export default function OpeningAnimation() {
             {/*<div ref={helloContainerRef} style={{display: "flex", justifyContent: "center", alignItems: "center", height: "100vh"}}>*/}
             {/*    <h1 className="hello-text" ref={helloRef}>Hello</h1>*/}
             {/*</div>*/}
-            <div ref={topRef} className="top-half"></div>
-            <div ref={bottomRef} className="bottom-half"></div>
+            <div ref={topRef} className="top-half" />
+            <div ref={bottomRef} className="bottom-half" />
         </div>
     );
 }

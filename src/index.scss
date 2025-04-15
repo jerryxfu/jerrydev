@@ -32,9 +32,9 @@
     --text-lt-c: rgba(30, 30, 30, 1);
     --text-da-c: rgba(26, 26, 26, 1);
 
-    --border-c: rgba(150, 150, 150, 0.80);
-    --border-lt-c: rgba(160, 160, 160, 0.8);
-    --border-da-c: rgb(140, 140, 140, 0.8);
+    --shadow-c: rgba(150, 150, 150, 0.80);
+    --shadow-lt-c: rgba(160, 160, 160, 0.8);
+    --shadow-da-c: rgb(140, 140, 140, 1);
 
     --glow-c: rgba(238, 248, 252, 0.40);
 
@@ -76,9 +76,9 @@
     --text-lt-c: rgba(252, 251, 250, 1);
     --text-da-c: rgba(250, 249, 248, 1);
 
-    --border-c: rgba(150, 150, 150, 0.80);
-    --border-lt-c: rgba(140, 140, 140, 0.8);
-    --border-da-c: rgb(160, 160, 160, 0.8);
+    --shadow-c: rgba(150, 150, 150, 0.80);
+    --shadow-lt-c: rgba(140, 140, 140, 0.8);
+    --shadow-da-c: rgb(160, 160, 160, 0.8);
 
     --glow-c: rgba(238, 248, 252, 0.40);
 
@@ -121,16 +121,31 @@ body {
     }
 }
 
-p, h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6 {
     margin: 0;
     color: var(--text-da-c);
 
     transition: color 450ms;
 }
 
+p {
+    margin: 0;
+    color: var(--text-c);
+    transition: color 450ms;
+}
+
 .p-text {
     font-size: 1.10rem;
     line-height: 1.5;
+    font-weight: 350;
+
+    color: var(--text-lt-c);
+    transition: color 450ms;
+}
+
+.small-text {
+    font-size: 1rem;
+    line-height: 1.25;
     font-weight: 350;
 
     color: var(--text-lt-c);
@@ -179,6 +194,6 @@ p, h1, h2, h3, h4, h5, h6 {
     }
 }
 
-.blink_anim {
+.blink_animation {
     animation: blink 1s infinite;
 }
