@@ -248,14 +248,14 @@ export default function Hero() {
             x: "17%",
             duration: 0.70,
             ease: "nativeEase"
-        }, 1.1 + opening_delay);
+        }, 1.05 + opening_delay);
 
         // Slide in "jour" to the right (appear)
         tl.from([jourRef.current], {
             x: "-100%",
             duration: 0.70,
             ease: "nativeEase"
-        }, 1.1 + opening_delay);
+        }, 1.05 + opening_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});

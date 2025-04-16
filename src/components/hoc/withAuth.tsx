@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../context/AuthContext.tsx";
+import {Button, CircularProgress} from "@mui/joy";
 
 const withAuth = (WrappedComponent: React.ComponentType) => {
     return (props: any) => {
@@ -21,7 +22,11 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
         }, [isAuthenticated, navigate, checkAuthStatus]);
 
         if (!isAuthenticated) {
-            return null; // or a loading spinner
+            return (
+                <div style={{display: "flex", justifyContent: "center", alignItems: "center", height: "100vh"}}>
+                    <Button size={"lg"} variant={"plain"} startDecorator={<CircularProgress size="lg" variant="solid" />}>Verifying...</Button>
+                </div>
+            );
         }
 
         return <WrappedComponent {...props} />;

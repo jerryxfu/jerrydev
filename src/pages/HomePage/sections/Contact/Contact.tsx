@@ -21,7 +21,7 @@ const medias = [
         username: <span className="obfuscate-str contact_obfuscated">jerryxfu</span>,
         image: "",
         url: "",
-        chipText: "private",
+        chipText: "secret",
         color: ""
     },
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a622"},
@@ -64,9 +64,9 @@ export default function Contact() {
             <SectionTitle text={"Contact Me"} />
 
             <div className="contact_container">
-                <div className="contact_media-container">
+                <div className="contact_grid-container">
                     <SubTitle text={"Social media"} />
-                    <div className="contact_media-grid">
+                    <div className="contact_grid">
                         {themedMedias.map((media) => (
                             <ContactCard
                                 title={media.title}
@@ -80,22 +80,20 @@ export default function Contact() {
                         ))}
                     </div>
                 </div>
-                <div className="contact_media-container">
-                    <div className="contact_info-container">
-                        <SubTitle text={"Get in touch"} />
-                        <ul style={{paddingLeft: 0}}>
-                            <li className="contact_list-element">
-                                <AlternateEmailRounded sx={{marginRight: "0.20rem"}} />
-                                <a href="mailto:jerryfu_mc@outlook.com">jerryfu_mc@outlook.com</a>
-                            </li>
-                            <li className="contact_list-element">
-                                <Phone sx={{marginRight: "0.20rem"}} />
-                                <a href="tel:+10000000000">+1 (<span className="obfuscate-num">000</span>) <span className="obfuscate-num">000</span>
-                                    -<span className="obfuscate-num">0000</span></a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="contact_cv_container">
+                <div className="contact_info-container">
+                    <SubTitle text={"Get in touch"} />
+                    <ul style={{paddingLeft: 0}}>
+                        <li className="contact_list-element">
+                            <AlternateEmailRounded sx={{marginRight: "0.20rem"}} />
+                            <a href="mailto:jerryfu_mc@outlook.com">jerryfu_mc@outlook.com</a>
+                        </li>
+                        <li className="contact_list-element">
+                            <Phone sx={{marginRight: "0.20rem"}} />
+                            <a href="tel:+10000000000">+1 (<span className="obfuscate-num">000</span>) <span className="obfuscate-num">000</span>
+                                -<span className="obfuscate-num">0000</span></a>
+                        </li>
+                    </ul>
+                    <div className="contact_cv">
                         <SubTitle text={"Curriculum Vitae"} />
                     </div>
                 </div>

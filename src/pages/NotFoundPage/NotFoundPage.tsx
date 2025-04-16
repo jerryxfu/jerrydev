@@ -1,11 +1,17 @@
 import React from "react";
+import "./NotFoundPage.scss";
 import Footer from "../../components/Footer/Footer.tsx";
 
 export default function NotFoundPage() {
     return (
-        <div>
-
-            <Footer />
+        <div className="notfound">
+            <div className="notfound_bg blink_animation" />
+            <div className="notfound_content">
+                <h1>404 - Page not found and it's probably your fault.</h1>
+            </div>
+            <div className="notfound_footer">
+                <Footer />
+            </div>
         </div>
     );
 };

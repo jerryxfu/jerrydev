@@ -102,20 +102,26 @@ export default function Skills() {
         <div className="section skills">
             <SectionTitle text={"Skills"} />
 
-            <div className="skills_grid">
-                {tech_stack.map((tech, index) => (
-                    <SkillCard
-                        key={index}
-                        image={tech.iconUrl}
-                        title={tech.name}
-                        description={tech.description}
-                        score={tech.score}
-                        chipText={tech.chipText}
-                        url={tech.url}
-                        color={tech.color}
-                    />
-                ))}
+            <div className="skills_container">
+                <div className="skills_grid">
+                    {tech_stack.map((tech, index) => (
+                        <SkillCard
+                            key={index}
+                            image={tech.iconUrl}
+                            title={tech.name}
+                            description={tech.description}
+                            score={tech.score}
+                            chipText={tech.chipText}
+                            url={tech.url}
+                            color={tech.color}
+                        />
+                    ))}
+                </div>
+                <div className="skills_text">
+                    <p>adad</p>
+                </div>
             </div>
+
         </div>
     );
 };

@@ -12,6 +12,8 @@ import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
 import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 import OpeningAnimation from "./components/OpeningAnimation/OpeningAnimation.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
+import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
+import ErrorBoundary from "./components/ErrorBoundary.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -58,6 +60,10 @@ const router = createBrowserRouter([
         element: <>
             <UnixPage />
         </>
+    },
+    {
+        path: "*",
+        element: <NotFoundPage />
     }
 ]);
 
@@ -66,10 +72,12 @@ const root = createRoot(rootElement!);
 
 root.render(
     <StrictMode>
-        {/*<AuthProvider>*/}
-        <ThemeProvider>
-            <RouterProvider router={router} />
-        </ThemeProvider>
-        {/*</AuthProvider>*/}
+        <ErrorBoundary>
+            {/*<AuthProvider>*/}
+            <ThemeProvider>
+                <RouterProvider router={router} />
+            </ThemeProvider>
+            {/*</AuthProvider>*/}
+        </ErrorBoundary>
     </StrictMode>
 );

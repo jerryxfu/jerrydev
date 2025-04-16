@@ -14,17 +14,16 @@ export default function Footer() {
                 <div className="footer_links">
                     <h3 className="text">Links🔗</h3>
                     {links.map((link) => {
-                        return (<>
+                        return (<div key={link.text.toLowerCase().replace(" ", "")}>
                             <div className="footer_link-decorator">{link.decorator}</div>
                             <a
                                 href={link.url}
-                                key={link.text.toLowerCase().replace(" ", "")}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
                                 <p className="p-text footer_link">{link.text}</p>
                             </a>
-                        </>);
+                        </div>);
                     })}
                 </div>
                 <div className="footer_copyright" style={{backgroundColor: "var(--footer-color)", paddingTop: "0"}}>
