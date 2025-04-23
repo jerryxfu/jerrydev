@@ -118,7 +118,11 @@ export default function Skills() {
                     ))}
                 </div>
                 <div className="skills_text">
-                    <p>adad</p>
+                    <h4>Github top languages</h4>
+                    <img
+                        className="skills_languages-card"
+                        src="https://github-stats.jerryxf.net/api/top-langs/?username=jerryxfu&layout=compact&langs_count=10&hide_title=true&hide_border=true&bg_color=00000000&title_color=87ceeb"
+                        alt="Github languages card" />
                 </div>
             </div>
 
