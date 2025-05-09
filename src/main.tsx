@@ -14,6 +14,7 @@ import OpeningAnimation from "./components/OpeningAnimation/OpeningAnimation.tsx
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
+import reportWebVitals from "./reportWebVitals.ts";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -81,3 +82,5 @@ root.render(
         </ErrorBoundary>
     </StrictMode>
 );
+
+reportWebVitals(console.log);
