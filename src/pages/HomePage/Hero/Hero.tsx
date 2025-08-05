@@ -194,8 +194,11 @@ export default function Hero() {
     useEffect(() => {
         const typeText = () => {
             setIsBlinking(false);
+            const currentText = combinedTexts[textIndex];
+            if (!currentText) return; // Safety check
+
             if (!isDeleting) {
-                setHeaderText((prev) => prev + combinedTexts[textIndex]![charIndex]);
+                setHeaderText((prev) => prev + currentText[charIndex]);
                 setCharIndex((prev) => prev + 1);
             } else {
                 setHeaderText((prev) => prev.slice(0, -1));
@@ -203,7 +206,10 @@ export default function Hero() {
             }
         };
 
-        if (!isDeleting && charIndex < combinedTexts[textIndex]!.length) {
+        const currentText = combinedTexts[textIndex];
+        if (!currentText) return; // Safety check
+
+        if (!isDeleting && charIndex < currentText.length) {
             const timeout = setTimeout(typeText, 45); // typing delay
             return () => clearTimeout(timeout);
         } else if (isDeleting && charIndex > 0) {
@@ -219,7 +225,7 @@ export default function Hero() {
                 } else {
                     setIsDeleting(true);
                 }
-            }, isDeleting ? 150 : 2500); // delay before deleting and after typing
+            }, isDeleting ? 150 : 2250); // delay before deleting and after typing
             return () => clearTimeout(timeout);
         }
     }, [charIndex, combinedTexts, isDeleting, textIndex]);
@@ -339,4 +345,3 @@ export default function Hero() {
         </div>
     );
 }
-

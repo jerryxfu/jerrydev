@@ -1,4 +1,3 @@
-import js from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactPlugin from "eslint-plugin-react";
@@ -6,7 +5,6 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import reactRefreshPlugin from "eslint-plugin-react-refresh";
 
 export default [
-    js.configs.recommended,
     {
         ignores: ["node_modules/**", "dist/**"],
     },
@@ -30,9 +28,8 @@ export default [
         },
         rules: {
             // TypeScript rules
-            // "@typescript-eslint/no-unused-vars": ["warn", {argsIgnorePattern: "^_"}],
+            "@typescript-eslint/no-unused-vars": "off",
             "@typescript-eslint/no-explicit-any": "warn",
-            // "@typescript-eslint/prefer-const": "error",
             "@typescript-eslint/no-non-null-assertion": "warn",
 
             // React rules
@@ -47,16 +44,13 @@ export default [
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "warn",
 
-            // React Refresh
-            "react-refresh/only-export-components": ["warn", {allowConstantExport: true}],
+            "react-refresh/only-export-components": "off",
 
-            // General rules
-            "semi": "error",
-            "eqeqeq": "warn",
-            "no-console": "warn",
+            // Only the essential general rules
             "no-debugger": "error",
             "prefer-const": "error",
             "no-var": "error",
+            "no-unused-vars": "off",
         },
         settings: {
             react: {

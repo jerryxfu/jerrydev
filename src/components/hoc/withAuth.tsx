@@ -3,8 +3,8 @@ import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../context/AuthContext.tsx";
 import {Button, CircularProgress} from "@mui/joy";
 
-const withAuth = (WrappedComponent: React.ComponentType) => {
-    return (props: any) => {
+const withAuth = <P extends object>(WrappedComponent: React.ComponentType<P>) => {
+    return (props: P) => {
         const {isAuthenticated, checkAuthStatus} = useAuth();
         const navigate = useNavigate();
 

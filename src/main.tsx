@@ -55,7 +55,10 @@ const router = createBrowserRouter([
 ]);
 
 const rootElement = document.getElementById("root");
-const root = createRoot(rootElement!);
+if (!rootElement) {
+    throw new Error("Root element not found");
+}
+const root = createRoot(rootElement);
 
 root.render(
     <StrictMode>

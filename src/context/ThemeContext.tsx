@@ -21,9 +21,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
     const getInitialTheme = (): Theme => {
         try {
             const stored = localStorage.getItem("themeName") as Theme;
-            return themes.includes(stored) ? stored : themes[0]!;
+            return themes.includes(stored) ? stored : themes[0] || "default";
         } catch {
-            return themes[0]!;
+            return themes[0] || "default";
         }
     };
 
@@ -45,7 +45,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
     const toggleTheme = () => {
         const currentIndex = themes.indexOf(currentTheme);
         const nextIndex = (currentIndex + 1) % themes.length;
-        setCurrentTheme(themes[nextIndex]!);
+        const nextTheme = themes[nextIndex];
+        if (nextTheme) {
+            setCurrentTheme(nextTheme);
+        }
     };
 
     const setTheme = (theme: Theme) => {
