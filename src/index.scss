@@ -1,16 +1,47 @@
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--bg-c);
+    color: var(--text-c);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// Base CSS custom properties that don't change between themes
 :root {
     font-family: "Outfit", "Arial", "sans-serif", "system-ui";
     font-style: normal;
     font-optical-sizing: auto;
     line-height: 1.5;
     font-weight: 400;
-    background-color: var(--bg-c);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
     scroll-behavior: smooth;
 
+    // Color constants that don't change between themes
+    --pink: #ff64f9;
+    --red: #ff6565;
+    --orange: #ff6d1b;
+    --yellow: #ffee55;
+    --green: #5bff89;
+    --blue: #4d8aff;
+    --purple: #6b5fff;
+    --gold: #ffd700;
+}
+
+// Default theme
+:root,
+[data-theme="default"] {
     --primary-c: rgba(186, 226, 242, 1); // #bae2f2
     --primary-lt-c: rgba(204, 233, 245, 1); // 88% HSL
     --primary-ltx-c: rgba(212, 237, 247, 1); // 90% HSL
@@ -43,16 +74,14 @@
     --danger-c: rgb(255, 105, 97, 1);
     --info-c: rgb(76, 157, 250, 1);
 
-    --pink: #ff64f9;
-    --red: #ff6565;
-    --orange: #ff6d1b;
-    --yellow: #ffee55;
-    --green: #5bff89;
-    --blue: #4d8aff;
-    --purple: #6b5fff;
-    --gold: #ffd700;
-
     --hero-bg-c: rgba(212, 237, 247, 1);
+}
+
+// Apply theme colors to body for proper inheritance
+body {
+    background-color: var(--bg-c);
+    color: var(--text-c);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 [data-theme="night"] {
@@ -107,10 +136,6 @@
     --hero-bg-c: rgba(184, 226, 242, 1);
 }
 
-body {
-    margin: 0;
-    padding: 0;
-}
 
 .section {
     max-width: 100%;
@@ -197,3 +222,12 @@ p {
 .blink_animation {
     animation: blink 1s infinite;
 }
+
+// debugging
+//* {
+//    outline: 1px solid red !important;
+//}
+//
+//#root {
+//    outline: 3px solid green !important;
+//}

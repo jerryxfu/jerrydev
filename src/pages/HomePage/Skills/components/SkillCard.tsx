@@ -1,4 +1,3 @@
-import React from "react";
 import {Chip} from "@mui/joy";
 import "./SkillCard.scss";
 

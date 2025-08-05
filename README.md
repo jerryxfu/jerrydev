@@ -1,6 +1,6 @@
-# jerrydev
+# jerryxf
 
-This is the repository for my personal website, [jerrydev.net](https://jerrydev.net) (formerly [aspectofjerry.dev](https://aspectofjerry.dev)).
+This is the repository for my personal website, [jerryxf.net](https://jerryxf.net).
 
 ### Useful development resources
 

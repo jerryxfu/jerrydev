@@ -1,32 +1,52 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import "./Contact.scss";
-import SectionTitle from "../../../../components/SectionTitle/SectionTitle.tsx";
-import SubTitle from "../../../../components/SubTitle/SubTitle.tsx";
+import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
+import SubTitle from "../../../components/SubTitle/SubTitle.tsx";
 // @ts-ignore
 import baffle from "baffle";
 import ContactCard from "./components/ContactCard.tsx";
 
-import _discord from "../../../../assets/socials/discord_mark.svg";
-import _instagram from "../../../../assets/socials/instagram_mark.svg";
-import _snapchat_lt from "../../../../assets/socials/snapchat_light.png";
-import _snapchat_da from "../../../../assets/socials/snapchat_dark.png";
-import _github_lt from "../../../../assets/dev_tools/github.svg";
-import _github_da from "../../../../assets/dev_tools/github_white.svg";
-import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
+import _discord from "../../../assets/socials/discord_mark.svg";
+import _instagram from "../../../assets/socials/instagram_mark.svg";
+// import _snapchat_lt from "../../../assets/socials/snapchat_light.png";
+// import _snapchat_da from "../../../assets/socials/snapchat_dark.png";
+import _github_lt from "../../../assets/dev_tools/github.svg";
+import _github_da from "../../../assets/dev_tools/github_white.svg";
+import _youtube from "../../../assets/socials/youtube_mark.png";
+import _reddit from "../../../assets/socials/reddit_mark.svg";
+import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, Phone} from "@mui/icons-material";
+import _steam from "../../../assets/socials/steam_mark.svg";
 
 const medias = [
+    // {
+    //     title: "Snapchat",
+    //     username: <span className="obfuscate-str contact_obfuscated">jerryxfu</span>,
+    //     image: "",
+    //     url: "",
+    //     chipText: "secret",
+    //     color: ""
+    // },
+    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a610"},
     {
-        title: "Snapchat",
-        username: <span className="obfuscate-str contact_obfuscated">jerryxfu</span>,
-        image: "",
-        url: "",
-        chipText: "secret",
-        color: ""
+        title: "Discord",
+        username: "@jerrydev",
+        image: _discord,
+        url: "https://discord.com/users/611633988515266562",
+        chipText: "public",
+        color: "#e6a6ff10"
     },
-    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a622"},
-    {title: "Discord", username: "@jerrydev", image: _discord, url: "https://discord.com/users/[user id]", chipText: "public", color: "#e6a6ff22"},
-    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "</>", color: "#ffffff22"},
+    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
+    {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
+    {
+        title: "Reddit",
+        username: "u/jerryxf",
+        image: _reddit,
+        url: "https://reddit.com/user/jerryxf/",
+        chipText: "nothing here...",
+        color: "#ffb5a610"
+    },
+    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "gaming", color: "#00adee10"},
 ];
 
 export default function Contact() {
@@ -42,7 +62,7 @@ export default function Contact() {
     };
 
     useEffect(() => {
-        updateMediaImage("Snapchat", currentTheme === "night" ? _snapchat_da : _snapchat_lt);
+        // updateMediaImage("Snapchat", currentTheme === "night" ? _snapchat_da : _snapchat_lt);
         updateMediaImage("Github", currentTheme === "night" ? _github_da : _github_lt);
     }, [currentTheme]);
 
@@ -65,7 +85,7 @@ export default function Contact() {
 
             <div className="contact_container">
                 <div className="contact_grid-container">
-                    <SubTitle text={"Social media"} />
+                    <SubTitle text={"Public social media"} />
                     <div className="contact_grid">
                         {themedMedias.map((media) => (
                             <ContactCard

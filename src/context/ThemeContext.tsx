@@ -1,29 +1,77 @@
-import React, {createContext, useContext, useState, useEffect} from "react";
+import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
 
-const ThemeContext = createContext<{ currentTheme: string; toggleTheme: () => void } | null>(null);
+type Theme = "default" | "night" | "celestial";
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
-    const themes = ["default", "night", "celestial"];
-    const defaultTheme = localStorage.getItem("themeName") || themes[0] || "default";
-    const [currentTheme, setCurrentTheme] = useState<string>(defaultTheme);
+interface ThemeContextType {
+    currentTheme: Theme;
+    toggleTheme: () => void;
+    setTheme: (theme: Theme) => void;
+    availableThemes: readonly Theme[];
+}
+
+const ThemeContext = createContext<ThemeContextType | null>(null);
+
+interface ThemeProviderProps {
+    children: ReactNode;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
+    const themes: readonly Theme[] = ["default", "night", "celestial"] as const;
+
+    const getInitialTheme = (): Theme => {
+        try {
+            const stored = localStorage.getItem("themeName") as Theme;
+            return themes.includes(stored) ? stored : themes[0]!;
+        } catch {
+            return themes[0]!;
+        }
+    };
+
+    const [currentTheme, setCurrentTheme] = useState<Theme>(getInitialTheme);
 
     useEffect(() => {
-        if (currentTheme) {
+        try {
+            // Set the theme on the body element for CSS cascade
             document.body.setAttribute("data-theme", currentTheme);
             localStorage.setItem("themeName", currentTheme);
+
+            // Set on the HTML element for more global scope
+            document.documentElement.setAttribute("data-theme", currentTheme);
+        } catch (error) {
+            console.warn("Failed to save theme preference:", error);
         }
     }, [currentTheme]);
 
     const toggleTheme = () => {
-        const nextThemeIndex = (themes.indexOf(currentTheme) + 1) % themes.length;
-        setCurrentTheme(themes[nextThemeIndex] || "default");
+        const currentIndex = themes.indexOf(currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        setCurrentTheme(themes[nextIndex]!);
+    };
+
+    const setTheme = (theme: Theme) => {
+        if (themes.includes(theme)) {
+            setCurrentTheme(theme);
+        }
+    };
+
+    const contextValue: ThemeContextType = {
+        currentTheme,
+        toggleTheme,
+        setTheme,
+        availableThemes: themes,
     };
 
     return (
-        <ThemeContext.Provider value={{currentTheme, toggleTheme}}>
+        <ThemeContext.Provider value={contextValue}>
             {children}
         </ThemeContext.Provider>
     );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = (): ThemeContextType => {
+    const context = useContext(ThemeContext);
+    if (!context) {
+        throw new Error("useTheme must be used within a ThemeProvider");
+    }
+    return context;
+};

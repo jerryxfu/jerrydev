@@ -1,9 +1,9 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 import "./Hero.scss";
 import SplitType from "split-type";
-import useThemeSwitcher from "../../../../hooks/useThemeSwitcher.ts";
+import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 
 const texts: { [key: number]: string[] } = {
     0: [
@@ -166,8 +166,9 @@ export default function Hero() {
 
     const dividerRef = useRef(null);
     const heroTitleRef = useRef(null);
-    const bonRef = useRef(null);
-    const jourRef = useRef(null);
+    // const bonRef = useRef(null);
+    // const jourRef = useRef(null);
+    const titleRef = useRef(null);
     const subtitleRef = useRef(null);
     const typingTextRef = useRef(null);
     const line1Ref = useRef(null);
@@ -176,15 +177,15 @@ export default function Hero() {
     useEffect(() => {
         switch (currentTheme) {
             case "night":
-                import("../../../../assets/styles/gradient-mesh-night.scss");
+                import("../../../assets/styles/gradient-mesh-night.scss");
                 setThemeGradientClass("gradient-mesh-night");
                 break;
             case "celestial":
-                import("../../../../assets/styles/gradient-mesh-celestial.scss");
+                import("../../../assets/styles/gradient-mesh-celestial.scss");
                 setThemeGradientClass("gradient-mesh-celestial");
                 break;
             default:
-                import("../../../../assets/styles/gradient-mesh-default.scss");
+                import("../../../assets/styles/gradient-mesh-default.scss");
                 setThemeGradientClass("gradient-mesh-default");
                 break;
         }
@@ -224,9 +225,9 @@ export default function Hero() {
     }, [charIndex, combinedTexts, isDeleting, textIndex]);
 
     useGSAP(() => {
-        const tl = gsap.timeline();
+        const tl = gsap.timeline({});
 
-        const opening_delay = 0.05; // sec
+        const opening_delay = 0.1; // sec
 
         // Expand divider
         tl.to(dividerRef.current, {
@@ -237,25 +238,25 @@ export default function Hero() {
         }, opening_delay);
 
         // Slide up "Bon(jour)"
-        tl.from([bonRef.current, jourRef.current], {
+        tl.from([titleRef.current /*bonRef.current, jourRef.current*/], {
             yPercent: 100,
             ease: "nativeEase",
             duration: 0.90
         }, 0.20 + opening_delay);
 
-        // Slide "Bon" to the left
-        tl.from(heroTitleRef.current, {
-            x: "17%",
-            duration: 0.70,
-            ease: "nativeEase"
-        }, 1.05 + opening_delay);
+        // // Slide "Bon" to the left
+        // tl.from(heroTitleRef.current, {
+        //     x: "17%",
+        //     duration: 0.70,
+        //     ease: "nativeEase"
+        // }, 1.05 + opening_delay);
 
         // Slide in "jour" to the right (appear)
-        tl.from([jourRef.current], {
-            x: "-100%",
-            duration: 0.70,
-            ease: "nativeEase"
-        }, 1.05 + opening_delay);
+        // tl.from([jourRef.current], {
+        //     x: "-100%",
+        //     duration: 0.70,
+        //     ease: "nativeEase"
+        // }, 1.05 + opening_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});
@@ -263,9 +264,9 @@ export default function Hero() {
         tl.from(subtitleSplit.chars, {
             y: "-100%",
             ease: "nativeEase",
-            stagger: 0.02,
+            stagger: 0.03,
             duration: 0.75
-        }, 1.15 + opening_delay);
+        }, 0.65 + opening_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
         const line1Split = new SplitType(line1Ref.current, {types: "words"});
@@ -280,7 +281,7 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 1.25 + opening_delay);
+        }, 0.8 + opening_delay);
 
         tl.from(line2Split.words, {
             yPercent: 100,
@@ -289,13 +290,13 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 1.75 + opening_delay);
+        }, 1.25 + opening_delay);
 
         tl.from(typingTextRef.current, {
             opacity: 0,
             ease: "nativeEase",
             duration: 1
-        }, 2.5 + opening_delay);
+        }, 2 + opening_delay);
     });
 
     return (
@@ -306,10 +307,11 @@ export default function Hero() {
                 <div className="hero_container">
                     {/*<div style={{overflow: "hidden"}}>*/}
                     <div className={"hero_title"} ref={heroTitleRef}>
-                        <h1 ref={bonRef} className="hero_title-part1">Bon</h1>
-                        <div className="hero_title-mask">
-                            <h1 ref={jourRef} className="hero_title-part2">jour</h1>
-                        </div>
+                        <h1 ref={titleRef} className="hero_title-part1">Hello</h1>
+                        {/*<h1 ref={bonRef} className="hero_title-part1">Bon</h1>*/}
+                        {/*<div className="hero_title-mask">*/}
+                        {/*    <h1 ref={jourRef} className="hero_title-part2">jour</h1>*/}
+                        {/*</div>*/}
                     </div>
                     {/*</div>*/}
 

@@ -1,6 +1,5 @@
-import React from "react";
 import "./About.scss";
-import SectionTitle from "../../../../components/SectionTitle/SectionTitle.tsx";
+import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 
 export default function About() {
     return (

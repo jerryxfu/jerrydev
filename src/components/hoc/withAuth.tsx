@@ -16,7 +16,7 @@ const withAuth = (WrappedComponent: React.ComponentType) => {
                 }
             };
 
-            verifyAuth().then(r => void 0).catch(error => {
+            verifyAuth().then(() => void 0).catch(error => {
                 console.error("Error verifying authentication:", error);
             });
         }, [isAuthenticated, navigate, checkAuthStatus]);

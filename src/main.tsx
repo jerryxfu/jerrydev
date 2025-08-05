@@ -1,4 +1,4 @@
-import React, {StrictMode} from "react";
+import {StrictMode} from "react";
 import {createRoot} from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import gsap from "gsap";
@@ -10,7 +10,6 @@ import BdayPage from "./pages/BdayPage/BdayPage.tsx";
 import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
 import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
 import UnixPage from "./pages/UnixPage/UnixPage.tsx";
-import OpeningAnimation from "./components/OpeningAnimation/OpeningAnimation.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
@@ -24,42 +23,30 @@ gsap.defaults({
     ease: "nativeEase"
 });
 
-export const dev = process.env.NODE_ENV === "development";
-
-export const api_base_url = dev ? `http://localhost:3001` : "https://api.jerryxf.net";
+export const isDev = import.meta.env.MODE === "development";
+export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
+    (isDev ? "http://localhost:3001" : "https://api.jerryxf.net");
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <>
-            {/*{!dev && <OpeningAnimation />}*/}
-            {/*<OpeningAnimation />*/}
-            <HomePage />
-        </>
+        element: <HomePage />
     },
     {
         path: "/bday",
-        element: <>
-            <BdayPage />
-        </>
+        element: <BdayPage />
     },
     {
         path: "/countdown",
-        element: <>
-            <CountdownPage />
-        </>
+        element: <CountdownPage />
     },
     {
         path: "/elements",
-        element: <>
-            <ElementsPage />
-        </>
+        element: <ElementsPage />
     },
     {
         path: "/unix",
-        element: <>
-            <UnixPage />
-        </>
+        element: <UnixPage />
     },
     {
         path: "*",

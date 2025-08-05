@@ -4,7 +4,7 @@ import Snackbar from "@mui/joy/Snackbar";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 
-import {api_base_url} from "../main.tsx";
+import {apiBaseUrl} from "../main.tsx";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -20,14 +20,14 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [logOutSnackbar, setlogOutSnackbar] = useState(false);
+    const [logOutSnackbar, setLogOutSnackbar] = useState(false);
     const [authInternalServerError, setAuthInternalServerError] = useState(false);
     const [errorVerifyingAuthSnackbar, setErrorVerifyingAuthSnackbar] = useState(false);
     const [authUnauthorizedSnackbar, setAuthUnauthorizedSnackbar] = useState(false);
 
     const checkAuthStatus = async () => {
         try {
-            const res = await axios.get(api_base_url + "/auth/google/status", {withCredentials: true});
+            const res = await axios.get(apiBaseUrl + "/auth/google/status", {withCredentials: true});
 
             console.log("Check auth status response:", res.status, res.data.isAuthenticated);
             switch (res.status) {
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
     const logout = async () => {
         try {
-            const res = await axios.post(api_base_url + "/auth/logout", {}, {withCredentials: true});
+            const res = await axios.post(apiBaseUrl + "/auth/logout", {}, {withCredentials: true});
 
             console.log("Logout response:", res.status, res.data.isAuthenticated);
             switch (res.status) {
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
             }
 
             setIsAuthenticated(false);
-            setlogOutSnackbar(true);
+            setLogOutSnackbar(true);
         } catch (error) {
             console.error("Logout failed", error);
             setAuthInternalServerError(true);
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
                 color="success"
                 variant="soft"
                 size="lg"
-                onClose={() => setlogOutSnackbar(false)}
+                onClose={() => setLogOutSnackbar(false)}
                 autoHideDuration={5000}
                 endDecorator={<LogoutRoundedIcon />}
             >

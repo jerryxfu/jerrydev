@@ -27,7 +27,7 @@ export default function Footer() {
                     })}
                 </div>
                 <div className="footer_copyright" style={{backgroundColor: "var(--footer-color)", paddingTop: "0"}}>
-                    <p>Copyright © 2022-{new Date().getFullYear()} Jerry</p>
+                    <p>Copyright © 2022-{new Date().getFullYear()} Jerry F.</p>
                 </div>
             </div>
         </>
