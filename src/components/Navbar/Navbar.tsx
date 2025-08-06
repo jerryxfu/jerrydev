@@ -6,7 +6,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import {Drawer, IconButton} from "@mui/joy";
 
 // Constants outside component to prevent re-creation on every render
-const internalLinks = [
+const internalLinks: { href: string, label: string }[] = [
     {href: "#", label: "Home"},
     {href: "#skills", label: "Skills"},
     {href: "#experience", label: "Experience"},
@@ -14,8 +14,8 @@ const internalLinks = [
     {href: "#projects", label: "Projects"}
 ];
 
-const externalLinks = [
-    {href: "https://bap.jerrydev.net/", label: "Bap", target: "_blank"}
+const externalLinks: { href: string, label: string, target?: string }[] = [
+    // {href: "https://bap.jerrydev.net/", label: "Bap", target: "_blank"}
 ];
 
 const formatThemeName = (theme: string) =>
@@ -97,7 +97,7 @@ export default function Navbar() {
                         animate={{opacity: 1, y: 0}}
                         transition={{
                             delay: openingDelay + 0.15 + (index * 0.06),
-                            duration: 1,
+                            duration: 0.9,
                             ease: "easeOut"
                         }}
                     >
@@ -117,7 +117,7 @@ export default function Navbar() {
                         animate={{opacity: 1, y: 0}}
                         transition={{
                             delay: openingDelay + 0.15 + ((index + internalLinks.length) * 0.06),
-                            duration: 1,
+                            duration: 0.9,
                             ease: "easeOut"
                         }}
                     >

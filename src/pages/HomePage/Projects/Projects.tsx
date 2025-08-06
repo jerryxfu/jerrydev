@@ -5,6 +5,12 @@ import ProjectCard, {Project} from "./components/ProjectCard.tsx";
 
 import _favicon from "../../../assets/favicon.png";
 import _reefscape from "../../../assets/projects/reefscape.png";
+import _llmvsllm from "../../../assets/projects/llmvsllm.png";
+import _doublestartyre from "../../../assets/projects/doublestartyre.png";
+import _baputils from "../../../assets/projects/baputils.png";
+import _jerrybot from "../../../assets/projects/jerrybot.png";
+import _jerryxf from "../../../assets/projects/jerryxf.png";
+import _conditioner from "../../../assets/projects/conditioner.png";
 
 const projects: Project[] = [
     {
@@ -18,7 +24,7 @@ const projects: Project[] = [
     {
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
-        image: "https://placehold.co/600x400?text=?",
+        image: _conditioner,
         chipText: "🚧 WIP",
         date: new Date(),
         description: "description."
@@ -26,7 +32,7 @@ const projects: Project[] = [
     {
         title: "BapUtils",
         subTitle: "A Hypixel Skyblock Minecraft Forge mod",
-        image: "https://placehold.co/600x400?text=?",
+        image: _baputils,
         chipText: "💤 Stalled",
         date: new Date(),
         description: "description.",
@@ -43,7 +49,7 @@ const projects: Project[] = [
     {
         title: "JerryBot",
         subTitle: "A comprehensive discord bot",
-        image: "https://placehold.co/600x400?text=?",
+        image: _jerrybot,
         chipText: "📦 Archived",
         date: new Date(),
         description: "description."
@@ -59,7 +65,7 @@ const projects: Project[] = [
     {
         title: "jerryxf.net",
         subTitle: "This website, right here!",
-        image: _favicon,
+        image: _jerryxf,
         chipText: "🟢 Stable",
         date: new Date(),
         description: "description."
@@ -67,7 +73,7 @@ const projects: Project[] = [
     {
         title: "LLM vs LLM",
         subTitle: "Two LLMs debate on a given topic",
-        image: "https://placehold.co/600x400?text=?",
+        image: _llmvsllm,
         chipText: "🎖️ Fulfilled",
         url: "https://github.com/jerryxfu/llmvsllm",
         date: new Date(),
@@ -108,9 +114,10 @@ const projects: Project[] = [
     {
         title: "Doublestartyre CA",
         subTitle: "",
-        image: "https://placehold.co/600x400?text=?",
+        image: _doublestartyre,
         chipText: "✅ Delivered",
         date: new Date(),
+        url: "https://doublestartyre.ca",
         description: "description."
     },
 ];

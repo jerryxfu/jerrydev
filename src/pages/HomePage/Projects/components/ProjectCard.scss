@@ -3,8 +3,8 @@
     align-items: stretch;
     flex-direction: column;
     justify-content: flex-start;
-    width: 18rem;
-    height: 22rem;
+    width: 19.2rem;
+    height: 23.25rem;
     padding: 0;
     border: 1px solid #dddddd;
     border-radius: 3px;
@@ -14,26 +14,25 @@
     overflow: hidden;
 
     @media screen and (max-width: 768px) {
-        width: 10.70rem;
-        height: 4rem;
-        margin: 0.25rem 0.30rem;
-        flex-direction: row;
-        align-items: center;
+        width: 100%;
+        height: auto;
+        margin: 0.5rem 0;
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 
 .projectcard_image_section {
     position: relative;
     width: 100%;
-    height: 128px;
+    height: 172.8px;
     border-bottom: 1px solid #e0e0e0;
 
     @media screen and (max-width: 768px) {
-        width: 32px;
-        height: 32px;
+        height: 96px;
         flex-shrink: 0;
-        border-bottom: none;
-        border-right: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+        border-right: none;
     }
 }
 
@@ -44,6 +43,7 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    position: relative;
 
     img {
         width: 100%;
@@ -51,8 +51,28 @@
         object-fit: contain;
     }
 
+    // Shadow overlay at the bottom
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(to top, rgba(128, 128, 128, 0.08), transparent);
+        pointer-events: none;
+        z-index: 1;
+    }
+
     @media screen and (max-width: 768px) {
-        padding: 5px;
+        padding: 0;
+        img {
+            object-fit: cover;
+        }
+
+        &::after {
+            height: 20px;
+        }
     }
 }
 
@@ -77,8 +97,8 @@
 
     @media screen and (max-width: 768px) {
         flex: 1;
-        padding: 0.25rem 0.4rem;
-        border-bottom: none;
+        padding: 0.75rem 0.55rem 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
     }
 }
 
@@ -90,8 +110,8 @@
         line-height: 1.2;
 
         @media screen and (max-width: 768px) {
-            font-size: 0.8rem;
-            margin: 0 0 0.1rem 0;
+            font-size: 1.2rem;
+            margin: 0 0 0.15rem 0;
         }
     }
 
@@ -103,7 +123,7 @@
         line-height: 1.2;
 
         @media screen and (max-width: 768px) {
-            font-size: 0.65rem;
+            font-size: 0.95rem;
         }
     }
 }
@@ -120,13 +140,14 @@
         color: #555555;
 
         @media screen and (max-width: 768px) {
-            font-size: 0.7rem;
-            line-height: 1.3;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
     }
 
     @media screen and (max-width: 768px) {
-        display: none;
+        display: block;
+        padding: 0.5rem 0.55rem;
     }
 }
 
@@ -144,7 +165,9 @@
     box-sizing: border-box;
 
     @media screen and (max-width: 768px) {
-        display: none;
+        display: flex;
+        padding: 0.4rem 0.55rem;
+        font-size: 0.7rem;
     }
 }
 
