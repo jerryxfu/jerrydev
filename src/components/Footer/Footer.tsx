@@ -21,7 +21,7 @@ export default function Footer() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <p className="p-text footer_link">{link.text}</p>
+                                <p className="footer_link">{link.text}</p>
                             </a>
                         </div>);
                     })}

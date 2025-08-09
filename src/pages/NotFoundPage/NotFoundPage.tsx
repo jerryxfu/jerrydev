@@ -4,8 +4,7 @@ import Footer from "../../components/Footer/Footer.tsx";
 
 export default function NotFoundPage() {
     return (
-        <div className="notfound">
-            <div className="notfound_bg blink_animation" />
+        <div className="notfound flash-bg-r">
             <div className="notfound_content">
                 <h1>404 - Page not found and it's probably your fault.</h1>
             </div>

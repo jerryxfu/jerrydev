@@ -159,13 +159,28 @@ p {
     transition: color 450ms;
 }
 
-.p-text {
-    font-size: 1.10rem;
-    line-height: 1.5;
-    font-weight: 350;
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
 
-    color: var(--text-lt-c);
-    transition: color 450ms;
+.layout-row {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+}
+
+.layout-column {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
 }
 
 .small-text {
@@ -221,6 +236,55 @@ p {
 
 .blink_animation {
     animation: blink 1s infinite;
+}
+
+
+.flash-bg-r {
+    animation: flash-bg-r 1s infinite;
+}
+
+@keyframes flash-bg-r {
+    0% {
+        background: #d60000;
+    }
+    15% {
+        background: #d60000;
+    }
+    100% {
+        background: initial;
+    }
+}
+
+.flash-bg-y {
+    animation: flash-bg-y 1s infinite;
+}
+
+@keyframes flash-bg-y {
+    0% {
+        background: #ffd000;
+    }
+    15% {
+        background: #ffd000;
+    }
+    100% {
+        background: initial;
+    }
+}
+
+.flash-bg-g {
+    animation: flash-bg-g 1s infinite;
+}
+
+@keyframes flash-bg-g {
+    0% {
+        background: #007a33;
+    }
+    15% {
+        background: #007a33;
+    }
+    100% {
+        background: initial;
+    }
 }
 
 // debugging

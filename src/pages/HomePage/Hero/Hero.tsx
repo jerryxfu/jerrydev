@@ -337,7 +337,7 @@ export default function Hero() {
                     </p></div>
                 </div>
 
-                <p className="hero_typing-text p-text" ref={typingTextRef}>
+                <p className="hero_typing-text" ref={typingTextRef}>
                     {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
                 </p>
             </div>
