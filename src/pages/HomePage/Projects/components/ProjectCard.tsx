@@ -32,17 +32,21 @@ export interface Project {
 export default function ProjectCard(props: Project) {
     const {image, title, subTitle, description, chipText, url, color, footer, date} = props;
 
+    const isVideo = image.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/);
+
     return (
         <div className="projectcard" style={{backgroundColor: color || "initial"}}>
-            {/* Image Section */}
             <div className="projectcard_image_section">
-                <a className="projectcard_image" href={url || "/"} target="_blank" rel="noopener noreferrer">
-                    <img src={image} alt={`${title} icon`} />
+                <a className="projectcard_image" href={url || undefined} target="_blank" rel="noopener noreferrer">
+                    {isVideo ? (
+                        <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="metadata" />
+                    ) : (
+                        <img src={image} alt={`${title} icon`} />
+                    )}
                 </a>
                 {chipText && <Chip className="projectcard_image_chip" size={"sm"}>{chipText}</Chip>}
             </div>
 
-            {/* Header Section */}
             <div className="projectcard_header">
                 <div className="projectcard_header_content">
                     <h2>{title}</h2>
@@ -50,12 +54,10 @@ export default function ProjectCard(props: Project) {
                 </div>
             </div>
 
-            {/* Content Section */}
             <div className="projectcard_content">
                 <p>{description}</p>
             </div>
 
-            {/* Footer Section */}
             <div className="projectcard_footer">
                 <div className="projectcard_stats">
                     <span className="stat-item">|</span>
