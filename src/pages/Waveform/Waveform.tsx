@@ -1,225 +1,73 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import Plot from "react-plotly.js";
 import CircularBuffer from "./CircularBuffer";
+import {generateDemoSignal} from "./DemoSignalGenerators";
 
 const SAMPLE_RATE = 125; // Hz
 const WINDOW_SECONDS = 5;
 const BUFFER_SIZE = SAMPLE_RATE * WINDOW_SECONDS;
-const REFRESH_INTERVAL_MS = 40;
+const REFRESH_INTERVAL_MS = 33;
 
-const SIGNALS = [
-    {key: "II", name: "ECG II", color: "red", range: [-2, 2], unit: "mV"},
-    {key: "PLETH", name: "PLETH", color: "purple", range: [0, 100], unit: "%"},
-    {key: "SPO2", name: "SpO2", color: "orange", range: [90, 100], unit: "%"},
-    {key: "ABP", name: "ABP", color: "blue", range: [45, 200], unit: "mmHg"},
+type SignalConfig = {
+    name: string;
+    color: string;
+    range: [number, number];
+    unit: string;
+};
+
+const DEMO_SIGNALS: SignalConfig[] = [
+    {name: "ECG II", color: "#e74c3c", range: [-2, 2], unit: "mV"},
+    {name: "ABP", color: "#3498db", range: [0, 200], unit: "mmHg"},
+    {name: "SpO2", color: "#2ecc71", range: [80, 100], unit: "%"},
+    {name: "RESP", color: "#9b59b6", range: [-1, 1], unit: "V"}
 ];
 
-type SignalBuffers = Record<string, { x: CircularBuffer<number>; y: CircularBuffer<number> }>;
-
-//region DUMMY DATA GENERATORS - REMOVE THIS SECTION FOR REAL DATA
-function generateECGLeadII(offset: number, length: number): { x: number[], y: number[] } {
-    const x = Array.from({length}, (_, i) => i / SAMPLE_RATE + offset);
-    const y: number[] = [];
-    const heartRate = 75;
-    const rrInterval = 60 / heartRate;
-
-    for (let i = 0; i < x.length; i++) {
-        const t = x[i]!;
-        let ecgValue = 0;
-        const cyclePosition = (t % rrInterval) / rrInterval;
-
-        if (cyclePosition < 0.1) {
-            // P wave
-            ecgValue = 0.15 * Math.sin(Math.PI * cyclePosition / 0.1);
-        } else if (cyclePosition >= 0.15 && cyclePosition < 0.35) {
-            // QRS complex
-            const qrsPhase = (cyclePosition - 0.15) / 0.2;
-            if (qrsPhase < 0.3) {
-                ecgValue = -0.1 * Math.sin(Math.PI * qrsPhase / 0.3);
-            } else if (qrsPhase < 0.7) {
-                ecgValue = 1.2 * Math.sin(Math.PI * (qrsPhase - 0.3) / 0.4);
-            } else {
-                ecgValue = -0.3 * Math.sin(Math.PI * (qrsPhase - 0.7) / 0.3);
-            }
-        } else if (cyclePosition >= 0.45 && cyclePosition < 0.75) {
-            // T wave
-            ecgValue = 0.3 * Math.sin(Math.PI * (cyclePosition - 0.45) / 0.3);
-        }
-
-        const baselineDrift = 0.05 * Math.sin(0.1 * t);
-        const noise = 0.02 * (Math.random() - 0.5);
-        y.push(ecgValue + baselineDrift + noise);
-    }
-
-    return {x, y};
-}
-
-function generateBloodPressure(offset: number, length: number): { x: number[], y: number[] } {
-    const x = Array.from({length}, (_, i) => i / SAMPLE_RATE + offset);
-    const y: number[] = [];
-    const heartRate = 75;
-    const rrInterval = 60 / heartRate;
-    const systolic = 120;
-    const diastolic = 80;
-
-    for (let i = 0; i < x.length; i++) {
-        const t = x[i]!;
-        const cyclePosition = (t % rrInterval) / rrInterval;
-        let pressure = diastolic;
-
-        if (cyclePosition < 0.3) {
-            pressure = diastolic + (systolic - diastolic) * Math.sin(Math.PI * cyclePosition / 0.6);
-        } else if (cyclePosition < 0.4) {
-            pressure = systolic * (1 - 0.1 * (cyclePosition - 0.3) / 0.1);
-        } else {
-            const diastolicPhase = (cyclePosition - 0.4) / 0.6;
-            if (diastolicPhase < 0.1) {
-                pressure = systolic * 0.9 + 5 * Math.sin(Math.PI * diastolicPhase / 0.1);
-            } else {
-                pressure = diastolic + (systolic * 0.9 - diastolic) * Math.exp(-5 * (diastolicPhase - 0.1));
-            }
-        }
-
-        const respInfluence = 2 * Math.sin(2 * Math.PI * 0.25 * t);
-        const noise = 0.5 * (Math.random() - 0.5);
-        y.push(pressure + respInfluence + noise);
-    }
-
-    return {x, y};
-}
-
-function generatePlethysmography(offset: number, length: number): { x: number[], y: number[] } {
-    const x = Array.from({length}, (_, i) => i / SAMPLE_RATE + offset);
-    const y: number[] = [];
-    const heartRate = 75;
-    const rrInterval = 60 / heartRate;
-
-    for (let i = 0; i < x.length; i++) {
-        const t = x[i]!;
-        const cyclePosition = (t % rrInterval) / rrInterval;
-        let plethValue = 0;
-
-        if (cyclePosition < 0.4) {
-            plethValue = Math.sin(Math.PI * cyclePosition / 0.4) * 35;
-        } else if (cyclePosition < 0.6) {
-            plethValue = 35 * (1 - 0.3 * (cyclePosition - 0.4) / 0.2);
-        } else {
-            plethValue = 24.5 * Math.exp(-3 * (cyclePosition - 0.6) / 0.4);
-        }
-
-        const respModulation = 6 * Math.sin(1.57 * t);
-        const baselineDrift = 2 * Math.sin(0.08 * t);
-        const noise = 0.3 * (Math.random() - 0.5);
-        const plethSignal = 50 + plethValue + respModulation + baselineDrift + noise;
-
-        y.push(plethSignal);
-    }
-
-    return {x, y};
-}
-
-function generateSpO2(offset: number, length: number): { x: number[], y: number[] } {
-    const x = Array.from({length}, (_, i) => i / SAMPLE_RATE + offset);
-    const y: number[] = [];
-    const heartRate = 75;
-    const rrInterval = 60 / heartRate;
-    const baseSpO2 = 97;
-
-    for (let i = 0; i < x.length; i++) {
-        const t = x[i]!;
-        const cyclePosition = (t % rrInterval) / rrInterval;
-        const cardiacVariation = 0.3 * Math.sin(2 * Math.PI * cyclePosition);
-        const respModulation = 0.5 * Math.sin(2 * Math.PI * 0.25 * t);
-        const slowDrift = 0.8 * Math.sin(0.02 * t);
-        const noise = 0.2 * (Math.random() - 0.5);
-        const spo2Value = baseSpO2 + cardiacVariation + respModulation + slowDrift + noise;
-
-        y.push(Math.max(90, Math.min(100, spo2Value)));
-    }
-
-    return {x, y};
-}
-
-function generateFakeSignal(offset: number, length: number, signalKey: string) {
-    switch (signalKey) {
-        case "II":
-            return generateECGLeadII(offset, length);
-        case "PLETH":
-            return generatePlethysmography(offset, length);
-        case "SPO2":
-            return generateSpO2(offset, length);
-        case "ABP":
-            return generateBloodPressure(offset, length);
-        default:
-            const x = Array.from({length}, (_, i) => i / SAMPLE_RATE + offset);
-            const y = x.map((t) => Math.sin(2 * Math.PI * 0.5 * t) + 0.1 * Math.random());
-            return {x, y};
-    }
-}
-
-//endregion
-
 export default function Waveform() {
-    const [playing, setPlaying] = useState(true);
-    const [forceUpdate, setForceUpdate] = useState(0);
-    const [isUserZoomed, setIsUserZoomed] = useState(false);
-    const [zoomWindow, setZoomWindow] = useState(WINDOW_SECONDS);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [, setForceUpdate] = useState(0);
+    const [panOffset, setPanOffset] = useState(0);
+    const [isPanning, setIsPanning] = useState(false);
+
+    // Refs for animation and buffers
     const offsetRef = useRef(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const plotRef = useRef<any>(null);
+    const buffersRef = useRef<Record<string, { x: CircularBuffer<number>; y: CircularBuffer<number> }>>({});
 
-    const buffersRef = useRef<SignalBuffers>((() => {
-        const obj: SignalBuffers = {};
-        for (const sig of SIGNALS) {
-            obj[sig.key] = {
+    // Initialize buffers for each signal
+    useEffect(() => {
+        const newBuffers: Record<string, { x: CircularBuffer<number>; y: CircularBuffer<number> }> = {};
+
+        DEMO_SIGNALS.forEach(signal => {
+            newBuffers[signal.name] = {
                 x: new CircularBuffer<number>(BUFFER_SIZE),
-                y: new CircularBuffer<number>(BUFFER_SIZE),
+                y: new CircularBuffer<number>(BUFFER_SIZE)
             };
-        }
-        return obj;
-    })());
+        });
 
-    function resetBuffers() {
-        SIGNALS.forEach(sig => {
-            buffersRef.current[sig.key]?.x.clear();
-            buffersRef.current[sig.key]?.y.clear();
+        buffersRef.current = newBuffers;
+    }, []);
+
+    const togglePlayback = useCallback(() => {
+        setIsPlaying(!isPlaying);
+    }, [isPlaying]);
+
+    const resetData = useCallback(() => {
+        Object.values(buffersRef.current).forEach(buffer => {
+            buffer.x.clear();
+            buffer.y.clear();
         });
         offsetRef.current = 0;
-        setIsUserZoomed(false);
-        setZoomWindow(WINDOW_SECONDS);
-        setForceUpdate((v) => v + 1);
-    }
+        setIsPlaying(false);
+        setForceUpdate(v => v + 1);
+    }, []);
 
-    const handleRelayout = (eventData: any) => {
-        const start = eventData["xaxis.range[0]"];
-        const end = eventData["xaxis.range[1]"];
-        if (start !== undefined && end !== undefined) {
-            const newZoomWindow = end - start;
-            const diff = Math.abs(newZoomWindow - WINDOW_SECONDS);
-
-            if (diff > 0.5) {
-                setIsUserZoomed(true);
-                setZoomWindow(newZoomWindow);
-            } else if (diff < 0.1) {
-                setIsUserZoomed(false);
-                setZoomWindow(WINDOW_SECONDS);
+    // Animation loop
+    useEffect(() => {
+        if (!isPlaying) {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
             }
-        }
-    };
-
-    useEffect(() => {
-        if (!playing || !isUserZoomed) return;
-
-        const autoScrollTimer = setInterval(() => {
-            setForceUpdate(v => v + 1);
-        }, REFRESH_INTERVAL_MS * 4);
-
-        return () => clearInterval(autoScrollTimer);
-    }, [playing, isUserZoomed]);
-
-    useEffect(() => {
-        if (!playing) {
-            if (timerRef.current) clearInterval(timerRef.current);
             return;
         }
 
@@ -227,99 +75,339 @@ export default function Waveform() {
             const chunkLength = Math.round((SAMPLE_RATE * REFRESH_INTERVAL_MS) / 1000);
             const offset = offsetRef.current;
 
-            SIGNALS.forEach(sig => {
-                const {x, y} = generateFakeSignal(offset, chunkLength, sig.key);
-                buffersRef.current[sig.key]?.x.pushMany(x);
-                buffersRef.current[sig.key]?.y.pushMany(y);
+            // Generate data for each signal
+            DEMO_SIGNALS.forEach(signal => {
+                const {x, y} = generateDemoSignal(offset, chunkLength, signal.name, SAMPLE_RATE);
+                const buffer = buffersRef.current[signal.name];
+                if (buffer) {
+                    buffer.x.pushMany(x);
+                    buffer.y.pushMany(y);
+                }
             });
 
             offsetRef.current += chunkLength / SAMPLE_RATE;
-            setForceUpdate((v) => v + 1);
+            setForceUpdate(v => v + 1);
         }, REFRESH_INTERVAL_MS);
 
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
         };
-    }, [playing]);
+    }, [isPlaying]);
 
-    const plotData = SIGNALS.map((sig, index) => ({
-        x: buffersRef.current[sig.key]?.x.toArray() ?? [],
-        y: buffersRef.current[sig.key]?.y.toArray() ?? [],
-        type: "scatter" as const,
-        mode: "lines" as const,
-        name: `${sig.name} (${sig.unit})`,
-        line: {color: sig.color},
-        xaxis: index === SIGNALS.length - 1 ? "x" : `x${index + 1}` as const,
-        yaxis: `y${index + 1}` as const,
-        showlegend: true,
-    }));
-
-    const numSignals = SIGNALS.length;
-    const subplotGap = 0.02;
-    const subplotHeight = (1 - (numSignals - 1) * subplotGap) / numSignals;
-    const dynamicAxes: any = {};
-
-    SIGNALS.forEach((sig, index) => {
-        const isLast = index === SIGNALS.length - 1;
-        const axisKey = isLast ? "xaxis" : `xaxis${index + 1}`;
-
-        dynamicAxes[axisKey] = {
-            fixedrange: false,
-            domain: [0, 1],
-            anchor: `y${index + 1}` as const,
-            matches: "x" as const,
-            showticklabels: isLast,
-            ...(isLast && {title: {text: "Time (s)"}}),
-            ...(isUserZoomed && {range: [offsetRef.current - zoomWindow, offsetRef.current]}),
-        };
-
-        const yAxisKey = `yaxis${index === 0 ? "" : index + 1}`;
-        const domainStart = (numSignals - 1 - index) * (subplotHeight + subplotGap);
-        const domainEnd = index === 0 ? 1.0 : domainStart + subplotHeight;
-        const adjustedDomainStart = index === 0 ? (1.0 - subplotHeight) : domainStart;
-
-        dynamicAxes[yAxisKey] = {
-            title: {text: `${sig.name} (${sig.unit})`, color: sig.color, font: {size: 11}},
-            range: sig.range,
-            fixedrange: true,
-            domain: [adjustedDomainStart, domainEnd],
-            anchor: isLast ? "x" : `x${index + 1}` as const,
-            showgrid: true,
-            gridcolor: "rgba(128,128,128,0.15)",
-            zeroline: false,
-            showline: true,
-            linecolor: "rgba(128,128,128,0.3)",
+    // Prepare plot data
+    const plotData = DEMO_SIGNALS.map((signal, index) => {
+        const buffer = buffersRef.current[signal.name];
+        return {
+            x: buffer?.x.toArray() ?? [],
+            y: buffer?.y.toArray() ?? [],
+            type: "scatter" as const,
+            mode: "lines" as const,
+            name: `${signal.name} (${signal.unit})`,
+            line: {color: signal.color, width: 2},
+            yaxis: `y${index + 1}` as const,
+            showlegend: true
         };
     });
 
-    const layout = {
-        title: {text: `Waveform Previewer - ${numSignals} channel${numSignals > 1 ? "s" : ""} (rolling ${WINDOW_SECONDS}s window)`},
-        ...dynamicAxes,
-        height: Math.max(600, numSignals * 200),
-        margin: {t: 60, r: 100, b: 100, l: 100},
-        legend: {orientation: "h" as const, y: -0.06},
-        dragmode: "pan" as const,
-        uirevision: "constant",
+    // Create subplot layout
+    const numSignals = DEMO_SIGNALS.length;
+    const currentTime = offsetRef.current + panOffset;
+
+    // Start at 0 on the left, not centered
+    const xAxisRange: [number, number] = [currentTime, currentTime + WINDOW_SECONDS];
+
+    const layout: Partial<Plotly.Layout> = {
+        title: {text: "Medical Waveform Viewer"},
+        height: 600,
+        showlegend: true,
+        legend: {x: 1, y: 1},
+        margin: {l: 80, r: 50, t: 50, b: 50},
+        dragmode: "pan",
+        xaxis: {
+            title: {text: "Time (s)"},
+            range: xAxisRange,
+            fixedrange: false,
+            type: "linear"
+        }
     };
 
+    // Create y-axes for each signal
+    DEMO_SIGNALS.forEach((signal, index) => {
+        const yAxisKey = index === 0 ? "yaxis" : `yaxis${index + 1}`;
+        const domainStart = (numSignals - 1 - index) / numSignals;
+        const domainEnd = (numSignals - index) / numSignals;
+
+        (layout as Record<string, unknown>)[yAxisKey] = {
+            title: `${signal.name} (${signal.unit})`,
+            titlefont: {color: signal.color},
+            range: signal.range,
+            domain: [domainStart + 0.01, domainEnd - 0.01],
+            fixedrange: true // Keep y-axes fixed, no vertical zoom
+        };
+    });
+
+    // New panning functions
+    const panLeft = useCallback(() => {
+        setPanOffset(prev => prev - 1);
+        setIsPanning(true);
+        setTimeout(() => setIsPanning(false), 200);
+    }, []);
+
+    const panRight = useCallback(() => {
+        setPanOffset(prev => prev + 1);
+        setIsPanning(true);
+        setTimeout(() => setIsPanning(false), 200);
+    }, []);
+
+    const jumpBackward = useCallback(() => {
+        setPanOffset(prev => prev - 5);
+        setIsPanning(true);
+        setTimeout(() => setIsPanning(false), 200);
+    }, []);
+
+    const jumpForward = useCallback(() => {
+        setPanOffset(prev => prev + 5);
+        setIsPanning(true);
+        setTimeout(() => setIsPanning(false), 200);
+    }, []);
+
+    const resetPan = useCallback(() => {
+        setPanOffset(0);
+        setIsPanning(false);
+    }, []);
+
+    // Keyboard controls
+    useEffect(() => {
+        const handleKeyPress = (event: KeyboardEvent) => {
+            if (event.target instanceof HTMLInputElement) return; // Don't interfere with input fields
+
+            switch (event.key) {
+                case "ArrowLeft":
+                    event.preventDefault();
+                    panLeft();
+                    break;
+                case "ArrowRight":
+                    event.preventDefault();
+                    panRight();
+                    break;
+                case "PageUp":
+                    event.preventDefault();
+                    jumpBackward();
+                    break;
+                case "PageDown":
+                    event.preventDefault();
+                    jumpForward();
+                    break;
+                case "Home":
+                    event.preventDefault();
+                    resetPan();
+                    break;
+                case " ":
+                    event.preventDefault();
+                    togglePlayback();
+                    break;
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyPress);
+        return () => window.removeEventListener("keydown", handleKeyPress);
+    }, [togglePlayback, panLeft, panRight, jumpBackward, jumpForward, resetPan]);
+
     return (
-        <div>
-            <div style={{marginBottom: 8}}>
-                <button onClick={() => setPlaying(p => !p)}>{playing ? "Pause" : "Play"}</button>
-                <button onClick={resetBuffers} style={{marginLeft: 8}}>Reset</button>
+        <div style={{padding: "20px"}}>
+            <h1>Waveform Viewer</h1>
+
+            {/* Main Controls */}
+            <div style={{marginBottom: "20px"}}>
+                <button
+                    onClick={togglePlayback}
+                    style={{
+                        marginRight: "10px",
+                        padding: "10px 20px",
+                        backgroundColor: isPlaying ? "#e74c3c" : "#27ae60",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "bold"
+                    }}
+                >
+                    {isPlaying ? "⏸ Stop" : "▶ Start"}
+                </button>
+
+                <button
+                    onClick={resetData}
+                    style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#34495e",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "14px"
+                    }}
+                >
+                    🔄 Reset
+                </button>
             </div>
+
+            {/* Horizontal Navigation Controls */}
+            <div style={{
+                marginBottom: "20px",
+                padding: "15px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "8px",
+                border: "1px solid #dee2e6"
+            }}>
+                <p style={{margin: "0 0 10px 0", fontWeight: "bold", color: "#495057"}}>
+                    🎛️ Navigation Controls
+                </p>
+
+                <div style={{display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap"}}>
+                    <button
+                        onClick={jumpBackward}
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px"
+                        }}
+                        title="Jump back 5 seconds (PageUp)"
+                    >
+                        ⏪ -5s
+                    </button>
+
+                    <button
+                        onClick={panLeft}
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px"
+                        }}
+                        title="Pan left 1 second (←)"
+                    >
+                        ← -1s
+                    </button>
+
+                    <button
+                        onClick={resetPan}
+                        style={{
+                            padding: "8px 16px",
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            fontWeight: "bold"
+                        }}
+                        title="Return to live view (Home)"
+                    >
+                        🏠 Live
+                    </button>
+
+                    <button
+                        onClick={panRight}
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px"
+                        }}
+                        title="Pan right 1 second (→)"
+                    >
+                        +1s →
+                    </button>
+
+                    <button
+                        onClick={jumpForward}
+                        style={{
+                            padding: "8px 12px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px"
+                        }}
+                        title="Jump forward 5 seconds (PageDown)"
+                    >
+                        +5s ⏩
+                    </button>
+
+                    <span style={{
+                        marginLeft: "15px",
+                        padding: "6px 12px",
+                        backgroundColor: "#e9ecef",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        color: "#495057"
+                    }}>
+                        Offset: {panOffset > 0 ? "+" : ""}{panOffset}s
+                    </span>
+                </div>
+
+                <div style={{marginTop: "8px", fontSize: "11px", color: "#6c757d"}}>
+                    💡 <strong>Keyboard shortcuts:</strong> ←/→ (pan), PageUp/PageDown (jump), Home (live), Space (play/pause)
+                </div>
+            </div>
+
+            {/* Future API controls - currently disabled */}
+            <div style={{
+                marginBottom: "20px",
+                padding: "10px",
+                backgroundColor: "#f8f9fa",
+                borderRadius: "5px",
+                opacity: 0.5
+            }}>
+                <p><strong>API Integration (Coming Soon):</strong></p>
+                <input
+                    type="text"
+                    placeholder="Record Name"
+                    disabled
+                    style={{marginRight: "10px", padding: "5px"}}
+                />
+                <button disabled style={{padding: "5px 10px"}}>
+                    Load Record
+                </button>
+            </div>
+
+            {/* Plot */}
             <Plot
                 data={plotData}
                 layout={layout}
-                style={{width: "100%"}}
                 config={{
-                    scrollZoom: true,
-                    doubleClick: "reset",
+                    responsive: true,
                     displayModeBar: true,
-                    modeBarButtonsToRemove: ["pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "resetScale2d"],
-                    modeBarButtonsToAdd: ["pan2d"],
+                    modeBarButtonsToRemove: ["select2d", "lasso2d", "autoScale2d", "zoom2d"],
+                    scrollZoom: true,
+                    doubleClick: "reset+autosize"
                 }}
-                onRelayout={handleRelayout}
+                style={{width: "100%", height: "600px"}}
+                onRelayout={(event) => {
+                    // Handle user interactions
+                    if (event["xaxis.range[0]"] !== undefined) {
+                        const start = event["xaxis.range[0]"] as number;
+                        const newOffset = start - offsetRef.current;
+                        setPanOffset(newOffset);
+
+                        setIsPanning(true);
+                        setTimeout(() => setIsPanning(false), 100);
+                    }
+                }}
             />
         </div>
     );
