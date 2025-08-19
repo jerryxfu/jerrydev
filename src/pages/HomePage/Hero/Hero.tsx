@@ -330,10 +330,10 @@ export default function Hero() {
 
                 <div className="text hero_about-container">
                     <div style={{overflow: "hidden"}}><p className="hero_line" ref={line1Ref}>
-                        Hey there, I'm Jerry - a coding enthusiast residing in 🍁Canada🦫!
+                        Aspiring physician-engineer, exploring where medicine and technology meet
                     </p></div>
                     <div style={{overflow: "hidden"}}><p className="hero_line" ref={line2Ref}>
-                        AI, Deep learning, Computer vision, Networking, Game engines, Science.
+                        Medicine • AI • Robotics • Science • Computer Vision • Deep Learning • Coding
                     </p></div>
                 </div>
 

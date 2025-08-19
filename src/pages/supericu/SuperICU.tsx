@@ -1,202 +1,334 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
-import {SmoothieChart, TimeSeries} from "smoothie";
+import React, {useEffect, useRef, useState} from "react";
 import "./SuperICU.scss";
+import {useWaveTemplates, sampleTemplate, useDemoVitals, modifyDemoSample} from "./sim";
+import type {AlertItem} from "./sim";
+import {checkAlarms, defaultCounters} from "./alarms";
 
-export default function SuperIcu() {
-    // Canvas refs
+// Changing TICK_MS or DEFAULT_SHOW_SECONDS affects perceived sweep speed.
+const CFG = {
+    // Core timing for the sweep renderer; lower = more updates per second
+    TICK_MS: 20,
+    // How many seconds should be visible across the canvas width by default
+    DEFAULT_SHOW_SECONDS: 6,
+    // Options for the Window selector in the top bar
+    WINDOW_CHOICES: [4, 6, 8, 10, 12, 15, 20] as const,
+
+    // Wave visuals
+    ECG_COLOR: "#00ff00",
+    PLETH_COLOR: "#00e5ff",
+    RESP_COLOR: "#ffffff",
+    LINE_WIDTH: 2,
+    CLEAR_WIDTH: 2,
+    AMP_FRAC: 0.4,
+    VAL_CLAMP: 1.2,
+
+    // Ensure enough points per beat to preserve QRS peak at high HR
+    MIN_SAMPLES_PER_BEAT: 300,
+} as const;
+
+export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; plethHz?: number; respHz?: number } } = {}) {
+    // Canvas refs map to each waveform row
     const ecgRef = useRef<HTMLCanvasElement | null>(null);
     const plethRef = useRef<HTMLCanvasElement | null>(null);
     const respRef = useRef<HTMLCanvasElement | null>(null);
 
-    // Vitals state (populated with test data)
-    const [hr, setHr] = useState<number>(78);
-    const [spo2, setSpo2] = useState<number>(98);
-    const [rr, setRr] = useState<number>(16);
-    const [bp, setBp] = useState<{ sys: number; dia: number }>({sys: 120, dia: 76});
-
-    type AlertItem = { id: string; time: string; level: "low" | "medium" | "high"; msg: string };
-    const [alerts, setAlerts] = useState<AlertItem[]>([{
-        id: "a1", time: new Date().toLocaleTimeString(), level: "low", msg: "Monitoring started"
-    }]);
-
-    // Precompute an ECG template (1 beat) using sum of Gaussians (P, QRS, T)
-    const ecgTemplate = useMemo(() => {
-        const samples = 300; // base samples per beat at 60 bpm
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples; // 0..1
-            // P wave
-            const p = 0.15 * Math.exp(-Math.pow((x - 0.22) / 0.03, 2));
-            // QRS complex (Q small neg, R tall pos, S small neg)
-            const q = -0.15 * Math.exp(-Math.pow((x - 0.34) / 0.008, 2));
-            const r = 1.2 * Math.exp(-Math.pow((x - 0.36) / 0.006, 2));
-            const s = -0.25 * Math.exp(-Math.pow((x - 0.39) / 0.01, 2));
-            // T wave
-            const t = 0.35 * Math.exp(-Math.pow((x - 0.62) / 0.06, 2));
-            arr[i] = p + q + r + s + t + (Math.random() - 0.5) * 0.02; // add a little noise
-        }
-        return arr;
-    }, []);
-
-    // Pleth template (SpO2) smoother pulsatile waveform with dicrotic notch
-    const plethTemplate = useMemo(() => {
-        const samples = 300;
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples;
-            const upstroke = Math.exp(-8 * Math.pow(x - 0.2, 2));
-            const decay = Math.exp(-3 * Math.max(0, x - 0.25));
-            const notch = -0.15 * Math.exp(-Math.pow((x - 0.45) / 0.02, 2));
-            arr[i] = 0.4 * upstroke + 0.6 * decay + notch + 0.02 * Math.sin(20 * x * Math.PI);
-        }
-        // normalize roughly to 0..1
-        const min = Math.min(...arr), max = Math.max(...arr);
-        return arr.map(v => (v - min) / (max - min));
-    }, []);
-
-    // Respiration template (slow sine-like)
-    const respTemplate = useMemo(() => {
-        const samples = 600;
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples;
-            arr[i] = Math.sin(2 * Math.PI * x) * 0.8 + 0.1 * Math.sin(6 * Math.PI * x);
-        }
-        return arr;
-    }, []);
-
+    // Demo vitals
+    const {vitals} = useDemoVitals();
+    const vitalsRef = useRef(vitals);
     useEffect(() => {
-        if (!ecgRef.current || !plethRef.current || !respRef.current) return;
+        vitalsRef.current = vitals;
+    }, [vitals]);
 
-        // Create charts
-        const commonGrid = {
-            fillStyle: "#000000",
-            strokeStyle: "rgba(0, 100, 0, 0.25)",
-            lineWidth: 1,
-            millisPerLine: 1000,
-            verticalSections: 4,
-            sharpLines: true,
-            borderVisible: false,
-        } as const;
+    // init and ECG lead
+    const [initialized, setInitialized] = useState<boolean>(false);
+    const [ecgConnected, setEcgConnected] = useState<boolean>(true);
 
-        const ecgChart = new SmoothieChart({
-            millisPerPixel: 2,
-            maxValue: 1.6,
-            minValue: -1.2,
-            interpolation: "linear",
-            grid: commonGrid,
-            labels: {fillStyle: "#7fdc7f"},
-        });
-        const plethChart = new SmoothieChart({
-            millisPerPixel: 2,
-            maxValue: 1.2,
-            minValue: -0.2,
-            interpolation: "linear",
-            grid: commonGrid,
-            labels: {fillStyle: "#7fdc7f"},
-        });
-        const respChart = new SmoothieChart({
-            millisPerPixel: 3,
-            maxValue: 1.2,
-            minValue: -1.2,
-            interpolation: "linear",
-            grid: commonGrid,
-            labels: {fillStyle: "#7fdc7f"},
-        });
+    // Alerts list
+    const [alerts, setAlerts] = useState<AlertItem[]>([
+        {id: randomId(), time: new Date().toLocaleTimeString(), level: "low", msg: "Monitoring started"}
+    ]);
 
-        // Time series
-        const ecgSeries = new TimeSeries();
-        const plethSeries = new TimeSeries();
-        const respSeries = new TimeSeries();
+    // Top bar
+    const [timeStr, setTimeStr] = useState<string>(new Date().toLocaleTimeString());
+    // Seconds of waveform visible across the canvas width; controls horizontal sweep velocity
+    const [showSeconds, setShowSeconds] = useState<number>(CFG.DEFAULT_SHOW_SECONDS);
+    useEffect(() => {
+        const t = setInterval(() => setTimeStr(new Date().toLocaleTimeString()), 1000);
+        return () => clearInterval(t);
+    }, []);
 
-        ecgChart.addTimeSeries(ecgSeries, {strokeStyle: "#00ff00", lineWidth: 2});
-        plethChart.addTimeSeries(plethSeries, {strokeStyle: "#00e5ff", lineWidth: 2});
-        respChart.addTimeSeries(respSeries, {strokeStyle: "#ffffff", lineWidth: 2});
+    // Precomputed waveform templates (ECG, Pleth, Resp) from sim.ts
+    const {ecgTemplate, plethTemplate, respTemplate} = useWaveTemplates();
 
-        ecgChart.streamTo(ecgRef.current, 250);
-        plethChart.streamTo(plethRef.current, 250);
-        respChart.streamTo(respRef.current, 250);
+    // Sweep renderer: builds one drawing context per canvas and advances a "pen" at fixed time steps
+    useEffect(() => {
+        const canvases = [
+            {ref: ecgRef, color: CFG.ECG_COLOR},
+            {ref: plethRef, color: CFG.PLETH_COLOR},
+            {ref: respRef, color: CFG.RESP_COLOR},
+        ];
 
-        // Simulation state
-        let running = true;
-        let ecgIdx = 0;
-        let plethIdx = 0;
-        let respIdx = 0;
+        type Sweep = {
+            canvas: HTMLCanvasElement;
+            ctx: CanvasRenderingContext2D;
+            width: number; height: number; dpr: number;
+            x: number;       // current pen x-position (CSS pixels)
+            lastX: number | null; // last drawn x (used for segment continuity)
+            lastY: number | null; // last drawn y
+            color: string;   // stroke color
+            lineWidth: number; // stroke width
+            clearW: number;  // width of cleared strip at the pen
+            resize: () => void; // handle DPR/size changes
+            clearAll: () => void; // full canvas clear
+        };
 
-        // start with test vitals; allow slight variability
-        let heartRate = 78; // bpm
-        let respirationRate = 16; // bpm
-        let spo2Val = 98; // %
-        let bpSys = 120, bpDia = 76; // mmHg
+        const sweeps: Sweep[] = [];
+        const ros: ResizeObserver[] = [];
 
-        const updateVitalsEvery = 1000; // ms
+        // Create a Sweep controller for a canvas element
+        function makeSweep(canvas: HTMLCanvasElement, color: string): Sweep | null {
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return null;
+            const s: Sweep = {
+                canvas, ctx,
+                width: 0, height: 0, dpr: window.devicePixelRatio || 1,
+                x: 0, lastX: null, lastY: null,
+                color, lineWidth: CFG.LINE_WIDTH, clearW: CFG.CLEAR_WIDTH,
+                resize: () => {
+                    // Match device pixel ratio for crisp lines, but render in CSS pixels
+                    const dpr = window.devicePixelRatio || 1;
+                    s.dpr = dpr;
+                    const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+                    const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixel coords
+                    s.width = w / dpr;
+                    s.height = h / dpr;
+                    s.x = 0;
+                    s.lastX = null;
+                    s.lastY = null;
+                    s.clearAll();
+                },
+                clearAll: () => {
+                    ctx.save();
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.restore();
+                },
+            };
+            s.resize();
+            const ro = new ResizeObserver(() => s.resize());
+            ro.observe(canvas);
+            ros.push(ro);
+            return s;
+        }
 
-        // Drive sampling relative to HR/RR
-        const tickMs = 20;
+        // Initialize sweeps for each visible canvas
+        for (const c of canvases) {
+            const el = c.ref.current;
+            if (!el) continue;
+            const s = makeSweep(el, c.color);
+            if (s) sweeps.push(s);
+        }
+        if (sweeps.length !== canvases.length) {
+            // if any canvas missing, bail to avoid partial rendering
+            return () => {
+                ros.forEach(r => r.disconnect());
+            };
+        }
+        const [ecg, pleth, resp] = sweeps as [Sweep, Sweep, Sweep];
+
+        // Continuous normalized phases [0,1) for each waveform
+        let ecgPhase = 0, plethPhase = 0, respPhase = 0;
+        const tickMs = CFG.TICK_MS;
+        const dt = tickMs / 1000;
+        let tSec = 0;
+        let lastTs = performance.now();
 
         const timer = setInterval(() => {
-            if (!running) return;
-            const now = Date.now();
+            const now = performance.now();
+            const elapsedSec = Math.max(0, (now - lastTs) / 1000);
+            lastTs = now;
 
-            // Update indices according to current HR/RR
-            const ecgSpb = Math.max(200, Math.round((60_000 / heartRate) / tickMs)); // samples per beat in ticks
-            const plethSpb = ecgSpb;
-            const respSpb = Math.max(500, Math.round((60_000 / respirationRate) / tickMs));
+            if (!initialized) {
+                ecg.clearAll();
+                pleth.clearAll();
+                resp.clearAll();
+                return;
+            }
+            const hr = Math.max(1, Number(vitalsRef.current.hr));
+            const rr = Math.max(1, Number(vitalsRef.current.rr));
+            const hrHz = hr / 60;
+            const rrHz = rr / 60;
+            const stepEcg = hrHz * dt;
+            const stepPleth = stepEcg;
+            const stepResp = rrHz * dt;
 
-            // Map tick to template index
-            ecgIdx = (ecgIdx + 1) % ecgSpb;
-            plethIdx = (plethIdx + 1) % plethSpb;
-            respIdx = (respIdx + 1) % respSpb;
+            // Advance horizontally exactly by elapsed time fraction of the window width
+            const dxEcgTotal = Math.max(0.5, ecg.width * (elapsedSec / showSeconds));
+            const dxPlethTotal = Math.max(0.5, pleth.width * (elapsedSec / showSeconds));
+            const dxRespTotal = Math.max(0.5, resp.width * (elapsedSec / showSeconds));
 
-            const ecgVal = ecgTemplate[Math.floor((ecgIdx / ecgSpb) * ecgTemplate.length)];
-            const plethBase = plethTemplate[Math.floor((plethIdx / plethSpb) * plethTemplate.length)];
-            const respVal = respTemplate[Math.floor((respIdx / respSpb) * respTemplate.length)];
+            const desiredPhaseStep = 1 / CFG.MIN_SAMPLES_PER_BEAT;
+            const subEcg = Math.max(1, Math.ceil(stepEcg / desiredPhaseStep));
+            const subPleth = Math.max(1, Math.ceil(stepPleth / desiredPhaseStep));
+            const subResp = Math.max(1, Math.ceil(stepResp / desiredPhaseStep));
 
-            ecgSeries.append(now, ecgVal);
-            plethSeries.append(now, (plethBase - 0.5) * 1.0); // center around 0
-            respSeries.append(now, respVal);
+            const advanceAndDraw = (s: any, getVal: () => number, sub: number, dxTotal: number) => {
+                const subDt = elapsedSec / sub;
+                for (let i = 0; i < sub; i++) {
+                    const v = getVal();
+                    drawSweep(s, v, dxTotal / sub);
+                    tSec += subDt;
+                }
+            };
+
+            if (ecgConnected) {
+                advanceAndDraw(
+                    ecg,
+                    () => {
+                        ecgPhase += (hrHz * elapsedSec) / subEcg;
+                        if (ecgPhase >= 1) ecgPhase -= 1;
+                        const raw = sampleTemplate(ecgTemplate, ecgPhase, 1);
+                        return modifyDemoSample("ecg", raw, tSec, vitalsRef.current);
+                    },
+                    subEcg,
+                    dxEcgTotal
+                );
+            } else {
+                ecg.clearAll();
+                drawLeadOff(ecg, "LEAD OFF");
+            }
+
+            advanceAndDraw(
+                pleth,
+                () => {
+                    plethPhase += (hrHz * elapsedSec) / subPleth;
+                    if (plethPhase >= 1) plethPhase -= 1;
+                    const raw = sampleTemplate(plethTemplate, plethPhase, 1) - 0.5;
+                    return modifyDemoSample("pleth", raw, tSec, vitalsRef.current);
+                },
+                subPleth,
+                dxPlethTotal
+            );
+
+            advanceAndDraw(
+                resp,
+                () => {
+                    respPhase += (rrHz * elapsedSec) / subResp;
+                    if (respPhase >= 1) respPhase -= 1;
+                    const raw = sampleTemplate(respTemplate, respPhase, 1);
+                    return modifyDemoSample("resp", raw, tSec, vitalsRef.current);
+                },
+                subResp,
+                dxRespTotal
+            );
         }, tickMs);
 
-        // Slowly update vitals and randomly create alerts
-        const vitalsTimer = setInterval(() => {
-            // HR drift
-            heartRate = Math.max(55, Math.min(130, heartRate + (Math.random() - 0.5) * 2));
-            respirationRate = Math.max(8, Math.min(26, respirationRate + (Math.random() - 0.5) * 0.6));
-            spo2Val = Math.max(92, Math.min(100, spo2Val + (Math.random() - 0.5) * 0.5));
-            bpSys = Math.round(Math.max(90, Math.min(160, bpSys + (Math.random() - 0.5) * 2)));
-            bpDia = Math.round(Math.max(55, Math.min(95, bpDia + (Math.random() - 0.5) * 1.5)));
+        const OVERWRITE_BAND_PX = 8; // Width of the band cleared ahead of the pen
 
-            setHr(Math.round(heartRate));
-            setRr(Math.round(respirationRate));
-            setSpo2(Math.round(spo2Val));
-            setBp({sys: bpSys, dia: bpDia});
+        // Draw a single segment and advance the pen; clears a small band ahead to mimic overwrite
+        function drawSweep(s: Sweep, val: number, dx: number) {
+            const ctx = s.ctx;
+            const mid = s.height / 2;
+            const amp = s.height * CFG.AMP_FRAC;
+            const y = mid - Math.max(-CFG.VAL_CLAMP, Math.min(CFG.VAL_CLAMP, val)) * amp;
 
-            // Occasional alerts
-            if (Math.random() < 0.12) {
-                const t = new Date().toLocaleTimeString();
-                const pick = Math.random();
-                const a: AlertItem =
-                    pick < 0.33 ? {id: cryptoRandomId(), time: t, level: "low", msg: "PVC detected"} :
-                        pick < 0.66 ? {id: cryptoRandomId(), time: t, level: "medium", msg: "RR trending up"} :
-                            {id: cryptoRandomId(), time: t, level: "high", msg: "HR > 120 bpm"};
-                setAlerts(prev => [a, ...prev].slice(0, 25));
+            ctx.save();
+            const clearW = Math.max(dx, OVERWRITE_BAND_PX);
+            ctx.clearRect(s.x, 0, clearW, s.height); // erase only what the pen will overwrite
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = s.lineWidth;
+            ctx.beginPath();
+            if (s.lastX == null || (s.x === 0 && s.lastX !== 0)) {
+                // First point of a sweep pass: start at current pen location
+                ctx.moveTo(s.x, y);
+            } else {
+                // Continue from the last point for smoothness
+                ctx.moveTo(s.lastX, s.lastY ?? y);
             }
-        }, updateVitalsEvery);
+            const newX = s.x + dx;
+            ctx.lineTo(newX, y);
+            ctx.stroke();
+            ctx.restore();
 
-        function cleanup() {
-            running = false;
-            clearInterval(timer);
-            clearInterval(vitalsTimer);
-            // Smoothie cleans up on GC. No explicit destroy.
+            // Advance the pen and wrap
+            s.lastX = newX;
+            s.lastY = y;
+            s.x = newX;
+            if (s.x >= s.width) {
+                s.x = 0;
+                s.lastX = null;
+                s.lastY = null;
+            }
         }
 
-        return cleanup;
-    }, [ecgTemplate, plethTemplate, respTemplate]);
+        return () => {
+            clearInterval(timer);
+            // removed vitalsTimer (demo-only, moved to sim.ts)
+            ros.forEach(r => r.disconnect());
+        };
+    }, [ecgTemplate, plethTemplate, respTemplate, showSeconds, initialized, ecgConnected]);
+
+    // Alarm checks: thresholds + persistence live in alarms.ts; evaluated every second
+    useEffect(() => {
+        const countersRef = {current: defaultCounters};
+        const check = setInterval(() => {
+            // Optionally suppress HR-triggered alarms when ECG is disconnected
+            const v = vitalsRef.current;
+            const vForAlarms = ecgConnected ? v : {...v, hr: "-?-" as const};
+            const evald = checkAlarms(vForAlarms, countersRef.current);
+            countersRef.current = evald.counters;
+            if (evald.alerts.length) {
+                setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
+            }
+        }, 1000);
+        return () => clearInterval(check);
+    }, [ecgConnected]);
+
+    // After first vitals update, mark initialized so numbers/waves can appear
+    useEffect(() => {
+        // initialize after first demo vitals tick
+        const ready = setTimeout(() => setInitialized(true), 1000);
+        return () => clearTimeout(ready);
+    }, []);
+
+    // show "-?-" until initialized or when disconnected
+    const disp = {
+        hr: (!initialized || !ecgConnected) ? "-?-" : vitals.hr,
+        spo2: (!initialized) ? "-?-" : vitals.spo2,
+        rr: (!initialized) ? "-?-" : vitals.rr,
+        bpSys: (!initialized) ? "-?-" : vitals.bp.sys,
+        bpDia: (!initialized) ? "-?-" : vitals.bp.dia,
+    } as const;
 
     return (
         <div className="super-icu">
             <div className="main">
-                {/* ECG row */}
+                <div className="top-bar">
+                    <span className="status-pill">SuperICU</span>
+                    <span className="status-pill">Alarms: On</span>
+                    <span className="status-pill">{timeStr}</span>
+                    <span className="status-pill" style={{cursor: "pointer"}} onClick={() => setEcgConnected(s => !s)}>
+                        ECG: {ecgConnected ? "Connected" : "Disconnected"}
+                    </span>
+                    <div style={{marginLeft: "auto", display: "flex", alignItems: "center", gap: 6}}>
+                        <span style={{fontSize: 12, color: "#7fdc7f"}}>Window</span>
+                        <select value={showSeconds} onChange={e => setShowSeconds(parseInt(e.target.value, 10))}
+                                style={{
+                                    background: "#000",
+                                    color: "#c8ffc8",
+                                    border: "1px solid rgba(0, 100, 0, 0.35)",
+                                    borderRadius: 6,
+                                    padding: "2px 6px"
+                                }}>
+                            {CFG.WINDOW_CHOICES.map(s => <option key={s} value={s}>{s}s</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* ECG row (frequency paced by HR) */}
                 <div className="wave-row">
                     <div className="lead-label">ECG Lead II</div>
                     <div className="canvas-wrap">
@@ -205,20 +337,16 @@ export default function SuperIcu() {
                     <div className="vitals">
                         <div className="vital hr">
                             <div className="label">HR</div>
-                            <div className="value">{hr}<span style={{fontSize: 14, marginLeft: 4}}>bpm</span></div>
+                            <div className="value">{disp.hr}<span style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
                         </div>
                         <div className="vital bp">
                             <div className="label">NIBP</div>
-                            <div className="value">{bp.sys}/{bp.dia}</div>
-                        </div>
-                        <div className="vital">
-                            <div className="label">PAIN</div>
-                            <div className="value">0</div>
+                            <div className="value">{disp.bpSys}/{disp.bpDia}</div>
                         </div>
                     </div>
                 </div>
 
-                {/* SpO2 row */}
+                {/* Pleth row (paced by HR) */}
                 <div className="wave-row">
                     <div className="lead-label">SpO₂ Pleth</div>
                     <div className="canvas-wrap">
@@ -227,7 +355,7 @@ export default function SuperIcu() {
                     <div className="vitals">
                         <div className="vital spo2">
                             <div className="label">SpO₂</div>
-                            <div className="value">{spo2}<span style={{fontSize: 14}}>%</span></div>
+                            <div className="value">{disp.spo2}<span style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
                         </div>
                         <div className="vital">
                             <div className="label">Pi</div>
@@ -240,7 +368,7 @@ export default function SuperIcu() {
                     </div>
                 </div>
 
-                {/* Resp row */}
+                {/* Respiration row (frequency paced by RR) */}
                 <div className="wave-row">
                     <div className="lead-label">RESP</div>
                     <div className="canvas-wrap">
@@ -249,7 +377,7 @@ export default function SuperIcu() {
                     <div className="vitals">
                         <div className="vital rr">
                             <div className="label">RR</div>
-                            <div className="value">{rr}<span style={{fontSize: 14, marginLeft: 4}}>rpm</span></div>
+                            <div className="value">{disp.rr}<span style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
                         </div>
                         <div className="vital">
                             <div className="label">EtCO₂</div>
@@ -261,18 +389,8 @@ export default function SuperIcu() {
                         </div>
                     </div>
                 </div>
-
-                {/* Status bar */}
-                <div className="status-bar">
-                    <span className="status-pill">Patient: TEST-001</span>
-                    <span className="status-pill">Bed: ICU-7</span>
-                    <span className="status-pill">Leads: II</span>
-                    <span className="status-pill">Alarms: On</span>
-                    <span className="status-pill">{new Date().toLocaleTimeString()}</span>
-                </div>
             </div>
 
-            {/* Right side panel */}
             <div className="side">
                 <div className="side-header">Alerts</div>
                 <div className="alerts">
@@ -283,32 +401,13 @@ export default function SuperIcu() {
                         </div>
                     ))}
                 </div>
-                <div className="ai-box">
-                    <div style={{color: "#9cff9c", fontSize: 14}}>AI side panel (placeholder)</div>
-                    <textarea placeholder="Type your analysis, instructions, or notes..." />
-                    <div className="ai-actions">
-                        <button onClick={() => setAlerts(prev => [{
-                            id: cryptoRandomId(),
-                            time: new Date().toLocaleTimeString(),
-                            level: "low",
-                            msg: "AI: Noted your input"
-                        }, ...prev])}>Save Note
-                        </button>
-                        <button onClick={() => setAlerts(prev => [{
-                            id: cryptoRandomId(),
-                            time: new Date().toLocaleTimeString(),
-                            level: "medium",
-                            msg: "AI: Suggested increasing sampling"
-                        }, ...prev])}>Run Check
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     );
 }
 
-function cryptoRandomId() {
+// Helpers
+function randomId() {
     try {
         // @ts-ignore
         const b = (crypto && crypto.getRandomValues) ? crypto.getRandomValues(new Uint8Array(8)) : null;
@@ -316,4 +415,19 @@ function cryptoRandomId() {
     } catch {
     }
     return Math.random().toString(36).slice(2);
+}
+
+// Overlay helper for disconnected leads
+function drawLeadOff(s: { ctx: CanvasRenderingContext2D; width: number; height: number }, text: string) {
+    const ctx = s.ctx;
+    ctx.save();
+    ctx.fillStyle = "#001100";
+    ctx.fillRect(0, 0, s.width, s.height);
+    ctx.fillStyle = "#3de23d";
+    ctx.font = "12px monospace";
+    const metrics = ctx.measureText(text);
+    const x = (s.width - metrics.width) / 2;
+    const y = s.height / 2;
+    ctx.fillText(text, x, y);
+    ctx.restore();
 }

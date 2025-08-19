@@ -5,7 +5,7 @@ export default function About() {
     return (
         <div className="section about">
             <SectionTitle text={"About"} />
-            <p>This website is a work in progress</p>
+            <p>hi :)</p>
 
         </div>
     );

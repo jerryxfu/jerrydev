@@ -15,6 +15,15 @@ import _endPortal from "../../../assets/projects/end_portal.jpg";
 
 const projects: Project[] = [
     {
+        title: "MEDIVE",
+        subTitle: "Medical Inference via Vector Embedding",
+        image: _endPortal,
+        chipText: "🌀 Concept",
+        date: new Date(),
+        url: "/medive",
+        description: "MEDIVE is a personal research project aiming to use vector embeddings to encode symptom and condition meaning.",
+    },
+    {
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _endPortal,
@@ -24,7 +33,7 @@ const projects: Project[] = [
         description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
     },
     {
-        title: "ECG ECG previewer",
+        title: "ECG previewer",
         subTitle: "A tool to preview ECG waveforms",
         image: _endPortal,
         chipText: "🧩 MVP",

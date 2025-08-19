@@ -15,7 +15,7 @@ const internalLinks: { href: string, label: string }[] = [
 ];
 
 const externalLinks: { href: string, label: string, target?: string }[] = [
-    // {href: "https://bap.jerrydev.net/", label: "Bap", target: "_blank"}
+    {href: "https://cv.jerryxf.net/", label: "Curriculum Vitae", target: "_blank"}
 ];
 
 const formatThemeName = (theme: string) =>
