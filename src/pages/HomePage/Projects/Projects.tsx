@@ -15,22 +15,22 @@ import _endPortal from "../../../assets/projects/end_portal.jpg";
 
 const projects: Project[] = [
     {
-        title: "ECG Waveform previewer",
-        subTitle: "A tool to preview ECG waveforms",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        date: new Date(),
-        description: "ECG Waveform previewer is a tool to visualize ECG waveforms, allowing users to view and analyze ECG data in a user-friendly interface.",
-        url: "https://jerryxf.net/waveform"
-    },
-    {
         title: "ICU monitor",
         subTitle: "A tool to preview ICU monitor data",
         image: _endPortal,
         chipText: "🧩 MVP",
         date: new Date(),
-        url: "https://jerryxf.net/icu",
+        url: "/icu",
         description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
+    },
+    {
+        title: "ECG ECG previewer",
+        subTitle: "A tool to preview ECG waveforms",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        date: new Date(),
+        description: "ECG ECG previewer is a tool to visualize ECG waveforms, allowing users to view and analyze ECG data in a user-friendly interface.",
+        url: "/waveform"
     },
     {
         title: "Conditioner",
@@ -109,7 +109,7 @@ const projects: Project[] = [
         image: _endPortal,
         chipText: "🧩 MVP",
         date: new Date(),
-        url: "https://jerryxf.net/cheatsheet/mailman",
+        url: "/cheatsheet/mailman",
         description: "Mailman is a set of simple tips like reference tables for email starting and ending phrases.",
     },
     {
@@ -137,7 +137,7 @@ const projects: Project[] = [
         chipText: "🌀 Concept",
         date: new Date(),
         description: "description.",
-        url: "https://jerryxf.net/transient"
+        url: "/transient"
     },
     {
         title: "Group availability app",

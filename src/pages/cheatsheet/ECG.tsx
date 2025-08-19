@@ -1,5 +1,4 @@
 import React from "react";
-import "./WaveformPage.scss";
 
 type ECGLead = { lead: string, placement: string, view: string };
 
@@ -22,7 +21,7 @@ const precordial_leads: ECGLead[] = [
     {lead: "V6", placement: "Same level as V4, midaxillary line", view: "Anterior wall of left ventricle"}
 ];
 
-export default function WaveformPage() {
+export default function ECG() {
     return (
         <div className="layout-column">
             <h1>WAVEFORM AND SIG NAMES</h1>

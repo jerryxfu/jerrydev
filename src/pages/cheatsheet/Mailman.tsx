@@ -1,6 +1,4 @@
 import React from "react";
-import "./Mailman.scss";
-
 
 type TableEntry = { phrase: string, description: string };
 
