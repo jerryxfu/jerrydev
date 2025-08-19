@@ -15,6 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import ECG from "./pages/cheatsheet/ECG.tsx";
 import Mailman from "./pages/cheatsheet/Mailman.tsx";
+import SuperIcu from "./pages/supericu/SuperICU.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
     {
         path: "/cheatsheet/mailman",
         element: <Mailman />
+    },
+    {
+        path: "/supericu",
+        element: <SuperIcu />
     },
     {
         path: "*",

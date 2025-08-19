@@ -15,12 +15,12 @@ import _endPortal from "../../../assets/projects/end_portal.jpg";
 
 const projects: Project[] = [
     {
-        title: "ICU monitor",
+        title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _endPortal,
         chipText: "🧩 MVP",
         date: new Date(),
-        url: "/icu",
+        url: "/supericu",
         description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
     },
     {
