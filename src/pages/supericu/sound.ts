@@ -54,7 +54,9 @@ class AlertSound {
         let i = 0;
         const tick = () => {
             if (!this.enabled) return;
-            const p = pattern[i]!;
+            const idx = i % pattern.length;
+            const p = pattern[idx];
+            if (!p) return;
             this.playTone(p.durMs / 1000, p.vol);
             i = (i + 1) % pattern.length;
             this.loopingTimer = window.setTimeout(tick, p.durMs + (p.gapMs ?? 0)); // default gap 0
@@ -73,8 +75,10 @@ class AlertSound {
 
     private ensureContext(): AudioContext {
         if (!this.ctx) {
-            // Safari
-            const Ctor: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+            // Support Safari prefix without using any casts
+            type AudioContextCtor = { new(): AudioContext };
+            const AnyWindow = window as unknown as { AudioContext?: AudioContextCtor; webkitAudioContext?: AudioContextCtor };
+            const Ctor = AnyWindow.AudioContext ?? AnyWindow.webkitAudioContext;
             this.ctx = new Ctor();
         }
         return this.ctx;

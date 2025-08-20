@@ -3,6 +3,7 @@ import "./SuperICU.scss";
 import {useWaveTemplates, sampleTemplate, useDemoVitals, modifyDemoSample} from "./sim";
 import type {AlertItem} from "./sim";
 import {checkAlarms, defaultCounters, thresholds} from "./alarms";
+import type { AlarmCounters } from "./alarms";
 import {alertSound} from "./sound";
 
 // Centralized data color palette (can be overridden via props)
@@ -55,6 +56,11 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
     paletteOverrides?: Partial<Palette>;
 } = {}) {
     const palette: Palette = {...DEFAULT_PALETTE, ...(paletteOverrides || {})};
+
+    // Helper to attach CSS variables without any-casts
+    const withVar = (base: React.CSSProperties, vars: Record<string, string | number>): React.CSSProperties => {
+        return {...base, ...vars} as unknown as React.CSSProperties;
+    };
 
     // Shared input style
     const inputStyle: React.CSSProperties = {
@@ -255,7 +261,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
             const subPleth = Math.max(1, Math.ceil(stepPleth / desiredPhaseStep));
             const subResp = Math.max(1, Math.ceil(stepResp / desiredPhaseStep));
 
-            const advanceAndDraw = (s: any, getVal: () => number, sub: number, dxTotal: number) => {
+            const advanceAndDraw = (s: Sweep, getVal: () => number, sub: number, dxTotal: number) => {
                 const subDt = elapsedSec / sub;
                 for (let i = 0; i < sub; i++) {
                     const v = getVal();
@@ -360,7 +366,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
 
     // Alarm checks: thresholds + persistence live in alarms.ts; evaluated every second
     useEffect(() => {
-        const countersRef = {current: defaultCounters};
+        const countersRef: { current: AlarmCounters } = {current: defaultCounters};
         const check = setInterval(() => {
             // Optionally suppress HR-triggered alarms when ECG is disconnected
             const v = vitalsRef.current;
@@ -387,8 +393,8 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                 hrLow: c.hrLow >= thresholds.hr.persistence,
                 spo2Low: c.spo2Low >= thresholds.spo2.persistence,
                 rrHigh: c.rrHigh >= thresholds.rr.persistence,
-                bpLow: (c as any).bpLow >= (thresholds as any).bp.persistence,
-                bpHigh: (c as any).bpHigh >= (thresholds as any).bp.persistence,
+                bpLow: c.bpLow >= thresholds.bp.persistence,
+                bpHigh: c.bpHigh >= thresholds.bp.persistence,
             } as const;
 
             // Map to per-vital severity for flashing
@@ -407,9 +413,9 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
             if (!anyActive && silenced) setSilenced(false);
 
             // Control continuous looping alarm
-            if (soundOn && anyActive && !silenced) {
+            if (soundOn && anyActive && !silenced && highestLevel) {
                 if (!loopingRef.current.active || loopingRef.current.level !== highestLevel) {
-                    alertSound.startLooping(highestLevel!);
+                    alertSound.startLooping(highestLevel);
                     loopingRef.current = {active: true, level: highestLevel};
                 }
             } else {
@@ -504,7 +510,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                         <div className="vital">
                             <div className="label">HR</div>
                             <div className={`value ${vitalAlarmLevel.hr ? `alarm-${vitalAlarmLevel.hr}` : ""}`}
-                                 style={{color: palette.ecg, ["--vital-color" as any]: palette.ecg}}>{disp.hr}<span
+                                 style={withVar({color: palette.ecg}, {"--vital-color": palette.ecg as string})}>{disp.hr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
                         </div>
                     </div>
@@ -520,7 +526,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                         <div className="vital spo2">
                             <div className="label">SpO₂</div>
                             <div className={`value ${vitalAlarmLevel.spo2 ? `alarm-${vitalAlarmLevel.spo2}` : ""}`}
-                                 style={{color: palette.spo2, ["--vital-color" as any]: palette.spo2}}>{disp.spo2}<span
+                                 style={withVar({color: palette.spo2}, {"--vital-color": palette.spo2 as string})}>{disp.spo2}<span
                                 style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
                         </div>
                     </div>
@@ -536,7 +542,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                         <div className="vital rr">
                             <div className="label">RR</div>
                             <div className={`value ${vitalAlarmLevel.rr ? `alarm-${vitalAlarmLevel.rr}` : ""}`}
-                                 style={{color: palette.rr, ["--vital-color" as any]: palette.rr}}>{disp.rr}<span
+                                 style={withVar({color: palette.rr}, {"--vital-color": palette.rr as string})}>{disp.rr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
                         </div>
                         <div className="vital">
@@ -552,7 +558,7 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                         <div className="vital">
                             <div className="label" style={{color: palette.bp}}>NIBP</div>
                             <div className={`value ${vitalAlarmLevel.bp ? `alarm-${vitalAlarmLevel.bp}` : ""}`}
-                                 style={{color: palette.bp, ["--vital-color" as any]: palette.bp}}>{disp.bpSys}/{disp.bpDia}</div>
+                                 style={withVar({color: palette.bp}, {"--vital-color": palette.bp as string})}>{disp.bpSys}/{disp.bpDia}</div>
                         </div>
                         {/* Manual vital corrections */}
                         <div className="vital">

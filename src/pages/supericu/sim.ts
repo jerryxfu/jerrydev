@@ -117,15 +117,24 @@ export function useDemoVitals(overrides?: DeepPartial<DemoSettings>) {
     });
     const [ready, setReady] = useState(false);
 
+    // Destructure settings to stable scalars for effect deps
+    const tickMs = s.tickMs;
+    const warmupMs = s.warmupMs;
+    const hrInit = s.hr.init, hrMin = s.hr.min, hrMax = s.hr.max, hrStep = s.hr.step;
+    const rrInit = s.rr.init, rrMin = s.rr.min, rrMax = s.rr.max, rrStep = s.rr.step;
+    const spo2Init = s.spo2.init, spo2Min = s.spo2.min, spo2Max = s.spo2.max, spo2Step = s.spo2.step;
+    const bpSysInit = s.bp.sys.init, bpSysMin = s.bp.sys.min, bpSysMax = s.bp.sys.max, bpSysStep = s.bp.sys.step;
+    const bpDiaInit = s.bp.dia.init, bpDiaMin = s.bp.dia.min, bpDiaMax = s.bp.dia.max, bpDiaStep = s.bp.dia.step;
+
     useEffect(() => {
         const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
         const t = setInterval(() => {
             setVitals(prev => {
-                const heartRate = clamp(Number(prev.hr) + (Math.random() - 0.5) * s.hr.step, s.hr.min, s.hr.max);
-                const respirationRate = clamp(Number(prev.rr) + (Math.random() - 0.5) * s.rr.step, s.rr.min, s.rr.max);
-                const spo2Val = clamp(Number(prev.spo2) + (Math.random() - 0.5) * s.spo2.step, s.spo2.min, s.spo2.max);
-                const bpSys = Math.round(clamp(Number(prev.bp.sys) + (Math.random() - 0.5) * s.bp.sys.step, s.bp.sys.min, s.bp.sys.max));
-                const bpDia = Math.round(clamp(Number(prev.bp.dia) + (Math.random() - 0.5) * s.bp.dia.step, s.bp.dia.min, s.bp.dia.max));
+                const heartRate = clamp(Number(prev.hr) + (Math.random() - 0.5) * hrStep, hrMin, hrMax);
+                const respirationRate = clamp(Number(prev.rr) + (Math.random() - 0.5) * rrStep, rrMin, rrMax);
+                const spo2Val = clamp(Number(prev.spo2) + (Math.random() - 0.5) * spo2Step, spo2Min, spo2Max);
+                const bpSys = Math.round(clamp(Number(prev.bp.sys) + (Math.random() - 0.5) * bpSysStep, bpSysMin, bpSysMax));
+                const bpDia = Math.round(clamp(Number(prev.bp.dia) + (Math.random() - 0.5) * bpDiaStep, bpDiaMin, bpDiaMax));
                 return {
                     hr: Math.round(heartRate),
                     rr: Math.round(respirationRate),
@@ -133,13 +142,13 @@ export function useDemoVitals(overrides?: DeepPartial<DemoSettings>) {
                     bp: {sys: bpSys, dia: bpDia}
                 } as Vitals;
             });
-        }, s.tickMs);
-        const readyTimer = setTimeout(() => setReady(true), s.warmupMs);
+        }, tickMs);
+        const readyTimer = setTimeout(() => setReady(true), warmupMs);
         return () => {
             clearInterval(t);
             clearTimeout(readyTimer);
         };
-    }, [s.tickMs, s.warmupMs, s.hr.init, s.rr.init, s.spo2.init, s.bp.sys.init, s.bp.dia.init]);
+    }, [tickMs, warmupMs, hrInit, hrMin, hrMax, hrStep, rrInit, rrMin, rrMax, rrStep, spo2Init, spo2Min, spo2Max, spo2Step, bpSysInit, bpSysMin, bpSysMax, bpSysStep, bpDiaInit, bpDiaMin, bpDiaMax, bpDiaStep]);
 
     // one time override function to correct vitals
     const correctVital = (patch: Partial<{ hr: number; spo2: number; rr: number; bpSys: number; bpDia: number }>) => {
