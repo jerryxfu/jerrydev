@@ -24,6 +24,12 @@ class AlertSound {
         this.playBeepSequence(pattern);
     }
 
+    // Play a heartbeat beep based on hr
+    playHeartbeat() {
+        if (!this.enabled) return;
+        this.playTone(0.1, 0.015, 460);
+    }
+
     // Play a sequence of beeps (for notifications)
     private playBeepSequence(pattern: Array<{ durMs: number; gapMs?: number; vol: number }>) {
         let t = 0;
@@ -67,14 +73,14 @@ class AlertSound {
 
     private ensureContext(): AudioContext {
         if (!this.ctx) {
-            // @ts-ignore - Safari
+            // Safari
             const Ctor: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
             this.ctx = new Ctor();
         }
         return this.ctx;
     }
 
-    private playTone(duration: number, volume: number) {
+    private playTone(duration: number, volume: number, frequency: number = 954) {
         const ctx = this.ensureContext();
         const start = ctx.currentTime;
         const gain = ctx.createGain();
@@ -93,11 +99,11 @@ class AlertSound {
         };
 
         // Fundamental (~950 Hz) as triangle
-        makeOsc(954, 1.0, "triangle");
+        makeOsc(frequency, 1.0, "triangle");
         // 3x fundamental
-        makeOsc(2860, 0.6, "sine");
+        makeOsc(frequency * 3, 0.6, "sine");
         // 4x fundamental
-        makeOsc(3816, 0.025, "sine");
+        makeOsc(frequency * 4, 0.025, "sine");
 
         // Envelope: very fast attack, slightly longer hold, stronger presence
         gain.gain.setValueAtTime(0, start);
@@ -125,28 +131,26 @@ class AlertSound {
         switch (level) {
             case "low":
                 return [
-                    {durMs: 1000, vol},
+                    {durMs: 500, vol},
                 ];
             case "medium":
                 return [
-                    {durMs: 1000, gapMs: 100, vol},
-                    {durMs: 1000, vol},
+                    {durMs: 500, gapMs: 0, vol},
                 ];
             case "high":
                 return [
-                    {durMs: 1000, vol},
-                    {durMs: 1000, vol},
-                    {durMs: 1000, vol},
+                    {durMs: 500, gapMs: 0, vol},
+                    {durMs: 500, gapMs: 0, vol},
+                    {durMs: 500, vol},
                 ];
             default:
-                return [{durMs: 150, vol}];
+                return [{durMs: 500, vol}];
         }
     }
 
     // Looping patterns for continuous alarms
     private getLoopPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
         const vol = this.getVolume(level);
-        // Back-to-back: continuous short beeps with no pause
         return [{durMs: 1000, gapMs: 0, vol}];
     }
 }

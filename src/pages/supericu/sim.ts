@@ -19,12 +19,12 @@ export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartia
 export const DEFAULT_DEMO_SETTINGS: DemoSettings = {
     tickMs: 1000,
     warmupMs: 1000,
-    hr: {init: 60, min: 150, max: 150, step: 5.0},
-    rr: {init: 16, min: 10, max: 24, step: 0.4},
-    spo2: {init: 98, min: 94, max: 100, step: 0.3},
+    hr: {init: Math.round(Math.random() * 100 + 60), min: 40, max: 200, step: 4.5},
+    rr: {init: 16, min: 10, max: 28, step: 1},
+    spo2: {init: Math.round(Math.random() * 15 + 85), min: 85, max: 100, step: 1},
     bp: {
-        sys: {init: 120, min: 100, max: 150, step: 1.2},
-        dia: {init: 76, min: 60, max: 95, step: 0.8},
+        sys: {init: 115, min: 75, max: 185, step: 2},
+        dia: {init: 76, min: 40, max: 110, step: 1.5},
     },
 };
 
@@ -141,7 +141,21 @@ export function useDemoVitals(overrides?: DeepPartial<DemoSettings>) {
         };
     }, [s.tickMs, s.warmupMs, s.hr.init, s.rr.init, s.spo2.init, s.bp.sys.init, s.bp.dia.init]);
 
-    return {vitals, ready} as const;
+    // one time override function to correct vitals
+    const correctVital = (patch: Partial<{ hr: number; spo2: number; rr: number; bpSys: number; bpDia: number }>) => {
+        setVitals(prev => ({
+            ...prev,
+            hr: patch.hr ?? prev.hr,
+            spo2: patch.spo2 ?? prev.spo2,
+            rr: patch.rr ?? prev.rr,
+            bp: {
+                sys: patch.bpSys ?? prev.bp.sys,
+                dia: patch.bpDia ?? prev.bp.dia,
+            }
+        }));
+    };
+
+    return {vitals, ready, correctVital} as const;
 }
 
 // Natural-looking modifiers for demo waveforms

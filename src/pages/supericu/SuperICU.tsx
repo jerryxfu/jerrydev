@@ -50,10 +50,7 @@ const CFG = {
     MIN_SAMPLES_PER_BEAT: 300,
 } as const;
 
-export default function SuperIcu({
-                                     inputRates,
-                                     paletteOverrides,
-                                 }: {
+export default function SuperIcu({inputRates, paletteOverrides}: {
     inputRates?: { ecgHz?: number; plethHz?: number; respHz?: number };
     paletteOverrides?: Partial<Palette>;
 } = {}) {
@@ -63,10 +60,17 @@ export default function SuperIcu({
     const [soundOn, setSoundOn] = useState(false);
     // New: user silenced flag (resets automatically when all alarms clear)
     const [silenced, setSilenced] = useState(false);
+    // Heartbeat sound toggle
+    const [heartbeatSound, setHeartbeatSound] = useState(false);
+    const heartbeatRef = useRef(heartbeatSound);
     useEffect(() => {
-        alertSound.setEnabled(soundOn);
+        heartbeatRef.current = heartbeatSound;
+    }, [heartbeatSound]);
+
+    useEffect(() => {
+        alertSound.setEnabled(soundOn || heartbeatSound); // Enable if either sound or heartbeat is on
         if (!soundOn) alertSound.stopLooping();
-    }, [soundOn]);
+    }, [soundOn, heartbeatSound]);
 
     // Canvas refs map to each waveform row
     const ecgRef = useRef<HTMLCanvasElement | null>(null);
@@ -74,7 +78,7 @@ export default function SuperIcu({
     const respRef = useRef<HTMLCanvasElement | null>(null);
 
     // Demo vitals
-    const {vitals} = useDemoVitals();
+    const {vitals, correctVital} = useDemoVitals();
     const vitalsRef = useRef(vitals);
     useEffect(() => {
         vitalsRef.current = vitals;
@@ -96,7 +100,8 @@ export default function SuperIcu({
     const [vitalAlarmLevel, setVitalAlarmLevel] = useState<{
         hr: "low" | "medium" | "high" | null;
         spo2: "low" | "medium" | "high" | null;
-        rr: "low" | "medium" | "high" | null
+        rr: "low" | "medium" | "high" | null;
+        bp?: "low" | "medium" | "high" | null;
     }>({hr: null, spo2: null, rr: null});
 
     // Top bar
@@ -236,6 +241,9 @@ export default function SuperIcu({
             };
 
             if (ecgConnected) {
+                // Store previous phase for heartbeat detection
+                const prevPhase = ecgPhase;
+
                 advanceAndDraw(
                     ecg,
                     () => {
@@ -247,6 +255,11 @@ export default function SuperIcu({
                     subEcg,
                     dxEcgTotal
                 );
+
+                // Heartbeat on phase wrap-around (once per cycle)
+                if (heartbeatRef.current && ecgPhase < prevPhase) {
+                    alertSound.playHeartbeat();
+                }
             } else {
                 ecg.clearAll();
                 drawLeadOff(ecg, "LEAD OFF");
@@ -333,6 +346,13 @@ export default function SuperIcu({
 
             // Log any newly-triggered alerts (no one-shot notification sounds)
             if (evald.alerts.length) {
+                // One-shot beep for warnings only
+                if (soundOn && !silenced) {
+                    for (const a of evald.alerts) {
+                        if (a.level === "low") alertSound.playAlert("low");
+                        if (a.level === "medium") alertSound.playAlert("medium");
+                    }
+                }
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
             }
 
@@ -343,16 +363,20 @@ export default function SuperIcu({
                 hrLow: c.hrLow >= thresholds.hr.persistence,
                 spo2Low: c.spo2Low >= thresholds.spo2.persistence,
                 rrHigh: c.rrHigh >= thresholds.rr.persistence,
-            };
+                bpLow: (c as any).bpLow >= (thresholds as any).bp.persistence,
+                bpHigh: (c as any).bpHigh >= (thresholds as any).bp.persistence,
+            } as const;
 
             // Map to per-vital severity for flashing
             const hrLevel = active.hrHigh ? "high" : active.hrLow ? "medium" : null;
             const spo2Level = active.spo2Low ? "high" : null;
             const rrLevel = active.rrHigh ? "medium" : null;
-            setVitalAlarmLevel({hr: hrLevel, spo2: spo2Level, rr: rrLevel});
+            const bpLevel = active.bpLow ? "high" : active.bpHigh ? "medium" : null;
+            setVitalAlarmLevel({hr: hrLevel, spo2: spo2Level, rr: rrLevel, bp: bpLevel});
 
             // Overall highest level for looping tone
-            const highestLevel = hrLevel === "high" || spo2Level === "high" ? "high" : (hrLevel === "medium" || rrLevel === "medium" ? "medium" : null);
+            const highestLevel = (hrLevel === "high" || spo2Level === "high" || bpLevel === "high") ? "high" :
+                ((hrLevel === "medium" || rrLevel === "medium" || bpLevel === "medium") ? "medium" : null);
             const anyActive = highestLevel !== null;
 
             // Auto-unsilence when all alarms clear
@@ -393,12 +417,9 @@ export default function SuperIcu({
         <div className="super-icu">
             <div className="super-icu-core">
                 <div className="top-bar">
-                    SuperICU
+                    SuperICU DEMO
                     <span className="status-pill">{timeStr}</span>
                     <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
-                    <span className="status-pill" style={{cursor: "pointer"}} onClick={() => setEcgConnected(s => !s)}>
-                        ECG: {ecgConnected ? "Connected" : "Disconnected"}
-                    </span>
                     <span
                         className="status-pill"
                         style={{cursor: "pointer"}}
@@ -408,6 +429,17 @@ export default function SuperIcu({
                         }}
                     >
                         Sound: {soundOn ? "On" : "Off"}
+                    </span>
+                    {/* Heartbeat sound toggle */}
+                    <span
+                        className="status-pill"
+                        style={{cursor: "pointer"}}
+                        onClick={async () => {
+                            if (!heartbeatSound) await alertSound.kickstart();
+                            setHeartbeatSound(v => !v);
+                        }}
+                    >
+                        Heartbeat: {heartbeatSound ? "On" : "Off"}
                     </span>
                     {/* Silence/Clear Alerts */}
                     <span
@@ -419,7 +451,7 @@ export default function SuperIcu({
                             alertSound.stopLooping();
                         }}
                     >
-                        Silence / Clear Alerts
+                        Clear Alerts
                     </span>
                     <div className="window-ctl" style={{marginLeft: "auto"}}>
                         <span className="muted">Window</span>
@@ -431,7 +463,16 @@ export default function SuperIcu({
 
                 {/* ECG row (frequency paced by HR) */}
                 <div className="wave-row ecg">
-                    <div className="lead-label" style={{color: palette.ecg}}>Lead II</div>
+                    <div className="lead-label" style={{color: palette.ecg}}>
+                        Lead II
+                        <span
+                            className="status-pill"
+                            style={{cursor: "pointer", fontSize: 10, marginLeft: 8}}
+                            onClick={() => setEcgConnected(s => !s)}
+                        >
+                            {ecgConnected ? "Connected" : "Disconnected"}
+                        </span>
+                    </div>
                     <div className="canvas-wrap">
                         <canvas ref={ecgRef} />
                     </div>
@@ -476,7 +517,7 @@ export default function SuperIcu({
                         </div>
                         <div className="vital">
                             <div className="label">EtCO₂</div>
-                            <div className="value" style={{color: palette.etco2}}>38</div>
+                            <div className="value" style={{color: palette.etco2}}>--</div>
                         </div>
                     </div>
                 </div>
@@ -486,7 +527,134 @@ export default function SuperIcu({
                     <div className="vitals">
                         <div className="vital">
                             <div className="label" style={{color: palette.bp}}>NIBP</div>
-                            <div className="value" style={{color: palette.bp}}>{disp.bpSys}/{disp.bpDia}</div>
+                            <div className={`value ${vitalAlarmLevel.bp ? `alarm-${vitalAlarmLevel.bp}` : ""}`}
+                                 style={{color: palette.bp, ["--vital-color" as any]: palette.bp}}>{disp.bpSys}/{disp.bpDia}</div>
+                        </div>
+                        {/* Manual vital corrections */}
+                        <div className="vital">
+                            <div className="label" style={{color: palette.defaultText}}>Set Values</div>
+                            <div className="value" style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14}}>
+                                <input
+                                    type="number"
+                                    placeholder="HR"
+                                    min={20}
+                                    max={240}
+                                    style={{
+                                        width: 50,
+                                        background: "#01060a",
+                                        color: "inherit",
+                                        border: "1px solid var(--ui-border)",
+                                        borderRadius: 4,
+                                        padding: "2px 4px",
+                                        fontSize: 12
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            const val = parseInt(e.currentTarget.value, 10);
+                                            if (val >= 20 && val <= 240) {
+                                                correctVital({hr: val});
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="SpO2"
+                                    min={0}
+                                    max={100}
+                                    style={{
+                                        width: 50,
+                                        background: "#01060a",
+                                        color: "inherit",
+                                        border: "1px solid var(--ui-border)",
+                                        borderRadius: 4,
+                                        padding: "2px 4px",
+                                        fontSize: 12
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            const val = parseInt(e.currentTarget.value, 10);
+                                            if (val >= 0 && val <= 100) {
+                                                correctVital({spo2: val});
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="RR"
+                                    min={0}
+                                    max={60}
+                                    style={{
+                                        width: 45,
+                                        background: "#01060a",
+                                        color: "inherit",
+                                        border: "1px solid var(--ui-border)",
+                                        borderRadius: 4,
+                                        padding: "2px 4px",
+                                        fontSize: 12
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            const val = parseInt(e.currentTarget.value, 10);
+                                            if (val >= 0 && val <= 60) {
+                                                correctVital({rr: val});
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="SYS"
+                                    min={40}
+                                    max={300}
+                                    style={{
+                                        width: 50,
+                                        background: "#01060a",
+                                        color: "inherit",
+                                        border: "1px solid var(--ui-border)",
+                                        borderRadius: 4,
+                                        padding: "2px 4px",
+                                        fontSize: 12
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            const val = parseInt(e.currentTarget.value, 10);
+                                            if (val >= 40 && val <= 300) {
+                                                correctVital({bpSys: val});
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="DIA"
+                                    min={20}
+                                    max={200}
+                                    style={{
+                                        width: 50,
+                                        background: "#01060a",
+                                        color: "inherit",
+                                        border: "1px solid var(--ui-border)",
+                                        borderRadius: 4,
+                                        padding: "2px 4px",
+                                        fontSize: 12
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            const val = parseInt(e.currentTarget.value, 10);
+                                            if (val >= 20 && val <= 200) {
+                                                correctVital({bpDia: val});
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
