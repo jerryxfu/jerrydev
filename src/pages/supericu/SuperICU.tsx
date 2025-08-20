@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import "./SuperICU.scss";
 import {useWaveTemplates, sampleTemplate, useDemoVitals, modifyDemoSample} from "./sim";
 import type {AlertItem} from "./sim";
-import {checkAlarms, defaultCounters} from "./alarms";
+import {checkAlarms, defaultCounters, thresholds} from "./alarms";
 import {alertSound} from "./sound";
 
 // Centralized data color palette (can be overridden via props)
@@ -61,8 +61,11 @@ export default function SuperIcu({
 
     // Sound toggle (off by default due to browser autoplay policies)
     const [soundOn, setSoundOn] = useState(false);
+    // New: user silenced flag (resets automatically when all alarms clear)
+    const [silenced, setSilenced] = useState(false);
     useEffect(() => {
         alertSound.setEnabled(soundOn);
+        if (!soundOn) alertSound.stopLooping();
     }, [soundOn]);
 
     // Canvas refs map to each waveform row
@@ -85,6 +88,16 @@ export default function SuperIcu({
     const [alerts, setAlerts] = useState<AlertItem[]>([
         {id: randomId(), time: new Date().toLocaleTimeString(), level: "low", msg: "Monitoring started"}
     ]);
+
+    // Track whether we are currently looping and at what level to avoid rescheduling
+    const loopingRef = useRef<{ active: boolean; level: "low" | "medium" | "high" | null }>({active: false, level: null});
+
+    // Flashing state for vitals by severity level per vital
+    const [vitalAlarmLevel, setVitalAlarmLevel] = useState<{
+        hr: "low" | "medium" | "high" | null;
+        spo2: "low" | "medium" | "high" | null;
+        rr: "low" | "medium" | "high" | null
+    }>({hr: null, spo2: null, rr: null});
 
     // Top bar
     const [timeStr, setTimeStr] = useState<string>(new Date().toLocaleTimeString());
@@ -317,16 +330,49 @@ export default function SuperIcu({
             const vForAlarms = ecgConnected ? v : {...v, hr: "-?-" as const};
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
+
+            // Log any newly-triggered alerts (no one-shot notification sounds)
             if (evald.alerts.length) {
-                // Play a tone per new alert if sound is enabled
-                if (soundOn) {
-                    for (const a of evald.alerts) alertSound.playAlert(a.level);
-                }
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
+            }
+
+            // Determine currently active alarm conditions (persisting)
+            const c = countersRef.current;
+            const active = {
+                hrHigh: c.hrHigh >= thresholds.hr.persistence,
+                hrLow: c.hrLow >= thresholds.hr.persistence,
+                spo2Low: c.spo2Low >= thresholds.spo2.persistence,
+                rrHigh: c.rrHigh >= thresholds.rr.persistence,
+            };
+
+            // Map to per-vital severity for flashing
+            const hrLevel = active.hrHigh ? "high" : active.hrLow ? "medium" : null;
+            const spo2Level = active.spo2Low ? "high" : null;
+            const rrLevel = active.rrHigh ? "medium" : null;
+            setVitalAlarmLevel({hr: hrLevel, spo2: spo2Level, rr: rrLevel});
+
+            // Overall highest level for looping tone
+            const highestLevel = hrLevel === "high" || spo2Level === "high" ? "high" : (hrLevel === "medium" || rrLevel === "medium" ? "medium" : null);
+            const anyActive = highestLevel !== null;
+
+            // Auto-unsilence when all alarms clear
+            if (!anyActive && silenced) setSilenced(false);
+
+            // Control continuous looping alarm
+            if (soundOn && anyActive && !silenced) {
+                if (!loopingRef.current.active || loopingRef.current.level !== highestLevel) {
+                    alertSound.startLooping(highestLevel!);
+                    loopingRef.current = {active: true, level: highestLevel};
+                }
+            } else {
+                if (loopingRef.current.active) {
+                    alertSound.stopLooping();
+                    loopingRef.current = {active: false, level: null};
+                }
             }
         }, 1000);
         return () => clearInterval(check);
-    }, [ecgConnected, soundOn]);
+    }, [ecgConnected, soundOn, silenced]);
 
     // After first vitals update, mark initialized so numbers/waves can appear
     useEffect(() => {
@@ -349,7 +395,7 @@ export default function SuperIcu({
                 <div className="top-bar">
                     SuperICU
                     <span className="status-pill">{timeStr}</span>
-                    <span className="status-pill">Alarms: On</span>
+                    <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={() => setEcgConnected(s => !s)}>
                         ECG: {ecgConnected ? "Connected" : "Disconnected"}
                     </span>
@@ -362,6 +408,18 @@ export default function SuperIcu({
                         }}
                     >
                         Sound: {soundOn ? "On" : "Off"}
+                    </span>
+                    {/* Silence/Clear Alerts */}
+                    <span
+                        className="status-pill"
+                        style={{cursor: "pointer"}}
+                        onClick={() => {
+                            setAlerts([]);
+                            setSilenced(true);
+                            alertSound.stopLooping();
+                        }}
+                    >
+                        Silence / Clear Alerts
                     </span>
                     <div className="window-ctl" style={{marginLeft: "auto"}}>
                         <span className="muted">Window</span>
@@ -380,7 +438,8 @@ export default function SuperIcu({
                     <div className="vitals">
                         <div className="vital">
                             <div className="label">HR</div>
-                            <div className="value" style={{color: palette.ecg}}>{disp.hr}<span
+                            <div className={`value ${vitalAlarmLevel.hr ? `alarm-${vitalAlarmLevel.hr}` : ""}`}
+                                 style={{color: palette.ecg, ["--vital-color" as any]: palette.ecg}}>{disp.hr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
                         </div>
                     </div>
@@ -395,7 +454,8 @@ export default function SuperIcu({
                     <div className="vitals">
                         <div className="vital spo2">
                             <div className="label">SpO₂</div>
-                            <div className="value" style={{color: palette.spo2}}>{disp.spo2}<span
+                            <div className={`value ${vitalAlarmLevel.spo2 ? `alarm-${vitalAlarmLevel.spo2}` : ""}`}
+                                 style={{color: palette.spo2, ["--vital-color" as any]: palette.spo2}}>{disp.spo2}<span
                                 style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
                         </div>
                     </div>
@@ -410,7 +470,8 @@ export default function SuperIcu({
                     <div className="vitals">
                         <div className="vital rr">
                             <div className="label">RR</div>
-                            <div className="value" style={{color: palette.rr}}>{disp.rr}<span
+                            <div className={`value ${vitalAlarmLevel.rr ? `alarm-${vitalAlarmLevel.rr}` : ""}`}
+                                 style={{color: palette.rr, ["--vital-color" as any]: palette.rr}}>{disp.rr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
                         </div>
                         <div className="vital">

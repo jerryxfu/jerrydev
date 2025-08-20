@@ -123,7 +123,44 @@
 
     .value {
         font-size: 2.75rem;
+        /* Make room for background flash */
+        display: inline-block;
+        padding: 2px 6px;
+        transition: background-color 120ms linear, color 120ms linear;
+        color: var(--vital-color, var(--ui-ink));
+        background-color: transparent;
     }
+}
+
+/* Invert-style flashing: swap text and background colors */
+@keyframes invert-flash-high {
+    0%, 100% {
+        background-color: transparent;
+        color: var(--vital-color);
+    }
+    50% {
+        background-color: var(--vital-color);
+        color: #000000;
+    }
+}
+
+@keyframes invert-flash-med {
+    0%, 100% {
+        background-color: transparent;
+        color: var(--vital-color);
+    }
+    50% {
+        background-color: var(--vital-color);
+        color: #000000;
+    }
+}
+
+.vital .value.alarm-high {
+    animation: invert-flash-high 1s steps(1, end) infinite;
+}
+
+.vital .value.alarm-medium {
+    animation: invert-flash-med 1.2s steps(1, end) infinite;
 }
 
 .status-pill {

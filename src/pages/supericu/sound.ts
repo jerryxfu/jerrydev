@@ -51,8 +51,7 @@ class AlertSound {
             const p = pattern[i]!;
             this.playTone(p.durMs / 1000, p.vol);
             i = (i + 1) % pattern.length;
-            // Schedule next tone after current duration + gap
-            this.loopingTimer = window.setTimeout(tick, p.durMs + (p.gapMs ?? 800));
+            this.loopingTimer = window.setTimeout(tick, p.durMs + (p.gapMs ?? 0)); // default gap 0
         };
 
         tick();
@@ -126,12 +125,12 @@ class AlertSound {
         switch (level) {
             case "low":
                 return [
-                    {durMs: 150, vol},
+                    {durMs: 1000, vol},
                 ];
             case "medium":
                 return [
-                    {durMs: 120, gapMs: 100, vol},
-                    {durMs: 120, vol},
+                    {durMs: 1000, gapMs: 100, vol},
+                    {durMs: 1000, vol},
                 ];
             case "high":
                 return [
@@ -147,25 +146,8 @@ class AlertSound {
     // Looping patterns for continuous alarms
     private getLoopPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
         const vol = this.getVolume(level);
-        switch (level) {
-            case "low":
-                return [
-                    {durMs: 200, gapMs: 2000, vol},
-                ];
-            case "medium":
-                return [
-                    {durMs: 150, gapMs: 150, vol},
-                    {durMs: 150, gapMs: 1500, vol},
-                ];
-            case "high":
-                return [
-                    {durMs: 1000, gapMs: 100, vol},
-                    {durMs: 1000, gapMs: 100, vol},
-                    {durMs: 1000, gapMs: 1000, vol},
-                ];
-            default:
-                return [{durMs: 200, gapMs: 2000, vol}];
-        }
+        // Back-to-back: continuous short beeps with no pause
+        return [{durMs: 1000, gapMs: 0, vol}];
     }
 }
 
