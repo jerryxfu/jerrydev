@@ -15,9 +15,9 @@ export const defaultCounters: AlarmCounters = {
 };
 
 export const thresholds = {
-    hr: {high: 120, low: 50, persistence: 5},
-    spo2: {low: 90, warn: 93, persistence: 5},
-    rr: {high: 24, persistence: 5},
+    hr: {high: 120, low: 50, persistence: 3},
+    spo2: {low: 90, warn: 93, persistence: 3},
+    rr: {high: 24, persistence: 3},
 } as const;
 
 // Coerce a vital that may be "-?-" to a number (NaN if unavailable)

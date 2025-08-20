@@ -3,20 +3,44 @@ import "./SuperICU.scss";
 import {useWaveTemplates, sampleTemplate, useDemoVitals, modifyDemoSample} from "./sim";
 import type {AlertItem} from "./sim";
 import {checkAlarms, defaultCounters} from "./alarms";
+import {alertSound} from "./sound";
+
+// Centralized data color palette (can be overridden via props)
+export type Palette = {
+    ecg: string;      // ECG waveform + HR numeric
+    pleth: string;    // Pleth waveform + SpO2 numeric
+    resp: string;     // Resp waveform + RR numeric
+    bp: string;       // NIBP/ABP numeric
+    spo2: string;     // SpO2 numeric (defaults to pleth)
+    rr: string;       // RR numeric (defaults to resp)
+    etco2: string;    // EtCO2 numeric
+    fio2: string;     // FIO2 numeric
+    temp: string;     // Temperature numeric
+    defaultText: string; // fallback
+};
+
+const DEFAULT_PALETTE: Palette = {
+    ecg: "#00ff00",
+    pleth: "#00e5ff",
+    resp: "#ffffff",
+    bp: "#ff5252",
+    spo2: "#00e5ff",
+    rr: "#ffffff",
+    etco2: "#ffffff",
+    fio2: "#ffffff",
+    temp: "#ffffff",
+    defaultText: "#d7e0ea",
+};
 
 // Changing TICK_MS or DEFAULT_SHOW_SECONDS affects perceived sweep speed.
 const CFG = {
     // Core timing for the sweep renderer; lower = more updates per second
     TICK_MS: 20,
     // How many seconds should be visible across the canvas width by default
-    DEFAULT_SHOW_SECONDS: 6,
+    DEFAULT_SHOW_SECONDS: 10,
     // Options for the Window selector in the top bar
     WINDOW_CHOICES: [4, 6, 8, 10, 12, 15, 20] as const,
 
-    // Wave visuals
-    ECG_COLOR: "#00ff00",
-    PLETH_COLOR: "#00e5ff",
-    RESP_COLOR: "#ffffff",
     LINE_WIDTH: 2,
     CLEAR_WIDTH: 2,
     AMP_FRAC: 0.4,
@@ -26,7 +50,21 @@ const CFG = {
     MIN_SAMPLES_PER_BEAT: 300,
 } as const;
 
-export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; plethHz?: number; respHz?: number } } = {}) {
+export default function SuperIcu({
+                                     inputRates,
+                                     paletteOverrides,
+                                 }: {
+    inputRates?: { ecgHz?: number; plethHz?: number; respHz?: number };
+    paletteOverrides?: Partial<Palette>;
+} = {}) {
+    const palette: Palette = {...DEFAULT_PALETTE, ...(paletteOverrides || {})};
+
+    // Sound toggle (off by default due to browser autoplay policies)
+    const [soundOn, setSoundOn] = useState(false);
+    useEffect(() => {
+        alertSound.setEnabled(soundOn);
+    }, [soundOn]);
+
     // Canvas refs map to each waveform row
     const ecgRef = useRef<HTMLCanvasElement | null>(null);
     const plethRef = useRef<HTMLCanvasElement | null>(null);
@@ -63,9 +101,9 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
     // Sweep renderer: builds one drawing context per canvas and advances a "pen" at fixed time steps
     useEffect(() => {
         const canvases = [
-            {ref: ecgRef, color: CFG.ECG_COLOR},
-            {ref: plethRef, color: CFG.PLETH_COLOR},
-            {ref: respRef, color: CFG.RESP_COLOR},
+            {ref: ecgRef, color: palette.ecg},
+            {ref: plethRef, color: palette.pleth},
+            {ref: respRef, color: palette.resp},
         ];
 
         type Sweep = {
@@ -266,10 +304,9 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
 
         return () => {
             clearInterval(timer);
-            // removed vitalsTimer (demo-only, moved to sim.ts)
             ros.forEach(r => r.disconnect());
         };
-    }, [ecgTemplate, plethTemplate, respTemplate, showSeconds, initialized, ecgConnected]);
+    }, [ecgTemplate, plethTemplate, respTemplate, showSeconds, initialized, ecgConnected, palette.ecg, palette.pleth, palette.resp]);
 
     // Alarm checks: thresholds + persistence live in alarms.ts; evaluated every second
     useEffect(() => {
@@ -281,15 +318,18 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
             if (evald.alerts.length) {
+                // Play a tone per new alert if sound is enabled
+                if (soundOn) {
+                    for (const a of evald.alerts) alertSound.playAlert(a.level);
+                }
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
             }
         }, 1000);
         return () => clearInterval(check);
-    }, [ecgConnected]);
+    }, [ecgConnected, soundOn]);
 
     // After first vitals update, mark initialized so numbers/waves can appear
     useEffect(() => {
-        // initialize after first demo vitals tick
         const ready = setTimeout(() => setInitialized(true), 1000);
         return () => clearTimeout(ready);
     }, []);
@@ -313,6 +353,16 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={() => setEcgConnected(s => !s)}>
                         ECG: {ecgConnected ? "Connected" : "Disconnected"}
                     </span>
+                    <span
+                        className="status-pill"
+                        style={{cursor: "pointer"}}
+                        onClick={async () => {
+                            if (!soundOn) await alertSound.kickstart();
+                            setSoundOn(v => !v);
+                        }}
+                    >
+                        Sound: {soundOn ? "On" : "Off"}
+                    </span>
                     <div className="window-ctl" style={{marginLeft: "auto"}}>
                         <span className="muted">Window</span>
                         <select className="window-select" value={showSeconds} onChange={e => setShowSeconds(parseInt(e.target.value, 10))}>
@@ -323,14 +373,14 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
 
                 {/* ECG row (frequency paced by HR) */}
                 <div className="wave-row ecg">
-                    <div className="lead-label" style={{color: CFG.ECG_COLOR}}>Lead II</div>
+                    <div className="lead-label" style={{color: palette.ecg}}>Lead II</div>
                     <div className="canvas-wrap">
                         <canvas ref={ecgRef} />
                     </div>
                     <div className="vitals">
                         <div className="vital">
                             <div className="label">HR</div>
-                            <div className="value" style={{color: CFG.ECG_COLOR}}>{disp.hr}<span
+                            <div className="value" style={{color: palette.ecg}}>{disp.hr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
                         </div>
                     </div>
@@ -338,51 +388,44 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
 
                 {/* Pleth row (paced by HR) */}
                 <div className="wave-row pleth">
-                    <div className="lead-label" style={{color: CFG.PLETH_COLOR}}>Pleth</div>
+                    <div className="lead-label" style={{color: palette.pleth}}>Pleth</div>
                     <div className="canvas-wrap">
                         <canvas ref={plethRef} />
                     </div>
                     <div className="vitals">
                         <div className="vital spo2">
                             <div className="label">SpO₂</div>
-                            <div className="value" style={{color: CFG.PLETH_COLOR}}>{disp.spo2}<span
+                            <div className="value" style={{color: palette.spo2}}>{disp.spo2}<span
                                 style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
-                        </div>
-                        <div className="vital">
-                            <div className="label">Temp</div>
-                            <div className="value">36.8</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Respiration row (frequency paced by RR) */}
                 <div className="wave-row resp">
-                    <div className="lead-label" style={{color: CFG.RESP_COLOR}}>RESP</div>
+                    <div className="lead-label" style={{color: palette.resp}}>RESP</div>
                     <div className="canvas-wrap">
                         <canvas ref={respRef} />
                     </div>
                     <div className="vitals">
                         <div className="vital rr">
                             <div className="label">RR</div>
-                            <div className="value" style={{color: CFG.RESP_COLOR}}>{disp.rr}<span
+                            <div className="value" style={{color: palette.rr}}>{disp.rr}<span
                                 style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
                         </div>
                         <div className="vital">
                             <div className="label">EtCO₂</div>
-                            <div className="value">38</div>
-                        </div>
-                        <div className="vital">
-                            <div className="label">FiO₂</div>
-                            <div className="value">21</div>
+                            <div className="value" style={{color: palette.etco2}}>38</div>
                         </div>
                     </div>
                 </div>
 
+                {/* Non-waveform row for NIBP */}
                 <div className="data-row">
                     <div className="vitals">
                         <div className="vital">
-                            <div className="label">NIBP</div>
-                            <div className="value">{disp.bpSys}/{disp.bpDia}</div>
+                            <div className="label" style={{color: palette.bp}}>NIBP</div>
+                            <div className="value" style={{color: palette.bp}}>{disp.bpSys}/{disp.bpDia}</div>
                         </div>
                     </div>
                 </div>

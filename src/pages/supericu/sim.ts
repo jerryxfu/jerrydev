@@ -4,6 +4,45 @@ export type AlarmLevel = "low" | "medium" | "high";
 export type AlertItem = { id: string; time: string; level: AlarmLevel; msg: string };
 export type Vitals = { hr: number | "-?-"; spo2: number | "-?-"; rr: number | "-?-"; bp: { sys: number | "-?-"; dia: number | "-?-" } };
 
+// Demo settings for vitals generation
+export type RangeStep = { init: number; min: number; max: number; step: number };
+export type DemoSettings = {
+    tickMs: number;       // update interval for random walk
+    warmupMs: number;     // time until first values are considered ready
+    hr: RangeStep;
+    rr: RangeStep;
+    spo2: RangeStep;
+    bp: { sys: RangeStep; dia: RangeStep };
+};
+export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+
+export const DEFAULT_DEMO_SETTINGS: DemoSettings = {
+    tickMs: 1000,
+    warmupMs: 1000,
+    hr: {init: 60, min: 150, max: 150, step: 5.0},
+    rr: {init: 16, min: 10, max: 24, step: 0.4},
+    spo2: {init: 98, min: 94, max: 100, step: 0.3},
+    bp: {
+        sys: {init: 120, min: 100, max: 150, step: 1.2},
+        dia: {init: 76, min: 60, max: 95, step: 0.8},
+    },
+};
+
+function mergeDemoSettings(base: DemoSettings, overrides?: DeepPartial<DemoSettings>): DemoSettings {
+    if (!overrides) return base;
+    return {
+        tickMs: overrides.tickMs ?? base.tickMs,
+        warmupMs: overrides.warmupMs ?? base.warmupMs,
+        hr: {...base.hr, ...(overrides.hr ?? {})},
+        rr: {...base.rr, ...(overrides.rr ?? {})},
+        spo2: {...base.spo2, ...(overrides.spo2 ?? {})},
+        bp: {
+            sys: {...base.bp.sys, ...(overrides.bp?.sys ?? {})},
+            dia: {...base.bp.dia, ...(overrides.bp?.dia ?? {})},
+        },
+    };
+}
+
 // Waveform templates isolated here
 export function useWaveTemplates() {
     const ecgTemplate = useMemo(() => {
@@ -68,33 +107,39 @@ export function computeDxPerSample(canvasWidthPx: number, showSeconds: number, s
 
 // ---------------- DEMO-ONLY SECTION ----------------
 // Bounded random walk vitals generator for demos
-export function useDemoVitals() {
-    const [vitals, setVitals] = useState<Vitals>({hr: 78, spo2: 98, rr: 16, bp: {sys: 120, dia: 76}});
+export function useDemoVitals(overrides?: DeepPartial<DemoSettings>) {
+    const s = mergeDemoSettings(DEFAULT_DEMO_SETTINGS, overrides);
+    const [vitals, setVitals] = useState<Vitals>({
+        hr: s.hr.init,
+        spo2: s.spo2.init,
+        rr: s.rr.init,
+        bp: {sys: s.bp.sys.init, dia: s.bp.dia.init}
+    });
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
         const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
         const t = setInterval(() => {
             setVitals(prev => {
-                const prevHr = Number(prev.hr);
-                const prevRr = Number(prev.rr);
-                const prevSp = Number(prev.spo2);
-                const prevSys = Number(prev.bp.sys);
-                const prevDia = Number(prev.bp.dia);
-                const heartRate = clamp(prevHr + (Math.random() - 0.5) * 2, 55, 130);
-                const respirationRate = clamp(prevRr + (Math.random() - 0.5) * 0.4, 10, 24);
-                const spo2Val = clamp(prevSp + (Math.random() - 0.5) * 0.3, 94, 100);
-                const bpSys = Math.round(clamp(prevSys + (Math.random() - 0.5) * 1.2, 100, 150));
-                const bpDia = Math.round(clamp(prevDia + (Math.random() - 0.5) * 0.8, 60, 95));
-                return {hr: Math.round(heartRate), rr: Math.round(respirationRate), spo2: Math.round(spo2Val), bp: {sys: bpSys, dia: bpDia}};
+                const heartRate = clamp(Number(prev.hr) + (Math.random() - 0.5) * s.hr.step, s.hr.min, s.hr.max);
+                const respirationRate = clamp(Number(prev.rr) + (Math.random() - 0.5) * s.rr.step, s.rr.min, s.rr.max);
+                const spo2Val = clamp(Number(prev.spo2) + (Math.random() - 0.5) * s.spo2.step, s.spo2.min, s.spo2.max);
+                const bpSys = Math.round(clamp(Number(prev.bp.sys) + (Math.random() - 0.5) * s.bp.sys.step, s.bp.sys.min, s.bp.sys.max));
+                const bpDia = Math.round(clamp(Number(prev.bp.dia) + (Math.random() - 0.5) * s.bp.dia.step, s.bp.dia.min, s.bp.dia.max));
+                return {
+                    hr: Math.round(heartRate),
+                    rr: Math.round(respirationRate),
+                    spo2: Math.round(spo2Val),
+                    bp: {sys: bpSys, dia: bpDia}
+                } as Vitals;
             });
-        }, 1000);
-        const readyTimer = setTimeout(() => setReady(true), 1000);
+        }, s.tickMs);
+        const readyTimer = setTimeout(() => setReady(true), s.warmupMs);
         return () => {
             clearInterval(t);
             clearTimeout(readyTimer);
         };
-    }, []);
+    }, [s.tickMs, s.warmupMs, s.hr.init, s.rr.init, s.spo2.init, s.bp.sys.init, s.bp.dia.init]);
 
     return {vitals, ready} as const;
 }

@@ -1,0 +1,172 @@
+import type {AlarmLevel} from "./sim";
+
+class AlertSound {
+    private ctx: AudioContext | null = null;
+    private enabled = true;
+    private loopingTimer: number | null = null;
+
+    setEnabled(on: boolean) {
+        this.enabled = on;
+        if (on) this.ensureContext();
+        if (!on) this.stopLooping();
+    }
+
+    async kickstart() {
+        // Call this on a user gesture to satisfy autoplay policies
+        const ctx = this.ensureContext();
+        if (ctx.state === "suspended") await ctx.resume();
+    }
+
+    // Play a single notification sequence (non-looping)
+    playAlert(level: AlarmLevel) {
+        if (!this.enabled) return;
+        const pattern = this.getBeepPattern(level);
+        this.playBeepSequence(pattern);
+    }
+
+    // Play a sequence of beeps (for notifications)
+    private playBeepSequence(pattern: Array<{ durMs: number; gapMs?: number; vol: number }>) {
+        let t = 0;
+        pattern.forEach((beep) => {
+            window.setTimeout(() => {
+                if (this.enabled) {
+                    this.playTone(beep.durMs / 1000, beep.vol);
+                }
+            }, t);
+            t += beep.durMs + (beep.gapMs ?? 0);
+        });
+    }
+
+    // Start continuous looping alarm
+    startLooping(level: AlarmLevel) {
+        if (!this.enabled) return;
+        this.stopLooping();
+
+        const pattern = this.getLoopPattern(level);
+        if (pattern.length === 0) return;
+
+        let i = 0;
+        const tick = () => {
+            if (!this.enabled) return;
+            const p = pattern[i]!;
+            this.playTone(p.durMs / 1000, p.vol);
+            i = (i + 1) % pattern.length;
+            // Schedule next tone after current duration + gap
+            this.loopingTimer = window.setTimeout(tick, p.durMs + (p.gapMs ?? 800));
+        };
+
+        tick();
+    }
+
+    // Stop looping alarm
+    stopLooping() {
+        if (this.loopingTimer != null) {
+            window.clearTimeout(this.loopingTimer);
+            this.loopingTimer = null;
+        }
+    }
+
+    private ensureContext(): AudioContext {
+        if (!this.ctx) {
+            // @ts-ignore - Safari
+            const Ctor: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+            this.ctx = new Ctor();
+        }
+        return this.ctx;
+    }
+
+    private playTone(duration: number, volume: number) {
+        const ctx = this.ensureContext();
+        const start = ctx.currentTime;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+
+        const makeOsc = (freq: number, level: number, type: OscillatorType) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(g);
+            g.gain.value = level;
+            g.connect(gain);
+            osc.start(start);
+            osc.stop(start + duration);
+        };
+
+        // Fundamental (~950 Hz) as triangle
+        makeOsc(954, 1.0, "triangle");
+        // 3x fundamental
+        makeOsc(2860, 0.6, "sine");
+        // 4x fundamental
+        makeOsc(3816, 0.025, "sine");
+
+        // Envelope: very fast attack, slightly longer hold, stronger presence
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(volume, start + 0.005); // attack
+        gain.gain.setValueAtTime(volume, start + 0.07); // hold
+        gain.gain.exponentialRampToValueAtTime(0.002, start + duration); // decay
+    }
+
+    private getVolume(level: AlarmLevel): number {
+        switch (level) {
+            case "low":
+                return 0.025;
+            case "medium":
+                return 0.035;
+            case "high":
+                return 0.045;
+            default:
+                return 0.02;
+        }
+    }
+
+    // Beep patterns for notifications (play once)
+    private getBeepPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
+        const vol = this.getVolume(level);
+        switch (level) {
+            case "low":
+                return [
+                    {durMs: 150, vol},
+                ];
+            case "medium":
+                return [
+                    {durMs: 120, gapMs: 100, vol},
+                    {durMs: 120, vol},
+                ];
+            case "high":
+                return [
+                    {durMs: 1000, vol},
+                    {durMs: 1000, vol},
+                    {durMs: 1000, vol},
+                ];
+            default:
+                return [{durMs: 150, vol}];
+        }
+    }
+
+    // Looping patterns for continuous alarms
+    private getLoopPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
+        const vol = this.getVolume(level);
+        switch (level) {
+            case "low":
+                return [
+                    {durMs: 200, gapMs: 2000, vol},
+                ];
+            case "medium":
+                return [
+                    {durMs: 150, gapMs: 150, vol},
+                    {durMs: 150, gapMs: 1500, vol},
+                ];
+            case "high":
+                return [
+                    {durMs: 1000, gapMs: 100, vol},
+                    {durMs: 1000, gapMs: 100, vol},
+                    {durMs: 1000, gapMs: 1000, vol},
+                ];
+            default:
+                return [{durMs: 200, gapMs: 2000, vol}];
+        }
+    }
+}
+
+export const alertSound = new AlertSound();
