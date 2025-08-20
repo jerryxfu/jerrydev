@@ -19,12 +19,12 @@ export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartia
 export const DEFAULT_DEMO_SETTINGS: DemoSettings = {
     tickMs: 1000,
     warmupMs: 1000,
-    hr: {init: Math.round(Math.random() * 100 + 60), min: 40, max: 200, step: 4.5},
-    rr: {init: 16, min: 10, max: 28, step: 1},
-    spo2: {init: Math.round(Math.random() * 15 + 85), min: 85, max: 100, step: 1},
+    hr: {init: Math.round(Math.random() * 100 + 60), min: 40, max: 200, step: 3},
+    rr: {init: 16, min: 10, max: 28, step: 1.11},
+    spo2: {init: Math.round(Math.random() * 15 + 85), min: 85, max: 100, step: 1.25},
     bp: {
-        sys: {init: 115, min: 75, max: 185, step: 2},
-        dia: {init: 76, min: 40, max: 110, step: 1.5},
+        sys: {init: 115, min: 75, max: 185, step: 1.5},
+        dia: {init: 76, min: 40, max: 110, step: 1.25},
     },
 };
 

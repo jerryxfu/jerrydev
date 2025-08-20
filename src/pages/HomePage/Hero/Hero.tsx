@@ -333,7 +333,7 @@ export default function Hero() {
                         Aspiring physician-engineer, exploring where medicine and technology meet
                     </p></div>
                     <div style={{overflow: "hidden"}}><p className="hero_line" ref={line2Ref}>
-                        Medicine • AI • Robotics • Science • Computer Vision • Deep Learning • Coding
+                        Medicine, AI, Robotics, Science, Computer Vision, Deep Learning, Coding
                     </p></div>
                 </div>
 

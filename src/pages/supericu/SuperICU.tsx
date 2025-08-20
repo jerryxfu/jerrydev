@@ -56,6 +56,31 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
 } = {}) {
     const palette: Palette = {...DEFAULT_PALETTE, ...(paletteOverrides || {})};
 
+    // Shared input style
+    const inputStyle: React.CSSProperties = {
+        background: "#01060a",
+        color: "inherit",
+        border: "1px solid var(--ui-border)",
+        borderRadius: 4,
+        padding: "2px 4px",
+        fontSize: 12,
+    };
+
+    // Helper to commit numeric input on Enter
+    const commitOnEnter = (
+        e: React.KeyboardEvent<HTMLInputElement>,
+        min: number,
+        max: number,
+        apply: (val: number) => void
+    ) => {
+        if (e.key !== "Enter") return;
+        const val = parseInt((e.currentTarget.value || "").trim(), 10);
+        if (Number.isFinite(val) && val >= min && val <= max) {
+            apply(val);
+            e.currentTarget.value = "";
+        }
+    };
+
     // Sound toggle (off by default due to browser autoplay policies)
     const [soundOn, setSoundOn] = useState(false);
     // New: user silenced flag (resets automatically when all alarms clear)
@@ -198,7 +223,6 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
         // Continuous normalized phases [0,1) for each waveform
         let ecgPhase = 0, plethPhase = 0, respPhase = 0;
         const tickMs = CFG.TICK_MS;
-        const dt = tickMs / 1000;
         let tSec = 0;
         let lastTs = performance.now();
 
@@ -217,9 +241,9 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
             const rr = Math.max(1, Number(vitalsRef.current.rr));
             const hrHz = hr / 60;
             const rrHz = rr / 60;
-            const stepEcg = hrHz * dt;
+            const stepEcg = hrHz * elapsedSec;
             const stepPleth = stepEcg;
-            const stepResp = rrHz * dt;
+            const stepResp = rrHz * elapsedSec;
 
             // Advance horizontally exactly by elapsed time fraction of the window width
             const dxEcgTotal = Math.max(0.5, ecg.width * (elapsedSec / showSeconds));
@@ -539,120 +563,40 @@ export default function SuperIcu({inputRates, paletteOverrides}: {
                                     placeholder="HR"
                                     min={20}
                                     max={240}
-                                    style={{
-                                        width: 50,
-                                        background: "#01060a",
-                                        color: "inherit",
-                                        border: "1px solid var(--ui-border)",
-                                        borderRadius: 4,
-                                        padding: "2px 4px",
-                                        fontSize: 12
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = parseInt(e.currentTarget.value, 10);
-                                            if (val >= 20 && val <= 240) {
-                                                correctVital({hr: val});
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
+                                    style={inputStyle}
+                                    onKeyDown={(e) => commitOnEnter(e, 20, 240, val => correctVital({hr: val}))}
                                 />
                                 <input
                                     type="number"
                                     placeholder="SpO2"
                                     min={0}
                                     max={100}
-                                    style={{
-                                        width: 50,
-                                        background: "#01060a",
-                                        color: "inherit",
-                                        border: "1px solid var(--ui-border)",
-                                        borderRadius: 4,
-                                        padding: "2px 4px",
-                                        fontSize: 12
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = parseInt(e.currentTarget.value, 10);
-                                            if (val >= 0 && val <= 100) {
-                                                correctVital({spo2: val});
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
+                                    style={inputStyle}
+                                    onKeyDown={(e) => commitOnEnter(e, 0, 100, val => correctVital({spo2: val}))}
                                 />
                                 <input
                                     type="number"
                                     placeholder="RR"
                                     min={0}
                                     max={60}
-                                    style={{
-                                        width: 45,
-                                        background: "#01060a",
-                                        color: "inherit",
-                                        border: "1px solid var(--ui-border)",
-                                        borderRadius: 4,
-                                        padding: "2px 4px",
-                                        fontSize: 12
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = parseInt(e.currentTarget.value, 10);
-                                            if (val >= 0 && val <= 60) {
-                                                correctVital({rr: val});
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
+                                    style={inputStyle}
+                                    onKeyDown={(e) => commitOnEnter(e, 0, 60, val => correctVital({rr: val}))}
                                 />
                                 <input
                                     type="number"
                                     placeholder="SYS"
                                     min={40}
                                     max={300}
-                                    style={{
-                                        width: 50,
-                                        background: "#01060a",
-                                        color: "inherit",
-                                        border: "1px solid var(--ui-border)",
-                                        borderRadius: 4,
-                                        padding: "2px 4px",
-                                        fontSize: 12
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = parseInt(e.currentTarget.value, 10);
-                                            if (val >= 40 && val <= 300) {
-                                                correctVital({bpSys: val});
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
+                                    style={inputStyle}
+                                    onKeyDown={(e) => commitOnEnter(e, 40, 300, val => correctVital({bpSys: val}))}
                                 />
                                 <input
                                     type="number"
                                     placeholder="DIA"
                                     min={20}
                                     max={200}
-                                    style={{
-                                        width: 50,
-                                        background: "#01060a",
-                                        color: "inherit",
-                                        border: "1px solid var(--ui-border)",
-                                        borderRadius: 4,
-                                        padding: "2px 4px",
-                                        fontSize: 12
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            const val = parseInt(e.currentTarget.value, 10);
-                                            if (val >= 20 && val <= 200) {
-                                                correctVital({bpDia: val});
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
+                                    style={inputStyle}
+                                    onKeyDown={(e) => commitOnEnter(e, 20, 200, val => correctVital({bpDia: val}))}
                                 />
                             </div>
                         </div>
