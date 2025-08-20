@@ -16,6 +16,11 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+//debugging
+* {
+    outline: 1px solid red !important;
+}
+
 // Base CSS custom properties that don't change between themes
 :root {
     font-family: "Outfit", "Arial", "sans-serif", "system-ui";
@@ -64,10 +69,7 @@ body {
     --text-da-c: rgba(26, 26, 26, 1);
 
     --shadow-c: rgba(150, 150, 150, 0.80);
-    --shadow-lt-c: rgba(160, 160, 160, 0.8);
-    --shadow-da-c: rgb(140, 140, 140, 1);
-
-    --glow-c: rgba(238, 248, 252, 0.40);
+    --hero-glow-c: rgba(238, 248, 252, 0.40);
 
     --success-c: rgba(76, 192, 134, 1);
     --warning-c: rgb(255, 234, 97, 1);
@@ -106,10 +108,8 @@ body {
     --text-da-c: rgba(250, 249, 248, 1);
 
     --shadow-c: rgba(150, 150, 150, 0.80);
-    --shadow-lt-c: rgba(140, 140, 140, 0.8);
-    --shadow-da-c: rgb(160, 160, 160, 0.8);
 
-    --glow-c: rgba(238, 248, 252, 0.40);
+    --hero-glow-c: rgba(238, 248, 252, 0.40);
 
     --hero-bg-c: rgba(184, 226, 242, 1);
 }
@@ -131,7 +131,7 @@ body {
     --bg-lt-c: rgba(254, 254, 254, 1);
     --bg-da-c: rgba(248, 247, 246, 1);
 
-    --glow-c: rgba(238, 248, 252, 0.40);
+    --hero-glow-c: rgba(238, 248, 252, 0.40);
 
     --hero-bg-c: rgba(184, 226, 242, 1);
 }
@@ -286,12 +286,3 @@ p {
         background: initial;
     }
 }
-
-//debugging
-//* {
-//    outline: 1px solid red !important;
-//}
-//
-//#root {
-//    outline: 3px solid green !important;
-//}

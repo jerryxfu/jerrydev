@@ -305,61 +305,48 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
 
     return (
         <div className="super-icu">
-            <div className="main">
+            <div className="super-icu-core">
                 <div className="top-bar">
-                    <span className="status-pill">SuperICU</span>
-                    <span className="status-pill">Alarms: On</span>
+                    SuperICU
                     <span className="status-pill">{timeStr}</span>
+                    <span className="status-pill">Alarms: On</span>
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={() => setEcgConnected(s => !s)}>
                         ECG: {ecgConnected ? "Connected" : "Disconnected"}
                     </span>
-                    <div style={{marginLeft: "auto", display: "flex", alignItems: "center", gap: 6}}>
-                        <span style={{fontSize: 12, color: "#7fdc7f"}}>Window</span>
-                        <select value={showSeconds} onChange={e => setShowSeconds(parseInt(e.target.value, 10))}
-                                style={{
-                                    background: "#000",
-                                    color: "#c8ffc8",
-                                    border: "1px solid rgba(0, 100, 0, 0.35)",
-                                    borderRadius: 6,
-                                    padding: "2px 6px"
-                                }}>
+                    <div className="window-ctl" style={{marginLeft: "auto"}}>
+                        <span className="muted">Window</span>
+                        <select className="window-select" value={showSeconds} onChange={e => setShowSeconds(parseInt(e.target.value, 10))}>
                             {CFG.WINDOW_CHOICES.map(s => <option key={s} value={s}>{s}s</option>)}
                         </select>
                     </div>
                 </div>
 
                 {/* ECG row (frequency paced by HR) */}
-                <div className="wave-row">
-                    <div className="lead-label">ECG Lead II</div>
+                <div className="wave-row ecg">
+                    <div className="lead-label" style={{color: CFG.ECG_COLOR}}>Lead II</div>
                     <div className="canvas-wrap">
                         <canvas ref={ecgRef} />
                     </div>
                     <div className="vitals">
-                        <div className="vital hr">
+                        <div className="vital">
                             <div className="label">HR</div>
-                            <div className="value">{disp.hr}<span style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
-                        </div>
-                        <div className="vital bp">
-                            <div className="label">NIBP</div>
-                            <div className="value">{disp.bpSys}/{disp.bpDia}</div>
+                            <div className="value" style={{color: CFG.ECG_COLOR}}>{disp.hr}<span
+                                style={{fontSize: 14, marginLeft: 4}}>{disp.hr === "-?-" ? "" : "bpm"}</span></div>
                         </div>
                     </div>
                 </div>
 
                 {/* Pleth row (paced by HR) */}
-                <div className="wave-row">
-                    <div className="lead-label">SpO₂ Pleth</div>
+                <div className="wave-row pleth">
+                    <div className="lead-label" style={{color: CFG.PLETH_COLOR}}>Pleth</div>
                     <div className="canvas-wrap">
                         <canvas ref={plethRef} />
                     </div>
                     <div className="vitals">
                         <div className="vital spo2">
                             <div className="label">SpO₂</div>
-                            <div className="value">{disp.spo2}<span style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
-                        </div>
-                        <div className="vital">
-                            <div className="label">Pi</div>
-                            <div className="value">3.2</div>
+                            <div className="value" style={{color: CFG.PLETH_COLOR}}>{disp.spo2}<span
+                                style={{fontSize: 14}}>{disp.spo2 === "-?-" ? "" : "%"}</span></div>
                         </div>
                         <div className="vital">
                             <div className="label">Temp</div>
@@ -369,15 +356,16 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
                 </div>
 
                 {/* Respiration row (frequency paced by RR) */}
-                <div className="wave-row">
-                    <div className="lead-label">RESP</div>
+                <div className="wave-row resp">
+                    <div className="lead-label" style={{color: CFG.RESP_COLOR}}>RESP</div>
                     <div className="canvas-wrap">
                         <canvas ref={respRef} />
                     </div>
                     <div className="vitals">
                         <div className="vital rr">
                             <div className="label">RR</div>
-                            <div className="value">{disp.rr}<span style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
+                            <div className="value" style={{color: CFG.RESP_COLOR}}>{disp.rr}<span
+                                style={{fontSize: 14, marginLeft: 4}}>{disp.rr === "-?-" ? "" : "rpm"}</span></div>
                         </div>
                         <div className="vital">
                             <div className="label">EtCO₂</div>
@@ -386,6 +374,15 @@ export default function SuperIcu({inputRates}: { inputRates?: { ecgHz?: number; 
                         <div className="vital">
                             <div className="label">FiO₂</div>
                             <div className="value">21</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="data-row">
+                    <div className="vitals">
+                        <div className="vital">
+                            <div className="label">NIBP</div>
+                            <div className="value">{disp.bpSys}/{disp.bpDia}</div>
                         </div>
                     </div>
                 </div>
@@ -421,9 +418,9 @@ function randomId() {
 function drawLeadOff(s: { ctx: CanvasRenderingContext2D; width: number; height: number }, text: string) {
     const ctx = s.ctx;
     ctx.save();
-    ctx.fillStyle = "#001100";
+    ctx.fillStyle = "#0b0d10"; // neutral dark background
     ctx.fillRect(0, 0, s.width, s.height);
-    ctx.fillStyle = "#3de23d";
+    ctx.fillStyle = "#9fb2c8"; // muted neutral text
     ctx.font = "12px monospace";
     const metrics = ctx.measureText(text);
     const x = (s.width - metrics.width) / 2;
