@@ -34,15 +34,6 @@ const projects: Project[] = [
         description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
     },
     {
-        title: "ECG previewer",
-        subTitle: "A tool to preview ECG waveforms",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        date: new Date(),
-        description: "ECG ECG previewer is a tool to visualize ECG waveforms, allowing users to view and analyze ECG data in a user-friendly interface.",
-        url: "/waveform"
-    },
-    {
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
@@ -78,6 +69,15 @@ const projects: Project[] = [
         date: new Date(),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "Uses PyAutoGUI to simulate inputs to join kahoots and answer questions in one click. No longer works due to Kahoot updates.",
+    },
+    {
+        title: "Cheatsheet",
+        subTitle: "A collection of useful cheatsheets",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        date: new Date(),
+        url: "/cheatsheet",
+        description: "A collection of useful cheatsheets for various topics.",
     },
     {
         title: "JerryBot",

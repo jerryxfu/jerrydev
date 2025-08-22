@@ -21,7 +21,7 @@ const precordial_leads: ECGLead[] = [
     {lead: "V6", placement: "Same level as V4, midaxillary line", view: "Anterior wall of left ventricle"}
 ];
 
-export default function ECG() {
+export default function Waveform() {
     return (
         <div className="layout-column">
             <h1>WAVEFORM AND SIG NAMES</h1>

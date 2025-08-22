@@ -13,7 +13,7 @@ import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
-import ECG from "./pages/cheatsheet/ECG.tsx";
+import Waveform from "./pages/cheatsheet/Waveform.tsx";
 import Mailman from "./pages/cheatsheet/Mailman.tsx";
 import SuperIcu from "./pages/supericu/SuperICU.tsx";
 
@@ -52,8 +52,8 @@ const router = createBrowserRouter([
         element: <UnixPage />
     },
     {
-        path: "/cheatsheet/med/ecg",
-        element: <ECG />
+        path: "/cheatsheet/waveform",
+        element: <Waveform />
     },
     {
         path: "/cheatsheet/mailman",

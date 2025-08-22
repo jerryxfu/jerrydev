@@ -27,7 +27,7 @@ class AlertSound {
     // Play a heartbeat beep based on hr
     playHeartbeat() {
         if (!this.enabled) return;
-        this.playTone(0.1, 0.010, 460);
+        this.playTone(0.1, 0.015, 460);
     }
 
     // Play a sequence of beeps (for notifications)

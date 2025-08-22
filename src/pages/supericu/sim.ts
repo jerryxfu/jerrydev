@@ -197,10 +197,3 @@ export function modifyDemoSample(channel: "ecg" | "pleth" | "resp", raw: number,
 function clamp(x: number, lo: number, hi: number) {
     return Math.max(lo, Math.min(hi, x));
 }
-
-// Optional: export some demo log presets that could be scheduled by the UI
-export const demoFutureLogs: Array<{ inMs: number; level: AlarmLevel; msg: string }> = [
-    {inMs: 5000, level: "low", msg: "PVC detected"},
-    {inMs: 12000, level: "medium", msg: "RR trending up"},
-    {inMs: 20000, level: "high", msg: "HR > 120 bpm"},
-];
