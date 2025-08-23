@@ -100,28 +100,22 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
             return s;
         });
 
-        // Track per-channel state (phase for templates, index for csv)
+        // Track per-channel state (phase for templates)
         const templatePhase = new Map<number, number>();
-        const csvIndex = new Map<number, number>();
 
         const tickMs = RENDER_CFG.TICK_MS;
         let tSec = 0;
         let lastTs = performance.now();
-        let lastExt: number | null = externalTimeSec ?? null;
+        // For CSV playhead: base time from external playhead (if provided) plus local wall-clock accumulation
+        const baseCsvSec = (typeof externalTimeSec === "number") ? externalTimeSec : 0;
+        let wallAccumCsvSec = 0;
 
         const timer = setInterval(() => {
             const now = performance.now();
             const elapsedSecWall = Math.max(0, (now - lastTs) / 1000);
             lastTs = now;
-
-            // Derive CSV elapsed from external playhead if present
-            let elapsedCsv = elapsedSecWall;
-            if (typeof externalTimeSec === "number") {
-                if (lastExt == null) lastExt = externalTimeSec;
-                const d = externalTimeSec - lastExt;
-                elapsedCsv = Math.max(0, isFinite(d) ? d : 0);
-                lastExt = externalTimeSec;
-            }
+            wallAccumCsvSec += elapsedSecWall;
+            const playCsvSec = baseCsvSec + wallAccumCsvSec;
 
             // Clear screens if not initialized
             if (!initialized) {
@@ -179,22 +173,23 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                 } else {
                     // CSV source
                     const {samples, sampleHz, yMin, yMax} = ch.source;
-                    const totalAdvance = sampleHz * elapsedCsv; // samples advanced this frame (synced if externalTimeSec set)
-                    const sub = Math.max(1, Math.ceil(Math.max(0, totalAdvance)));
-                    const subDt = (elapsedSecWall) / sub; // time axis for demo modifiers if needed
-                    const prevIdx = csvIndex.get(idx) ?? 0;
                     const n = samples.length;
                     if (n === 0) {
                         if (onValue) onValue(ch.key, null, null);
                         return;
                     }
-                    let pos = prevIdx;
+                    const prevPlayCsvSec = playCsvSec - elapsedSecWall;
+                    const totalAdvance = sampleHz * elapsedSecWall; // samples advanced this frame
+                    const sub = Math.max(1, Math.ceil(Math.max(0, totalAdvance)));
+                    const subDt = (elapsedSecWall) / sub;
+
                     let lastValDrawn: number | null = null;
                     let lastRaw: number | null = null;
+
                     for (let i = 0; i < sub; i++) {
-                        pos += Math.max(0, totalAdvance) / sub;
-                        // Wrap
-                        if (pos >= n) pos -= n;
+                        const tStep = prevPlayCsvSec + ((i + 1) * subDt);
+                        let pos = (tStep * sampleHz) % n;
+                        if (pos < 0) pos += n;
                         const raw = sampleAt(samples, pos);
                         lastRaw = Number.isFinite(raw) ? raw : null;
                         // Map to [-1,1] for rendering only (no data mutation)
@@ -212,7 +207,6 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                         tSec += subDt;
                     }
                     if (onValue) onValue(ch.key, lastValDrawn, lastRaw);
-                    csvIndex.set(idx, pos);
                 }
             });
         }, tickMs);
@@ -222,7 +216,9 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
             resizeObservers.forEach(r => r.disconnect());
             resizeObservers.length = 0;
         };
-    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef, externalTimeSec, onValue]);
+        // do not include externalTimeSec in deps, we only want to capture its initial value
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef, onValue]);
 }
 
 const resizeObservers: ResizeObserver[] = [];

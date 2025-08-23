@@ -47,7 +47,6 @@ type RowDef = {
     className?: string; // for styling hooks like ecg/pleth/resp
     source: TemplateSource | CsvSource;
     showVital?: "hr" | "spo2" | "rr"; // which vital to show on the right, if any
-    showLeadToggle?: boolean; // show connected/disconnected toggle for ECG-like rows
     // New: optional raw value range for display/debug
     yMin?: number;
     yMax?: number;
@@ -114,7 +113,6 @@ export default function SuperIcu({paletteOverrides}: {
 
     // init and ECG lead
     const [initialized, setInitialized] = useState<boolean>(false);
-    const [ecgConnected, setEcgConnected] = useState<boolean>(true);
 
     // Alerts list
     const [alerts, setAlerts] = useState<AlertItem[]>([
@@ -163,12 +161,12 @@ export default function SuperIcu({paletteOverrides}: {
             if (csvStartMs == null) setCsvStartMs(performance.now());
         }
     }, [mode, csvData, vitalsCsv, csvStartMs]);
+    // tick to refresh elapsed time dep
+    const [tick, setTick] = useState(0);
     const csvElapsedSec = useMemo(() => {
         if (csvStartMs == null) return 0;
         return (performance.now() - csvStartMs) / 1000;
-    }, [csvStartMs]);
-    // tick to refresh elapsed time dep
-    const [, setTick] = useState(0);
+    }, [csvStartMs, tick]);
     useEffect(() => {
         if (csvStartMs == null) return;
         const t = setInterval(() => setTick(x => (x + 1) % 1000), 200);
@@ -233,9 +231,8 @@ export default function SuperIcu({paletteOverrides}: {
                 label: "Lead II",
                 color: palette.ecg,
                 className: "ecg",
-                source: {kind: "template", template: ecgTemplate, pace: "hr", connected: ecgConnected, heartbeat: true},
+                source: {kind: "template", template: ecgTemplate, pace: "hr", heartbeat: true},
                 showVital: "hr",
-                showLeadToggle: true,
                 yMin: minOf(ecgTemplate),
                 yMax: maxOf(ecgTemplate),
             },
@@ -261,7 +258,7 @@ export default function SuperIcu({paletteOverrides}: {
             },
         ];
         return rowsDemo;
-    }, [mode, csvData, palette, ecgTemplate, plethTemplate, respTemplate, ecgConnected]);
+    }, [mode, csvData, palette, ecgTemplate, plethTemplate, respTemplate]);
 
     // Main sweep renderer hook with dynamic channels
     const channels = useMemo(() => rows.map(r => ({key: r.key, ref: getCanvasRef(r.key), color: r.color, source: r.source})), [rows]);
@@ -282,7 +279,7 @@ export default function SuperIcu({paletteOverrides}: {
         const check = setInterval(() => {
             // Optionally suppress HR-triggered alarms when ECG is disconnected
             const v = vitalsRef.current;
-            const vForAlarms = ecgConnected ? v : {...v, hr: "-?-" as const};
+            const vForAlarms = v;
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
 
@@ -338,7 +335,7 @@ export default function SuperIcu({paletteOverrides}: {
             }
         }, 1000);
         return () => clearInterval(check);
-    }, [ecgConnected, soundOn, silenced]);
+    }, [soundOn, silenced]);
 
     // After first vitals update, mark initialized so numbers/waves can appear
     useEffect(() => {
@@ -355,13 +352,13 @@ export default function SuperIcu({paletteOverrides}: {
             return {hr: fmt(cur.hr), spo2: fmt(cur.spo2), rr: fmt(cur.rr), bpSys: fmt(cur.bpSys), bpDia: fmt(cur.bpDia)} as const;
         }
         return {
-            hr: (!initialized || !ecgConnected) ? "-?-" : vitals.hr,
+            hr: (!initialized) ? "-?-" : vitals.hr,
             spo2: (!initialized) ? "-?-" : vitals.spo2,
             rr: (!initialized) ? "-?-" : vitals.rr,
             bpSys: (!initialized) ? "-?-" : vitals.bp.sys,
             bpDia: (!initialized) ? "-?-" : vitals.bp.dia
         } as const;
-    }, [mode, vitalsCsv, csvElapsedSec, initialized, ecgConnected, vitals]);
+    }, [mode, vitalsCsv, csvElapsedSec, initialized, vitals]);
 
     // Compute extra vitals (CSV)
     const otherVitals: Array<{ label: string; value: string }> = useMemo(() => {
@@ -404,7 +401,7 @@ export default function SuperIcu({paletteOverrides}: {
                             setHeartbeatSound(v => !v);
                         }}
                     >
-                        Heartbeat: {heartbeatSound ? "On" : "Off"}
+                        Pulse sound: {heartbeatSound ? "On" : "Off"}
                     </span>
                     {/* Silence/Clear Alerts */}
                     <span
@@ -776,13 +773,20 @@ function findCol(cols: { name: string; values: number[] }[], label: string | Reg
 
 function pickRowIndex(times: number[] | undefined, elapsedSec: number) {
     if (!times || times.length === 0) return 0;
-    const maxT = times[times.length - 1] ?? 0;
-    if (maxT <= 0) return Math.min(Math.floor(elapsedSec) % times.length, times.length - 1);
-    const t = ((elapsedSec % maxT) + maxT) % maxT;
+    const t0 = times[0] ?? 0;
+    const tLast = times[times.length - 1] ?? t0;
+    const duration = Math.max(0, tLast - t0);
+    if (duration <= 0) {
+        // Fallback: evenly step through rows by seconds
+        return Math.min(Math.floor(Math.max(0, elapsedSec)) % times.length, times.length - 1);
+    }
+    // Map elapsed seconds into absolute timeline starting at t0
+    const tAbs = t0 + (((elapsedSec % duration) + duration) % duration);
+    // Binary search for last index with times[idx] <= tAbs
     let lo = 0, hi = times.length - 1;
     while (lo < hi) {
         const mid = Math.floor((lo + hi + 1) / 2);
-        if ((times[mid] ?? 0) <= t) lo = mid; else hi = mid - 1;
+        if ((times[mid] ?? 0) <= tAbs) lo = mid; else hi = mid - 1;
     }
     return lo;
 }
@@ -843,4 +847,3 @@ function formatWaveVal(map: Map<string, { val: number | null; raw: number | null
     const value = mode === "csv" ? (rec.raw ?? rec.val) : rec.val;
     return fmt3(value);
 }
-
