@@ -12,32 +12,41 @@ const RENDER_CFG = {
     MIN_SAMPLES_PER_BEAT: 300,
 } as const;
 
+export type TemplateSource = {
+    kind: "template";
+    template: number[];
+    pace: "hr" | "rr"; // advance rate source
+    connected?: boolean; // for ECG lead-off rendering
+    heartbeat?: boolean; // emit heartbeat on wrap
+};
+
+export type CsvSource = {
+    kind: "csv";
+    samples: number[] | Float32Array; // normalized to roughly [-1, 1]
+    sampleHz: number;
+};
+
+export type DynamicChannel = {
+    key: string;
+    ref: RefObject<HTMLCanvasElement | null>;
+    color: string;
+    source: TemplateSource | CsvSource;
+};
+
 export type SweepRendererOptions = {
-    refs: {
-        ecgRef: RefObject<HTMLCanvasElement | null>;
-        plethRef: RefObject<HTMLCanvasElement | null>;
-        respRef: RefObject<HTMLCanvasElement | null>;
-    };
-    colors: { ecg: string; pleth: string; resp: string };
+    channels: DynamicChannel[];
     showSeconds: number;
     initialized: boolean;
-    ecgConnected: boolean;
-    templates: { ecgTemplate: number[]; plethTemplate: number[]; respTemplate: number[] };
     vitalsRef: RefObject<Vitals>;
     heartbeatRef: RefObject<boolean>;
 };
 
-// Sets up and runs the canvas sweep renderers for ECG, Pleth, and Respiration
+// Sets up and runs the canvas sweep renderers for a dynamic set of channels
 export function useSweepRenderer(opts: SweepRendererOptions) {
-    const {refs, colors, showSeconds, initialized, ecgConnected, templates, vitalsRef, heartbeatRef} = opts;
+    const {channels, showSeconds, initialized, vitalsRef, heartbeatRef} = opts;
 
     useEffect(() => {
-        const canvases = [
-            {ref: refs.ecgRef, color: colors.ecg},
-            {ref: refs.plethRef, color: colors.pleth},
-            {ref: refs.respRef, color: colors.resp},
-        ];
-
+        // Build sweep objects for each channel that currently has a canvas element
         type Sweep = {
             canvas: HTMLCanvasElement;
             ctx: CanvasRenderingContext2D;
@@ -47,24 +56,23 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
             resize: () => void; clearAll: () => void;
         };
 
-        const sweeps: Sweep[] = [];
-        const ros: ResizeObserver[] = [];
-
-        function makeSweep(canvas: HTMLCanvasElement, color: string): Sweep | null {
-            const ctx = canvas.getContext("2d");
+        const sweeps: (Sweep | null)[] = channels.map(ch => {
+            const el = ch.ref.current;
+            if (!el) return null;
+            const ctx = el.getContext("2d");
             if (!ctx) return null;
             const s: Sweep = {
-                canvas, ctx,
+                canvas: el, ctx,
                 width: 0, height: 0, dpr: window.devicePixelRatio || 1,
                 x: 0, lastX: null, lastY: null,
-                color, lineWidth: RENDER_CFG.LINE_WIDTH, clearW: RENDER_CFG.CLEAR_WIDTH,
+                color: ch.color, lineWidth: RENDER_CFG.LINE_WIDTH, clearW: RENDER_CFG.CLEAR_WIDTH,
                 resize: () => {
                     const dpr = window.devicePixelRatio || 1;
                     s.dpr = dpr;
-                    const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
-                    const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
-                    canvas.width = w;
-                    canvas.height = h;
+                    const w = Math.max(1, Math.floor(el.clientWidth * dpr));
+                    const h = Math.max(1, Math.floor(el.clientHeight * dpr));
+                    el.width = w;
+                    el.height = h;
                     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                     s.width = w / dpr;
                     s.height = h / dpr;
@@ -76,31 +84,21 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                 clearAll: () => {
                     ctx.save();
                     ctx.setTransform(1, 0, 0, 1, 0, 0);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.clearRect(0, 0, el.width, el.height);
                     ctx.restore();
                 },
             };
             s.resize();
             const ro = new ResizeObserver(() => s.resize());
-            ro.observe(canvas);
-            ros.push(ro);
+            ro.observe(el);
+            resizeObservers.push(ro);
             return s;
-        }
+        });
 
-        for (const c of canvases) {
-            const el = c.ref.current;
-            if (!el) continue;
-            const s = makeSweep(el, c.color);
-            if (s) sweeps.push(s);
-        }
-        if (sweeps.length !== canvases.length) {
-            return () => {
-                ros.forEach(r => r.disconnect());
-            };
-        }
-        const [ecg, pleth, resp] = sweeps as [Sweep, Sweep, Sweep];
+        // Track per-channel state (phase for templates, index for csv)
+        const templatePhase = new Map<number, number>();
+        const csvIndex = new Map<number, number>();
 
-        let ecgPhase = 0, plethPhase = 0, respPhase = 0;
         const tickMs = RENDER_CFG.TICK_MS;
         let tSec = 0;
         let lastTs = performance.now();
@@ -110,125 +108,132 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
             const elapsedSec = Math.max(0, (now - lastTs) / 1000);
             lastTs = now;
 
+            // Clear screens if not initialized
             if (!initialized) {
-                ecg.clearAll();
-                pleth.clearAll();
-                resp.clearAll();
+                sweeps.forEach(s => s && s.clearAll());
                 return;
             }
+
             const v = vitalsRef.current;
             if (!v) return;
-            const hr = Math.max(1, Number(v.hr));
-            const rr = Math.max(1, Number(v.rr));
-            const hrHz = hr / 60;
-            const rrHz = rr / 60;
-            const stepEcg = hrHz * elapsedSec;
-            const stepPleth = stepEcg;
-            const stepResp = rrHz * elapsedSec;
 
-            const dxEcgTotal = Math.max(0.5, ecg.width * (elapsedSec / showSeconds));
-            const dxPlethTotal = Math.max(0.5, pleth.width * (elapsedSec / showSeconds));
-            const dxRespTotal = Math.max(0.5, resp.width * (elapsedSec / showSeconds));
+            // Iterate each channel and render
+            channels.forEach((ch, idx) => {
+                const s = sweeps[idx];
+                if (!s) return;
 
-            const desiredPhaseStep = 1 / RENDER_CFG.MIN_SAMPLES_PER_BEAT;
-            const subEcg = Math.max(1, Math.ceil(stepEcg / desiredPhaseStep));
-            const subPleth = Math.max(1, Math.ceil(stepPleth / desiredPhaseStep));
-            const subResp = Math.max(1, Math.ceil(stepResp / desiredPhaseStep));
+                const dxTotal = Math.max(0.5, s.width * (elapsedSec / showSeconds));
 
-            const advanceAndDraw = (s: Sweep, getVal: () => number, sub: number, dxTotal: number) => {
-                const subDt = elapsedSec / sub;
-                for (let i = 0; i < sub; i++) {
-                    const v = getVal();
-                    drawSweep(s, v, dxTotal / sub);
-                    tSec += subDt;
+                if (ch.source.kind === "template") {
+                    const {template, pace, connected, heartbeat} = ch.source;
+                    if (pace === "hr" && connected === false) {
+                        s.clearAll();
+                        drawLeadOff(s, "LEAD OFF");
+                        return;
+                    }
+
+                    const rate = pace === "hr" ? Math.max(1, Number(v.hr)) : Math.max(1, Number(v.rr));
+                    const hz = rate / 60;
+                    const desiredPhaseStep = 1 / RENDER_CFG.MIN_SAMPLES_PER_BEAT;
+                    const step = hz * elapsedSec;
+                    const sub = Math.max(1, Math.ceil(step / desiredPhaseStep));
+                    let phase = templatePhase.get(idx) ?? 0;
+
+                    const subDt = elapsedSec / sub;
+                    for (let i = 0; i < sub; i++) {
+                        const prevPhase = phase;
+                        phase += (hz * elapsedSec) / sub;
+                        if (phase >= 1) phase -= 1;
+                        const raw = sampleTemplate(template, phase, 1);
+                        const val = modifyDemoSample(pace === "hr" ? "ecg" : "resp", raw, tSec, v);
+                        drawSweep(s, val, dxTotal / sub);
+                        tSec += subDt;
+                        if (heartbeatRef.current && heartbeat && pace === "hr" && phase < prevPhase) {
+                            alertSound.playHeartbeat();
+                        }
+                    }
+                    templatePhase.set(idx, phase);
+                } else {
+                    // CSV source
+                    const {samples, sampleHz} = ch.source;
+                    const totalAdvance = sampleHz * elapsedSec; // samples advanced this frame
+                    const sub = Math.max(1, Math.ceil(totalAdvance));
+                    const subDt = elapsedSec / sub;
+                    const prevIdx = csvIndex.get(idx) ?? 0;
+                    const n = samples.length;
+                    if (n === 0) return;
+                    let pos = prevIdx;
+                    for (let i = 0; i < sub; i++) {
+                        pos += totalAdvance / sub;
+                        // Wrap
+                        if (pos >= n) pos -= n;
+                        const val = sampleAt(samples, pos);
+                        drawSweep(s, val, dxTotal / sub);
+                        tSec += subDt;
+                    }
+                    csvIndex.set(idx, pos);
                 }
-            };
-
-            if (ecgConnected) {
-                const prevPhase = ecgPhase;
-                advanceAndDraw(
-                    ecg,
-                    () => {
-                        ecgPhase += (hrHz * elapsedSec) / subEcg;
-                        if (ecgPhase >= 1) ecgPhase -= 1;
-                        const raw = sampleTemplate(templates.ecgTemplate, ecgPhase, 1);
-                        return modifyDemoSample("ecg", raw, tSec, v);
-                    },
-                    subEcg,
-                    dxEcgTotal
-                );
-                if (heartbeatRef.current && ecgPhase < prevPhase) {
-                    alertSound.playHeartbeat();
-                }
-            } else {
-                ecg.clearAll();
-                drawLeadOff(ecg, "LEAD OFF");
-            }
-
-            advanceAndDraw(
-                pleth,
-                () => {
-                    plethPhase += (hrHz * elapsedSec) / subPleth;
-                    if (plethPhase >= 1) plethPhase -= 1;
-                    const raw = sampleTemplate(templates.plethTemplate, plethPhase, 1) - 0.5;
-                    return modifyDemoSample("pleth", raw, tSec, v);
-                },
-                subPleth,
-                dxPlethTotal
-            );
-
-            advanceAndDraw(
-                resp,
-                () => {
-                    respPhase += (rrHz * elapsedSec) / subResp;
-                    if (respPhase >= 1) respPhase -= 1;
-                    const raw = sampleTemplate(templates.respTemplate, respPhase, 1);
-                    return modifyDemoSample("resp", raw, tSec, v);
-                },
-                subResp,
-                dxRespTotal
-            );
+            });
         }, tickMs);
-
-        const OVERWRITE_BAND_PX = 8;
-
-        function drawSweep(s: Sweep, val: number, dx: number) {
-            const ctx = s.ctx;
-            const mid = s.height / 2;
-            const amp = s.height * RENDER_CFG.AMP_FRAC;
-            const y = mid - Math.max(-RENDER_CFG.VAL_CLAMP, Math.min(RENDER_CFG.VAL_CLAMP, val)) * amp;
-
-            ctx.save();
-            const clearW = Math.max(dx, OVERWRITE_BAND_PX);
-            ctx.clearRect(s.x, 0, clearW, s.height);
-            ctx.strokeStyle = s.color;
-            ctx.lineWidth = s.lineWidth;
-            ctx.beginPath();
-            if (s.lastX == null || (s.x === 0 && s.lastX !== 0)) {
-                ctx.moveTo(s.x, y);
-            } else {
-                ctx.moveTo(s.lastX, s.lastY ?? y);
-            }
-            const newX = s.x + dx;
-            ctx.lineTo(newX, y);
-            ctx.stroke();
-            ctx.restore();
-
-            s.lastX = newX;
-            s.lastY = y;
-            s.x = newX;
-            if (s.x >= s.width) {
-                s.x = 0;
-                s.lastX = null;
-                s.lastY = null;
-            }
-        }
 
         return () => {
             clearInterval(timer);
-            ros.forEach(r => r.disconnect());
+            resizeObservers.forEach(r => r.disconnect());
+            resizeObservers.length = 0;
         };
-    }, [refs.ecgRef, refs.plethRef, refs.respRef, colors.ecg, colors.pleth, colors.resp, showSeconds, initialized, ecgConnected, templates.ecgTemplate, templates.plethTemplate, templates.respTemplate, vitalsRef, heartbeatRef]);
+    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef]);
+}
+
+const resizeObservers: ResizeObserver[] = [];
+
+const OVERWRITE_BAND_PX = 8;
+
+function drawSweep(s: { ctx: CanvasRenderingContext2D; width: number; height: number; x: number; lastX: number | null; lastY: number | null; color: string; lineWidth: number }, val: number, dx: number) {
+    const ctx = s.ctx;
+    const mid = s.height / 2;
+    const amp = s.height * RENDER_CFG.AMP_FRAC;
+    const y = mid - Math.max(-RENDER_CFG.VAL_CLAMP, Math.min(RENDER_CFG.VAL_CLAMP, val)) * amp;
+
+    ctx.save();
+    const clearW = Math.max(dx, OVERWRITE_BAND_PX);
+    ctx.clearRect(s.x, 0, clearW, s.height);
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = s.lineWidth;
+    ctx.beginPath();
+    if (s.lastX == null || (s.x === 0 && s.lastX !== 0)) {
+        ctx.moveTo(s.x, y);
+    } else {
+        ctx.moveTo(s.lastX, s.lastY ?? y);
+    }
+    const newX = s.x + dx;
+    ctx.lineTo(newX, y);
+    ctx.stroke();
+    ctx.restore();
+
+    s.lastX = newX;
+    s.lastY = y;
+    // @ts-ignore - mutate width/x on the sweep object
+    s.x = newX;
+    // @ts-ignore
+    if (s.x >= s.width) {
+        // @ts-ignore
+        s.x = 0;
+        // @ts-ignore
+        s.lastX = null;
+        // @ts-ignore
+        s.lastY = null;
+    }
+}
+
+function sampleAt(arr: number[] | Float32Array, idx: number) {
+    const n = arr.length;
+    if (n === 0) return 0;
+    const i0 = Math.floor(idx) % n;
+    const i1 = (i0 + 1) % n;
+    const frac = idx - Math.floor(idx);
+    const v0 = arr[i0] ?? 0;
+    const v1 = arr[i1] ?? v0;
+    return v0 + (v1 - v0) * frac;
 }
 
 function drawLeadOff(s: { ctx: CanvasRenderingContext2D; width: number; height: number }, text: string) {
