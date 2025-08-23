@@ -4,7 +4,6 @@ export type AlarmCounters = {
     hrHigh: number;
     hrLow: number;
     spo2Low: number;
-    rrHigh: number;
     spo2Warn: number;
     bpLow: number;   // hypotension
     bpHigh: number;  // hypertension
@@ -14,7 +13,6 @@ export const defaultCounters: AlarmCounters = {
     hrHigh: 0,
     hrLow: 0,
     spo2Low: 0,
-    rrHigh: 0,
     spo2Warn: 0,
     bpLow: 0,
     bpHigh: 0,
@@ -23,8 +21,6 @@ export const defaultCounters: AlarmCounters = {
 export const thresholds = {
     hr: {high: 120, low: 50, persistence: 3},
     spo2: {low: 90, warn: 93, persistence: 3},
-    rr: {high: 24, persistence: 3},
-    // New: NIBP thresholds (mmHg)
     bp: {lowSys: 90, lowDia: 50, highSys: 160, highDia: 100, persistence: 3},
 } as const;
 
@@ -40,7 +36,6 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
 
     const hr = toNum(v.hr);
     const spo2 = toNum(v.spo2);
-    const rr = toNum(v.rr);
     const sys = toNum(v.bp.sys);
     const dia = toNum(v.bp.dia);
 
@@ -68,10 +63,6 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
         next.spo2Warn = 0; // re-arm warn when leaving band
     }
     if (next.spo2Low === thresholds.spo2.persistence) alerts.push(mkAlert("high", now, `Hypoxemia SpO₂ ${spo2}%`));
-
-    // RR
-    if (rr > thresholds.rr.high) next.rrHigh++; else next.rrHigh = 0;
-    if (next.rrHigh === thresholds.rr.persistence) alerts.push(mkAlert("medium", now, `Tachypnea RR ${rr} rpm`));
 
     // NIBP
     if (sys < thresholds.bp.lowSys || dia < thresholds.bp.lowDia) {

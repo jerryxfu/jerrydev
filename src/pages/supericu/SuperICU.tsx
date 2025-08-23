@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState, useCallback} from "react";
 import "./SuperICU.scss";
 import {useWaveTemplates, useDemoVitals} from "./sim";
-import type {AlertItem} from "./sim";
+import type {AlertItem, Vitals} from "./sim";
 import {checkAlarms, defaultCounters, thresholds} from "./alarms";
 import type {AlarmCounters} from "./alarms";
 import {alertSound} from "./sound";
@@ -202,27 +202,31 @@ export default function SuperIcu({paletteOverrides}: {
 
     // Build dynamic rows either from demo templates or from uploaded CSV
     const rows: RowDef[] = useMemo(() => {
-        if (mode === "csv" && csvData) {
-            return csvData.columns.map(col => {
-                const mapped = mapLeadName(col.name, palette);
-                const src: CsvSource = {kind: "csv", samples: col.values, sampleHz: csvData.sampleHz, yMin: col.yMin, yMax: col.yMax};
-                // if lead is ecg/pleth/resp, assign matching vital on the right
-                let showVital: RowDef["showVital"] | undefined;
-                if (mapped.className === "ecg") showVital = "hr";
-                else if (mapped.className === "pleth") showVital = "spo2";
-                else if (mapped.className === "resp") showVital = "rr";
-                return {
-                    key: `csv:${col.name}`,
-                    label: mapped.label,
-                    color: mapped.color,
-                    className: mapped.className,
-                    source: src,
-                    showVital,
-                    yMin: col.yMin,
-                    yMax: col.yMax,
-                    sampleHz: csvData.sampleHz,
-                } as RowDef;
-            });
+        if (mode === "csv") {
+            if (csvData) {
+                return csvData.columns.map(col => {
+                    const mapped = mapLeadName(col.name, palette);
+                    const src: CsvSource = {kind: "csv", samples: col.values, sampleHz: csvData.sampleHz, yMin: col.yMin, yMax: col.yMax};
+                    // if lead is ecg/pleth/resp, assign matching vital on the right
+                    let showVital: RowDef["showVital"] | undefined;
+                    if (mapped.className === "ecg") showVital = "hr";
+                    else if (mapped.className === "pleth") showVital = "spo2";
+                    else if (mapped.className === "resp") showVital = "rr";
+                    return {
+                        key: `csv:${col.name}`,
+                        label: mapped.label,
+                        color: mapped.color,
+                        className: mapped.className,
+                        source: src,
+                        showVital,
+                        yMin: col.yMin,
+                        yMax: col.yMax,
+                        sampleHz: csvData.sampleHz,
+                    } as RowDef;
+                });
+            }
+            // In CSV mode without waveform CSV, do not render demo rows
+            return [];
         }
         // demo rows
         const rowsDemo: RowDef[] = [
@@ -277,9 +281,27 @@ export default function SuperIcu({paletteOverrides}: {
     useEffect(() => {
         const countersRef: { current: AlarmCounters } = {current: defaultCounters};
         const check = setInterval(() => {
-            // Optionally suppress HR-triggered alarms when ECG is disconnected
-            const v = vitalsRef.current;
-            const vForAlarms = v;
+            // Choose vitals source for alarms: CSV vitals if in CSV mode, else demo
+            let vForAlarms: Vitals;
+            if (mode === "csv") {
+                if (vitalsCsv) {
+                    const elapsed = csvStartMs == null ? 0 : (performance.now() - csvStartMs) / 1000;
+                    const cur = pickVitalsAtTime(vitalsCsv, elapsed);
+                    const asNumOrUnknown = (x: number | null | undefined): number | "-?-" => (x == null || !Number.isFinite(x)) ? "-?-" : x;
+                    vForAlarms = {
+                        hr: asNumOrUnknown(cur.hr),
+                        spo2: asNumOrUnknown(cur.spo2),
+                        rr: asNumOrUnknown(cur.rr),
+                        bp: {sys: asNumOrUnknown(cur.bpSys), dia: asNumOrUnknown(cur.bpDia)}
+                    };
+                } else {
+                    // No vitals CSV: treat vitals as unknown so no alarms fire
+                    vForAlarms = {hr: "-?-", spo2: "-?-", rr: "-?-", bp: {sys: "-?-", dia: "-?-"}};
+                }
+            } else {
+                vForAlarms = vitalsRef.current as Vitals;
+            }
+
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
 
@@ -301,7 +323,7 @@ export default function SuperIcu({paletteOverrides}: {
                 hrHigh: c.hrHigh >= thresholds.hr.persistence,
                 hrLow: c.hrLow >= thresholds.hr.persistence,
                 spo2Low: c.spo2Low >= thresholds.spo2.persistence,
-                rrHigh: c.rrHigh >= thresholds.rr.persistence,
+                // rr removed from alarms
                 bpLow: c.bpLow >= thresholds.bp.persistence,
                 bpHigh: c.bpHigh >= thresholds.bp.persistence,
             } as const;
@@ -309,13 +331,13 @@ export default function SuperIcu({paletteOverrides}: {
             // Map to per-vital severity for flashing
             const hrLevel = active.hrHigh ? "high" : active.hrLow ? "medium" : null;
             const spo2Level = active.spo2Low ? "high" : null;
-            const rrLevel = active.rrHigh ? "medium" : null;
+            // const rrLevel = active.rrHigh ? "medium" : null; // removed
             const bpLevel = active.bpLow ? "high" : active.bpHigh ? "medium" : null;
-            setVitalAlarmLevel({hr: hrLevel, spo2: spo2Level, rr: rrLevel, bp: bpLevel});
+            setVitalAlarmLevel({hr: hrLevel, spo2: spo2Level, rr: null, bp: bpLevel});
 
             // Overall highest level for looping tone
             const highestLevel = (hrLevel === "high" || spo2Level === "high" || bpLevel === "high") ? "high" :
-                ((hrLevel === "medium" || rrLevel === "medium" || bpLevel === "medium") ? "medium" : null);
+                ((hrLevel === "medium" || bpLevel === "medium") ? "medium" : null);
             const anyActive = highestLevel !== null;
 
             // Auto-unsilence when all alarms clear
@@ -335,7 +357,7 @@ export default function SuperIcu({paletteOverrides}: {
             }
         }, 1000);
         return () => clearInterval(check);
-    }, [soundOn, silenced]);
+    }, [soundOn, silenced, mode, vitalsCsv, csvStartMs]);
 
     // After first vitals update, mark initialized so numbers/waves can appear
     useEffect(() => {
@@ -346,10 +368,14 @@ export default function SuperIcu({paletteOverrides}: {
 
     // show "-?-" until initialized or when disconnected; in CSV mode, show vitals from vitalsCsv at current playhead
     const disp = useMemo(() => {
-        if (mode === "csv" && vitalsCsv) {
-            const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
-            const fmt = (x: number | null | undefined, digits = 0) => (x == null || !Number.isFinite(x)) ? "-?-" : Number(x.toFixed(digits));
-            return {hr: fmt(cur.hr), spo2: fmt(cur.spo2), rr: fmt(cur.rr), bpSys: fmt(cur.bpSys), bpDia: fmt(cur.bpDia)} as const;
+        if (mode === "csv") {
+            if (vitalsCsv) {
+                const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
+                const fmt = (x: number | null | undefined, digits = 0) => (x == null || !Number.isFinite(x)) ? "-?-" : Number(x.toFixed(digits));
+                return {hr: fmt(cur.hr), spo2: fmt(cur.spo2), rr: fmt(cur.rr), bpSys: fmt(cur.bpSys), bpDia: fmt(cur.bpDia)} as const;
+            }
+            // CSV mode without vitals CSV: do not fall back to demo numbers
+            return {hr: "-?-", spo2: "-?-", rr: "-?-", bpSys: "-?-", bpDia: "-?-"} as const;
         }
         return {
             hr: (!initialized) ? "-?-" : vitals.hr,
