@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState, useCallback} from "react";
 import "./SuperICU.scss";
 import {useWaveTemplates, useDemoVitals} from "./sim";
 import type {AlertItem} from "./sim";
@@ -48,6 +48,10 @@ type RowDef = {
     source: TemplateSource | CsvSource;
     showVital?: "hr" | "spo2" | "rr"; // which vital to show on the right, if any
     showLeadToggle?: boolean; // show connected/disconnected toggle for ECG-like rows
+    // New: optional raw value range for display/debug
+    yMin?: number;
+    yMax?: number;
+    sampleHz?: number; // CSV only (for display)
 };
 
 export default function SuperIcu({paletteOverrides}: {
@@ -142,25 +146,21 @@ export default function SuperIcu({paletteOverrides}: {
 
     // CSV upload state
     const [mode, setMode] = useState<"demo" | "csv">("demo");
-    const [csvData, setCsvData] = useState<null | { sampleHz: number; columns: { name: string; samples: Float32Array }[] }>(null);
-    const [csvConfig, setCsvConfig] = useState<{ firstColIsTime: boolean; hasHeader: boolean; sampleHz: number }>({
-        firstColIsTime: true,
-        hasHeader: true,
-        sampleHz: 250,
-    });
+    const [csvData, setCsvData] = useState<null | {
+        sampleHz: number;
+        columns: { name: string; values: Float32Array; yMin: number; yMax: number }[]
+    }>(null);
     // Vitals CSV state
     const [vitalsCsv, setVitalsCsv] = useState<null | ParsedVitalsCsv>(null);
-    const [vitalsCsvConfig, setVitalsCsvConfig] = useState<{ firstColIsTime: boolean; hasHeader: boolean }>({
-        firstColIsTime: true,
-        hasHeader: true,
-    });
     // Clock for CSV time alignment
     const [csvStartMs, setCsvStartMs] = useState<number | null>(null);
     useEffect(() => {
-        if (mode === "csv" && (csvData || vitalsCsv)) {
-            if (csvStartMs == null) setCsvStartMs(performance.now());
-        } else {
+        if (mode !== "csv") {
             setCsvStartMs(null);
+            return;
+        }
+        if (csvData || vitalsCsv) {
+            if (csvStartMs == null) setCsvStartMs(performance.now());
         }
     }, [mode, csvData, vitalsCsv, csvStartMs]);
     const csvElapsedSec = useMemo(() => {
@@ -186,12 +186,28 @@ export default function SuperIcu({paletteOverrides}: {
         return created;
     };
 
+    // Live waveform numeric values (from renderer)
+    const waveformValsRef = useRef(new Map<string, { val: number | null; raw: number | null }>());
+    const [waveformVals, setWaveformVals] = useState<Map<string, { val: number | null; raw: number | null }>>(new Map());
+    const onValueCb = useCallback((key: string, val: number | null, raw?: number | null) => {
+        const r = waveformValsRef.current;
+        r.set(key, {val, raw: typeof raw === "number" || raw === null ? raw : val});
+    }, []);
+    useEffect(() => {
+        const t = setInterval(() => {
+            // throttle updates
+            const snap = new Map(waveformValsRef.current);
+            setWaveformVals(snap);
+        }, 150);
+        return () => clearInterval(t);
+    }, []);
+
     // Build dynamic rows either from demo templates or from uploaded CSV
     const rows: RowDef[] = useMemo(() => {
         if (mode === "csv" && csvData) {
             return csvData.columns.map(col => {
                 const mapped = mapLeadName(col.name, palette);
-                const src: CsvSource = {kind: "csv", samples: col.samples, sampleHz: csvData.sampleHz};
+                const src: CsvSource = {kind: "csv", samples: col.values, sampleHz: csvData.sampleHz, yMin: col.yMin, yMax: col.yMax};
                 // if lead is ecg/pleth/resp, assign matching vital on the right
                 let showVital: RowDef["showVital"] | undefined;
                 if (mapped.className === "ecg") showVital = "hr";
@@ -204,6 +220,9 @@ export default function SuperIcu({paletteOverrides}: {
                     className: mapped.className,
                     source: src,
                     showVital,
+                    yMin: col.yMin,
+                    yMax: col.yMax,
+                    sampleHz: csvData.sampleHz,
                 } as RowDef;
             });
         }
@@ -217,6 +236,8 @@ export default function SuperIcu({paletteOverrides}: {
                 source: {kind: "template", template: ecgTemplate, pace: "hr", connected: ecgConnected, heartbeat: true},
                 showVital: "hr",
                 showLeadToggle: true,
+                yMin: minOf(ecgTemplate),
+                yMax: maxOf(ecgTemplate),
             },
             {
                 key: "Pleth",
@@ -225,6 +246,8 @@ export default function SuperIcu({paletteOverrides}: {
                 className: "pleth",
                 source: {kind: "template", template: plethTemplate, pace: "hr"},
                 showVital: "spo2",
+                yMin: minOf(plethTemplate),
+                yMax: maxOf(plethTemplate),
             },
             {
                 key: "RESP",
@@ -233,6 +256,8 @@ export default function SuperIcu({paletteOverrides}: {
                 className: "resp",
                 source: {kind: "template", template: respTemplate, pace: "rr"},
                 showVital: "rr",
+                yMin: minOf(respTemplate),
+                yMax: maxOf(respTemplate),
             },
         ];
         return rowsDemo;
@@ -240,7 +265,16 @@ export default function SuperIcu({paletteOverrides}: {
 
     // Main sweep renderer hook with dynamic channels
     const channels = useMemo(() => rows.map(r => ({key: r.key, ref: getCanvasRef(r.key), color: r.color, source: r.source})), [rows]);
-    useSweepRenderer({channels, showSeconds, initialized, vitalsRef, heartbeatRef});
+    const rendererOpts = useMemo(() => ({
+        channels,
+        showSeconds,
+        initialized,
+        vitalsRef,
+        heartbeatRef,
+        ...(mode === "csv" ? {externalTimeSec: csvElapsedSec} : {}),
+        onValue: onValueCb,
+    }), [channels, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb]);
+    useSweepRenderer(rendererOpts as any);
 
     // Main alarm checking loop
     useEffect(() => {
@@ -313,29 +347,23 @@ export default function SuperIcu({paletteOverrides}: {
     }, []);
 
 
-    // show "-?-" until initialized or when disconnected
+    // show "-?-" until initialized or when disconnected; in CSV mode, show vitals from vitalsCsv at current playhead
     const disp = useMemo(() => {
         if (mode === "csv" && vitalsCsv) {
             const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
             const fmt = (x: number | null | undefined, digits = 0) => (x == null || !Number.isFinite(x)) ? "-?-" : Number(x.toFixed(digits));
-            return {
-                hr: fmt(cur.hr),
-                spo2: fmt(cur.spo2),
-                rr: fmt(cur.rr),
-                bpSys: fmt(cur.bpSys),
-                bpDia: fmt(cur.bpDia),
-            } as const;
+            return {hr: fmt(cur.hr), spo2: fmt(cur.spo2), rr: fmt(cur.rr), bpSys: fmt(cur.bpSys), bpDia: fmt(cur.bpDia)} as const;
         }
         return {
             hr: (!initialized || !ecgConnected) ? "-?-" : vitals.hr,
             spo2: (!initialized) ? "-?-" : vitals.spo2,
             rr: (!initialized) ? "-?-" : vitals.rr,
             bpSys: (!initialized) ? "-?-" : vitals.bp.sys,
-            bpDia: (!initialized) ? "-?-" : vitals.bp.dia,
+            bpDia: (!initialized) ? "-?-" : vitals.bp.dia
         } as const;
     }, [mode, vitalsCsv, csvElapsedSec, initialized, ecgConnected, vitals]);
 
-    // Compute extra vitals to show in an "Other Vitals" row (CSV mode only)
+    // Compute extra vitals (CSV)
     const otherVitals: Array<{ label: string; value: string }> = useMemo(() => {
         if (mode !== "csv" || !vitalsCsv) return [];
         const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
@@ -403,15 +431,15 @@ export default function SuperIcu({paletteOverrides}: {
                     <div key={r.key} className={`wave-row ${r.className ?? ""}`}>
                         <div className="lead-label" style={{color: r.color}}>
                             {r.label}
-                            {r.showLeadToggle && r.source.kind === "template" && r.source.pace === "hr" && (
-                                <span
-                                    className="status-pill"
-                                    style={{cursor: "pointer", fontSize: 10, marginLeft: 8}}
-                                    onClick={() => setEcgConnected(s => !s)}
-                                >
-                                    {ecgConnected ? "Connected" : "Disconnected"}
-                                </span>
-                            )}
+                            {/* Live numeric value under label */}
+                            <div style={{fontSize: 12, opacity: 0.9, color: r.color, lineHeight: 1.2}}>
+                                {formatWaveVal(waveformVals, r.key, mode)}
+                            </div>
+                            {/* Min/Max display under lead label, stacked */}
+                            <div style={{fontSize: 10, opacity: 0.8, color: "#9fb2c8", lineHeight: 1.2}}>
+                                <div>min {fmt9(r.yMin)}</div>
+                                <div>max {fmt9(r.yMax)}</div>
+                            </div>
                         </div>
                         <div className="canvas-wrap">
                             <canvas ref={getCanvasRef(r.key)} />
@@ -420,16 +448,13 @@ export default function SuperIcu({paletteOverrides}: {
                             <div className="vitals">
                                 <div className={`vital ${r.showVital}`}>
                                     <div className="label">{r.showVital.toUpperCase()}</div>
-                                    <div
-                                        className={`value ${vitalAlarmLevel[r.showVital] ? `alarm-${vitalAlarmLevel[r.showVital]}` : ""}`}
-                                        style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}
-                                    >
-                                        {(() => {
-                                            return disp[r.showVital];
-                                        })()}
-                                        <span style={{fontSize: 14, marginLeft: r.showVital === "rr" ? 4 : 0}}>
-                                            {disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}
-                                        </span>
+                                    <div className={`value ${vitalAlarmLevel[r.showVital] ? `alarm-${vitalAlarmLevel[r.showVital]}` : ""}`}
+                                         style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}>
+                                        {disp[r.showVital]}
+                                        <span style={{
+                                            fontSize: 14,
+                                            marginLeft: r.showVital === "rr" ? 4 : 0
+                                        }}>{disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -445,7 +470,7 @@ export default function SuperIcu({paletteOverrides}: {
                             <div className={`value ${vitalAlarmLevel.bp ? `alarm-${vitalAlarmLevel.bp}` : ""}`}
                                  style={withVar({color: palette.bp}, {"--vital-color": palette.bp as string})}>{disp.bpSys}/{disp.bpDia}</div>
                         </div>
-                        {/* Manual vital corrections (demo mode) */}
+                        {/* Manual vital corrections (demo mode only) */}
                         {mode !== "csv" && (
                             <div className="vital">
                                 <div className="label" style={{color: palette.defaultText}}>Set Values</div>
@@ -469,38 +494,20 @@ export default function SuperIcu({paletteOverrides}: {
                             <div className="label" style={{color: palette.defaultText}}>Waveform CSV</div>
                             <div className="value"
                                  style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14, flexWrap: "wrap"}}>
-                                <input type="file" accept=".csv,text/csv" style={inputStyle}
-                                       onChange={e => {
-                                           const f = e.target.files?.[0];
-                                           if (f) handleCsvFile(f);
-                                           e.currentTarget.value = "";
-                                       }} />
-                                <label style={{display: "flex", alignItems: "center", gap: 4}}>
-                                    <input type="checkbox" checked={csvConfig.firstColIsTime}
-                                           onChange={e => setCsvConfig(c => ({...c, firstColIsTime: e.target.checked}))} />
-                                    <span>First column is time</span>
-                                </label>
-                                <label style={{display: "flex", alignItems: "center", gap: 4}}>
-                                    <input type="checkbox" checked={csvConfig.hasHeader}
-                                           onChange={e => setCsvConfig(c => ({...c, hasHeader: e.target.checked}))} />
-                                    <span>Has header row</span>
-                                </label>
-                                <label style={{display: "flex", alignItems: "center", gap: 4}}>
-                                    <span>Sample Hz</span>
-                                    <input type="number" value={csvConfig.sampleHz} min={1} max={10000} step={1}
-                                           style={{...inputStyle, width: 70}}
-                                           onChange={e => setCsvConfig(c => ({...c, sampleHz: parseInt(e.target.value || "0", 10) || c.sampleHz}))} />
-                                </label>
+                                <input type="file" accept=".csv,text/csv" style={inputStyle} onChange={e => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleCsvFile(f);
+                                    e.currentTarget.value = "";
+                                }} />
                                 <button style={{...inputStyle, cursor: "pointer"}} onClick={() => {
                                     setMode("demo");
                                     setCsvData(null);
                                     setVitalsCsv(null);
-                                }}>
-                                    Use Demo
+                                    setCsvStartMs(null);
+                                }}>Use Demo
                                 </button>
                                 {mode === "csv" && csvData && (
-                                    <span style={{opacity: 0.8}}>Loaded {csvData.columns.length} lead(s) @ {csvData.sampleHz} Hz</span>
-                                )}
+                                    <span style={{opacity: 0.8}}>Loaded {csvData.columns.length} lead(s) @ {csvData.sampleHz} Hz</span>)}
                             </div>
                         </div>
                         {/* Vitals CSV controls */}
@@ -508,25 +515,12 @@ export default function SuperIcu({paletteOverrides}: {
                             <div className="label" style={{color: palette.defaultText}}>Vitals CSV</div>
                             <div className="value"
                                  style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14, flexWrap: "wrap"}}>
-                                <input type="file" accept=".csv,text/csv" style={inputStyle}
-                                       onChange={e => {
-                                           const f = e.target.files?.[0];
-                                           if (f) handleVitalsCsvFile(f);
-                                           e.currentTarget.value = "";
-                                       }} />
-                                <label style={{display: "flex", alignItems: "center", gap: 4}}>
-                                    <input type="checkbox" checked={vitalsCsvConfig.firstColIsTime}
-                                           onChange={e => setVitalsCsvConfig(c => ({...c, firstColIsTime: e.target.checked}))} />
-                                    <span>First column is time</span>
-                                </label>
-                                <label style={{display: "flex", alignItems: "center", gap: 4}}>
-                                    <input type="checkbox" checked={vitalsCsvConfig.hasHeader}
-                                           onChange={e => setVitalsCsvConfig(c => ({...c, hasHeader: e.target.checked}))} />
-                                    <span>Has header row</span>
-                                </label>
-                                {vitalsCsv && (
-                                    <span style={{opacity: 0.8}}>Loaded {vitalsCsv.columns.length} vital(s)</span>
-                                )}
+                                <input type="file" accept=".csv,text/csv" style={inputStyle} onChange={e => {
+                                    const f = e.target.files?.[0];
+                                    if (f) handleVitalsCsvFile(f);
+                                    e.currentTarget.value = "";
+                                }} />
+                                {vitalsCsv && (<span style={{opacity: 0.8}}>Loaded {vitalsCsv.columns.length} vital(s)</span>)}
                             </div>
                         </div>
                     </div>
@@ -566,10 +560,11 @@ export default function SuperIcu({paletteOverrides}: {
         reader.onload = () => {
             try {
                 const text = String(reader.result || "");
-                const parsed = parseCsv(text, csvConfig);
+                const parsed = parseCsv(text);
                 setCsvData(parsed);
                 setMode("csv");
-                if (csvStartMs == null) setCsvStartMs(performance.now());
+                // Restart playhead so waveform and vitals align when second file loads
+                setCsvStartMs(performance.now());
             } catch (e) {
                 console.error("CSV parse error", e);
                 alert("Failed to parse CSV. Check console for details.");
@@ -583,10 +578,11 @@ export default function SuperIcu({paletteOverrides}: {
         reader.onload = () => {
             try {
                 const text = String(reader.result || "");
-                const parsed = parseVitalsCsv(text, vitalsCsvConfig);
+                const parsed = parseVitalsCsv(text);
                 setVitalsCsv(parsed);
                 setMode("csv");
-                if (csvStartMs == null) setCsvStartMs(performance.now());
+                // Restart playhead so waveform and vitals align when second file loads
+                setCsvStartMs(performance.now());
             } catch (e) {
                 console.error("Vitals CSV parse error", e);
                 alert("Failed to parse Vitals CSV. Check console for details.");
@@ -656,81 +652,56 @@ function unitForVital(v: "hr" | "spo2" | "rr") {
     }
 }
 
-// Very small CSV parser for numeric timeseries
-function parseCsv(text: string, cfg: { firstColIsTime: boolean; hasHeader: boolean; sampleHz: number }): {
-    sampleHz: number;
-    columns: { name: string; samples: Float32Array }[]
-} {
+// Very small CSV parser for numeric timeseries with header and first column as time
+function parseCsv(text: string): { sampleHz: number; columns: { name: string; values: Float32Array; yMin: number; yMax: number }[] } {
     const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
     if (lines.length === 0) throw new Error("Empty CSV");
-    const firstLine = lines[0] ?? "";
-    const delim = detectDelim(firstLine);
-
-    const startIdx = cfg.hasHeader ? 1 : 0;
-    const headerCells = firstLine.split(delim).map(s => s.trim());
-
-    const rows = lines.slice(startIdx).map(line => line.split(delim));
+    const delim = detectDelim(lines[0] ?? ",");
+    const headerCells = (lines[0] ?? "").split(delim).map(s => s.trim());
+    const rows = lines.slice(1).map(line => line.split(delim));
     const colCount = rows[0]?.length ?? headerCells.length;
+    if (colCount < 2) throw new Error("Expected time + at least one data column");
 
-    const names: string[] = cfg.hasHeader ? headerCells : Array.from({length: colCount}, (_, i) => `ch${i + 1}`);
-
-    const cols: number[][] = Array.from({length: colCount}, () => []);
+    // Parse time column (assumed seconds or milliseconds)
+    const time: number[] = [];
     for (const r of rows) {
-        for (let i = 0; i < colCount; i++) {
+        const cell = (r[0] ?? "").trim();
+        const num = parseFloat(cell);
+        time.push(num);
+    }
+    const deltas: number[] = [];
+    for (let i = 1; i < time.length; i++) {
+        const t1 = time[i] ?? Number.NaN;
+        const t0 = time[i - 1] ?? Number.NaN;
+        const d = t1 - t0;
+        if (Number.isFinite(d) && d > 0) deltas.push(d);
+    }
+    const median = deltas.sort((a, b) => a - b)[Math.floor(deltas.length / 2)] ?? 0;
+    const sampleHz = median > 10 ? Math.max(1, Math.round(1000 / median)) : Math.max(1, Math.round(1 / median));
+
+    const columns: { name: string; values: Float32Array; yMin: number; yMax: number }[] = [];
+    for (let i = 1; i < colCount; i++) {
+        const name = headerCells[i] ?? `ch${i + 1}`;
+        const vals: number[] = [];
+        for (const r of rows) {
             const cell = (r[i] ?? "").trim();
             const num = parseFloat(cell);
-            const bucket = cols[i] ?? (cols[i] = []);
-            bucket.push(Number.isFinite(num) ? num : 0);
+            vals.push(Number.isFinite(num) ? num : NaN);
         }
-    }
-
-    let sampleHz = cfg.sampleHz;
-    let seriesStart = 0;
-    if (cfg.firstColIsTime && colCount >= 2) {
-        const time = cols[0] ?? [];
-        const deltas: number[] = [];
-        for (let i = 1; i < time.length; i++) {
-            const t1 = time[i] ?? Number.NaN;
-            const t0 = time[i - 1] ?? Number.NaN;
-            const d = t1 - t0;
-            if (Number.isFinite(d) && d > 0) deltas.push(d);
-        }
-        const median = deltas.sort((a, b) => a - b)[Math.floor(deltas.length / 2)] ?? 0;
-        if (median > 0) {
-            // crude unit guess: if median > 10 assume ms else seconds
-            sampleHz = median > 10 ? Math.round(1000 / median) : Math.round(1 / median);
-        }
-        seriesStart = 1; // data columns start after time
-    }
-
-    const dataCols: { name: string; samples: Float32Array }[] = [];
-    for (let i = seriesStart; i < colCount; i++) {
-        const name = names[i] ?? `ch${i + 1}`;
-        const values = cols[i] ?? [];
-        // normalize to roughly [-1, 1]
         let min = Infinity, max = -Infinity;
-        for (const v of values) {
-            if (v < min) min = v;
-            if (v > max) max = v;
-        }
-        let samples: Float32Array;
-        if (min === Infinity || max === -Infinity || values.length === 0) {
-            samples = new Float32Array();
-        } else if (Math.abs(max - min) < 1e-12) {
-            samples = new Float32Array(values.length); // all zeros
-        } else {
-            const range = max - min;
-            samples = new Float32Array(values.length);
-            for (let k = 0; k < values.length; k++) {
-                const vk = values[k] ?? 0;
-                const v = (vk - min) / range; // [0,1]
-                samples[k] = v * 2 - 1; // [-1,1]
+        for (const v of vals) {
+            if (Number.isFinite(v)) {
+                if (v < min) min = v;
+                if (v > max) max = v;
             }
         }
-        dataCols.push({name, samples});
+        if (min === Infinity || max === -Infinity) {
+            min = 0;
+            max = 1;
+        }
+        columns.push({name, values: new Float32Array(vals.map(v => (Number.isFinite(v) ? v : NaN))), yMin: min, yMax: max});
     }
-
-    return {sampleHz, columns: dataCols};
+    return {sampleHz, columns};
 }
 
 function detectDelim(headerLine?: string): string {
@@ -742,21 +713,14 @@ function detectDelim(headerLine?: string): string {
 }
 
 // Vitals CSV types and helpers
-type ParsedVitalsCsv = {
-    times?: number[]; // seconds, if present
-    columns: { name: string; values: number[] }[];
-};
-
-function parseVitalsCsv(text: string, cfg: { firstColIsTime: boolean; hasHeader: boolean }): ParsedVitalsCsv {
+function parseVitalsCsv(text: string): ParsedVitalsCsv {
     const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
     if (lines.length === 0) throw new Error("Empty CSV");
-    const firstLine = lines[0] ?? "";
-    const delim = detectDelim(firstLine);
-    const startIdx = cfg.hasHeader ? 1 : 0;
-    const headerCells = firstLine.split(delim).map(s => s.trim());
-    const rows = lines.slice(startIdx).map(line => line.split(delim));
+    const delim = detectDelim(lines[0] ?? ",");
+    const headerCells = (lines[0] ?? "").split(delim).map(s => s.trim());
+    const rows = lines.slice(1).map(line => line.split(delim));
     const colCount = rows[0]?.length ?? headerCells.length;
-    const names: string[] = cfg.hasHeader ? headerCells : Array.from({length: colCount}, (_, i) => `c${i + 1}`);
+    const names: string[] = headerCells;
 
     const cols: number[][] = Array.from({length: colCount}, () => []);
     for (const r of rows) {
@@ -767,19 +731,15 @@ function parseVitalsCsv(text: string, cfg: { firstColIsTime: boolean; hasHeader:
             bucket.push(num);
         }
     }
-    let times: number[] | undefined;
-    let startCol = 0;
-    if (cfg.firstColIsTime) {
-        times = (cols[0] ?? []).map(v => Number.isFinite(v) ? Number(v) : 0);
-        startCol = 1;
-    }
+    const times = (cols[0] ?? []).map(v => Number.isFinite(v) ? Number(v) : 0);
     const columns = [] as { name: string; values: number[] }[];
-    for (let i = startCol; i < colCount; i++) {
+    for (let i = 1; i < colCount; i++) {
         columns.push({name: names[i] ?? `c${i + 1}`, values: cols[i] ?? []});
     }
-    const result: ParsedVitalsCsv = {...(times ? {times} : {}), columns};
-    return {...(times ? {times} : {}), columns};
+    return {times, columns};
 }
+
+type ParsedVitalsCsv = { times?: number[]; columns: { name: string; values: number[] }[] };
 
 function pickVitalsAtTime(v: ParsedVitalsCsv, elapsedSec: number): {
     hr: number | null;
@@ -804,7 +764,7 @@ function pickVitalsAtTime(v: ParsedVitalsCsv, elapsedSec: number): {
     const extra = new Map<string, number>();
     for (const c of v.columns) {
         const val = c.values[idx];
-        if (Number.isFinite(val)) extra.set(c.name, val);
+        if (typeof val === "number" && Number.isFinite(val)) extra.set(c.name, val);
     }
     return {hr, spo2, rr, bpSys, bpDia, extra};
 }
@@ -818,9 +778,7 @@ function pickRowIndex(times: number[] | undefined, elapsedSec: number) {
     if (!times || times.length === 0) return 0;
     const maxT = times[times.length - 1] ?? 0;
     if (maxT <= 0) return Math.min(Math.floor(elapsedSec) % times.length, times.length - 1);
-    // wrap elapsed into [0, maxT]
     const t = ((elapsedSec % maxT) + maxT) % maxT;
-    // find last index with time <= t
     let lo = 0, hi = times.length - 1;
     while (lo < hi) {
         const mid = Math.floor((lo + hi + 1) / 2);
@@ -828,3 +786,61 @@ function pickRowIndex(times: number[] | undefined, elapsedSec: number) {
     }
     return lo;
 }
+
+// Helpers for display
+function minOf(arr: number[] | Float32Array) {
+    let m = Infinity;
+    for (let i = 0; i < arr.length; i++) {
+        const v = (arr as any)[i] as number;
+        if (Number.isFinite(v) && v < m) m = v;
+    }
+    return m === Infinity ? NaN : m;
+}
+
+function maxOf(arr: number[] | Float32Array) {
+    let m = -Infinity;
+    for (let i = 0; i < arr.length; i++) {
+        const v = (arr as any)[i] as number;
+        if (Number.isFinite(v) && v > m) m = v;
+    }
+    return m === -Infinity ? NaN : m;
+}
+
+function formatRange(min?: number, max?: number) {
+    const fmt = (x: number) => {
+        const ax = Math.abs(x);
+        if (!Number.isFinite(x)) return "–";
+        if (ax >= 1000) return x.toFixed(0);
+        if (ax >= 100) return x.toFixed(1);
+        if (ax >= 10) return x.toFixed(2);
+        if (ax >= 1) return x.toFixed(3);
+        return x.toExponential(1);
+    };
+    if (typeof min === "number" && typeof max === "number") {
+        return `min ${fmt(min)} · max ${fmt(max)}`;
+    }
+    return "min – · max –";
+}
+
+// New: fixed 9-decimal formatter without scientific notation
+function fmt9(x?: number) {
+    return (typeof x === "number" && Number.isFinite(x)) ? x.toFixed(9) : "–";
+}
+
+// New: compact formatter for live waveform value
+function fmt3(x?: number | null) {
+    if (x == null || !Number.isFinite(x)) return "–";
+    const ax = Math.abs(x);
+    if (ax >= 1000) return x.toFixed(0);
+    if (ax >= 100) return x.toFixed(1);
+    if (ax >= 10) return x.toFixed(2);
+    return x.toFixed(3);
+}
+
+function formatWaveVal(map: Map<string, { val: number | null; raw: number | null }>, key: string, mode: "demo" | "csv") {
+    const rec = map.get(key);
+    if (!rec) return "–";
+    const value = mode === "csv" ? (rec.raw ?? rec.val) : rec.val;
+    return fmt3(value);
+}
+
