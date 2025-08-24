@@ -12,7 +12,7 @@ import _conditioner from "../../../assets/projects/conditioner.png";
 import _kahootBot from "../../../assets/projects/khaoot_bot.mp4";
 import _weatherStation from "../../../assets/projects/weather_station.jpg";
 import _endPortal from "../../../assets/projects/end_portal.jpg";
-import _supericu from "../../../assets/projects/supericu_mvp.png";
+import _supericu from "../../../assets/projects/supericu.png";
 
 const projects: Project[] = [
     {
