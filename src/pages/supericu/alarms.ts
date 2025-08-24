@@ -3,8 +3,9 @@ import type {AlertItem, AlarmLevel, Vitals} from "./sim";
 export type AlarmCounters = {
     hrHigh: number;
     hrLow: number;
+    hrWarn: number;      // latch for hr advisory band
     spo2Low: number;
-    spo2Warn: number;
+    spo2Warn: number;    // latch for spo2 advisory band
     bpLow: number;   // hypotension
     bpHigh: number;  // hypertension
 };
@@ -12,6 +13,7 @@ export type AlarmCounters = {
 export const defaultCounters: AlarmCounters = {
     hrHigh: 0,
     hrLow: 0,
+    hrWarn: 0,
     spo2Low: 0,
     spo2Warn: 0,
     bpLow: 0,
@@ -19,9 +21,10 @@ export const defaultCounters: AlarmCounters = {
 };
 
 export const thresholds = {
-    hr: {high: 120, low: 50, persistence: 3},
-    spo2: {low: 90, warn: 93, persistence: 3},
-    bp: {lowSys: 90, lowDia: 50, highSys: 160, highDia: 100, persistence: 3},
+    // Critical thresholds + advisory bands
+    hr: {high: 130, low: 50, warnHigh: 120, warnLow: 55, persistence: 3},
+    spo2: {low: 89, warn: 92, persistence: 3},
+    bp: {lowSys: 80, lowDia: 50, highSys: 160, highDia: 100, persistence: 3},
 } as const;
 
 // Coerce a vital that may be "-?-" to a number (NaN if unavailable)
@@ -39,11 +42,20 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
     const sys = toNum(v.bp.sys);
     const dia = toNum(v.bp.dia);
 
-    // HR
+    // HR critical
     if (hr > thresholds.hr.high) next.hrHigh++; else next.hrHigh = 0;
     if (hr < thresholds.hr.low) next.hrLow++; else next.hrLow = 0;
-    if (next.hrHigh === thresholds.hr.persistence) alerts.push(mkAlert("high", now, `Tachycardia HR ${hr} bpm`));
-    if (next.hrLow === thresholds.hr.persistence) alerts.push(mkAlert("high", now, `Bradycardia HR ${hr} bpm`));
+    if (next.hrHigh === thresholds.hr.persistence) alerts.push(mkAlert("critical", now, `Tachycardia HR ${hr} bpm`));
+    if (next.hrLow === thresholds.hr.persistence) alerts.push(mkAlert("critical", now, `Bradycardia HR ${hr} bpm`));
+
+    // HR advisory band (one-shot on entry)
+    const inHrWarn = (!Number.isNaN(hr)) && ((hr >= thresholds.hr.warnHigh && hr < thresholds.hr.high) || (hr <= thresholds.hr.warnLow && hr > thresholds.hr.low));
+    if (inHrWarn) {
+        if (next.hrWarn === 0) alerts.push(mkAlert("advisory", now, `HR advisory ${hr} bpm`));
+        next.hrWarn = 1; // latch while in band
+    } else {
+        next.hrWarn = 0; // re-arm when leaving
+    }
 
     // SpO2
     if (spo2 < thresholds.spo2.low) {
@@ -51,10 +63,10 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
         next.spo2Low++;
         next.spo2Warn = 0; // reset warn latch when in critical
     } else if (spo2 < thresholds.spo2.warn) {
-        // Warn band: fire once on entry
+        // Advisory band: fire once on entry
         next.spo2Low = Math.max(next.spo2Low - 1, 0);
         if (next.spo2Warn === 0 && !Number.isNaN(spo2)) {
-            alerts.push(mkAlert("medium", now, `SpO₂ warning ${spo2}%`));
+            alerts.push(mkAlert("advisory", now, `SpO₂ advisory ${spo2}%`));
         }
         next.spo2Warn = 1; // latch while in warn band
     } else {
@@ -62,7 +74,7 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
         next.spo2Low = 0;
         next.spo2Warn = 0; // re-arm warn when leaving band
     }
-    if (next.spo2Low === thresholds.spo2.persistence) alerts.push(mkAlert("high", now, `Hypoxemia SpO₂ ${spo2}%`));
+    if (next.spo2Low === thresholds.spo2.persistence) alerts.push(mkAlert("critical", now, `Hypoxemia SpO₂ ${spo2}%`));
 
     // NIBP
     if (sys < thresholds.bp.lowSys || dia < thresholds.bp.lowDia) {
@@ -75,8 +87,8 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
     } else {
         next.bpHigh = 0;
     }
-    if (next.bpLow === thresholds.bp.persistence) alerts.push(mkAlert("high", now, `Hypotension NIBP ${sys}/${dia} mmHg`));
-    if (next.bpHigh === thresholds.bp.persistence) alerts.push(mkAlert("medium", now, `Hypertension NIBP ${sys}/${dia} mmHg`));
+    if (next.bpLow === thresholds.bp.persistence) alerts.push(mkAlert("critical", now, `Hypotension NIBP ${sys}/${dia} mmHg`));
+    if (next.bpHigh === thresholds.bp.persistence) alerts.push(mkAlert("advisory", now, `Hypertension NIBP ${sys}/${dia} mmHg`));
 
     return {alerts, counters: next};
 }

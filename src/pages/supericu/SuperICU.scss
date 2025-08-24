@@ -9,7 +9,7 @@
     height: 100vh;
     background: var(--ui-bg);
     color: var(--ui-ink);
-    font-family: monospace, "Outfit", "Arial", "sans-serif", "system-ui";
+    //font-family: monospace, "Outfit", "Arial", "sans-serif", "system-ui";
 }
 
 .super-icu .super-icu-core {
@@ -96,7 +96,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
 }
 
 .canvas-wrap {
@@ -134,7 +134,7 @@
 }
 
 /* Invert-style flashing: swap text and background colors */
-@keyframes invert-flash-high {
+@keyframes invert-flash-critical {
     0%, 100% {
         background-color: transparent;
         color: var(--vital-color);
@@ -145,7 +145,7 @@
     }
 }
 
-@keyframes invert-flash-med {
+@keyframes invert-flash-advisory {
     0%, 100% {
         background-color: transparent;
         color: var(--vital-color);
@@ -156,12 +156,12 @@
     }
 }
 
-.vital .value.alarm-high {
-    animation: invert-flash-high 1s steps(1, end) infinite;
+.vital .value.alarm-critical {
+    animation: invert-flash-critical 1s steps(1, end) infinite;
 }
 
-.vital .value.alarm-medium {
-    animation: invert-flash-med 1.2s steps(1, end) infinite;
+.vital .value.alarm-advisory {
+    animation: invert-flash-advisory 1.2s steps(1, end) 1;
 }
 
 .status-pill {
@@ -209,11 +209,11 @@
     border-left-color: #51d88a;
 }
 
-.alert.medium {
+.alert.advisory {
     border-left-color: #ffe066;
 }
 
-.alert.high {
+.alert.critical {
     border-left-color: #ff6b6b;
 }
 

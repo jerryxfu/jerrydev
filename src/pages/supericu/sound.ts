@@ -31,12 +31,12 @@ class AlertSound {
     }
 
     // Play a sequence of beeps (for notifications)
-    private playBeepSequence(pattern: Array<{ durMs: number; gapMs?: number; vol: number }>) {
+    private playBeepSequence(pattern: Array<{ durMs: number; gapMs?: number; vol: number, frequency?: number }>) {
         let t = 0;
         pattern.forEach((beep) => {
             window.setTimeout(() => {
                 if (this.enabled) {
-                    this.playTone(beep.durMs / 1000, beep.vol);
+                    this.playTone(beep.durMs / 1000, beep.vol, beep.frequency);
                 }
             }, t);
             t += beep.durMs + (beep.gapMs ?? 0);
@@ -120,36 +120,34 @@ class AlertSound {
     private getVolume(level: AlarmLevel): number {
         switch (level) {
             case "low":
-                return 0.025;
-            case "medium":
-                return 0.035;
-            case "high":
-                return 0.045;
+                return 0.075;
+            case "advisory":
+                return 0.100;
+            case "critical":
+                return 0.125;
             default:
-                return 0.02;
+                return 0.075;
         }
     }
 
     // Beep patterns for notifications (play once)
-    private getBeepPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
+    private getBeepPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number, frequency?: number }> {
         const vol = this.getVolume(level);
         switch (level) {
             case "low":
                 return [
-                    {durMs: 500, vol},
+                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2}
                 ];
-            case "medium":
+            case "advisory":
                 return [
-                    {durMs: 500, gapMs: 0, vol},
+                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
+                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
                 ];
-            case "high":
-                return [
-                    {durMs: 500, gapMs: 0, vol},
-                    {durMs: 500, gapMs: 0, vol},
-                    {durMs: 500, vol},
-                ];
+            case "critical":
+                // For critical, we rely on startLooping, keep empty to avoid double beeps
+                return [];
             default:
-                return [{durMs: 500, vol}];
+                return [{durMs: 1000, vol}];
         }
     }
 

@@ -291,8 +291,8 @@ function sampleAt(arr: number[] | Float32Array, idx: number) {
     const i0 = Math.floor(idx) % n;
     const i1 = (i0 + 1) % n;
     const frac = idx - Math.floor(idx);
-    const v0 = (arr as any)[i0] as number | undefined;
-    const v1 = (arr as any)[i1] as number | undefined;
+    const v0 = (arr as ArrayLike<number>)[i0] as number | undefined;
+    const v1 = (arr as ArrayLike<number>)[i1] as number | undefined;
     const a = Number.isFinite(v0 as number) ? (v0 as number) : NaN;
     const b = Number.isFinite(v1 as number) ? (v1 as number) : a;
     if (!Number.isFinite(a) || !Number.isFinite(b)) return a;
