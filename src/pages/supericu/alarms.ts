@@ -1,4 +1,5 @@
 import type {AlertItem, AlarmLevel, Vitals} from "./sim";
+import {randomId} from "./helpers";
 
 export type AlarmCounters = {
     hrHigh: number;
@@ -94,15 +95,5 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
 }
 
 function mkAlert(level: AlarmLevel, time: string, msg: string): AlertItem {
-    return {id: randId(), level, time, msg};
-}
-
-function randId() {
-    try {
-        // @ts-ignore
-        const b = (crypto && crypto.getRandomValues) ? crypto.getRandomValues(new Uint8Array(8)) : null;
-        if (b) return Array.from(b).map(x => x.toString(16).padStart(2, "0")).join("");
-    } catch {
-    }
-    return Math.random().toString(36).slice(2);
+    return {id: randomId(), level, time, msg};
 }
