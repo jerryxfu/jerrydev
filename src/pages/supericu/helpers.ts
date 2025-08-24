@@ -37,11 +37,12 @@ export function inferVitalFromMsg(msg: string): "hr" | "spo2" | "bp" | null {
     const m = msg.toLowerCase();
     if (m.includes("spo2") || m.includes("spo")) return "spo2";
     if (m.includes("nibp") || m.includes("bp ") || m.includes("blood pressure")) return "bp";
-    if (m.includes("hr") || m.includes("tachy") || m.includes("brady")) return "hr";
+    // Treat pulse/pr mentions as HR-related for advisory highlighting
+    if (m.includes("pulse") || /\bpr\b/.test(m) || m.includes("hr") || m.includes("tachy") || m.includes("brady")) return "hr";
     return null;
 }
 
-export function colorForVital(v: "hr" | "spo2" | "rr", palette: PaletteLike) {
+export function colorForVital(v: "hr" | "spo2" | "rr" | "pulse", palette: PaletteLike) {
     switch (v) {
         case "hr":
             return palette.ecg;
@@ -49,10 +50,13 @@ export function colorForVital(v: "hr" | "spo2" | "rr", palette: PaletteLike) {
             return palette.spo2; // numeric color for SpO2
         case "rr":
             return palette.resp;
+        case "pulse":
+            // PULSE is derived from pleth; use pleth/Spo2 color family
+            return palette.pleth || palette.spo2;
     }
 }
 
-export function unitForVital(v: "hr" | "spo2" | "rr") {
+export function unitForVital(v: "hr" | "spo2" | "rr" | "pulse") {
     switch (v) {
         case "hr":
             return "bpm";
@@ -60,6 +64,8 @@ export function unitForVital(v: "hr" | "spo2" | "rr") {
             return "%";
         case "rr":
             return "rpm";
+        case "pulse":
+            return "bpm";
     }
 }
 
@@ -137,6 +143,7 @@ export function pickVitalsAtTime(v: ParsedVitalsCsv, elapsedSec: number): {
     rr: number | null;
     bpSys: number | null;
     bpDia: number | null;
+    pulse: number | null;
     extra: Map<string, number>
 } {
     const idx = pickRowIndex(v.times, elapsedSec);
@@ -145,17 +152,19 @@ export function pickVitalsAtTime(v: ParsedVitalsCsv, elapsedSec: number): {
         const raw = col ? col.values[idx] : undefined;
         return (typeof raw === "number" && Number.isFinite(raw)) ? raw : null;
     };
-    const hr = get(/^hr$/i) ?? get("HR") ?? get(/^pulse$/i) ?? get("PULSE");
+    const hr = get(/^hr$/i) ?? get("HR") ?? get(/^pulse$/i) ?? get(/^pr$/i) ?? get(/pulse rate/i) ?? get("PULSE") ?? get("PR");
     const spo2 = get(/%?s?po2/i) ?? get("%SpO2");
     const rr = get(/^resp$|^rr$/i) ?? get("RESP");
     const bpSys = get(/(n?ibp|nbp)?\s*sys/i) ?? get("NBP SYS") ?? get("NIBP SYS");
     const bpDia = get(/(n?ibp|nbp)?\s*(dia|dias)/i) ?? get("NBP DIAS") ?? get("NIBP DIAS");
+    // Prefer dedicated pulse if present; otherwise null (caller may fall back to HR)
+    const pulse = get(/^pulse$/i) ?? get(/^pr$/i) ?? get(/pulse rate/i) ?? get("PULSE") ?? get("PR");
     const extra = new Map<string, number>();
     for (const c of v.columns) {
         const valNum = Number(c.values[idx]);
         if (Number.isFinite(valNum)) extra.set(c.name, valNum);
     }
-    return {hr, spo2, rr, bpSys, bpDia, extra};
+    return {hr, spo2, rr, bpSys, bpDia, pulse, extra};
 }
 
 function findCol(cols: { name: string; values: number[] }[], label: string | RegExp) {

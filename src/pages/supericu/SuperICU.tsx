@@ -198,6 +198,13 @@ export default function SuperIcu({paletteOverrides}: {
         return () => clearInterval(t);
     }, []);
 
+    // Detect if CSV vitals include a Pulse/PR column
+    const hasCsvPulse = useMemo(() => {
+        if (!vitalsCsv) return false;
+        const pats = [/^pulse$/i, /^pr$/i, /pulse\s*rate/i];
+        return vitalsCsv.columns.some(c => pats.some(p => p.test(c.name)));
+    }, [vitalsCsv]);
+
     // Build rows
     const rows: RowDef[] = useMemo(() => {
         if (mode === "csv") {
@@ -382,33 +389,67 @@ export default function SuperIcu({paletteOverrides}: {
             if (vitalsCsv) {
                 const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
                 const fmt = (x: number | null | undefined, digits = 0) => (x == null || !Number.isFinite(x)) ? "-?-" : Number(x.toFixed(digits));
-                return {hr: fmt(cur.hr), spo2: fmt(cur.spo2), rr: fmt(cur.rr), bpSys: fmt(cur.bpSys), bpDia: fmt(cur.bpDia)} as const;
+                return {
+                    hr: fmt(cur.hr),
+                    spo2: fmt(cur.spo2),
+                    rr: fmt(cur.rr),
+                    bpSys: fmt(cur.bpSys),
+                    bpDia: fmt(cur.bpDia),
+                    pulse: fmt(cur.pulse)
+                } as const;
             }
-            return {hr: "-?-", spo2: "-?-", rr: "-?-", bpSys: "-?-", bpDia: "-?-"} as const;
+            return {hr: "-?-", spo2: "-?-", rr: "-?-", bpSys: "-?-", bpDia: "-?-", pulse: "-?-"} as const;
         }
         return {
             hr: (!initialized) ? "-?-" : vitals.hr,
             spo2: (!initialized) ? "-?-" : vitals.spo2,
             rr: (!initialized) ? "-?-" : vitals.rr,
             bpSys: (!initialized) ? "-?-" : vitals.bp.sys,
-            bpDia: (!initialized) ? "-?-" : vitals.bp.dia
+            bpDia: (!initialized) ? "-?-" : vitals.bp.dia,
+            pulse: "-?-" // demo: do not display pulse
         } as const;
     }, [mode, vitalsCsv, csvElapsedSec, initialized, vitals]);
 
-    // Other CSV vitals
-    const otherVitals: Array<{ label: string; value: string }> = useMemo(() => {
-        if (mode !== "csv" || !vitalsCsv) return [];
-        const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
-        const used = new Set<string>(["HR", "%SpO2", "SpO2", "RESP", "RR", "NBP SYS", "NBP DIAS", "NIBP SYS", "NIBP DIAS"]);
-        const out: Array<{ label: string; value: string }> = [];
-        for (const c of vitalsCsv.columns) {
-            if (used.has(c.name)) continue;
-            const v = cur.extra.get(c.name);
-            if (v == null || !Number.isFinite(v)) continue;
-            out.push({label: c.name, value: String(Number(v.toFixed(1)))});
+    // Dynamic additional vitals (including NIBP and others)
+    const additionalVitals: Array<{
+        key: string;
+        label: string;
+        value: string;
+        color: string;
+        alarmLevel?: "low" | "advisory" | "critical" | null
+    }> = useMemo(() => {
+        const vitals: Array<{ key: string; label: string; value: string; color: string; alarmLevel?: "low" | "advisory" | "critical" | null }> = [];
+
+        // Always include NIBP if we have bp data
+        if (disp.bpSys !== "-?-" && disp.bpDia !== "-?-") {
+            vitals.push({
+                key: "nibp",
+                label: "NIBP",
+                value: `${disp.bpSys}/${disp.bpDia}`,
+                color: palette.bp,
+                alarmLevel: vitalAlarmLevel.bp || null
+            });
         }
-        return out.slice(0, 8);
-    }, [mode, vitalsCsv, csvElapsedSec]);
+
+        // Add other CSV vitals if in CSV mode
+        if (mode === "csv" && vitalsCsv) {
+            const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
+            const used = new Set<string>(["HR", "%SpO2", "SpO2", "RESP", "RR", "NBP SYS", "NBP DIAS", "NIBP SYS", "NIBP DIAS", "PULSE", "PR", "Pulse Rate"]);
+            for (const c of vitalsCsv.columns) {
+                if (used.has(c.name)) continue;
+                const v = cur.extra.get(c.name);
+                if (v == null || !Number.isFinite(v)) continue;
+                vitals.push({
+                    key: c.name.toLowerCase().replace(/\s+/g, "_"),
+                    label: c.name,
+                    value: String(Number(v.toFixed(1))),
+                    color: palette.defaultText
+                });
+            }
+        }
+
+        return vitals.slice(0, 8); // Limit total additional vitals
+    }, [mode, vitalsCsv, csvElapsedSec, disp, palette, vitalAlarmLevel.bp]);
 
     return (
         <div className="super-icu">
@@ -465,20 +506,37 @@ export default function SuperIcu({paletteOverrides}: {
                                         }}>{disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}</span>
                                     </div>
                                 </div>
+                                {r.showVital === "hr" && mode === "csv" && hasCsvPulse && (
+                                    <div className="vital pulse">
+                                        <div className="label">PULSE</div>
+                                        <div className="value"
+                                             style={withVar({color: colorForVital("pulse", palette)}, {"--vital-color": colorForVital("pulse", palette) as string})}>
+                                            {disp.pulse}
+                                            <span style={{fontSize: 14}}> {disp.pulse === "-?-" ? "" : unitForVital("pulse")}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
                 ))}
 
-                <div className="data-row">
-                    <div className="vitals">
-                        <div className="vital">
-                            <div className="label" style={{color: palette.bp}}>NIBP</div>
-                            <div className={`value ${vitalAlarmLevel.bp ? `alarm-${vitalAlarmLevel.bp}` : ""}`}
-                                 style={withVar({color: palette.bp}, {"--vital-color": palette.bp as string})}>{disp.bpSys}/{disp.bpDia}</div>
+                {/* Dynamic additional vitals section */}
+                {additionalVitals.length > 0 && (
+                    <div className="data-row">
+                        <div className="vitals">
+                            {additionalVitals.map(vital => (
+                                <div key={vital.key} className="vital">
+                                    <div className="label" style={{color: vital.color}}>{vital.label}</div>
+                                    <div className={`value ${vital.alarmLevel ? `alarm-${vital.alarmLevel}` : ""}`}
+                                         style={withVar({color: vital.color}, {"--vital-color": vital.color as string})}>
+                                        {vital.value}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
+                )}
 
                 <div className="data-row">
                     <div className="vitals">
@@ -534,19 +592,6 @@ export default function SuperIcu({paletteOverrides}: {
                         </div>
                     </div>
                 </div>
-
-                {mode === "csv" && otherVitals.length > 0 && (
-                    <div className="data-row">
-                        <div className="vitals">
-                            {otherVitals.map((ov, i) => (
-                                <div key={`${ov.label}-${i}`} className="vital">
-                                    <div className="label" style={{color: palette.defaultText}}>{ov.label}</div>
-                                    <div className="value" style={{color: palette.defaultText}}>{ov.value}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
             <div className="side">
                 <div className="side-header">Alerts</div>
