@@ -247,8 +247,9 @@ export default function SuperIcu({paletteOverrides}: {
         initialized,
         vitalsRef,
         heartbeatRef, ...(mode === "csv" ? {externalTimeSec: csvElapsedSec} : {}),
-        onValue: onValueCb
-    }), [channels, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb]);
+        onValue: onValueCb,
+        timeEpochMs: csvStartMs
+    }), [channels, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb, csvStartMs]);
     useSweepRenderer(rendererOpts);
 
     // Alarm loop

@@ -44,11 +44,13 @@ export type SweepRendererOptions = {
     externalTimeSec?: number; // optional shared playhead for CSV channels
     // New: optional callback to receive latest value per channel (val used for draw, and raw if available)
     onValue?: (key: string, val: number | null, raw?: number | null) => void;
+    // New: epoch time marker to reset renderer when playhead restarts (stable between ticks)
+    timeEpochMs?: number | null;
 };
 
 // Sets up and runs the canvas sweep renderers for a dynamic set of channels
 export function useSweepRenderer(opts: SweepRendererOptions) {
-    const {channels, showSeconds, initialized, vitalsRef, heartbeatRef, externalTimeSec, onValue} = opts;
+    const {channels, showSeconds, initialized, vitalsRef, heartbeatRef, externalTimeSec, onValue, timeEpochMs} = opts;
 
     useEffect(() => {
         // Build sweep objects for each channel that currently has a canvas element
@@ -218,7 +220,7 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
         };
         // do not include externalTimeSec in deps, we only want to capture its initial value
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef, onValue]);
+    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef, onValue, timeEpochMs]);
 }
 
 const resizeObservers: ResizeObserver[] = [];
