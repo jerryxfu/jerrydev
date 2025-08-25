@@ -187,14 +187,14 @@ export default function SuperIcu({paletteOverrides}: {
         return c;
     };
 
-    // Live waveform values (renderer callback -> throttled state)
+    // Live waveform values under lead name (renderer callback -> throttled state)
     const waveformValsRef = useRef(new Map<string, { val: number | null; raw: number | null }>());
     const [waveformVals, setWaveformVals] = useState<Map<string, { val: number | null; raw: number | null }>>(new Map());
     const onValueCb = useCallback((key: string, val: number | null, raw?: number | null) => {
         waveformValsRef.current.set(key, {val, raw: typeof raw === "number" || raw === null ? raw : val});
     }, []);
     useEffect(() => {
-        const t = setInterval(() => setWaveformVals(new Map(waveformValsRef.current)), 150);
+        const t = setInterval(() => setWaveformVals(new Map(waveformValsRef.current)), 200); // refresh rate
         return () => clearInterval(t);
     }, []);
 
@@ -454,37 +454,49 @@ export default function SuperIcu({paletteOverrides}: {
     return (
         <div className="super-icu">
             <div className="super-icu-core">
+                {/* TOP BAR */}
                 <div className="top-bar">
                     SuperICU DEMO
                     <span className="status-pill">{timeStr}</span>
                     <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
-                    <span className="status-pill" style={{cursor: "pointer"}} onClick={async () => {
-                        if (!soundOn) await alertSound.kickstart();
-                        setSoundOn(v => !v);
-                    }}>Sound: {soundOn ? "On" : "Off"}</span>
+                    <span className="status-pill" style={{cursor: "pointer"}}
+                          onClick={async () => {
+                              if (!soundOn) await alertSound.kickstart();
+                              setSoundOn(v => !v);
+                          }}>
+                        Sound: {soundOn ? "On" : "Off"}
+                    </span>
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={async () => {
                         if (!heartbeatSound) await alertSound.kickstart();
                         setHeartbeatSound(v => !v);
-                    }}>Pulse sound: {heartbeatSound ? "On" : "Off"}</span>
+                    }}>
+                        HR sound: {heartbeatSound ? "On" : "Off"}
+                    </span>
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={() => {
                         setAlerts([]);
                         setSilenced(true);
                         alertSound.stopLooping();
-                    }}>Clear Alerts</span>
+                    }}>
+                        Clear Alerts
+                    </span>
                     <div className="window-ctl" style={{marginLeft: "auto"}}>
                         <span className="muted">Window</span>
-                        <select className="window-select" value={showSeconds}
-                                onChange={e => setShowSeconds(parseInt(e.target.value, 10))}>{CFG.WINDOW_CHOICES.map(s => <option key={s}
-                                                                                                                                  value={s}>{s}s</option>)}</select>
+                        <select className="window-select" value={showSeconds} onChange={(e) =>
+                            setShowSeconds(parseInt(e.target.value, 10))}>
+                            {CFG.WINDOW_CHOICES.map(s => <option key={s} value={s}>{s}s</option>)}
+                        </select>
                     </div>
                 </div>
 
-                {rows.map(r => (
+                {/* ROWS */}
+                {rows.map((r) => (
                     <div key={r.key} className={`wave-row ${r.className ?? ""}`}>
+                        {/* LABEL */}
                         <div className="lead-label" style={{color: r.color}}>
                             {r.label}
-                            <div
-                                style={{fontSize: 12, opacity: 0.9, color: r.color, lineHeight: 1.2}}>{formatWaveVal(waveformVals, r.key, mode)}</div>
+                            <div style={{fontSize: 12, opacity: 0.9, color: r.color, lineHeight: 1.2}}>
+                                {formatWaveVal(waveformVals, r.key, mode)}
+                            </div>
                             <div style={{fontSize: 10, opacity: 0.8, color: "#9fb2c8", lineHeight: 1.2}}>
                                 <div>min {fmt9(r.yMin)}</div>
                                 <div>max {fmt9(r.yMax)}</div>
@@ -493,71 +505,67 @@ export default function SuperIcu({paletteOverrides}: {
                         <div className="canvas-wrap">
                             <canvas ref={getCanvasRef(r.key)} />
                         </div>
-                        {r.showVital && (
-                            <div className="vitals">
-                                <div className={`vital ${r.showVital}`}>
-                                    <div className="label">{r.showVital.toUpperCase()}</div>
-                                    <div className={`value ${vitalAlarmLevel[r.showVital] ? `alarm-${vitalAlarmLevel[r.showVital]}` : ""}`}
-                                         style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}>
-                                        {disp[r.showVital]}
-                                        <span style={{
-                                            fontSize: 14,
-                                            marginLeft: r.showVital === "rr" ? 4 : 0
-                                        }}>{disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}</span>
-                                    </div>
+
+                        {/* WAVEFORM */}
+                        {r.showVital && (<div className="vitals">
+                            <div className={`vital ${r.showVital}`}>
+                                <div className="label">{r.showVital.toUpperCase()}</div>
+                                <div className={`value ${vitalAlarmLevel[r.showVital] ? `alarm-${vitalAlarmLevel[r.showVital]}` : ""}`}
+                                     style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}>
+                                    {disp[r.showVital]}
+                                    <span style={{fontSize: 14, marginLeft: r.showVital === "rr" ? 4 : 0}}>
+                                            {disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}
+                                        </span>
                                 </div>
-                                {r.showVital === "hr" && mode === "csv" && hasCsvPulse && (
-                                    <div className="vital pulse">
-                                        <div className="label">PULSE</div>
-                                        <div className="value"
-                                             style={withVar({color: colorForVital("pulse", palette)}, {"--vital-color": colorForVital("pulse", palette) as string})}>
-                                            {disp.pulse}
-                                            <span style={{fontSize: 14}}> {disp.pulse === "-?-" ? "" : unitForVital("pulse")}</span>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-                        )}
+
+                            {/* VITALS */}
+                            {r.showVital === "hr" && mode === "csv" && hasCsvPulse && (<div className="vital pulse">
+                                <div className="label">PULSE</div>
+                                <div className="value"
+                                     style={withVar({color: colorForVital("pulse", palette)}, {"--vital-color": colorForVital("pulse", palette) as string})}>
+                                    {disp.pulse}
+                                    <span style={{fontSize: 14}}> {disp.pulse === "-?-" ? "" : unitForVital("pulse")}</span>
+                                </div>
+                            </div>)}
+                        </div>)}
                     </div>
                 ))}
 
-                {/* Dynamic additional vitals section */}
-                {additionalVitals.length > 0 && (
-                    <div className="data-row">
-                        <div className="vitals">
-                            {additionalVitals.map(vital => (
-                                <div key={vital.key} className="vital">
-                                    <div className="label" style={{color: vital.color}}>{vital.label}</div>
-                                    <div className={`value ${vital.alarmLevel ? `alarm-${vital.alarmLevel}` : ""}`}
-                                         style={withVar({color: vital.color}, {"--vital-color": vital.color as string})}>
-                                        {vital.value}
-                                    </div>
+                {/* ROWS VITALS */}
+                {additionalVitals.length > 0 && (<div className="data-row">
+                    <div className="vitals">
+                        {additionalVitals.map(vital => (
+                            <div key={vital.key} className="vital">
+                                <div className="label" style={{color: vital.color}}>{vital.label}</div>
+                                <div className={`value ${vital.alarmLevel ? `alarm-${vital.alarmLevel}` : ""}`}
+                                     style={withVar({color: vital.color}, {"--vital-color": vital.color as string})}>
+                                    {vital.value}
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>)}
 
                 <div className="data-row">
                     <div className="vitals">
-                        {mode !== "csv" && (
-                            <div className="vital">
-                                <div className="label" style={{color: palette.defaultText}}>Set Values</div>
-                                <div className="value"
-                                     style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14}}>
-                                    <input type="number" placeholder="HR" min={20} max={240} style={inputStyle}
-                                           onKeyDown={(e) => commitOnEnter(e, 20, 240, val => correctVital({hr: val}))} />
-                                    <input type="number" placeholder="SpO2" min={0} max={100} style={inputStyle}
-                                           onKeyDown={(e) => commitOnEnter(e, 0, 100, val => correctVital({spo2: val}))} />
-                                    <input type="number" placeholder="RR" min={0} max={60} style={inputStyle}
-                                           onKeyDown={(e) => commitOnEnter(e, 0, 60, val => correctVital({rr: val}))} />
-                                    <input type="number" placeholder="SYS" min={40} max={300} style={inputStyle}
-                                           onKeyDown={(e) => commitOnEnter(e, 40, 300, val => correctVital({bpSys: val}))} />
-                                    <input type="number" placeholder="DIA" min={20} max={200} style={inputStyle}
-                                           onKeyDown={(e) => commitOnEnter(e, 20, 200, val => correctVital({bpDia: val}))} />
-                                </div>
+                        {mode !== "csv" && (<div className="vital">
+                            <div className="label" style={{color: palette.defaultText}}>Set Values</div>
+                            <div className="value"
+                                 style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14}}>
+                                <input type="number" placeholder="HR" min={20} max={240} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, 20, 240, val => correctVital({hr: val}))} />
+                                <input type="number" placeholder="SpO2" min={0} max={100} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, 0, 100, val => correctVital({spo2: val}))} />
+                                <input type="number" placeholder="RR" min={0} max={60} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, 0, 60, val => correctVital({rr: val}))} />
+                                <input type="number" placeholder="SYS" min={40} max={300} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, 40, 300, val => correctVital({bpSys: val}))} />
+                                <input type="number" placeholder="DIA" min={20} max={200} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, 20, 200, val => correctVital({bpDia: val}))} />
                             </div>
-                        )}
+                        </div>)}
+
                         <div className="vital">
                             <div className="label" style={{color: palette.defaultText}}>Waveform CSV</div>
                             <div className="value"
@@ -578,6 +586,7 @@ export default function SuperIcu({paletteOverrides}: {
                                     <span style={{opacity: 0.8}}>Loaded {csvData.columns.length} lead(s) @ {csvData.sampleHz} Hz</span>)}
                             </div>
                         </div>
+
                         <div className="vital">
                             <div className="label" style={{color: palette.defaultText}}>Vitals CSV</div>
                             <div className="value"

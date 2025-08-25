@@ -1,5 +1,3 @@
-// Shared helper utilities for SuperICU
-
 // Minimal palette type required by helpers to avoid circular deps
 export type PaletteLike = {
     ecg: string;
@@ -11,7 +9,6 @@ export type PaletteLike = {
 
 export function randomId() {
     try {
-        // @ts-ignore
         const b = (crypto && crypto.getRandomValues) ? crypto.getRandomValues(new Uint8Array(8)) : null;
         if (b) return Array.from(b).map(x => x.toString(16).padStart(2, "0")).join("");
     } catch {

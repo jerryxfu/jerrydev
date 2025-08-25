@@ -1,0 +1,10 @@
+.bp-selector {
+    display: flex;
+    justify-content: center;
+    padding: 0.25rem;
+}
+
+.bp-column, .bp-column-text {
+    display: flex;
+    flex-direction: column;
+}

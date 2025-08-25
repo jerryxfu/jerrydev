@@ -1,7 +1,7 @@
 import type {AlarmLevel} from "./sim";
 
 class AlertSound {
-    private ctx: AudioContext | null = null;
+    private context: AudioContext | null = null;
     private enabled = true;
     private loopingTimer: number | null = null;
 
@@ -11,13 +11,13 @@ class AlertSound {
         if (!on) this.stopLooping();
     }
 
+    // Call this on a user gesture to satisfy autoplay policies
     async kickstart() {
-        // Call this on a user gesture to satisfy autoplay policies
-        const ctx = this.ensureContext();
-        if (ctx.state === "suspended") await ctx.resume();
+        const context = this.ensureContext();
+        if (context.state === "suspended") await context.resume();
     }
 
-    // Play a single notification sequence (non-looping)
+    // Play a single notification sequence
     playAlert(level: AlarmLevel) {
         if (!this.enabled) return;
         const pattern = this.getBeepPattern(level);
@@ -27,7 +27,7 @@ class AlertSound {
     // Play a heartbeat beep based on hr
     playHeartbeat() {
         if (!this.enabled) return;
-        this.playTone(0.1, 0.015, 460);
+        this.playTone(0.1, 0.020, 460);
     }
 
     // Play a sequence of beeps (for notifications)
@@ -74,15 +74,15 @@ class AlertSound {
     }
 
     private ensureContext(): AudioContext {
-        if (!this.ctx) {
+        if (!this.context) {
             // Support Safari prefix without using any casts
             type AudioContextCtor = { new(): AudioContext };
             const AnyWindow = window as unknown as { AudioContext?: AudioContextCtor; webkitAudioContext?: AudioContextCtor };
             const Ctor = AnyWindow.AudioContext ?? AnyWindow.webkitAudioContext;
             // @ts-ignore
-            this.ctx = new Ctor();
+            this.context = new Ctor();
         }
-        return this.ctx;
+        return this.context;
     }
 
     private playTone(duration: number, volume: number, frequency: number = 954) {

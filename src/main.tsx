@@ -16,6 +16,7 @@ import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import Waveform from "./pages/cheatsheet/Waveform.tsx";
 import Mailman from "./pages/cheatsheet/Mailman.tsx";
 import SuperIcu from "./pages/supericu/SuperICU.tsx";
+import Conditioner from "./pages/conditioner/Conditioner.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -52,16 +53,20 @@ const router = createBrowserRouter([
         element: <UnixPage />
     },
     {
+        path: "/supericu",
+        element: <SuperIcu />
+    },
+    {
+        path: "/conditioner",
+        element: <Conditioner />
+    },
+    {
         path: "/cheatsheet/waveform",
         element: <Waveform />
     },
     {
         path: "/cheatsheet/mailman",
         element: <Mailman />
-    },
-    {
-        path: "/supericu",
-        element: <SuperIcu />
     },
     {
         path: "*",

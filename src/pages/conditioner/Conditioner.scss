@@ -1,0 +1,40 @@
+.app {
+    display: flex;
+    width: 100%;
+    padding: 0 8px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.layout-row {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+}
+
+.layout-column {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+}
+
+.context {
+    padding: 0.25rem;
+}
+
+.context-checkbox-container {
+    margin: 0.20rem 0;
+    padding: 5px 6px 5px 14px;
+    border: 1px solid #dddddd;
+    background-color: #ebfaf2;
+}

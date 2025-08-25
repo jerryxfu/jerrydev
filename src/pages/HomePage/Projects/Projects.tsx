@@ -39,6 +39,7 @@ const projects: Project[] = [
         image: _conditioner,
         chipText: "🚧 WIP",
         date: new Date(),
+        url: "/conditioner",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
     },
     {
