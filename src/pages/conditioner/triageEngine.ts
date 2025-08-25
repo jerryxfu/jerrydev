@@ -87,8 +87,8 @@ export function softFuzzyOr(rule: RuleNode & { type: "OR" }, symptomSet: Set<Sym
 
     const softmax_weights = softmax(scores, 0.8);
 
-    // Weighted sum of scores
-    const final_score = scores.reduce((sum, s, i) => sum + s * softmax_weights[i], 0);
+    // Weighted sum of scores with null check
+    const final_score = scores.reduce((sum, s, i) => sum + s * (softmax_weights[i] || 0), 0);
 
     console.log(`OR initial scores: [${scores.join(", ")}], softmax weights: [${softmax_weights.map(n => n.toFixed(2)).join(", ")}], final score: ${final_score.toFixed(2)}`);
     return final_score;
@@ -122,7 +122,7 @@ export function evalNot(rule: RuleNode & { type: "NOT" }, symptomSet: Set<string
 
 export function evalNand(rule: RuleNode & { type: "NAND" }, symptomSet: Set<string>): number {
     // Evaluate the AND of all subrules
-    const andScore = evaluateRule({type: "AND", rules: rule.rules, weight: rule.weight}, symptomSet);
+    const andScore = evaluateRule({type: "AND", rules: rule.rules, weight: rule.weight ?? 1}, symptomSet);
     const score = 1 - andScore;
 
     console.log(`NAND andScore: ${andScore}, score: ${score}`);
@@ -132,7 +132,7 @@ export function evalNand(rule: RuleNode & { type: "NAND" }, symptomSet: Set<stri
 
 export function evalNor(rule: RuleNode & { type: "NOR" }, symptomSet: Set<string>): number {
     // Evaluate the OR of all subrules
-    const orScore = evaluateRule({type: "OR", rules: rule.rules, weight: rule.weight}, symptomSet);
+    const orScore = evaluateRule({type: "OR", rules: rule.rules, weight: rule.weight ?? 1}, symptomSet);
 
     const score = 1 - orScore;
     console.log(`NOR orScore: ${orScore}, score: ${score}`);

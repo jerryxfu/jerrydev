@@ -62,8 +62,8 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
 
         if (onChange) {
             onChange({
-                systolic: newIndex !== null ? systolicLabelsRange[newIndex] : null,
-                diastolic: selectedDia !== null ? diastolicLabelsRange[selectedDia] : null,
+                systolic: newIndex !== null ? systolicLabelsRange[newIndex] as SystolicRange : null,
+                diastolic: selectedDia !== null ? diastolicLabelsRange[selectedDia] as DiastolicRange : null,
                 systolicIndex: newIndex,
                 diastolicIndex: selectedDia
             });
@@ -76,8 +76,8 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
 
         if (onChange) {
             onChange({
-                systolic: selectedSys !== null ? systolicLabelsRange[selectedSys] : null,
-                diastolic: newIndex !== null ? diastolicLabelsRange[newIndex] : null,
+                systolic: selectedSys !== null ? systolicLabelsRange[selectedSys] as SystolicRange : null,
+                diastolic: newIndex !== null ? diastolicLabelsRange[newIndex] as DiastolicRange : null,
                 systolicIndex: selectedSys,
                 diastolicIndex: newIndex
             });
@@ -100,7 +100,7 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
                 {bpColors.map((color, index) => (
                     <SelectableButton
                         key={`sys-${index}`}
-                        value={systolicLabelsRange[index]}
+                        value={systolicLabelsRange[index] || ""}
                         selected={selectedSys === index}
                         onClick={() => handleSysSelect(index)}
                         color={`${color}c8`}
@@ -112,7 +112,7 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
                 {bpColors.map((color, index) => (
                     <SelectableButton
                         key={`dia-${index}`}
-                        value={diastolicLabelsRange[index]}
+                        value={diastolicLabelsRange[index] || ""}
                         selected={selectedDia === index}
                         onClick={() => handleDiaSelect(index)}
                         color={`${color}c8`}
