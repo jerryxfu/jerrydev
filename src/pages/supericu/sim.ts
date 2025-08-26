@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from "react";
 
-export type AlarmLevel = "low" | "advisory" | "critical";
+export type AlarmLevel = "critical" | "warning" | "advisory";
 export type AlertItem = { id: string; time: string; level: AlarmLevel; msg: string };
 export type Vitals = { hr: number | "-?-"; spo2: number | "-?-"; rr: number | "-?-"; bp: { sys: number | "-?-"; dia: number | "-?-" } };
 

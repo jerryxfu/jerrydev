@@ -49,10 +49,10 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
     if (next.hrHigh === thresholds.hr.persistence) alerts.push(mkAlert("critical", now, `Tachycardia HR ${hr} bpm`));
     if (next.hrLow === thresholds.hr.persistence) alerts.push(mkAlert("critical", now, `Bradycardia HR ${hr} bpm`));
 
-    // HR advisory band (one-shot on entry)
+    // HR warning band (one-shot on entry)
     const inHrWarn = (!Number.isNaN(hr)) && ((hr >= thresholds.hr.warnHigh && hr < thresholds.hr.high) || (hr <= thresholds.hr.warnLow && hr > thresholds.hr.low));
     if (inHrWarn) {
-        if (next.hrWarn === 0) alerts.push(mkAlert("advisory", now, `HR advisory ${hr} bpm`));
+        if (next.hrWarn === 0) alerts.push(mkAlert("warning", now, `HR warning ${hr} bpm`));
         next.hrWarn = 1; // latch while in band
     } else {
         next.hrWarn = 0; // re-arm when leaving
@@ -64,10 +64,10 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
         next.spo2Low++;
         next.spo2Warn = 0; // reset warn latch when in critical
     } else if (spo2 < thresholds.spo2.warn) {
-        // Advisory band: fire once on entry
+        // Warning band: fire once on entry
         next.spo2Low = Math.max(next.spo2Low - 1, 0);
         if (next.spo2Warn === 0 && !Number.isNaN(spo2)) {
-            alerts.push(mkAlert("advisory", now, `SpO₂ advisory ${spo2}%`));
+            alerts.push(mkAlert("warning", now, `SpO₂ warning ${spo2}%`));
         }
         next.spo2Warn = 1; // latch while in warn band
     } else {
@@ -89,7 +89,7 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
         next.bpHigh = 0;
     }
     if (next.bpLow === thresholds.bp.persistence) alerts.push(mkAlert("critical", now, `Hypotension NIBP ${sys}/${dia} mmHg`));
-    if (next.bpHigh === thresholds.bp.persistence) alerts.push(mkAlert("advisory", now, `Hypertension NIBP ${sys}/${dia} mmHg`));
+    if (next.bpHigh === thresholds.bp.persistence) alerts.push(mkAlert("warning", now, `Hypertension NIBP ${sys}/${dia} mmHg`));
 
     return {alerts, counters: next};
 }

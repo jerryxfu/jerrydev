@@ -145,6 +145,17 @@
     }
 }
 
+@keyframes invert-flash-warning {
+    0%, 100% {
+        background-color: transparent;
+        color: var(--vital-color);
+    }
+    50% {
+        background-color: var(--vital-color);
+        color: #000000;
+    }
+}
+
 @keyframes invert-flash-advisory {
     0%, 100% {
         background-color: transparent;
@@ -158,6 +169,10 @@
 
 .vital .value.alarm-critical {
     animation: invert-flash-critical 1s steps(1, end) infinite;
+}
+
+.vital .value.alarm-warning {
+    animation: invert-flash-warning 1.2s steps(1, end) 1;
 }
 
 .vital .value.alarm-advisory {
@@ -175,7 +190,7 @@
 
 /* Right Side Panel */
 .super-icu .side {
-    width: 256px;
+    width: 208px;
     border-left: 1px solid var(--ui-border);
     background: #060a0f;
     display: flex;
@@ -205,12 +220,12 @@
     background: rgba(4, 7, 10, 0.6);
 }
 
-.alert.low {
-    border-left-color: #51d88a;
+.alert.warning {
+    border-left-color: #ffe066;
 }
 
 .alert.advisory {
-    border-left-color: #ffe066;
+    border-left-color: #00e5ff;
 }
 
 .alert.critical {

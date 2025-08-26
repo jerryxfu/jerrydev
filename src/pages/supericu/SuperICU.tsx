@@ -126,18 +126,18 @@ export default function SuperIcu({paletteOverrides}: {
 
     // Alerts list
     const [alerts, setAlerts] = useState<AlertItem[]>([
-        {id: randomId(), time: new Date().toLocaleTimeString(), level: "low", msg: "Monitoring started"}
+        {id: randomId(), time: new Date().toLocaleTimeString(), level: "advisory", msg: "Monitoring started"}
     ]);
 
     // Looping alarm state
-    const loopingRef = useRef<{ active: boolean; level: "low" | "advisory" | "critical" | null }>({active: false, level: null});
+    const loopingRef = useRef<{ active: boolean; level: "critical" | "warning" | "advisory" | null }>({active: false, level: null});
 
     // Per-vital flashing state
     const [vitalAlarmLevel, setVitalAlarmLevel] = useState<{
-        hr: "low" | "advisory" | "critical" | null;
-        spo2: "low" | "advisory" | "critical" | null;
-        rr: "low" | "advisory" | "critical" | null;
-        bp?: "low" | "advisory" | "critical" | null;
+        hr: "critical" | "warning" | "advisory" | null;
+        spo2: "critical" | "warning" | "advisory" | null;
+        rr: "critical" | "warning" | "advisory" | null;
+        bp?: "critical" | "warning" | "advisory" | null;
     }>({hr: null, spo2: null, rr: null});
 
     // Top bar
@@ -303,12 +303,12 @@ export default function SuperIcu({paletteOverrides}: {
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
 
-            // Announce alerts (advisory/low play once)
+            // Announce alerts (warning/advisory play once)
             if (evald.alerts.length) {
                 if (soundOn && !silenced) {
                     for (const a of evald.alerts) {
-                        if (a.level === "low") alertSound.playAlert("low");
                         if (a.level === "advisory") alertSound.playAlert("advisory");
+                        if (a.level === "warning") alertSound.playAlert("warning");
                     }
                 }
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
@@ -327,32 +327,32 @@ export default function SuperIcu({paletteOverrides}: {
             const bpLevel: "critical" | null = active.bpLow ? "critical" : null;
 
             setVitalAlarmLevel(prev => ({
-                hr: prev.hr === "advisory" ? "advisory" : hrLevel,
-                spo2: prev.spo2 === "advisory" ? "advisory" : spo2Level,
+                hr: prev.hr === "warning" ? "warning" : hrLevel,
+                spo2: prev.spo2 === "warning" ? "warning" : spo2Level,
                 rr: null,
-                bp: prev.bp === "advisory" ? "advisory" : bpLevel,
+                bp: prev.bp === "warning" ? "warning" : bpLevel,
             }));
 
-            // One-shot advisory flash
+            // One-shot warning flash
             if (evald.alerts.length) {
                 for (const a of evald.alerts) {
-                    if (a.level !== "advisory") continue;
+                    if (a.level !== "warning") continue;
                     const vital = inferVitalFromMsg(a.msg);
                     if (!vital) continue;
                     setVitalAlarmLevel(prev => {
                         if (vital === "bp") {
-                            return prev.bp === "critical" ? prev : {...prev, bp: "advisory"};
+                            return prev.bp === "critical" ? prev : {...prev, bp: "warning"};
                         } else {
                             const cur = prev[vital];
-                            return cur === "critical" ? prev : ({...prev, [vital]: "advisory"} as typeof prev);
+                            return cur === "critical" ? prev : ({...prev, [vital]: "warning"} as typeof prev);
                         }
                     });
                     window.setTimeout(() => {
                         setVitalAlarmLevel(prev => {
                             if (vital === "bp") {
-                                return prev.bp === "advisory" ? {...prev, bp: null} : prev;
+                                return prev.bp === "warning" ? {...prev, bp: null} : prev;
                             } else {
-                                return prev[vital] === "advisory" ? ({...prev, [vital]: null} as typeof prev) : prev;
+                                return prev[vital] === "warning" ? ({...prev, [vital]: null} as typeof prev) : prev;
                             }
                         });
                     }, 1200);
@@ -416,9 +416,15 @@ export default function SuperIcu({paletteOverrides}: {
         label: string;
         value: string;
         color: string;
-        alarmLevel?: "low" | "advisory" | "critical" | null
+        alarmLevel?: "critical" | "warning" | "advisory" | null
     }> = useMemo(() => {
-        const vitals: Array<{ key: string; label: string; value: string; color: string; alarmLevel?: "low" | "advisory" | "critical" | null }> = [];
+        const vitals: Array<{
+            key: string;
+            label: string;
+            value: string;
+            color: string;
+            alarmLevel?: "critical" | "warning" | "advisory" | null
+        }> = [];
 
         // Always include NIBP if we have bp data
         if (disp.bpSys !== "-?-" && disp.bpDia !== "-?-") {
