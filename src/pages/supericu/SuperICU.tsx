@@ -74,13 +74,28 @@ type RowDef = {
 // Vitals CSV types
 // Removed local ParsedVitalsCsv type (now imported)
 
-export default function SuperIcu({paletteOverrides}: {
+export type FlashMode = "invert" | "red-block" | "yellow-block" | "red-text" | "yellow-text" | "auto";
+
+export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     paletteOverrides?: Partial<Palette>;
+    flashMode?: FlashMode;
 } = {}) {
     const palette: Palette = useMemo(() => ({...DEFAULT_PALETTE, ...(paletteOverrides || {})}), [paletteOverrides]);
 
-    // Helper to attach CSS variables
+    // Helper to attach CSS variables to style objects
     const withVar = (base: React.CSSProperties, vars: Record<string, string | number>): React.CSSProperties => ({...base, ...vars});
+
+    // Helper to map alarm level to a CSS class for flashing
+    const flashClass = useCallback((level: "critical" | "warning" | "advisory" | null) => {
+        if (!level) return "";
+        const mode = flashMode;
+        if (mode === "auto") {
+            if (level === "critical") return `flash-red-block-critical`;
+            if (level === "warning") return `flash-yellow-block-warning`;
+            return `flash-invert-advisory`;
+        }
+        return `flash-${mode}-${level}`;
+    }, [flashMode]);
 
     // Shared input style
     const inputStyle: React.CSSProperties = {
@@ -355,7 +370,7 @@ export default function SuperIcu({paletteOverrides}: {
                                 return prev[vital] === "warning" ? ({...prev, [vital]: null} as typeof prev) : prev;
                             }
                         });
-                    }, 1200);
+                    }, 3200);
                 }
             }
 
@@ -516,7 +531,7 @@ export default function SuperIcu({paletteOverrides}: {
                         {r.showVital && (<div className="vitals">
                             <div className={`vital ${r.showVital}`}>
                                 <div className="label">{r.showVital.toUpperCase()}</div>
-                                <div className={`value ${vitalAlarmLevel[r.showVital] ? `alarm-${vitalAlarmLevel[r.showVital]}` : ""}`}
+                                <div className={`value ${flashClass(vitalAlarmLevel[r.showVital])}`}
                                      style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}>
                                     {disp[r.showVital]}
                                     <span style={{fontSize: 14, marginLeft: r.showVital === "rr" ? 4 : 0}}>
@@ -544,7 +559,7 @@ export default function SuperIcu({paletteOverrides}: {
                         {additionalVitals.map(vital => (
                             <div key={vital.key} className="vital">
                                 <div className="label" style={{color: vital.color}}>{vital.label}</div>
-                                <div className={`value ${vital.alarmLevel ? `alarm-${vital.alarmLevel}` : ""}`}
+                                <div className={`value ${flashClass(vital.alarmLevel ?? null)}`}
                                      style={withVar({color: vital.color}, {"--vital-color": vital.color as string})}>
                                     {vital.value}
                                 </div>

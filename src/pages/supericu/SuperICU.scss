@@ -133,8 +133,8 @@
     }
 }
 
-/* Invert-style flashing: swap text and background colors */
-@keyframes invert-flash-critical {
+/* Generic keyframes for various flash styles */
+@keyframes invert-flash {
     0%, 100% {
         background-color: transparent;
         color: var(--vital-color);
@@ -145,39 +145,114 @@
     }
 }
 
-@keyframes invert-flash-warning {
+@keyframes block-red-flash {
     0%, 100% {
         background-color: transparent;
         color: var(--vital-color);
     }
     50% {
-        background-color: var(--vital-color);
-        color: #000000;
+        background-color: var(--flash-red, #ff6b6b);
+        color: var(--text-da-c);
     }
 }
 
-@keyframes invert-flash-advisory {
+@keyframes block-yellow-flash {
     0%, 100% {
         background-color: transparent;
         color: var(--vital-color);
     }
     50% {
-        background-color: var(--vital-color);
-        color: #000000;
+        background-color: var(--flash-yellow, #ffe066);
+        color: var(--text-da-c);
     }
 }
 
-.vital .value.alarm-critical {
-    animation: invert-flash-critical 1s steps(1, end) infinite;
+@keyframes text-red-flash {
+    0%, 100% {
+        color: var(--vital-color);
+    }
+    50% {
+        color: var(--flash-red, #ff6b6b);
+    }
 }
 
-.vital .value.alarm-warning {
-    animation: invert-flash-warning 1.2s steps(1, end) 1;
+@keyframes text-yellow-flash {
+    0%, 100% {
+        color: var(--vital-color);
+    }
+    50% {
+        color: var(--flash-yellow, #ffe066);
+    }
 }
 
-.vital .value.alarm-advisory {
-    animation: invert-flash-advisory 1.2s steps(1, end) 1;
+/* Level/application helpers per style */
+/* Invert */
+.flash-invert-critical {
+    animation: invert-flash 1s steps(1, end) infinite;
 }
+
+.flash-invert-warning {
+    animation: invert-flash 1s steps(1, end) 2;
+}
+
+.flash-invert-advisory {
+    animation: invert-flash 1.2s steps(1, end) 1;
+}
+
+/* Red/Yellow block */
+.flash-red-block-critical {
+    animation: block-red-flash 1s steps(1, end) infinite;
+}
+
+.flash-red-block-warning {
+    animation: block-red-flash 1s steps(1, end) 2;
+}
+
+.flash-red-block-advisory {
+    animation: block-red-flash 1.2s steps(1, end) 1;
+}
+
+.flash-yellow-block-critical {
+    animation: block-yellow-flash 1s steps(1, end) infinite;
+}
+
+.flash-yellow-block-warning {
+    animation: block-yellow-flash 1s steps(1, end) 3;
+}
+
+.flash-yellow-block-advisory {
+    animation: block-yellow-flash 1.2s steps(1, end) 1;
+}
+
+/* Red/Yellow text only */
+.flash-red-text-critical {
+    animation: text-red-flash 1s steps(1, end) infinite;
+}
+
+.flash-red-text-warning {
+    animation: text-red-flash 1s steps(1, end) 3;
+}
+
+.flash-red-text-advisory {
+    animation: text-red-flash 1.2s steps(1, end) 1;
+}
+
+.flash-yellow-text-critical {
+    animation: text-yellow-flash 1s steps(1, end) infinite;
+}
+
+.flash-yellow-text-warning {
+    animation: text-yellow-flash 1s steps(1, end) 3;
+}
+
+.flash-yellow-text-advisory {
+    animation: text-yellow-flash 1.2s steps(1, end) 1;
+}
+
+/* Remove old bindings to always-invert on alarm classes (now controlled by explicit flash-* classes) */
+// .vital .value.alarm-critical { }
+// .vital .value.alarm-warning { }
+// .vital .value.alarm-advisory { }
 
 .status-pill {
     padding: 2px 8px;

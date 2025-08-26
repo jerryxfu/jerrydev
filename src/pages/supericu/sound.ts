@@ -113,8 +113,8 @@ class AlertSound {
         // Envelope: very fast attack, slightly longer hold, stronger presence
         gain.gain.setValueAtTime(0, start);
         gain.gain.linearRampToValueAtTime(volume, start + 0.005); // attack
-        gain.gain.setValueAtTime(volume, start + 0.07); // hold
-        gain.gain.exponentialRampToValueAtTime(0.002, start + duration); // decay
+        gain.gain.setValueAtTime(volume, start + 0.1); // hold
+        gain.gain.exponentialRampToValueAtTime(0.005, start + duration); // decay
     }
 
     private getVolume(level: AlarmLevel): number {
@@ -140,6 +140,7 @@ class AlertSound {
                 ];
             case "warning":
                 return [
+                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
                     {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
                     {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
                 ];
