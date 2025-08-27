@@ -1,0 +1,43 @@
+.time-column {
+  display: flex;
+  flex-direction: column;
+  width: 80px;
+  min-width: 80px;
+  background: var(--background-color, #ffffff);
+  border-right: 1px solid var(--border-color, #e0e0e0);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.time-slot {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  position: relative;
+}
+
+.time-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #666666);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .time-column {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .time-slot {
+    padding: 8px 8px;
+  }
+
+  .time-label {
+    font-size: 10px;
+  }
+}

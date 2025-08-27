@@ -104,7 +104,7 @@ const texts: { [key: number]: string[] } = {
         "🌴 Coding under the shade of palm trees!",
         "🌴 Coding with a splash of summer!",
         "🌴 Coding with a tropical twist!",
-        "🌴 Coding with an island breeze!",
+        "🌴 Coding with an island scheduler!",
         "🌴 Summer coding vibes!"
     ],
     // September-specific

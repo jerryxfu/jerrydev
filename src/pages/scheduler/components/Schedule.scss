@@ -1,0 +1,140 @@
+.schedule {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: var(--background-color, #ffffff);
+  max-height: 100vh;
+}
+
+.schedule__header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  background: var(--background-color, #ffffff);
+}
+
+.schedule__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.schedule__container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.schedule__time-column {
+  display: flex;
+  flex-direction: column;
+  width: 50px;
+  min-width: 50px;
+  background: var(--background-color, #ffffff);
+  border-right: 1px solid var(--border-color, #e0e0e0);
+}
+
+.schedule__time-slot {
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+  position: relative;
+}
+
+.schedule__time-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary, #666666);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.schedule__grid {
+  position: relative;
+  flex: 1;
+  background: var(--background-color, #ffffff);
+}
+
+.schedule__hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color, #f0f0f0);
+  z-index: 1;
+}
+
+.schedule-break {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #e8f5e8, #f0f9ff);
+  border: 1px dashed var(--success-color, #10b981);
+  border-radius: 4px;
+  padding: 4px;
+  margin: 1px 0;
+  z-index: 2;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.schedule-break__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.schedule-break__label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--success-color, #10b981);
+  margin-bottom: 1px;
+}
+
+.schedule-break__time {
+  font-size: 8px;
+  color: var(--text-secondary, #666666);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .schedule__header {
+    padding: 6px 8px;
+  }
+
+  .schedule__title {
+    font-size: 12px;
+  }
+
+  .schedule__time-column {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .schedule__time-label {
+    font-size: 8px;
+  }
+
+  .schedule-break {
+    left: 1px;
+    right: 1px;
+    padding: 2px;
+  }
+
+  .schedule-break__label {
+    font-size: 9px;
+  }
+
+  .schedule-break__time {
+    font-size: 7px;
+  }
+}

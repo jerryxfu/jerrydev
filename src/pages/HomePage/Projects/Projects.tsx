@@ -152,7 +152,7 @@ const projects: Project[] = [
     },
     {
         title: "Group availability app",
-        subTitle: "A tool for schedule group events",
+        subTitle: "A tool for scheduler group events",
         image: _endPortal,
         chipText: "🌀 Concept",
         date: new Date(),
