@@ -28,17 +28,16 @@ const Scheduler: React.FC = () => {
 
     const filteredSchedules = selectedSchedules.map(getScheduleForDay);
 
-    // Optionally, a global default display window when no per-schedule override
+    // Defaults
     const defaultStartTime = "08:00";
     const defaultEndTime = "18:00";
 
-    // Helper to get display window for a schedule (uses per-schedule config if present)
     const getDisplayWindow = (s: ScheduleType) => ({
         start: s.startTime ?? defaultStartTime,
         end: s.endTime ?? defaultEndTime,
     });
 
-    // Calculate common breaks when in comparison mode, respecting overlapping display ranges
+    // Common breaks for selected day
     const commonBreaks = (() => {
         if (!comparisonMode || filteredSchedules.length !== 2) return [] as { startTime: string; endTime: string }[];
         const [a, b] = filteredSchedules;
@@ -48,7 +47,6 @@ const Scheduler: React.FC = () => {
         const start = Math.max(timeToMinutes(aWin.start), timeToMinutes(bWin.start));
         const end = Math.min(timeToMinutes(aWin.end), timeToMinutes(bWin.end));
         if (end <= start) return [];
-        // Use 15-minute steps for more precise break detection
         return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
     })();
 
@@ -71,54 +69,67 @@ const Scheduler: React.FC = () => {
         }
     };
 
+    const handleSingleScheduleSelect = (newScheduleId: string) => {
+        const newSchedule = schedules.find((s) => s.id === newScheduleId);
+        if (newSchedule) setSelectedSchedules([newSchedule]);
+    };
+
     return (
         <div className="scheduler">
-            {/* Mode toggle */}
-            <div className="scheduler__header">
-                <h1 className="scheduler__title">Schedule viewer</h1>
-            </div>
-            <div>
-                <button
-                    className={`scheduler__toggle ${
-                        comparisonMode ? "scheduler__toggle--active" : ""
-                    }`}
-                    onClick={toggleComparisonMode}
-                >
-                    {comparisonMode ? "Single View" : "Compare"}
-                </button>
-            </div>
-            {comparisonMode && (
-                <div className="scheduler__selector">
-                    {selectedSchedules.map((selected, index) => (
-                        <div key={index} className="scheduler__select-group">
-                            <label className="scheduler__select-label">
-                                Schedule {index + 1}:
-                            </label>
-                            <select
-                                value={selected.id}
-                                onChange={(e) =>
-                                    handleScheduleSelect(index, e.target.value)
-                                }
-                                className="scheduler__select"
-                            >
-                                {schedules.map((schedule) => (
-                                    <option key={schedule.id} value={schedule.id}>
-                                        {schedule.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    ))}
+            <div className="scheduler-header">
+                <h1 className="scheduler-title">Schedule viewer</h1>
 
-                    {/* Day Navigation */}
-                    <div className="scheduler__day-nav">
-                        <div className="scheduler__day-buttons">
+                {/* Controls row */}
+                <div className="scheduler-controls">
+                    <div className="scheduler-controls-left">
+                        <button
+                            className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
+                            onClick={toggleComparisonMode}
+                            aria-pressed={comparisonMode}
+                            title={comparisonMode ? "Switch to single view" : "Compare two schedules"}
+                        >
+                            {comparisonMode ? "Single View" : "Compare"}
+                        </button>
+
+                        {/* Schedule selectors */}
+                        {comparisonMode ? (
+                            <div className="scheduler-selectors-inline">
+                                {selectedSchedules.map((selected, index) => (
+                                    <div key={index} className="scheduler-select-group">
+                                        <label className="scheduler-select-label">Schedule {index + 1}:</label>
+                                        <select
+                                            value={selected.id}
+                                            onChange={(e) => handleScheduleSelect(index, e.target.value)}
+                                            className="scheduler-select"
+                                        >
+                                            {schedules.map((schedule) => (
+                                                <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="scheduler-select-group">
+                                <label className="scheduler-select-label">Schedule:</label>
+                                <select
+                                    value={selectedSchedules[0]?.id ?? "jerry"}
+                                    onChange={(e) => handleSingleScheduleSelect(e.target.value)}
+                                    className="scheduler-select"
+                                >
+                                    {schedules.map((schedule) => (
+                                        <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Day selector */}
+                        <div className="scheduler-day-buttons">
                             {DAYS_OF_WEEK.map((day) => (
                                 <button
                                     key={day.key}
-                                    className={`scheduler__day-btn ${
-                                        selectedDay === day.key ? "scheduler__day-btn--active" : ""
-                                    }`}
+                                    className={`scheduler-day-btn ${selectedDay === day.key ? "scheduler-day-btn-active" : ""}`}
                                     onClick={() => setSelectedDay(day.key)}
                                 >
                                     {day.label}
@@ -127,20 +138,22 @@ const Scheduler: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Break counter */}
-                    {commonBreaks.length > 0 && (
-                        <div className="scheduler__break-info">
-							<span className="scheduler__break-count">
-								{commonBreaks.length} common free time
-                                {commonBreaks.length !== 1 ? "s" : ""} found
-							</span>
-                        </div>
-                    )}
+                    {/* Info */}
+                    <div className="scheduler-controls-right">
+                        {comparisonMode && commonBreaks.length > 0 && (
+                            <div className="scheduler-break-info">
+                                <span className="scheduler-break-count">
+                                    {commonBreaks.length} common free time{commonBreaks.length !== 1 ? "s" : ""}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
+            </div>
 
-            <div className="scheduler__content">
-                <div className="scheduler__schedules">
+            {/* Schedules */}
+            <div className="scheduler-content">
+                <div className="scheduler-schedules">
                     {filteredSchedules.map((schedule, index) => (
                         <Schedule
                             key={`${schedule.id}-${index}`}
