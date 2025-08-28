@@ -5,6 +5,7 @@ export interface ScheduleEvent {
     endTime: string;   // Format: "HH:MM"
     color?: string;
     location?: string;
+    day?: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday" | string;
 }
 
 export interface TimeSlot {

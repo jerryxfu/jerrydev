@@ -33,7 +33,7 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
             style={{
                 top: `${top}px`,
                 height: `${height}px`,
-                backgroundColor: event.color || "#3a87ad",
+                backgroundColor: event.color || "#e6e6e6",
             }}
         >
             <div className="schedule-event__content">

@@ -1,11 +1,10 @@
 import {Schedule as ScheduleType} from "../../types/schedule";
 
-// Centralized schedule configuration for easier editing and adding
-// Times are 24h format: "HH:MM"
 const schedules: ScheduleType[] = [
     {
         id: "jerry",
         name: "Jerry",
+        // startTime:"8:30",
         timeSlots: [
             {hour: 8, minute: 30, endHour: 9, endMinute: 20, label: "08:30", endLabel: "09:20"},
             {hour: 9, minute: 30, endHour: 10, endMinute: 20, label: "09:30", endLabel: "10:20"},
@@ -19,16 +18,37 @@ const schedules: ScheduleType[] = [
 
         ],
         events: [
-            {id: "CHI-B01", title: "Chimie générale", startTime: "8:30", endTime: "10:20", color: "", location: "Room 101"},
-            {id: "PHY-BP1", title: "Mécanique", startTime: "10:30", endTime: "12:20", color: "", location: "Lab A"},
-            {id: "MAT-BP1", title: "Fonctions et calcul", startTime: "13:30", endTime: "15:20", color: "", location: "Room 205"},
-            {id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", color: "", location: "Library"},
+            //region Monday
+            {day: "monday", id: "CHI-B01", title: "Chimie générale", startTime: "8:30", endTime: "10:20"},
+            {day: "monday", id: "PHY-BP1", title: "Mécanique", startTime: "10:30", endTime: "12:20"},
+            {day: "monday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "13:30", endTime: "15:20"},
+            {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20"},
+            //endregion
+            //region Tuesday
+            {day: "tuesday", id: "PHI-B01", title: "Philosophie", startTime: "8:30", endTime: "10:20"},
+            {day: "tuesday", id: "CHI-B01", title: "Chimie générale", startTime: "11:30", endTime: "12:20"},
+            {day: "tuesday", id: "LIT-B01", title: "Littérature", startTime: "13:30", endTime: "15:20"},
+            //endregion
+            //region Wednesday
+            {day: "wednesday", id: "ANN-BA1", title: "English A", startTime: "8:30", endTime: "10:20"},
+            {day: "wednesday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "10:30", endTime: "12:20"},
+            {day: "wednesday", id: "PHY-BP1", title: "Mécanique", startTime: "15:30", endTime: "17:20"},
+            //endregion
+            //region Thursday
+            {day: "thursday", id: "LIT-B01", title: "Littérature", startTime: "8:30", endTime: "10:20"},
+            {day: "thursday", id: "PHI-B01", title: "Philosophie", startTime: "13:30", endTime: "15:20"},
+            {day: "thursday", id: "CHI-B01", title: "Chimie générale", startTime: "15:30", endTime: "17:20"},
+            //endregion
+            //region Friday
+            {day: "friday", id: "ANN-BA1", title: "English A", startTime: "11:30", endTime: "12:20"},
+            {day: "friday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "13:30", endTime: "14:20"},
+            {day: "friday", id: "PHY-BP1", title: "Mécanique", startTime: "14:30", endTime: "15:20"},
+            //endregion
         ],
     },
     {
-        id: "2",
-        name: "Friend's Schedule",
-        // This schedule uses explicit custom slots (manually set)
+        id: "iris",
+        name: "Iris",
         timeSlots: [
             {hour: 8, minute: 0, label: "8:00"},
             {hour: 8, minute: 30, label: "8:30"},
@@ -52,12 +72,31 @@ const schedules: ScheduleType[] = [
             {hour: 17, minute: 30, label: "17:30"},
         ],
         events: [
-            {id: "SN2-RE", title: "Calcul différentiel", startTime: "08:30", endTime: "10:00", color: "#8b5cf6", location: "Lab B"},
-            {id: "MQ", title: "World views", startTime: "10:00", endTime: "11:30", color: "#06b6d4", location: "Room 150"},
-            {id: "SN1-RE", title: "Chimie générale", startTime: "11:30", endTime: "13:00", color: "#f97316", location: "Room 301"},
+            //region Monday
+            {day: "monday", id: "201-SN2-RE", title: "Calcul différentiel", startTime: "08:30", endTime: "10:00", location: "N-429"},
+            {day: "monday", id: "345-102-MQ", title: "World views", startTime: "10:00", endTime: "11:30", location: "N-429"},
+            {day: "monday", id: "202-SN1-RE", title: "Chimie générale", startTime: "11:30", endTime: "13:00", location: "D-244"},
+            //endregion
+            //region Tuesday
+            {day: "tuesday", id: "603-101-MA", title: "English", startTime: "08:00", endTime: "10:00", location: "A-311"},
+            {day: "tuesday", id: "201-SN2-RE", title: "Calcul différentiel", startTime: "14:00", endTime: "16:00", location: "A-320"},
+            //endregion
+            //region Wednesday
+            {day: "wednesday", id: "345-102-MQ", title: "World views", startTime: "11:00", endTime: "12:30", location: "N-429"},
+            {day: "wednesday", id: "202-SN1-RE", title: "Chimie générale", startTime: "14:00", endTime: "15:30", location: "A-502"},
+            {day: "wednesday", id: "203-SN1-RE", title: "Mécanique", startTime: "16:00", endTime: "18:00", location: "A-476"},
+            //endregion
+            //region Thursday
+            {day: "thursday", id: "201-SN2-RE", title: "Calcul différentiel", startTime: "08:30", endTime: "10:00", location: "N-429"},
+            {day: "thursday", id: "602-UF0-MQ", title: "French", startTime: "11:30", endTime: "14:00", location: "N-429"},
+            {day: "thursday", id: "202-SN1-RE", title: "Chimie générale", startTime: "16:00", endTime: "18:00", location: "A-516"},
+            //endregion
+            //region Friday
+            {day: "friday", id: "603-101-MA", title: "English", startTime: "08:00", endTime: "10:00", location: "A-401"},
+            {day: "friday", id: "203-SN1-RE", title: "Mécanique", startTime: "10:00", endTime: "13:00", location: "B-429"},
+            //endregion
         ],
     },
 ];
 
 export default schedules;
-

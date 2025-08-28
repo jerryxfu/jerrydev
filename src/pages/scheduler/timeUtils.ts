@@ -37,15 +37,8 @@ export const getNextEvent = (events: ScheduleEvent[]): ScheduleEvent | null => {
 };
 
 // Build time slots either from explicit intervals/boundaries or from start/end with fixed slot size
-export const buildTimeSlots = ({
-    startTime = "08:00",
-    endTime = "18:00",
-    slotMinutes = 60,
-    slots
-}: {
-    startTime?: string;
-    endTime?: string;
-    slotMinutes?: number;
+export const buildTimeSlots = ({startTime = "08:00", endTime = "18:00", slotMinutes = 60, slots}: {
+    startTime?: string; endTime?: string; slotMinutes?: number;
     slots?: { time: string; label?: string; endTime?: string; endLabel?: string }[];
 }): Array<{ time: string; label?: string; endLabel?: string; startMinutes: number; endMinutes: number }> => {
     const start = timeToMinutes(startTime);
@@ -54,36 +47,42 @@ export const buildTimeSlots = ({
     if (slots && slots.length > 0) {
         const anyEnd = slots.some(s => s.endTime !== undefined);
         if (anyEnd) {
+            // Normalize: map and sort; then derive missing ends from next start safely
             const sorted = [...slots]
-                .map(s => ({ ...s, start: timeToMinutes(s.time), end: s.endTime ? timeToMinutes(s.endTime) : undefined }))
+                .map(s => ({...s, start: timeToMinutes(s.time), end: s.endTime ? timeToMinutes(s.endTime) : undefined}))
                 .filter(s => !isNaN(s.start))
                 .sort((a, b) => a.start - b.start);
+
             const result: Array<{ time: string; label?: string; endLabel?: string; startMinutes: number; endMinutes: number }> = [];
             for (let i = 0; i < sorted.length; i++) {
-                const cur = sorted[i];
-                let curEnd = cur.end;
-                if (curEnd === undefined && i + 1 < sorted.length) {
-                    curEnd = sorted[i + 1].start;
+                const startVal = sorted[i]?.start;
+                if (startVal === undefined) continue;
+                let endVal = sorted[i]?.end;
+                if (endVal === undefined && i + 1 < sorted.length) {
+                    const nextStart = sorted[i + 1]?.start;
+                    if (nextStart !== undefined) endVal = nextStart;
                 }
-                if (curEnd === undefined) continue;
-                if (curEnd <= cur.start) continue;
-                const clampedStart = Math.max(start, cur.start);
-                const clampedEnd = Math.min(end, curEnd);
+                if (endVal === undefined) continue;
+                if (endVal <= startVal) continue;
+                const clampedStart = Math.max(start, startVal);
+                const clampedEnd = Math.min(end, endVal);
                 if (clampedEnd <= clampedStart) continue;
                 const entry: { time: string; label?: string; endLabel?: string; startMinutes: number; endMinutes: number } = {
                     time: minutesToTime(clampedStart),
                     startMinutes: clampedStart,
                     endMinutes: clampedEnd
                 };
-                if (cur.label !== undefined) entry.label = cur.label;
-                if (cur.endLabel !== undefined) entry.endLabel = cur.endLabel;
+                const label = sorted[i]?.label;
+                const endLabel = sorted[i]?.endLabel as string | undefined;
+                if (label !== undefined) entry.label = label;
+                if (endLabel !== undefined) entry.endLabel = endLabel;
                 result.push(entry);
             }
             if (result.length > 0) return result;
         } else {
             // Boundary mode
             const boundaries = [...slots]
-                .map(s => ({ ...s, minutes: timeToMinutes(s.time) }))
+                .map(s => ({...s, minutes: timeToMinutes(s.time)}))
                 .filter(s => !isNaN(s.minutes))
                 .sort((a, b) => a.minutes - b.minutes)
                 .filter(s => s.minutes >= start && s.minutes <= end);
@@ -109,14 +108,9 @@ export const buildTimeSlots = ({
     const out: Array<{ time: string; startMinutes: number; endMinutes: number }> = [];
     for (let m = clampedStart; m < clampedEnd; m += slotMinutes) {
         const next = Math.min(m + slotMinutes, clampedEnd);
-        out.push({ time: minutesToTime(m), startMinutes: m, endMinutes: next });
+        out.push({time: minutesToTime(m), startMinutes: m, endMinutes: next});
     }
     return out as Array<{ time: string; label?: string; endLabel?: string; startMinutes: number; endMinutes: number }>;
-};
-
-export const findCommonBreaks = (schedule1: ScheduleEvent[], schedule2: ScheduleEvent[]): BreakPeriod[] => {
-    // Backward compatible default search between 08:00-18:00 every 30 minutes
-    return findCommonBreaksInRange(schedule1, schedule2, "08:00", "18:00", 30);
 };
 
 export const findCommonBreaksInRange = (

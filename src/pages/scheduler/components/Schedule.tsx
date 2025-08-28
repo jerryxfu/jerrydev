@@ -33,17 +33,10 @@ const Schedule: React.FC<ScheduleProps> = (
 
     const baseStartMinutes = timeToMinutes(displayStart);
     const baseEndMinutes = timeToMinutes(displayEnd);
-    const minuteHeight = 1.2; // Increased from 40/60 to 1.2px per minute (72px per hour)
+    const minuteHeight = 0.8; // Reduced from 1.2 to 0.8px per minute (48px per hour)
     const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * minuteHeight);
 
     const nextEvent = getNextEvent(schedule.events);
-
-    // Precompute hour lines at every full hour between start and end
-    const hourLines: number[] = [];
-    const firstHour = Math.ceil(baseStartMinutes / 60) * 60;
-    for (let m = firstHour; m <= baseEndMinutes; m += 60) {
-        hourLines.push(m);
-    }
 
     return (
         <div className="schedule">
@@ -67,14 +60,6 @@ const Schedule: React.FC<ScheduleProps> = (
                     className="schedule__grid"
                     style={{height: `${containerHeight}px`}}
                 >
-                    {/* Hour grid lines */}
-                    {hourLines.map((m, i) => (
-                        <div
-                            key={i}
-                            className="schedule__hour-line"
-                            style={{top: `${(m - baseStartMinutes) * minuteHeight}px`}}
-                        />
-                    ))}
 
                     {/* Break periods (for comparison mode) */}
                     {showBreaks && breakPeriods.map((breakPeriod, index) => {

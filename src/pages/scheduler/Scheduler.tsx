@@ -5,9 +5,28 @@ import {findCommonBreaksInRange, timeToMinutes, minutesToTime} from "./timeUtils
 import schedules from "./schedules";
 import "./Scheduler.scss";
 
+const DAYS_OF_WEEK = [
+    {key: "monday", label: "Monday"},
+    {key: "tuesday", label: "Tuesday"},
+    {key: "wednesday", label: "Wednesday"},
+    {key: "thursday", label: "Thursday"},
+    {key: "friday", label: "Friday"},
+    {key: "saturday", label: "Saturday"},
+    {key: "sunday", label: "Sunday"},
+];
+
 const Scheduler: React.FC = () => {
     const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(() => schedules.slice(0, 1));
     const [comparisonMode, setComparisonMode] = useState(false);
+    const [selectedDay, setSelectedDay] = useState("monday");
+
+    // Filter events by selected day
+    const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({
+        ...schedule,
+        events: schedule.events.filter(event => !event.day || event.day === selectedDay)
+    });
+
+    const filteredSchedules = selectedSchedules.map(getScheduleForDay);
 
     // Optionally, a global default display window when no per-schedule override
     const defaultStartTime = "08:00";
@@ -21,15 +40,16 @@ const Scheduler: React.FC = () => {
 
     // Calculate common breaks when in comparison mode, respecting overlapping display ranges
     const commonBreaks = (() => {
-        if (!comparisonMode || selectedSchedules.length !== 2) return [] as { startTime: string; endTime: string }[];
-        const [a, b] = selectedSchedules;
+        if (!comparisonMode || filteredSchedules.length !== 2) return [] as { startTime: string; endTime: string }[];
+        const [a, b] = filteredSchedules;
         if (!a || !b) return [];
         const aWin = getDisplayWindow(a);
         const bWin = getDisplayWindow(b);
         const start = Math.max(timeToMinutes(aWin.start), timeToMinutes(bWin.start));
         const end = Math.min(timeToMinutes(aWin.end), timeToMinutes(bWin.end));
         if (end <= start) return [];
-        return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 30);
+        // Use 15-minute steps for more precise break detection
+        return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
     })();
 
     const toggleComparisonMode = () => {
@@ -53,20 +73,20 @@ const Scheduler: React.FC = () => {
 
     return (
         <div className="scheduler">
-            <div className="scheduler_header">
-                <h1 className="scheduler_title">A schedule viewer, by Jerry</h1>
-                <div className="scheduler__controls">
-                    <button
-                        className={`scheduler__toggle ${
-                            comparisonMode ? "scheduler__toggle--active" : ""
-                        }`}
-                        onClick={toggleComparisonMode}
-                    >
-                        {comparisonMode ? "Single View" : "Compare"}
-                    </button>
-                </div>
+            {/* Mode toggle */}
+            <div className="scheduler__header">
+                <h1 className="scheduler__title">Schedule viewer</h1>
             </div>
-
+            <div>
+                <button
+                    className={`scheduler__toggle ${
+                        comparisonMode ? "scheduler__toggle--active" : ""
+                    }`}
+                    onClick={toggleComparisonMode}
+                >
+                    {comparisonMode ? "Single View" : "Compare"}
+                </button>
+            </div>
             {comparisonMode && (
                 <div className="scheduler__selector">
                     {selectedSchedules.map((selected, index) => (
@@ -89,10 +109,29 @@ const Scheduler: React.FC = () => {
                             </select>
                         </div>
                     ))}
+
+                    {/* Day Navigation */}
+                    <div className="scheduler__day-nav">
+                        <div className="scheduler__day-buttons">
+                            {DAYS_OF_WEEK.map((day) => (
+                                <button
+                                    key={day.key}
+                                    className={`scheduler__day-btn ${
+                                        selectedDay === day.key ? "scheduler__day-btn--active" : ""
+                                    }`}
+                                    onClick={() => setSelectedDay(day.key)}
+                                >
+                                    {day.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Break counter */}
                     {commonBreaks.length > 0 && (
                         <div className="scheduler__break-info">
 							<span className="scheduler__break-count">
-								{commonBreaks.length} free time
+								{commonBreaks.length} common free time
                                 {commonBreaks.length !== 1 ? "s" : ""} found
 							</span>
                         </div>
@@ -102,13 +141,12 @@ const Scheduler: React.FC = () => {
 
             <div className="scheduler__content">
                 <div className="scheduler__schedules">
-                    {selectedSchedules.map((schedule, index) => (
+                    {filteredSchedules.map((schedule, index) => (
                         <Schedule
                             key={`${schedule.id}-${index}`}
                             schedule={schedule}
-                            // Pass-through; per-schedule config applies if not provided
                             breakPeriods={commonBreaks}
-                            showBreaks={comparisonMode && index === 0}
+                            showBreaks={comparisonMode}
                         />
                     ))}
                 </div>

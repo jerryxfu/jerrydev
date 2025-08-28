@@ -33,7 +33,13 @@ const TimeColumn: React.FC<TimeColumnProps> = (
         if (s.startMinutes > cursor) {
             tiles.push({startMinutes: cursor, endMinutes: s.startMinutes, isGap: true});
         }
-        tiles.push({startMinutes: s.startMinutes, endMinutes: s.endMinutes, label: s.label, endLabel: s.endLabel});
+        const tileEntry: { startMinutes: number; endMinutes: number; label?: string; endLabel?: string; isGap?: boolean } = {
+            startMinutes: s.startMinutes,
+            endMinutes: s.endMinutes
+        };
+        if (s.label !== undefined) tileEntry.label = s.label;
+        if (s.endLabel !== undefined) tileEntry.endLabel = s.endLabel;
+        tiles.push(tileEntry);
         cursor = s.endMinutes;
     }
     if (cursor < endMin) {
