@@ -19,7 +19,7 @@ const projects: Project[] = [
         title: "MEDIVE",
         subTitle: "Medical Inference via Vector Embedding",
         image: _endPortal,
-        chipText: "🌀 Concept",
+        chipText: "🧩 MVP",
         date: new Date(),
         url: "/medive",
         description: "MEDIVE is a personal research project aiming to use vector embeddings to encode symptom and condition meaning.",
@@ -28,7 +28,7 @@ const projects: Project[] = [
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
-        chipText: "🧩 MVP",
+        chipText: "🚧 WIP",
         date: new Date(),
         url: "/supericu",
         description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
@@ -37,10 +37,19 @@ const projects: Project[] = [
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
-        chipText: "🚧 WIP",
+        chipText: "🔁 Superseded",
         date: new Date(),
         url: "/conditioner",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
+    },
+    {
+        title: "Scheduler",
+        subTitle: "A daily/weekly schedule visualizer",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        date: new Date(),
+        url: "/scheduler",
+        description: "An web app that allows users to visualize and compare daily/weekly schedules with a clean and intuitive interface.",
     },
     {
         title: "BapUtils",
@@ -90,7 +99,7 @@ const projects: Project[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
-        title: "Mizu",
+        title: "Breeze",
         subTitle: "A clean and unrestricted sticky notes workspace",
         image: _endPortal,
         chipText: "🌀 Concept",
@@ -142,13 +151,13 @@ const projects: Project[] = [
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
     },
     {
-        title: "Transient Share",
+        title: "Expedite",
         subTitle: "A tool to share files and text snippets",
         image: _endPortal,
         chipText: "🌀 Concept",
         date: new Date(),
         description: "description.",
-        url: "/transient"
+        url: "/expedite"
     },
     {
         title: "Group availability app",
