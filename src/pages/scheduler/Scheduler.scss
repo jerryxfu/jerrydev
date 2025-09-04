@@ -1,15 +1,48 @@
+/* Theming vars */
+:root {
+    --s-bg-c: #ffffff;
+    --s-text-primary: #1a1a1a;
+    --s-text-secondary: #666666;
+    --s-text-tertiary: #888888;
+    --s-border-c: #e0e0e0;
+    --s-primary-c: var(--primary-lt-c);
+    --s-success-c: #4fd1a6;
+    --s-warn-c: #ffd36e;
+    --s-danger-c: #ff8a8a;
+    --s-info-c: #7fdbff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --s-bg-c: #1a1a1a;
+        --s-text-primary: #ffffff;
+        --s-text-secondary: #a0a0a0;
+        --s-text-tertiary: #c0c0c0;
+        --s-border-c: #404040;
+        --s-primary-c: var(--primary-da-c);
+        --s-success-c: #34d399;
+        --s-warn-c: #fbbf24;
+        --s-danger-c: #f87171;
+        --s-info-c: #38bdf8;
+    }
+
+    .scheduler {
+        background: #0f0f0f;
+    }
+}
+
 .scheduler {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background: var(--background-color, #fafafa);
+    background: var(--s-bg-c);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
     overflow-y: auto;
 }
 
 .scheduler-header {
     padding: 8px 16px;
-    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    border-bottom: 1px solid var(--s-border-c);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -20,6 +53,7 @@
     font-size: 1.55rem;
     margin-bottom: 0.5rem;
     width: 100%;
+    color: var(--s-text-primary);
 }
 
 .scheduler-controls {
@@ -44,9 +78,9 @@
 
 .scheduler-toggle {
     padding: 6px 12px;
-    border: 2px solid var(--primary-color, #3b82f6);
+    border: 2px solid var(--s-primary-c);
     background: transparent;
-    color: var(--primary-color, #3b82f6);
+    color: var(--s-primary-c);
     border-radius: 4px;
     font-weight: 500;
     font-size: 12px;
@@ -56,8 +90,8 @@
 
 .scheduler-toggle:hover,
 .scheduler-toggle-active {
-    background: var(--primary-color, #3b82f6);
-    color: #ffffff;
+    background: var(--s-primary-c);
+    color: var(--s-bg-c);
 }
 
 .scheduler-selectors-inline {
@@ -75,21 +109,21 @@
 .scheduler-select-label {
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-secondary, #666666);
+    color: var(--s-text-secondary);
 }
 
 .scheduler-select {
     padding: 4px 8px;
-    border: 1px solid var(--border-color, #d1d5db);
+    border: 1px solid var(--s-border-c);
     border-radius: 3px;
-    background: var(--background-color, #ffffff);
-    color: var(--text-primary, #1a1a1a);
+    background: var(--s-bg-c);
+    color: var(--s-text-primary);
     font-size: 12px;
 }
 
 .scheduler-select:focus {
     outline: none;
-    border-color: var(--primary-color, #3b82f6);
+    border-color: var(--s-primary-c);
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
 }
 
@@ -101,9 +135,9 @@
 
 .scheduler-day-btn {
     padding: 6px 12px;
-    border: 1px solid var(--border-color, #d0d0d0);
-    background: var(--background-color, #ffffff);
-    color: var(--text-secondary, #666666);
+    border: 1px solid var(--s-border-c);
+    background: var(--s-bg-c);
+    color: var(--s-text-secondary);
     border-radius: 4px;
     font-weight: 500;
     font-size: 12px;
@@ -113,27 +147,26 @@
 }
 
 .scheduler-day-btn:hover {
-    border-color: var(--primary-color, #3b82f6);
-    color: var(--primary-color, #3b82f6);
+    border-color: var(--s-primary-c);
 }
 
 .scheduler-day-btn-active {
-    background: var(--primary-color, #3b82f6);
-    border-color: var(--primary-color, #3b82f6);
-    color: #ffffff;
+    background: var(--s-primary-c);
+    border-color: var(--s-primary-c);
+    color: var(--s-bg-c);
 }
 
 .scheduler-break-info {
     padding: 4px 8px;
     background: linear-gradient(135deg, #e8f5e8, #f0f9ff);
-    border: 1px solid var(--success-color, #10b981);
+    border: 1px solid var(--s-success-c);
     border-radius: 3px;
 }
 
 .scheduler-break-count {
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--success-color, #10b981);
+    color: var(--s-success-c);
 }
 
 .scheduler-content {
@@ -148,31 +181,6 @@
     flex: 1;
     overflow: hidden;
     min-height: 0;
-}
-
-/* Theming vars */
-:root {
-    --background-color: #ffffff;
-    --text-primary: #1a1a1a;
-    --text-secondary: #666666;
-    --border-color: #e0e0e0;
-    --primary-color: #3b82f6;
-    --success-color: #10b981;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background-color: #1a1a1a;
-        --text-primary: #ffffff;
-        --text-secondary: #a0a0a0;
-        --border-color: #404040;
-        --primary-color: #60a5fa;
-        --success-color: #34d399;
-    }
-
-    .scheduler {
-        background: #0f0f0f;
-    }
 }
 
 @media (max-width: 768px) {

@@ -31,7 +31,7 @@ const projects: Project[] = [
         chipText: "🚧 WIP",
         date: new Date(),
         url: "/supericu",
-        description: "ICU monitor is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in an ICU monitor-like interface."
+        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
     },
     {
         title: "Conditioner",
@@ -49,7 +49,7 @@ const projects: Project[] = [
         chipText: "🚧 WIP",
         date: new Date(),
         url: "/scheduler",
-        description: "An web app that allows users to visualize and compare daily/weekly schedules with a clean and intuitive interface.",
+        description: "A web app that allows users to visualize and compare daily/weekly schedules with a clean and intuitive interface.",
     },
     {
         title: "BapUtils",
@@ -58,7 +58,7 @@ const projects: Project[] = [
         chipText: "💤 Stalled",
         date: new Date(),
         url: "https://github.com/jerryxfu/BapUtils",
-        description: "BapUtils is a lightweight Hypixel Skyblock Minecraft Forge mod that provides various quality of life utilities.",
+        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities.",
         footer: "/bap"
     },
     {

@@ -69,8 +69,8 @@ const tech_stack = [
         color: "#a6edff10",
         description: "JS/TS, Vite, gsap, mui",
         iconUrl: _react,
-        score: 3,
-        chipText: "3/5",
+        score: 4,
+        chipText: "4/5",
         url: "https://react.dev/"
     },
     {name: "Sass/CSS", color: "#ffa6d210", iconUrl: _sass, score: 2, chipText: "2/5", url: "https://sass-lang.com/"},

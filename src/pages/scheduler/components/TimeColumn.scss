@@ -3,7 +3,7 @@
     flex-direction: column;
     width: 100%;
     min-width: 100%;
-    background: var(--background-color, #ffffff);
+    background: var(--s-bg-c);
     /* Border handled by parent (.schedule__time-column) */
     border-right: 0;
     position: relative;
@@ -15,7 +15,7 @@
     justify-content: space-between; /* top and bottom labels */
     align-items: flex-start;
     padding: 2px 6px;
-    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    border-bottom: 1px solid var(--s-border-c);
     box-sizing: border-box;
     background: inherit;
 }
@@ -23,7 +23,7 @@
 .time-label {
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-secondary, #666666);
+    color: var(--s-text-secondary);
     line-height: 1;
     white-space: nowrap;
 }
@@ -34,7 +34,7 @@
 
 .time-label--end {
     /* end label at bottom; slightly lighter */
-    color: var(--text-tertiary, #888888);
+    color: var(--s-text-tertiary);
 }
 
 @media (max-width: 768px) {

@@ -55,7 +55,12 @@ const Scheduler: React.FC = () => {
             setSelectedSchedules(schedules.slice(0, 1));
             setComparisonMode(false);
         } else {
-            setSelectedSchedules(schedules.slice(0, 2));
+            const jerry = schedules.find((s) => s.id === "jerry") ?? schedules[0];
+            if (!jerry) {
+                setComparisonMode(false);
+                return;
+            }
+            setSelectedSchedules([jerry, jerry]);
             setComparisonMode(true);
         }
     };
@@ -86,7 +91,7 @@ const Scheduler: React.FC = () => {
                             className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
                             onClick={toggleComparisonMode}
                             aria-pressed={comparisonMode}
-                            title={comparisonMode ? "Switch to single view" : "Compare two schedules"}
+                            title={comparisonMode ? "Single View" : "Compare"}
                         >
                             {comparisonMode ? "Single View" : "Compare"}
                         </button>

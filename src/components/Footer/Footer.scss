@@ -28,16 +28,3 @@
     height: 8px;
     width: 8px;
 }
-
-.footer_copyright {
-    padding: 0.50rem 0.75rem;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-
-    p {
-        color: var(--text-da-c);
-    }
-}

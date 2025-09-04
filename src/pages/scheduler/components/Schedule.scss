@@ -3,7 +3,7 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
-    background: var(--background-color, #ffffff);
+    background: var(--s-bg-c);
     max-height: 100vh;
 }
 
@@ -23,22 +23,22 @@
     flex-direction: column;
     width: 50px;
     min-width: 50px;
-    background: var(--background-color, #ffffff);
-    border-right: 1px solid var(--border-color, #e0e0e0);
+    background: var(--s-bg-c);
+    border-right: 1px solid var(--s-border-c);
 }
 
 .schedule__time-slot {
     display: flex;
     align-items: flex-start;
     padding: 2px 4px;
-    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    border-bottom: 1px solid var(--s-border-c);
     position: relative;
 }
 
 .schedule__time-label {
     font-size: 9px;
     font-weight: 500;
-    color: var(--text-secondary, #666666);
+    color: var(--s-text-secondary);
     line-height: 1;
     white-space: nowrap;
 }
@@ -46,7 +46,7 @@
 .schedule__grid {
     position: relative;
     flex: 1;
-    background: var(--background-color, #ffffff);
+    background: var(--s-bg-c);
 }
 
 .schedule__hour-line {
@@ -54,7 +54,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--border-color, #f0f0f0);
+    background: var(--s-border-c);
     z-index: 1;
 }
 
@@ -63,8 +63,8 @@
     left: 2px;
     right: 2px;
     background: linear-gradient(135deg, #e8f5e8, #f0f9ff);
-    border: 1px dashed var(--success-color, #10b981);
-    border-radius: 4px;
+    border: 1px dashed var(--s-success-c);
+    //border-radius: 4px;
     padding: 4px;
     margin: 1px 0;
     z-index: 2;
@@ -89,13 +89,13 @@
 .schedule-break__label {
     font-size: 10px;
     font-weight: 600;
-    color: var(--success-color, #10b981);
+    color: var(--s-success-c);
     margin-bottom: 1px;
 }
 
 .schedule-break__time {
     font-size: 8px;
-    color: var(--text-secondary, #666666);
+    color: var(--s-text-secondary);
     font-weight: 500;
 }
 

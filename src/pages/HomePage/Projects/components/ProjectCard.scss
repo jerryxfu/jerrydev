@@ -11,7 +11,8 @@
     margin: 0.9rem;
     position: relative;
     box-sizing: border-box;
-    overflow: scroll;
+    overflow: hidden;
+    overflow-y: auto;
 
     @media screen and (max-width: 768px) {
         width: 100%;

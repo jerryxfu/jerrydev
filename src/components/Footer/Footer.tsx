@@ -1,10 +1,11 @@
 import React from "react";
 import "./Footer.scss";
+import Copyright from "../Copyright.tsx";
 
 export default function Footer() {
     const links = [
         {text: "Curriculum Vitae", url: "https://cv.jerryxf.net", decorator: <></>},
-        {text: "BapUtils Hypixel Skyblock Forge 1.8.9 mod", url: "https://cv.jerryxf.net", decorator: <></>},
+        {text: "BapUtils Minecraft Hypixel Skyblock mod", url: "https://github.com/jerryxfu/BapUtils", decorator: <></>},
     ];
 
     return (
@@ -26,8 +27,8 @@ export default function Footer() {
                         </div>);
                     })}
                 </div>
-                <div className="footer_copyright" style={{backgroundColor: "var(--footer-color)", paddingTop: "0"}}>
-                    <p>Copyright © 2022-{new Date().getFullYear()} Jerry F.</p>
+                <div style={{padding: "6px 0"}}>
+                    <Copyright />
                 </div>
             </div>
         </>
