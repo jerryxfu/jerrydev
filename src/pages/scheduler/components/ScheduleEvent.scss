@@ -6,9 +6,11 @@
     padding: 8px 10px;
     margin: 1px 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--s-border-c);
     cursor: pointer;
     overflow: hidden;
     box-sizing: border-box;
+    container-type: size; // enable container queries
 
     &--current {
         border: 2px solid var(--s-success-c);
@@ -26,15 +28,23 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     justify-content: flex-start;
+
+    // row wrap if height is too small
+    @container (max-height: 48px) {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0 12px;
+    }
 }
 
 .schedule-event__title {
     font-weight: 600;
     font-size: 14px;
     line-height: 1.2;
-    margin-bottom: 4px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .schedule-event__time {

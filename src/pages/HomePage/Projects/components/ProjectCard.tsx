@@ -26,11 +26,11 @@ export interface Project {
     url?: string | undefined;
     color?: string | undefined;
     footer?: string | undefined;
-    date: Date;
+    dateDisplay: string;
 }
 
 export default function ProjectCard(props: Project) {
-    const {image, title, subTitle, description, chipText, url, color, footer, date} = props;
+    const {image, title, subTitle, description, chipText, url, color, footer, dateDisplay} = props;
 
     const isVideo = image.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/);
 
@@ -60,11 +60,11 @@ export default function ProjectCard(props: Project) {
 
             <div className="projectcard_footer">
                 <div className="projectcard_stats">
-                    <span className="stat-item">|</span>
+                    {/*<span className="stat-item"></span>*/}
                 </div>
                 <div className="projectcard_date">
                     {footer && `${footer} | `}
-                    {date.toDateString()}
+                    {dateDisplay}
                 </div>
             </div>
         </div>

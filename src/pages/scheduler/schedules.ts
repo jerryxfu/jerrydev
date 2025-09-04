@@ -1,15 +1,16 @@
 import {Schedule as ScheduleType} from "../../types/schedule";
 
 const subjectColors = {
-    biology: "#c1e1c1",    // pastel green
-    chemistry: "#ffe5b4",  // pastel peach
-    english: "#cbaacb",    // lavender
-    french: "#a8dadc",     // soft teal
-    math: "#b0e0e6",       // powder blue
-    philosophy: "#fff9c4", // soft yellow
-    physics: "#fad2e1",    // light pink
-    sport: "#ffc1c1",      // soft coral
-    default: "#e0e0e0"     // light gray
+    biology: "#c1e1c1",     // green
+    chemistry: "#ffe5b4",   // peach
+    english: "#cbaacb",     // lavender
+    french: "#a8dadc",      // teal
+    math: "#b0e0e6",        // blue
+    humanities: "#fff9c4",  // yellow
+    social: "#f9c4ff",      // lilac-pink
+    physics: "#fad2e1",     // pink
+    sport: "#ffc1c1",       // coral
+    default: "#e0e0e0"      // gray
 };
 
 
@@ -38,9 +39,9 @@ const schedules: ScheduleType[] = [
             {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", color: subjectColors.default}, // light gray for TIC
             //endregion
             //region Tuesday
-            {day: "tuesday", id: "PHI-B01", title: "Philosophie", startTime: "8:30", endTime: "10:20", color: subjectColors.philosophy},
+            {day: "tuesday", id: "PHI-B01", title: "Philosophie", startTime: "8:30", endTime: "10:20", color: subjectColors.humanities},
             {day: "tuesday", id: "CHI-B01", title: "Chimie générale", startTime: "11:30", endTime: "12:20", color: subjectColors.chemistry},
-            {day: "tuesday", id: "LIT-B01", title: "Littérature", startTime: "13:30", endTime: "15:20", color: subjectColors.english},
+            {day: "tuesday", id: "LIT-B01", title: "Littérature", startTime: "13:30", endTime: "15:20", color: subjectColors.french},
             //endregion
             //region Wednesday
             {day: "wednesday", id: "ANN-BA1", title: "English A", startTime: "8:30", endTime: "10:20", color: subjectColors.english},
@@ -49,7 +50,7 @@ const schedules: ScheduleType[] = [
             //endregion
             //region Thursday
             {day: "thursday", id: "LIT-B01", title: "Littérature", startTime: "8:30", endTime: "10:20", color: subjectColors.french},
-            {day: "thursday", id: "PHI-B01", title: "Philosophie", startTime: "13:30", endTime: "15:20", color: subjectColors.philosophy},
+            {day: "thursday", id: "PHI-B01", title: "Philosophie", startTime: "13:30", endTime: "15:20", color: subjectColors.humanities},
             {day: "thursday", id: "CHI-B01", title: "Chimie générale", startTime: "15:30", endTime: "17:20", color: subjectColors.chemistry},
             //endregion
             //region Friday
@@ -102,7 +103,7 @@ const schedules: ScheduleType[] = [
                 startTime: "10:00",
                 endTime: "11:30",
                 location: "N-429",
-                color: subjectColors.philosophy
+                color: subjectColors.humanities
             },
             {
                 day: "monday",
@@ -142,7 +143,7 @@ const schedules: ScheduleType[] = [
                 startTime: "11:00",
                 endTime: "12:30",
                 location: "N-429",
-                color: subjectColors.philosophy
+                color: subjectColors.humanities
             },
             {
                 day: "wednesday",
@@ -215,12 +216,157 @@ const schedules: ScheduleType[] = [
         ],
     },
     {
+        id: "sarah",
+        name: "Sarah",
+        timeSlots: [
+            {hour: 8, minute: 0, label: "8:00"},
+            {hour: 8, minute: 30, label: "8:30"},
+            {hour: 9, minute: 0, label: "9:00"},
+            {hour: 9, minute: 30, label: "9:30"},
+            {hour: 10, minute: 0, label: "10:00"},
+            {hour: 10, minute: 30, label: "10:30"},
+            {hour: 11, minute: 0, label: "11:00"},
+            {hour: 11, minute: 30, label: "11:30"},
+            {hour: 12, minute: 0, label: "12:00"},
+            {hour: 12, minute: 30, label: "12:30"},
+            {hour: 13, minute: 0, label: "13:00"},
+            {hour: 13, minute: 30, label: "13:30"},
+            {hour: 14, minute: 0, label: "14:00"},
+            {hour: 14, minute: 30, label: "14:30"},
+            {hour: 15, minute: 0, label: "15:00"},
+            {hour: 15, minute: 30, label: "15:30"},
+            {hour: 16, minute: 0, label: "16:00"},
+            {hour: 16, minute: 30, label: "16:30"},
+            {hour: 17, minute: 0, label: "17:00"}
+        ],
+        events: [
+            // region Monday
+            {
+                day: "monday",
+                id: "330-1N1-DW",
+                title: "Intro to Global History",
+                startTime: "14:00",
+                endTime: "16:00",
+                location: "3H.23",
+                color: subjectColors.humanities
+            },
+            {
+                day: "monday",
+                id: "602-UF0-MQ",
+                title: "French",
+                startTime: "16:00",
+                endTime: "17:30",
+                location: "4D.3",
+                color: subjectColors.french
+            },
+            // endregion
+            // region Tuesday
+            {
+                day: "tuesday",
+                id: "385-1N1-DW",
+                title: "Intro to Political Science",
+                startTime: "13:00",
+                endTime: "14:30",
+                location: "4P.22",
+                color: subjectColors.social
+            },
+            {
+                day: "tuesday",
+                id: "383-1N1-DW",
+                title: "Intro to Economics",
+                startTime: "14:30",
+                endTime: "16:00",
+                location: "3E.9",
+                color: subjectColors.social
+            },
+            {
+                day: "tuesday",
+                id: "300-1R1-DW",
+                title: "Intro to Social Science Research",
+                startTime: "16:00",
+                endTime: "17:30",
+                location: "4H.17",
+                color: subjectColors.social
+            },
+            // endregion
+            // region Wednesday
+            {
+                day: "wednesday",
+                id: "345-101-MQ",
+                title: "Knowledge: The Story of I",
+                startTime: "11:30",
+                endTime: "14:30",
+                location: "4E.13",
+                color: subjectColors.humanities
+            },
+            {
+                day: "wednesday",
+                id: "602-UFO-MQ",
+                title: "French",
+                startTime: "16:00",
+                endTime: "17:30",
+                location: "4D.3",
+                color: subjectColors.french
+            },
+            // endregion
+            // region Thursday
+            {
+                day: "thursday",
+                id: "330-1N1-DW",
+                title: "Intro to Global History",
+                startTime: "10:00",
+                endTime: "12:00",
+                location: "3H.23",
+                color: subjectColors.humanities
+            },
+            {
+                day: "thursday",
+                id: "385-1N1-DW",
+                title: "Intro to Political Science",
+                startTime: "13:00",
+                endTime: "14:30",
+                location: "4P.22",
+                color: subjectColors.social
+            },
+            {
+                day: "thursday",
+                id: "383-1N1-DW",
+                title: "Intro to Economics",
+                startTime: "14:30",
+                endTime: "16:00",
+                location: "3E.9",
+                color: subjectColors.social
+            },
+            {
+                day: "thursday",
+                id: "300-1R1-DW",
+                title: "Intro to Social Science Research",
+                startTime: "16:00",
+                endTime: "17:30",
+                location: "4H.17",
+                color: subjectColors.social
+            },
+            // endregion
+            // region Friday
+            {
+                day: "friday",
+                id: "603-101-MQ",
+                title: "English: The Story of I",
+                startTime: "10:30",
+                endTime: "14:30",
+                location: "4E.13",
+                color: subjectColors.english
+            },
+            // endregion
+        ]
+    },
+    {
         id: "test",
         name: "Test Schedule",
         slotMinutes: 30,
         events: [
             {id: "event1", title: "Event 1", startTime: "08:00", endTime: "09:30", color: subjectColors.sport},
-            {id: "event2", title: "Event 2", startTime: "11:00", endTime: "12:00", color: subjectColors.philosophy},
+            {id: "event2", title: "Event 2", startTime: "11:00", endTime: "12:00", color: subjectColors.humanities},
             {id: "event3", title: "Event 3", startTime: "13:30", endTime: "15:00", color: subjectColors.biology},
             {id: "event4", title: "Event 4", startTime: "16:00", endTime: "17:30", color: subjectColors.math},
         ]
