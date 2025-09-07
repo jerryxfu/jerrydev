@@ -57,7 +57,7 @@ class AlertSound {
             const idx = i % pattern.length;
             const p = pattern[idx];
             if (!p) return;
-            this.playTone(p.durMs / 1000, p.vol);
+            this.playTone(p.durMs / 1000, p.vol, p.frequency);
             i = (i + 1) % pattern.length;
             this.loopingTimer = window.setTimeout(tick, p.durMs + (p.gapMs ?? 0)); // default gap 0
         };
@@ -104,7 +104,8 @@ class AlertSound {
         };
 
         // Fundamental (~950 Hz) as triangle
-        makeOsc(frequency, 1.0, "triangle");
+        makeOsc(frequency, 1.0, "sine");
+        makeOsc(frequency, 0.5, "triangle");
         // 3x fundamental
         makeOsc(frequency * 3, 0.6, "sine");
         // 4x fundamental
@@ -112,9 +113,9 @@ class AlertSound {
 
         // Envelope: very fast attack, slightly longer hold, stronger presence
         gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(volume, start + 0.005); // attack
-        gain.gain.setValueAtTime(volume, start + 0.1); // hold
-        gain.gain.exponentialRampToValueAtTime(0.005, start + duration); // decay
+        gain.gain.linearRampToValueAtTime(volume, start + 0.01); // attack
+        gain.gain.setValueAtTime(volume, start + 0.06); // hold
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration); // decay
     }
 
     private getVolume(level: AlarmLevel): number {
@@ -135,27 +136,29 @@ class AlertSound {
         const vol = this.getVolume(level);
         switch (level) {
             case "advisory":
-                return [
-                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2}
-                ];
+                return [{durMs: 1000, gapMs: 0, vol, frequency: 954 / 2}];
             case "warning":
-                return [
-                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
-                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
-                    {durMs: 1000, gapMs: 0, vol, frequency: 954 / 2},
-                ];
+                return []; // use looping
             case "critical":
-                // For critical, we rely on startLooping, keep empty to avoid double beeps
-                return [];
+                return []; // use looping
             default:
                 return [{durMs: 1000, vol}];
         }
     }
 
     // Looping patterns for continuous alarms
-    private getLoopPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number }> {
+    private getLoopPattern(level: AlarmLevel): Array<{ durMs: number; gapMs?: number; vol: number, frequency?: number }> {
         const vol = this.getVolume(level);
-        return [{durMs: 1000, gapMs: 0, vol}];
+        switch (level) {
+            case "advisory":
+                return [{durMs: 1000, gapMs: 4000, vol, frequency: 954 / 2}];
+            case "warning":
+                return [{durMs: 1000, gapMs: 1000, vol, frequency: 954 / 2}];
+            case "critical":
+                return [{durMs: 1000, gapMs: 0, vol}];
+            default:
+                return [{durMs: 1000, gapMs: 0, vol}];
+        }
     }
 }
 

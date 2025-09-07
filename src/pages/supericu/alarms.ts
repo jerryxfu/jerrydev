@@ -21,11 +21,11 @@ export const defaultCounters: AlarmCounters = {
     bpHigh: 0,
 };
 
+// thresholds and grace periods
 export const thresholds = {
-    // Critical thresholds + advisory bands
-    hr: {high: 130, low: 50, warnHigh: 120, warnLow: 55, persistence: 3},
-    spo2: {low: 89, warn: 92, persistence: 3},
-    bp: {lowSys: 80, lowDia: 50, highSys: 160, highDia: 100, persistence: 3},
+    hr: {high: 130, low: 50, warnHigh: 120, warnLow: 55, persistence: 2},
+    spo2: {low: 89, warn: 92, persistence: 2},
+    bp: {lowSys: 80, lowDia: 50, highSys: 160, highDia: 100, persistence: 2},
 } as const;
 
 // Coerce a vital that may be "-?-" to a number (NaN if unavailable)
@@ -96,4 +96,22 @@ export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: Alert
 
 function mkAlert(level: AlarmLevel, time: string, msg: string): AlertItem {
     return {id: randomId(), level, time, msg};
+}
+
+export function computeActiveAlarmLevels(counters: AlarmCounters): { hr: AlarmLevel | null; spo2: AlarmLevel | null; bp: AlarmLevel | null } {
+    // Critical conditions (must meet persistence count)
+    const hrCritical = counters.hrHigh >= thresholds.hr.persistence || counters.hrLow >= thresholds.hr.persistence;
+    const spo2Critical = counters.spo2Low >= thresholds.spo2.persistence;
+    const bpCritical = counters.bpLow >= thresholds.bp.persistence;
+
+    // Warning conditions (only if not already critical)
+    const hrWarning = !hrCritical && counters.hrWarn > 0; // hrWarn is a latch while in advisory band
+    const spo2Warning = !spo2Critical && counters.spo2Warn > 0; // spo2Warn latch
+    const bpWarning = !bpCritical && counters.bpHigh >= thresholds.bp.persistence; // hypertension persistence
+
+    return {
+        hr: hrCritical ? "critical" : (hrWarning ? "warning" : null),
+        spo2: spo2Critical ? "critical" : (spo2Warning ? "warning" : null),
+        bp: bpCritical ? "critical" : (bpWarning ? "warning" : null),
+    };
 }

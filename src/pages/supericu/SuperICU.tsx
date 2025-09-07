@@ -3,7 +3,7 @@ import "./SuperICU.scss";
 import type {AlertItem, Vitals} from "./sim";
 import {useDemoVitals, useWaveTemplates} from "./sim";
 import type {AlarmCounters} from "./alarms";
-import {checkAlarms, defaultCounters, thresholds} from "./alarms";
+import {checkAlarms, defaultCounters, computeActiveAlarmLevels} from "./alarms";
 import {alertSound} from "./sound";
 import type {SweepRendererOptions} from "./useSweepRenderer";
 import {CsvSource, TemplateSource, useSweepRenderer} from "./useSweepRenderer";
@@ -12,7 +12,6 @@ import {CsvSource, TemplateSource, useSweepRenderer} from "./useSweepRenderer";
 import {
     randomId,
     mapLeadName,
-    inferVitalFromMsg,
     colorForVital,
     unitForVital,
     parseCsv,
@@ -91,7 +90,7 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
         const mode = flashMode;
         if (mode === "auto") {
             if (level === "critical") return `flash-red-block-critical`;
-            if (level === "warning") return `flash-yellow-block-warning`;
+            if (level === "warning") return `flash-yellow-block-critical`;
             return `flash-invert-advisory`;
         }
         return `flash-${mode}-${level}`;
@@ -318,75 +317,39 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
 
-            // Announce alerts (warning/advisory play once)
+            // append new alerts
             if (evald.alerts.length) {
                 if (soundOn && !silenced) {
                     for (const a of evald.alerts) {
                         if (a.level === "advisory") alertSound.playAlert("advisory");
-                        if (a.level === "warning") alertSound.playAlert("warning");
                     }
                 }
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
             }
 
-            // Persistent critical states
-            const c = countersRef.current;
-            const active = {
-                hrHigh: c.hrHigh >= thresholds.hr.persistence,
-                hrLow: c.hrLow >= thresholds.hr.persistence,
-                spo2Low: c.spo2Low >= thresholds.spo2.persistence,
-                bpLow: c.bpLow >= thresholds.bp.persistence,
-            } as const;
-            const hrLevel: "critical" | null = (active.hrHigh || active.hrLow) ? "critical" : null;
-            const spo2Level: "critical" | null = active.spo2Low ? "critical" : null;
-            const bpLevel: "critical" | null = active.bpLow ? "critical" : null;
-
-            setVitalAlarmLevel(prev => ({
-                hr: prev.hr === "warning" ? "warning" : hrLevel,
-                spo2: prev.spo2 === "warning" ? "warning" : spo2Level,
+            // Compute continuous active levels, critical > warning
+            const activeLevels = computeActiveAlarmLevels(countersRef.current);
+            setVitalAlarmLevel({
+                hr: activeLevels.hr,
+                spo2: activeLevels.spo2,
                 rr: null,
-                bp: prev.bp === "warning" ? "warning" : bpLevel,
-            }));
+                bp: activeLevels.bp,
+            });
 
-            // One-shot warning flash
-            if (evald.alerts.length) {
-                for (const a of evald.alerts) {
-                    if (a.level !== "warning") continue;
-                    const vital = inferVitalFromMsg(a.msg);
-                    if (!vital) continue;
-                    setVitalAlarmLevel(prev => {
-                        if (vital === "bp") {
-                            return prev.bp === "critical" ? prev : {...prev, bp: "warning"};
-                        } else {
-                            const cur = prev[vital];
-                            return cur === "critical" ? prev : ({...prev, [vital]: "warning"} as typeof prev);
-                        }
-                    });
-                    window.setTimeout(() => {
-                        setVitalAlarmLevel(prev => {
-                            if (vital === "bp") {
-                                return prev.bp === "warning" ? {...prev, bp: null} : prev;
-                            } else {
-                                return prev[vital] === "warning" ? ({...prev, [vital]: null} as typeof prev) : prev;
-                            }
-                        });
-                    }, 3200);
-                }
-            }
+            // Determine highest active level for looping sound
+            const highestLevel = (activeLevels.hr === "critical" || activeLevels.spo2 === "critical" || activeLevels.bp === "critical")
+                ? "critical" : ((activeLevels.hr === "warning" || activeLevels.spo2 === "warning" || activeLevels.bp === "warning") ? "warning" : null);
 
-            // Looping tone control (critical only)
-            const anyCritical = (hrLevel === "critical" || spo2Level === "critical" || bpLevel === "critical");
-            if (!anyCritical && silenced) setSilenced(false);
-            if (soundOn && anyCritical && !silenced) {
-                if (!loopingRef.current.active || loopingRef.current.level !== "critical") {
-                    alertSound.startLooping("critical");
-                    loopingRef.current = {active: true, level: "critical"};
+            if (!highestLevel && silenced) setSilenced(false); // auto-unsilence when cleared
+
+            if (soundOn && highestLevel && !silenced) {
+                if (!loopingRef.current.active || loopingRef.current.level !== highestLevel) {
+                    alertSound.startLooping(highestLevel);
+                    loopingRef.current = {active: true, level: highestLevel};
                 }
-            } else {
-                if (loopingRef.current.active) {
-                    alertSound.stopLooping();
-                    loopingRef.current = {active: false, level: null};
-                }
+            } else if (loopingRef.current.active) {
+                alertSound.stopLooping();
+                loopingRef.current = {active: false, level: null};
             }
         }, 1000);
         return () => clearInterval(check);
@@ -477,7 +440,7 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
             <div className="super-icu-core">
                 {/* TOP BAR */}
                 <div className="top-bar">
-                    SuperICU DEMO
+                    SuperICU 🔮
                     <span className="status-pill">{timeStr}</span>
                     <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
                     <span className="status-pill" style={{cursor: "pointer"}}

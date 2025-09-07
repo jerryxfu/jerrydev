@@ -21,7 +21,7 @@ export function mapLeadName(raw: string, palette: PaletteLike): { label: string;
     const lc = norm.toLowerCase().replace(/[^a-z0-9]/g, "");
     if (lc.includes("pleth") || lc.includes("spo2") || lc.includes("spo")) return {label: "Pleth", color: palette.pleth, className: "pleth"};
     if (lc.includes("resp") || lc.includes("respiration") || lc.includes("rr")) return {label: "RESP", color: palette.resp, className: "resp"};
-    if (lc === "i" || lc === "ii" || lc === "iii" || lc.startsWith("lead") || lc.includes("ecg")) {
+    if (lc === "i" || lc === "ii" || lc === "iii" || lc === "iv" || lc === "v" || lc.startsWith("lead") || lc.includes("ecg")) {
         const upper = norm.toUpperCase();
         return {label: upper.startsWith("LEAD") ? upper : `Lead ${upper}`, color: palette.ecg, className: "ecg"};
     }
