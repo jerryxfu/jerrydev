@@ -2,7 +2,6 @@ import React from "react";
 import "./Projects.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import ProjectCard, {Project} from "./components/ProjectCard.tsx";
-import _reefscape from "../../../assets/projects/reefscape.png";
 import _llmvsllm from "../../../assets/projects/llmvsllm.png";
 import _doublestartyre from "../../../assets/projects/doublestartyre.png";
 import _baputils from "../../../assets/projects/baputils.png";
@@ -16,6 +15,7 @@ import _supericu from "../../../assets/projects/supericu.png";
 import _scheduler from "../../../assets/projects/scheduler.png";
 import _scorekeeper from "../../../assets/projects/scorekeeper.png";
 import _autoscout from "../../../assets/projects/autoscout.png";
+import _medive from "../../../assets/projects/medive.png";
 
 function formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -36,7 +36,7 @@ const projects: Project[] = [
     {
         title: "MEDIVE",
         subTitle: "Medical Inference via Vector Embedding",
-        image: _endPortal,
+        image: _medive,
         chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-08-14")),
         url: "/medive",
@@ -120,7 +120,7 @@ const projects: Project[] = [
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
         chipText: "🔒 Internal",
-        dateDisplay: formatDate(new Date("2024-05-09")),
+        dateDisplay: formatDate(new Date("2025-05-09")),
         url: "https://mail.rseqmontreal.com/fr/evenements-speciaux/competitions-de-robotique/",
         description: "A real-time score tracking/broadcasting app for our off-season competitions using WebSocket.",
         footer: "For RSEQ Montreal"

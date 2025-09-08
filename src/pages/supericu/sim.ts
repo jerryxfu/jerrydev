@@ -19,12 +19,12 @@ export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartia
 export const DEFAULT_DEMO_SETTINGS: DemoSettings = {
     tickMs: 1000,
     warmupMs: 1000,
-    hr: {init: Math.round(Math.random() * 100 + 60), min: 40, max: 200, step: 3},
-    rr: {init: 16, min: 10, max: 28, step: 1.11},
-    spo2: {init: Math.round(Math.random() * 15 + 85), min: 85, max: 100, step: 1.25},
+    hr: {init: Math.round(Math.random() * 100 + 60), min: 0, max: 360, step: 3},
+    rr: {init: 16, min: 0, max: 99, step: 1.11},
+    spo2: {init: Math.round(Math.random() * 8 + 92), min: 0, max: 100, step: 1.25},
     bp: {
-        sys: {init: 115, min: 75, max: 185, step: 1.5},
-        dia: {init: 76, min: 40, max: 110, step: 1.25},
+        sys: {init: 110, min: 50, max: 210, step: 1.5},
+        dia: {init: 76, min: 35, max: 120, step: 1.25},
     },
 };
 
@@ -177,7 +177,7 @@ export function modifyDemoSample(channel: "ecg" | "pleth" | "resp", raw: number,
         const gainPerBpm = -0.0025;
         const gain = clamp(gainBase * (1 + (hr - 60) * gainPerBpm), 0.7, 1.15);
         const wander = 0.02 * Math.sin(2 * Math.PI * 0.12 * tSec);
-        const noise = (Math.random() - 0.5) * 0.01;
+        const noise = (Math.random() - 0.5) * 0.05;
         return raw * gain + wander + noise;
     }
     if (channel === "pleth") {

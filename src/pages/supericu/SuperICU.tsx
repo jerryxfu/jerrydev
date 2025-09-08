@@ -107,11 +107,11 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     };
 
     // Commit numeric input on Enter
-    const commitOnEnter = (e: React.KeyboardEvent<HTMLInputElement>, min: number, max: number, apply: (val: number) => void) => {
+    const commitOnEnter = (e: React.KeyboardEvent<HTMLInputElement>, apply: (val: number) => void) => {
         if (e.key !== "Enter") return;
         const val = parseInt((e.currentTarget.value || "").trim(), 10);
-        if (Number.isFinite(val) && val >= min && val <= max) {
-            apply(val);
+        if (Number.isFinite(val) && Math.abs(val) < 10000) {
+            apply(Math.abs(val));
             e.currentTarget.value = "";
         }
     };
@@ -537,16 +537,16 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
                             <div className="label" style={{color: palette.defaultText}}>Set Values</div>
                             <div className="value"
                                  style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14}}>
-                                <input type="number" placeholder="HR" min={20} max={240} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, 20, 240, val => correctVital({hr: val}))} />
+                                <input type="number" placeholder="HR" min={0} max={360} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({hr: val}))} />
                                 <input type="number" placeholder="SpO2" min={0} max={100} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, 0, 100, val => correctVital({spo2: val}))} />
-                                <input type="number" placeholder="RR" min={0} max={60} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, 0, 60, val => correctVital({rr: val}))} />
-                                <input type="number" placeholder="SYS" min={40} max={300} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, 40, 300, val => correctVital({bpSys: val}))} />
-                                <input type="number" placeholder="DIA" min={20} max={200} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, 20, 200, val => correctVital({bpDia: val}))} />
+                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({spo2: val}))} />
+                                <input type="number" placeholder="RR" min={0} max={99} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({rr: val}))} />
+                                <input type="number" placeholder="SYS" min={50} max={210} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpSys: val}))} />
+                                <input type="number" placeholder="DIA" min={35} max={120} style={inputStyle}
+                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpDia: val}))} />
                             </div>
                         </div>)}
 

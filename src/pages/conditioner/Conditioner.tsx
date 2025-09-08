@@ -223,15 +223,15 @@ export default function Conditioner() {
         <div className="container">
             <h2>Shortcuts</h2>
 
-            <a href="snapchat://">Open Snapchat</a>
-            <a href="snapchat://chat/jerryxfu">Snapchat to Jerry</a>
-            <a href="instagram://">Open Instagram</a>
-            <a href="instagram://direct_v2">Open Instagram DMs</a>
+            {/*<a href="snapchat://">Open Snapchat</a>*/}
+            {/*<a href="snapchat://chat/jerryxfu">Snapchat to Jerry</a>*/}
+            {/*<a href="instagram://">Open Instagram</a>*/}
+            {/*<a href="instagram://direct_v2">Open Instagram DMs</a>*/}
 
-            *Dialing will usually not automatically call
-            <a href="tel:14382258853" className="text-underline">Dial Jerry</a>
-            {/*<a href="tel:911">Dial 9-1-1</a>*/}
-            <a className="text-underline">Dial 9-1-1 (disabled during development)</a>
+            {/**Dialing will usually not automatically call*/}
+            {/*<a href="tel:14382258853" className="text-underline">Dial Jerry</a>*/}
+            {/*/!*<a href="tel:911">Dial 9-1-1</a>*!/*/}
+            {/*<a className="text-underline">Dial 9-1-1 (disabled during development)</a>*/}
         </div>
     </div>);
 }
