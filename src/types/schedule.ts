@@ -11,7 +11,7 @@ export interface ScheduleEvent {
 export interface TimeSlot {
     hour: number;
     minute: number;
-    label: string;
+    label?: string;
     endHour?: number;
     endMinute?: number;
     endLabel?: string;

@@ -4,7 +4,6 @@
     right: 2px;
     //border-radius: 4px;
     padding: 8px 10px;
-    margin: 1px 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--s-border-c);
     cursor: pointer;
@@ -34,6 +33,7 @@
     // row wrap if height is too small
     @container (max-height: 48px) {
         flex-direction: row;
+        align-items: center;
         flex-wrap: wrap;
         gap: 0 12px;
     }
@@ -52,12 +52,20 @@
     opacity: 0.9;
     font-weight: 500;
     margin-bottom: 2px;
+
+    @container (max-height: 48px) {
+        margin-bottom: 0;
+    }
 }
 
 .schedule-event__location {
     font-size: 11px;
     opacity: 0.8;
     margin-top: auto;
+
+    @container (max-height: 48px) {
+        margin-top: 0;
+    }
 }
 
 @keyframes pulse-current {

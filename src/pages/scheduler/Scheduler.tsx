@@ -18,7 +18,17 @@ const DAYS_OF_WEEK = [
 const Scheduler: React.FC = () => {
     const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(() => schedules.slice(0, 1));
     const [comparisonMode, setComparisonMode] = useState(false);
-    const [selectedDay, setSelectedDay] = useState("monday");
+    const getInitialDay = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        let dayIndex = now.getDay();
+        if (hour >= 18) {
+            dayIndex = (dayIndex + 1) % 7;
+        }
+        return days[dayIndex];
+    };
+    const [selectedDay, setSelectedDay] = useState(getInitialDay());
 
     // Filter events by selected day
     const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({

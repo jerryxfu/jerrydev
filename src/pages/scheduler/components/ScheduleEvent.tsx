@@ -17,6 +17,15 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
     const endMinutes = timeToMinutes(event.endTime);
     const duration = Math.max(0, endMinutes - startMinutes);
 
+    // Format duration as Hh Mm or just Hh / Mm
+    const durationLabel = (() => {
+        const h = Math.floor(duration / 60);
+        const m = duration % 60;
+        if (h && m) return `${h}h${m}m`;
+        if (h) return `${h}h`;
+        return `${m}m`;
+    })();
+
     const offsetFromStart = Math.max(0, startMinutes - baseStartMinutes);
     const top = offsetFromStart * minuteHeight;
     const height = Math.max(2, duration * minuteHeight); // enforce minimum height for visibility
@@ -39,7 +48,7 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
             <div className="schedule-event__content">
                 <div className="schedule-event__title">{event.title}</div>
                 <div className="schedule-event__time">
-                    {event.startTime}-{event.endTime}
+                    {event.startTime}-{event.endTime} ({durationLabel})
                 </div>
                 {event.location && (
                     <div className="schedule-event__location">{event.location}</div>

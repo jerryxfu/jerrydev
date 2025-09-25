@@ -47,18 +47,18 @@ const TimeColumn: React.FC<TimeColumnProps> = (
     }
 
     return (
-        <div className="time-column">
+        <div className="time_column">
             {tiles.map((tile, idx) => {
                 const height = (tile.endMinutes - tile.startMinutes) * minuteHeight;
                 if (height <= 0) return null;
                 return (
-                    <div key={`${tile.startMinutes}-${idx}`} className={`time-slot${tile.isGap ? " time-slot--gap" : ""}`}
+                    <div key={`${tile.startMinutes}-${idx}`} className={`time_slot${tile.isGap ? " time_slot-gap" : ""}`}
                          style={{height: `${height}px`}}>
                         {!tile.isGap && tile.label && (
-                            <span className="time-label time-label--start">{tile.label}</span>
+                            <span className="time_label time_label-start">{tile.label}</span>
                         )}
                         {!tile.isGap && tile.endLabel && (
-                            <span className="time-label time-label--end">{tile.endLabel}</span>
+                            <span className="time_label time_label-end">{tile.endLabel}</span>
                         )}
                     </div>
                 );

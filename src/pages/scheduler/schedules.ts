@@ -18,45 +18,139 @@ const schedules: ScheduleType[] = [
     {
         id: "jerry",
         name: "Jerry",
-        // startTime:"8:30",
         timeSlots: [
-            {hour: 8, minute: 30, endHour: 9, endMinute: 20, label: "08:30", endLabel: "09:20"},
-            {hour: 9, minute: 30, endHour: 10, endMinute: 20, label: "09:30", endLabel: "10:20"},
-            {hour: 10, minute: 30, endHour: 11, endMinute: 20, label: "10:30", endLabel: "11:20"},
-            {hour: 11, minute: 30, endHour: 12, endMinute: 20, label: "11:30", endLabel: "12:20"},
-            {hour: 12, minute: 30, endHour: 13, endMinute: 20, label: "12:30", endLabel: "13:20"},
-            {hour: 13, minute: 30, endHour: 14, endMinute: 20, label: "13:30", endLabel: "14:20"},
-            {hour: 14, minute: 30, endHour: 15, endMinute: 20, label: "14:30", endLabel: "15:20"},
-            {hour: 15, minute: 30, endHour: 16, endMinute: 20, label: "15:30", endLabel: "16:20"},
-            {hour: 16, minute: 30, endHour: 17, endMinute: 20, label: "16:30", endLabel: "17:20"},
-
+            {hour: 8, minute: 30, endHour: 9, endMinute: 20},
+            {hour: 9, minute: 30, endHour: 10, endMinute: 20},
+            {hour: 10, minute: 30, endHour: 11, endMinute: 20},
+            {hour: 11, minute: 30, endHour: 12, endMinute: 20},
+            {hour: 12, minute: 30, endHour: 13, endMinute: 20},
+            {hour: 13, minute: 30, endHour: 14, endMinute: 20},
+            {hour: 14, minute: 30, endHour: 15, endMinute: 20},
+            {hour: 15, minute: 30, endHour: 16, endMinute: 20},
+            {hour: 16, minute: 30, endHour: 17, endMinute: 20},
         ],
         events: [
             //region Monday
-            {day: "monday", id: "CHI-B01", title: "Chimie générale", startTime: "8:30", endTime: "10:20", color: subjectColors.chemistry},
-            {day: "monday", id: "PHY-BP1", title: "Mécanique", startTime: "10:30", endTime: "12:20", color: subjectColors.physics},
-            {day: "monday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "13:30", endTime: "15:20", color: subjectColors.math},
-            {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", color: subjectColors.default}, // light gray for TIC
+            {
+                day: "monday",
+                id: "CHI-B01",
+                title: "Chimie générale",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G2-75",
+                color: subjectColors.chemistry
+            },
+            {day: "monday", id: "PHY-BP1", title: "Mécanique", startTime: "10:30", endTime: "12:20", location: "G2-58", color: subjectColors.physics},
+            {
+                day: "monday",
+                id: "MAT-BP1",
+                title: "Fonctions et calcul",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G1-75",
+                color: subjectColors.math
+            },
+            {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", location: "A2-24", color: subjectColors.default}, // light gray for TIC
             //endregion
             //region Tuesday
-            {day: "tuesday", id: "PHI-B01", title: "Philosophie", startTime: "8:30", endTime: "10:20", color: subjectColors.humanities},
-            {day: "tuesday", id: "CHI-B01", title: "Chimie générale", startTime: "11:30", endTime: "12:20", color: subjectColors.chemistry},
-            {day: "tuesday", id: "LIT-B01", title: "Littérature", startTime: "13:30", endTime: "15:20", color: subjectColors.french},
+            {
+                day: "tuesday",
+                id: "PHI-B01",
+                title: "Philosophie",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "D3-06",
+                color: subjectColors.humanities
+            },
+            {
+                day: "tuesday",
+                id: "CHI-B01",
+                title: "Chimie générale",
+                startTime: "11:30",
+                endTime: "12:20",
+                location: "G1-76",
+                color: subjectColors.chemistry
+            },
+            {
+                day: "tuesday",
+                id: "LIT-B01",
+                title: "Littérature",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "D3-36",
+                color: subjectColors.french
+            },
             //endregion
             //region Wednesday
-            {day: "wednesday", id: "ANN-BA1", title: "English A", startTime: "8:30", endTime: "10:20", color: subjectColors.english},
-            {day: "wednesday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "10:30", endTime: "12:20", color: subjectColors.math},
-            {day: "wednesday", id: "PHY-BP1", title: "Mécanique", startTime: "15:30", endTime: "17:20", color: subjectColors.physics},
+            {
+                day: "wednesday",
+                id: "ANN-BA1",
+                title: "English A",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G1-114",
+                color: subjectColors.english
+            },
+            {
+                day: "wednesday",
+                id: "MAT-BP1",
+                title: "Fonctions et calcul",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "A2-25",
+                color: subjectColors.math
+            },
+            {
+                day: "wednesday",
+                id: "PHY-BP1",
+                title: "Mécanique",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G2-59",
+                color: subjectColors.physics
+            },
             //endregion
             //region Thursday
-            {day: "thursday", id: "LIT-B01", title: "Littérature", startTime: "8:30", endTime: "10:20", color: subjectColors.french},
-            {day: "thursday", id: "PHI-B01", title: "Philosophie", startTime: "13:30", endTime: "15:20", color: subjectColors.humanities},
-            {day: "thursday", id: "CHI-B01", title: "Chimie générale", startTime: "15:30", endTime: "17:20", color: subjectColors.chemistry},
+            {
+                day: "thursday",
+                id: "LIT-B01",
+                title: "Littérature",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "D3-36",
+                color: subjectColors.french
+            },
+            {
+                day: "thursday",
+                id: "PHI-B01",
+                title: "Philosophie",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "D3-06",
+                color: subjectColors.humanities
+            },
+            {
+                day: "thursday",
+                id: "CHI-B01",
+                title: "Chimie générale",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G1-76",
+                color: subjectColors.chemistry
+            },
             //endregion
             //region Friday
-            {day: "friday", id: "ANN-BA1", title: "English A", startTime: "11:30", endTime: "12:20", color: subjectColors.english},
-            {day: "friday", id: "MAT-BP1", title: "Fonctions et calcul", startTime: "13:30", endTime: "14:20", color: subjectColors.math},
-            {day: "friday", id: "PHY-BP1", title: "Mécanique", startTime: "14:30", endTime: "15:20", color: subjectColors.physics},
+            {day: "friday", id: "ANN-BA1", title: "English A", startTime: "11:30", endTime: "12:20", location: "G1-65", color: subjectColors.english},
+            {
+                day: "friday",
+                id: "MAT-BP1",
+                title: "Fonctions et calcul",
+                startTime: "13:30",
+                endTime: "14:20",
+                location: "G1-62",
+                color: subjectColors.math
+            },
+            {day: "friday", id: "PHY-BP1", title: "Mécanique", startTime: "14:30", endTime: "15:20", location: "G2-58", color: subjectColors.physics},
             //endregion
         ],
     },
@@ -64,26 +158,26 @@ const schedules: ScheduleType[] = [
         id: "iris",
         name: "Iris",
         timeSlots: [
-            {hour: 8, minute: 0, label: "8:00"},
-            {hour: 8, minute: 30, label: "8:30"},
-            {hour: 9, minute: 0, label: "9:00"},
-            {hour: 9, minute: 30, label: "9:30"},
-            {hour: 10, minute: 0, label: "10:00"},
-            {hour: 10, minute: 30, label: "10:30"},
-            {hour: 11, minute: 0, label: "11:00"},
-            {hour: 11, minute: 30, label: "11:30"},
-            {hour: 12, minute: 0, label: "12:00"},
-            {hour: 12, minute: 30, label: "12:30"},
-            {hour: 13, minute: 0, label: "13:00"},
-            {hour: 13, minute: 30, label: "13:30"},
-            {hour: 14, minute: 0, label: "14:00"},
-            {hour: 14, minute: 30, label: "14:30"},
-            {hour: 15, minute: 0, label: "15:00"},
-            {hour: 15, minute: 30, label: "15:30"},
-            {hour: 16, minute: 0, label: "16:00"},
-            {hour: 16, minute: 30, label: "16:30"},
-            {hour: 17, minute: 0, label: "17:00"},
-            {hour: 17, minute: 30, label: "17:30"},
+            {hour: 8, minute: 0, endHour: 8, endMinute: 30},
+            {hour: 8, minute: 30, endHour: 9, endMinute: 0},
+            {hour: 9, minute: 0, endHour: 9, endMinute: 30},
+            {hour: 9, minute: 30, endHour: 10, endMinute: 0},
+            {hour: 10, minute: 0, endHour: 10, endMinute: 30},
+            {hour: 10, minute: 30, endHour: 11, endMinute: 0},
+            {hour: 11, minute: 0, endHour: 11, endMinute: 30},
+            {hour: 11, minute: 30, endHour: 12, endMinute: 0},
+            {hour: 12, minute: 0, endHour: 12, endMinute: 30},
+            {hour: 12, minute: 30, endHour: 13, endMinute: 0},
+            {hour: 13, minute: 0, endHour: 13, endMinute: 30},
+            {hour: 13, minute: 30, endHour: 14, endMinute: 0},
+            {hour: 14, minute: 0, endHour: 14, endMinute: 30},
+            {hour: 14, minute: 30, endHour: 15, endMinute: 0},
+            {hour: 15, minute: 0, endHour: 15, endMinute: 30},
+            {hour: 15, minute: 30, endHour: 16, endMinute: 0},
+            {hour: 16, minute: 0, endHour: 16, endMinute: 30},
+            {hour: 16, minute: 30, endHour: 17, endMinute: 0},
+            {hour: 17, minute: 0, endHour: 17, endMinute: 30},
+            {hour: 17, minute: 30, endHour: 18, endMinute: 0},
         ],
         events: [
             //region Monday
@@ -219,25 +313,26 @@ const schedules: ScheduleType[] = [
         id: "sarah",
         name: "Sarah",
         timeSlots: [
-            {hour: 8, minute: 0, label: "8:00"},
-            {hour: 8, minute: 30, label: "8:30"},
-            {hour: 9, minute: 0, label: "9:00"},
-            {hour: 9, minute: 30, label: "9:30"},
-            {hour: 10, minute: 0, label: "10:00"},
-            {hour: 10, minute: 30, label: "10:30"},
-            {hour: 11, minute: 0, label: "11:00"},
-            {hour: 11, minute: 30, label: "11:30"},
-            {hour: 12, minute: 0, label: "12:00"},
-            {hour: 12, minute: 30, label: "12:30"},
-            {hour: 13, minute: 0, label: "13:00"},
-            {hour: 13, minute: 30, label: "13:30"},
-            {hour: 14, minute: 0, label: "14:00"},
-            {hour: 14, minute: 30, label: "14:30"},
-            {hour: 15, minute: 0, label: "15:00"},
-            {hour: 15, minute: 30, label: "15:30"},
-            {hour: 16, minute: 0, label: "16:00"},
-            {hour: 16, minute: 30, label: "16:30"},
-            {hour: 17, minute: 0, label: "17:00"}
+            {hour: 8, minute: 0, endHour: 8, endMinute: 30},
+            {hour: 8, minute: 30, endHour: 9, endMinute: 0},
+            {hour: 9, minute: 0, endHour: 9, endMinute: 30},
+            {hour: 9, minute: 30, endHour: 10, endMinute: 0},
+            {hour: 10, minute: 0, endHour: 10, endMinute: 30},
+            {hour: 10, minute: 30, endHour: 11, endMinute: 0},
+            {hour: 11, minute: 0, endHour: 11, endMinute: 30},
+            {hour: 11, minute: 30, endHour: 12, endMinute: 0},
+            {hour: 12, minute: 0, endHour: 12, endMinute: 30},
+            {hour: 12, minute: 30, endHour: 13, endMinute: 0},
+            {hour: 13, minute: 0, endHour: 13, endMinute: 30},
+            {hour: 13, minute: 30, endHour: 14, endMinute: 0},
+            {hour: 14, minute: 0, endHour: 14, endMinute: 30},
+            {hour: 14, minute: 30, endHour: 15, endMinute: 0},
+            {hour: 15, minute: 0, endHour: 15, endMinute: 30},
+            {hour: 15, minute: 30, endHour: 16, endMinute: 0},
+            {hour: 16, minute: 0, endHour: 16, endMinute: 30},
+            {hour: 16, minute: 30, endHour: 17, endMinute: 0},
+            {hour: 17, minute: 0, endHour: 17, endMinute: 30},
+            {hour: 17, minute: 30, endHour: 18, endMinute: 0},
         ],
         events: [
             // region Monday
@@ -358,6 +453,55 @@ const schedules: ScheduleType[] = [
                 color: subjectColors.english
             },
             // endregion
+        ]
+    },
+    {
+        id: "mehdi",
+        name: "Mehdi",
+        timeSlots: [
+            {hour: 8, minute: 30, endHour: 9, endMinute: 20},
+            {hour: 9, minute: 30, endHour: 10, endMinute: 20},
+            {hour: 10, minute: 30, endHour: 11, endMinute: 20},
+            {hour: 11, minute: 30, endHour: 12, endMinute: 20},
+            {hour: 12, minute: 30, endHour: 13, endMinute: 20},
+            {hour: 13, minute: 30, endHour: 14, endMinute: 20},
+            {hour: 14, minute: 30, endHour: 15, endMinute: 20},
+            {hour: 15, minute: 30, endHour: 16, endMinute: 20},
+            {hour: 16, minute: 30, endHour: 17, endMinute: 20},
+        ],
+        events: [
+            // region monday
+            {day: "monday", id: "MAT-NP1", title: "Calcul différentiel", startTime: "8:30", endTime: "10:20", color: subjectColors.math},
+            {day: "monday", id: "CHI-NP1", title: "Chimie générale", startTime: "10:30", endTime: "11:20", color: subjectColors.chemistry},
+            // endregion
+            // region tuesday
+            {day: "tuesday", id: "ANG-G41", title: "English", startTime: "8:30", endTime: "10:20", color: subjectColors.english},
+            {day: "tuesday", id: "LIT-G01", title: "Écriture et littérature", startTime: "10:30", endTime: "12:20", color: subjectColors.french},
+            {day: "tuesday", id: "PHY-NP1", title: "Mécanique", startTime: "13:30", endTime: "15:20", color: subjectColors.physics},
+            {day: "tuesday", id: "TIC-N00", title: "TIC", startTime: "15:30", endTime: "17:20", color: subjectColors.default},
+            // endregion
+            // region wednesday
+            {day: "wednesday", id: "EDP-G2J", title: "Sport", startTime: "8:30", endTime: "10:20", color: subjectColors.sport},
+            {day: "wednesday", id: "PHY-NP1", title: "Mécanique", startTime: "10:30", endTime: "12:20", color: subjectColors.physics},
+            {day: "wednesday", id: "MAT-NP1", title: "Calcul différentiel", startTime: "14:30", endTime: "15:20", color: subjectColors.math},
+            {day: "wednesday", id: "CHI-NP1", title: "Chimie générale", startTime: "15:30", endTime: "17:20", color: subjectColors.chemistry},
+            // endregion
+            // region thursday
+            {day: "thursday", id: "DES-K0A", title: "Dessin technique", startTime: "8:30", endTime: "11:30", color: subjectColors.default},
+            {day: "thursday", id: "ANG-G41", title: "English", startTime: "14:30", endTime: "15:20", color: subjectColors.english},
+            {day: "thursday", id: "LIT-G01", title: "Écriture et littérature", startTime: "15:30", endTime: "17:20", color: subjectColors.french},
+            // endregion
+            // region friday
+            {day: "friday", id: "PHY-NP1", title: "Mécanique", startTime: "8:30", endTime: "10:20", color: subjectColors.physics},
+            {day: "friday", id: "CHI-NP1", title: "Chimie générale", startTime: "10:30", endTime: "12:20", color: subjectColors.chemistry},
+            {day: "friday", id: "MAT-NP1", title: "Calcul différentiel", startTime: "13:30", endTime: "15:20", color: subjectColors.math},
+            // endregion
+        ]
+    },
+    {
+        id: "malik", name: "Malik", startTime: "08:00", endTime: "18:00", slotMinutes: 30, events: [
+            {id: "sleep01", title: "Sleep", startTime: "08:00", endTime: "12:00", color: subjectColors.default},
+            {id: "sleep02", title: "Sleep", startTime: "13:00", endTime: "17:00", color: subjectColors.default},
         ]
     },
     {

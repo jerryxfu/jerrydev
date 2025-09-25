@@ -41,7 +41,7 @@
 }
 
 .scheduler-header {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-bottom: 1px solid var(--s-border-c);
     display: flex;
     align-items: center;
@@ -51,7 +51,7 @@
 
 .scheduler-title {
     font-size: 1.55rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     width: 100%;
     color: var(--s-text-primary);
 }
@@ -197,3 +197,4 @@
         gap: 8px;
     }
 }
+

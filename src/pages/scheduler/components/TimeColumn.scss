@@ -1,15 +1,15 @@
-.time-column {
+.time_column {
     display: flex;
     flex-direction: column;
     width: 100%;
     min-width: 100%;
     background: var(--s-bg-c);
-    /* Border handled by parent (.schedule__time-column) */
+    /* Border handled by parent (.schedule_time-column) */
     border-right: 0;
     position: relative;
 }
 
-.time-slot {
+.time_slot {
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* top and bottom labels */
@@ -20,7 +20,11 @@
     background: inherit;
 }
 
-.time-label {
+.time_slot-gap {
+    background: transparent;
+}
+
+.time_label {
     font-size: 11px;
     font-weight: 500;
     color: var(--s-text-secondary);
@@ -28,21 +32,21 @@
     white-space: nowrap;
 }
 
-.time-label--start {
+.time_label-start {
     /* top label uses default styles */
 }
 
-.time-label--end {
+.time_label-end {
     /* end label at bottom; slightly lighter */
     color: var(--s-text-tertiary);
 }
 
 @media (max-width: 768px) {
-    .time-slot {
+    .time_slot {
         padding: 2px 4px;
     }
 
-    .time-label {
+    .time_label {
         font-size: 10px;
     }
 }

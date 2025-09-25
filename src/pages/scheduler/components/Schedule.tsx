@@ -23,29 +23,39 @@ const Schedule: React.FC<ScheduleProps> = (
     const explicitSlots = schedule.timeSlots?.map(s => {
         const start = s.hour * 60 + s.minute;
         const end = s.endHour !== undefined && s.endMinute !== undefined ? (s.endHour * 60 + s.endMinute) : undefined;
-        return {
-            time: minutesToTime(start),
-            label: s.label,
-            ...(end !== undefined ? {endTime: minutesToTime(end)} : {}),
-            ...(s.endLabel !== undefined ? {endLabel: s.endLabel} : {}),
+
+        const label = `${s.hour.toString().padStart(2, "0")}:${s.minute.toString().padStart(2, "0")}`;
+
+        const endLabel = (s.endHour != null && s.endMinute != null && end !== undefined)
+            ? `${String(s.endHour).padStart(2, "0")}:${String(s.endMinute).padStart(2, "0")}`
+            : undefined;
+
+        const slot: { time: string; label?: string; endTime?: string; endLabel?: string } = {
+            time: minutesToTime(start)
         };
+
+        slot.label = s.label ?? label;
+        if (end !== undefined) slot.endTime = minutesToTime(end);
+        const finalEndLabel = s.endLabel ?? endLabel;
+        if (finalEndLabel !== undefined) slot.endLabel = finalEndLabel;
+        return slot;
     });
 
     const baseStartMinutes = timeToMinutes(displayStart);
     const baseEndMinutes = timeToMinutes(displayEnd);
-    const minuteHeight = 0.8; // Reduced from 1.2 to 0.8px per minute (48px per hour)
+    const minuteHeight = 0.95; // Reduced from 1.2 to 0.8px per minute (48px per hour)
     const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * minuteHeight);
 
     const nextEvent = getNextEvent(schedule.events);
 
     return (
         <div className="schedule">
-            <div className="schedule__header">
-                <h3 className="schedule__title">{schedule.name}</h3>
+            <div className="schedule_header">
+                <h3 className="schedule_title">{schedule.name}</h3>
             </div>
-            <div className="schedule__container">
+            <div className="schedule_container">
                 {/* Time Column */}
-                <div className="schedule__time-column">
+                <div className="schedule_time-column">
                     <TimeColumn
                         startTime={displayStart}
                         endTime={displayEnd}
@@ -57,7 +67,7 @@ const Schedule: React.FC<ScheduleProps> = (
 
                 {/* Events Grid */}
                 <div
-                    className="schedule__grid"
+                    className="schedule_grid"
                     style={{height: `${containerHeight}px`}}
                 >
 
@@ -75,9 +85,9 @@ const Schedule: React.FC<ScheduleProps> = (
                                 className="schedule-break"
                                 style={{top: `${top}px`, height: `${height}px`}}
                             >
-                                <div className="schedule-break__content">
-                                    <span className="schedule-break__label">Free</span>
-                                    <span className="schedule-break__time">
+                                <div className="schedule-break_content">
+                                    <span className="schedule-break_label">Free</span>
+                                    <span className="schedule-break_time">
                                         {breakPeriod.startTime}-{breakPeriod.endTime}
                                     </span>
                                 </div>

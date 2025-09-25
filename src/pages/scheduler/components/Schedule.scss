@@ -1,3 +1,4 @@
+// Main schedule container component
 .schedule {
     display: flex;
     flex-direction: column;
@@ -7,18 +8,21 @@
     max-height: 100vh;
 }
 
+// Header section of the schedule
 .schedule_header {
-    padding: 8px 12px;
-    //border-bottom: 1px solid var(--border-color, #e0e0e0);
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--s-border-c);
 }
 
-.schedule__container {
+// Container that holds time column and grid side by side
+.schedule_container {
     display: flex;
     flex: 1;
     min-height: 0;
 }
 
-.schedule__time-column {
+// Left column showing time labels
+.schedule_time-column {
     display: flex;
     flex-direction: column;
     width: 50px;
@@ -27,7 +31,8 @@
     border-right: 1px solid var(--s-border-c);
 }
 
-.schedule__time-slot {
+// Individual time slot in the time column
+.schedule_time-slot {
     display: flex;
     align-items: flex-start;
     padding: 2px 4px;
@@ -35,7 +40,8 @@
     position: relative;
 }
 
-.schedule__time-label {
+// Time label text styling
+.schedule_time-label {
     font-size: 9px;
     font-weight: 500;
     color: var(--s-text-secondary);
@@ -43,13 +49,15 @@
     white-space: nowrap;
 }
 
-.schedule__grid {
+// Main grid area where events are displayed
+.schedule_grid {
     position: relative;
     flex: 1;
     background: var(--s-bg-c);
 }
 
-.schedule__hour-line {
+// Horizontal lines marking each hour
+.schedule_hour-line {
     position: absolute;
     left: 0;
     right: 0;
@@ -58,6 +66,7 @@
     z-index: 1;
 }
 
+// Break/pause periods in the schedule
 .schedule-break {
     position: absolute;
     left: 2px;
@@ -66,18 +75,19 @@
     border: 1px dashed var(--s-success-c);
     //border-radius: 4px;
     padding: 4px;
-    margin: 1px 0;
     z-index: 2;
     opacity: 0.8;
     transition: opacity 0.2s ease;
     box-sizing: border-box;
 
+    // Hover effect for better visibility
     &:hover {
         opacity: 1;
     }
 }
 
-.schedule-break__content {
+// Content wrapper inside break periods
+.schedule-break_content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -86,48 +96,57 @@
     text-align: center;
 }
 
-.schedule-break__label {
+// Break label text (e.g., "LUNCH", "BREAK")
+.schedule-break_label {
     font-size: 10px;
     font-weight: 600;
     color: var(--s-success-c);
     margin-bottom: 1px;
 }
 
-.schedule-break__time {
+// Break time duration display
+.schedule-break_time {
     font-size: 8px;
     color: var(--s-text-secondary);
     font-weight: 500;
 }
 
 @media (max-width: 768px) {
-    .schedule__header {
+    // Mobile responsive styles for header
+    .schedule_header {
         padding: 6px 8px;
     }
 
-    .schedule__title {
+    // Mobile responsive styles for title
+    .schedule_title {
         font-size: 12px;
     }
 
-    .schedule__time-column {
+    // Mobile responsive styles for time column
+    .schedule_time-column {
         width: 40px;
         min-width: 40px;
     }
 
-    .schedule__time-label {
+    // Mobile responsive styles for time labels
+    .schedule_time-label {
         font-size: 8px;
     }
 
+    // Mobile responsive styles for break periods
     .schedule-break {
         left: 1px;
         right: 1px;
         padding: 2px;
     }
 
-    .schedule-break__label {
+    // Mobile responsive styles for break labels
+    .schedule-break_label {
         font-size: 9px;
     }
 
-    .schedule-break__time {
+    // Mobile responsive styles for break time display
+    .schedule-break_time {
         font-size: 7px;
     }
 }
