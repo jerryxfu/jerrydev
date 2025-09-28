@@ -2,6 +2,7 @@ import {Schedule as ScheduleType} from "../../types/schedule";
 
 const subjectColors = {
     biology: "#c1e1c1",     // green
+    medicine: "#d4f4dd",    // light green
     chemistry: "#ffe5b4",   // peach
     english: "#cbaacb",     // lavender
     french: "#a8dadc",      // teal
@@ -496,6 +497,152 @@ const schedules: ScheduleType[] = [
             {day: "friday", id: "CHI-NP1", title: "Chimie générale", startTime: "10:30", endTime: "12:20", color: subjectColors.chemistry},
             {day: "friday", id: "MAT-NP1", title: "Calcul différentiel", startTime: "13:30", endTime: "15:20", color: subjectColors.math},
             // endregion
+        ]
+    },
+    {
+        id: "anisia",
+        name: "Anisia",
+        startTime: "08:00",
+        endTime: "17:00",
+        timeSlots: [
+            {hour: 8, minute: 0, endHour: 8, endMinute: 30},
+            {hour: 8, minute: 30, endHour: 9, endMinute: 0},
+            {hour: 9, minute: 0, endHour: 9, endMinute: 30},
+            {hour: 9, minute: 30, endHour: 10, endMinute: 0},
+            {hour: 10, minute: 0, endHour: 10, endMinute: 30},
+            {hour: 10, minute: 30, endHour: 11, endMinute: 0},
+            {hour: 11, minute: 0, endHour: 11, endMinute: 30},
+            {hour: 11, minute: 30, endHour: 12, endMinute: 0},
+            {hour: 12, minute: 0, endHour: 12, endMinute: 30},
+            {hour: 12, minute: 30, endHour: 13, endMinute: 0},
+            {hour: 13, minute: 0, endHour: 13, endMinute: 30},
+            {hour: 13, minute: 30, endHour: 14, endMinute: 0},
+            {hour: 14, minute: 0, endHour: 14, endMinute: 30},
+            {hour: 14, minute: 30, endHour: 15, endMinute: 0},
+            {hour: 15, minute: 0, endHour: 15, endMinute: 30},
+            {hour: 15, minute: 30, endHour: 16, endMinute: 0},
+            {hour: 16, minute: 0, endHour: 16, endMinute: 30},
+            {hour: 16, minute: 30, endHour: 17, endMinute: 0},
+            {hour: 17, minute: 0, endHour: 17, endMinute: 30},
+            {hour: 17, minute: 30, endHour: 18, endMinute: 0},
+        ],
+        events: [
+            // region Monday
+            {
+                day: "monday",
+                id: "MMD2111",
+                title: "Initiation à la recherche informationnelle",
+                startTime: "90:30",
+                endTime: "11:30",
+                location: "salle 4300",
+                color: subjectColors.medicine
+            },
+            {
+                day: "monday",
+                id: "?",
+                title: "Présentation IDC 1",
+                startTime: "16:00",
+                endTime: "16:45",
+                color: subjectColors.default
+            },
+            // endregion
+            // region Tuesday
+            {
+                day: "tuesday",
+                id: "MMD2111",
+                title: "APE 2: problème sensitif, B12 et alimentation",
+                startTime: "08:30",
+                endTime: "11:30",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            {
+                day: "tuesday",
+                id: "MMD2111",
+                title: "LM 3: Santé planétaire",
+                startTime: "12:30",
+                endTime: "13:30",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            {
+                day: "tuesday",
+                id: "MMD2111",
+                title: "LM 4: Neuro-oncologie",
+                startTime: "13:45",
+                endTime: "16:45",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            {
+                day: "tuesday",
+                id: "LM 5: MMD2111",
+                title: "Introduction à la",
+                startTime: "17:00",
+                endTime: "18:00",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            // endregion
+            // region Wednesday
+            {
+                day: "wednesday",
+                id: "CAAHC",
+                title: "Annonce de mauvaises nouvelles",
+                startTime: "08:30",
+                endTime: "11:30",
+                location: "?",
+                color: subjectColors.default
+            },
+            {
+                day: "wednesday",
+                id: "MMD2111",
+                title: "Troubles du mouvement et tremblements",
+                startTime: "13:00",
+                endTime: "16:00",
+                location: "4300_3300",
+                color: subjectColors.medicine
+            },
+            // endregion
+            // region Thursday
+            {
+                day: "thursday",
+                id: "MMD2141",
+                title: "IDC 1",
+                startTime: "08:30",
+                endTime: "11:30",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            // endregion
+            // region Friday
+            {
+                day: "friday",
+                id: "MMD2111",
+                title: "APE 3: Troubles de la marche, ataxie",
+                startTime: "08:30",
+                endTime: "11:30",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            {
+                day: "friday",
+                id: "MMD2111",
+                title: "LM 7: La rétroaction, mission...",
+                startTime: "12:30",
+                endTime: "13:30",
+                location: "?",
+                color: subjectColors.medicine
+            },
+            {
+                day: "friday",
+                id: "MMD2111",
+                title: "LM 8: Troubles du sommeil",
+                startTime: "13:30",
+                endTime: "15:30",
+                location: "4300_3300",
+                color: subjectColors.medicine
+            }
         ]
     },
     {
