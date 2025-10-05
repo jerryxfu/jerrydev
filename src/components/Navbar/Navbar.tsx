@@ -6,7 +6,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import {Drawer, IconButton} from "@mui/joy";
 
 // Constants outside component to prevent re-creation on every render
-const internalLinks: { href: string, label: string }[] = [
+const linksLeft: { href: string, label: string }[] = [
     {href: "#", label: "Home"},
     {href: "#skills", label: "Skills"},
     {href: "#experience", label: "Experience"},
@@ -14,7 +14,8 @@ const internalLinks: { href: string, label: string }[] = [
     {href: "#projects", label: "Projects"}
 ];
 
-const externalLinks: { href: string, label: string, target?: string }[] = [
+const linksRight: { href: string, label: string, target?: string }[] = [
+    {href: "/scheduler", label: "📅 Scheduler", target: "_blank"},
     {href: "https://cv.jerryxf.net/", label: "Curriculum Vitae", target: "_blank"}
 ];
 
@@ -89,7 +90,7 @@ export default function Navbar() {
             </div>
 
             <ul className="navbar_links">
-                {internalLinks.map((link, index) => (
+                {linksLeft.map((link, index) => (
                     <motion.li
                         key={index}
                         className="navbar_link"
@@ -109,14 +110,14 @@ export default function Navbar() {
             </ul>
 
             <ul className="navbar_links navbar_links-external">
-                {externalLinks.map((link, index) => (
+                {linksRight.map((link, index) => (
                     <motion.li
                         key={index}
                         className="navbar_link"
                         initial={{opacity: 0, y: "-125%"}}
                         animate={{opacity: 1, y: 0}}
                         transition={{
-                            delay: openingDelay + 0.15 + ((index + internalLinks.length) * 0.06),
+                            delay: openingDelay + 0.15 + ((index + linksLeft.length) * 0.06),
                             duration: 0.9,
                             ease: "easeOut"
                         }}
@@ -154,7 +155,7 @@ export default function Navbar() {
                 variant="soft"
             >
                 <ul className="navbar_links-mobile">
-                    {internalLinks.map((link, index) => (
+                    {linksLeft.map((link, index) => (
                         <li key={index}>
                             <a href={link.href} className="text text-underline">
                                 {link.label}
@@ -164,7 +165,7 @@ export default function Navbar() {
                 </ul>
 
                 <ul className="navbar_links-mobile navbar_links-external">
-                    {externalLinks.map((link, index) => (
+                    {linksRight.map((link, index) => (
                         <li key={index}>
                             <a
                                 href={link.href}

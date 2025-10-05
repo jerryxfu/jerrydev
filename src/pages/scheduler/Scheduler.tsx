@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import Schedule from "./components/Schedule";
 import {Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, timeToMinutes, minutesToTime} from "./timeUtils.ts";
@@ -16,7 +16,19 @@ const DAYS_OF_WEEK = [
 ];
 
 const Scheduler: React.FC = () => {
-    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(() => schedules.slice(0, 1));
+    // Initialize with saved schedule or default to jerry
+    const getInitialSchedule = () => {
+        const savedScheduleId = localStorage.getItem('scheduler-last-selected-person');
+        if (savedScheduleId) {
+            const savedSchedule = schedules.find((s) => s.id === savedScheduleId);
+            if (savedSchedule) {
+                return [savedSchedule];
+            }
+        }
+        return schedules.slice(0, 1);
+    };
+
+    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(getInitialSchedule);
     const [comparisonMode, setComparisonMode] = useState(false);
     const getInitialDay = () => {
         const now = new Date();
@@ -30,10 +42,17 @@ const Scheduler: React.FC = () => {
     };
     const [selectedDay, setSelectedDay] = useState(getInitialDay());
 
-    // Filter events by selected day
+    // Save selected person to localStorage whenever it changes
+    useEffect(() => {
+        if (!comparisonMode && selectedSchedules.length > 0 && selectedSchedules[0]) {
+            localStorage.setItem('scheduler-last-selected-person', selectedSchedules[0].id);
+        }
+    }, [selectedSchedules, comparisonMode]);
+
+    // Filter events by selected day - FIXED: only include events that explicitly match the selected day
     const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({
         ...schedule,
-        events: schedule.events.filter(event => !event.day || event.day === selectedDay)
+        events: schedule.events.filter(event => event.day === selectedDay)
     });
 
     const filteredSchedules = selectedSchedules.map(getScheduleForDay);
@@ -171,7 +190,7 @@ const Scheduler: React.FC = () => {
                 <div className="scheduler-schedules">
                     {filteredSchedules.map((schedule, index) => (
                         <Schedule
-                            key={`${schedule.id}-${index}`}
+                            key={`${schedule.id}-${selectedDay}-${index}`}
                             schedule={schedule}
                             breakPeriods={commonBreaks}
                             showBreaks={comparisonMode}

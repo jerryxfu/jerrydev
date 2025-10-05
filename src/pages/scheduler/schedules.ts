@@ -530,17 +530,16 @@ const schedules: ScheduleType[] = [
             // region Monday
             {
                 day: "monday",
-                id: "MMD2111",
-                title: "Initiation à la recherche informationnelle",
-                startTime: "90:30",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
+                startTime: "9:30",
                 endTime: "11:30",
-                location: "salle 4300",
-                color: subjectColors.medicine
+                color: subjectColors.default
             },
             {
                 day: "monday",
-                id: "?",
-                title: "Présentation IDC 1",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "16:00",
                 endTime: "16:45",
                 color: subjectColors.default
@@ -549,38 +548,34 @@ const schedules: ScheduleType[] = [
             // region Tuesday
             {
                 day: "tuesday",
-                id: "MMD2111",
-                title: "APE 2: problème sensitif, B12 et alimentation",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "08:30",
                 endTime: "11:30",
-                location: "?",
                 color: subjectColors.medicine
             },
             {
                 day: "tuesday",
-                id: "MMD2111",
-                title: "LM 3: Santé planétaire",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "12:30",
                 endTime: "13:30",
-                location: "?",
                 color: subjectColors.medicine
             },
             {
                 day: "tuesday",
-                id: "MMD2111",
-                title: "LM 4: Neuro-oncologie",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "13:45",
-                endTime: "16:45",
-                location: "?",
+                endTime: "14:45",
                 color: subjectColors.medicine
             },
             {
                 day: "tuesday",
-                id: "LM 5: MMD2111",
-                title: "Introduction à la",
-                startTime: "17:00",
-                endTime: "18:00",
-                location: "?",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
+                startTime: "15:00",
+                endTime: "16:00",
                 color: subjectColors.medicine
             },
             // endregion
@@ -588,59 +583,53 @@ const schedules: ScheduleType[] = [
             {
                 day: "wednesday",
                 id: "CAAHC",
-                title: "Annonce de mauvaises nouvelles",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "08:30",
                 endTime: "11:30",
-                location: "?",
                 color: subjectColors.default
             },
             {
                 day: "wednesday",
-                id: "MMD2111",
-                title: "Troubles du mouvement et tremblements",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "13:00",
                 endTime: "16:00",
-                location: "4300_3300",
-                color: subjectColors.medicine
+                color: subjectColors.default
             },
             // endregion
             // region Thursday
             {
                 day: "thursday",
-                id: "MMD2141",
-                title: "IDC 1",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "08:30",
                 endTime: "11:30",
-                location: "?",
                 color: subjectColors.medicine
             },
             // endregion
             // region Friday
             {
                 day: "friday",
-                id: "MMD2111",
-                title: "APE 3: Troubles de la marche, ataxie",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "08:30",
                 endTime: "11:30",
-                location: "?",
                 color: subjectColors.medicine
             },
             {
                 day: "friday",
-                id: "MMD2111",
-                title: "LM 7: La rétroaction, mission...",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "12:30",
                 endTime: "13:30",
-                location: "?",
                 color: subjectColors.medicine
             },
             {
                 day: "friday",
-                id: "MMD2111",
-                title: "LM 8: Troubles du sommeil",
+                id: "MMD",
+                title: "MMD2111/2112/2113/2141/22261",
                 startTime: "13:30",
                 endTime: "15:30",
-                location: "4300_3300",
                 color: subjectColors.medicine
             }
         ]
