@@ -11,6 +11,7 @@
     margin: 0.9rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 5px 10px -6px color-mix(in srgb, var(--shadow-c) 35%, transparent);
 
     @media screen and (max-width: 768px) {
         width: 90%;

@@ -13,6 +13,7 @@
     box-sizing: border-box;
     overflow: hidden;
     overflow-y: auto;
+    box-shadow: 0 5px 10px -6px color-mix(in srgb, var(--shadow-c) 35%, transparent);
 
     @media screen and (max-width: 768px) {
         width: 100%;

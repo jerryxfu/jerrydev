@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode} from "react";
 
-type Theme = "default" | "night" | "celestial";
+type Theme = "default" | "night";
 
 interface ThemeContextType {
     currentTheme: Theme;
@@ -16,7 +16,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
-    const themes: readonly Theme[] = ["default", "night", "celestial"] as const;
+    const themes: readonly Theme[] = ["default", "night"] as const;
 
     const getInitialTheme = (): Theme => {
         try {

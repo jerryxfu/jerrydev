@@ -114,28 +114,6 @@ body {
     --hero-bg-c: rgba(184, 226, 242, 1);
 }
 
-[data-theme="celestial"] {
-    --primary-c: rgba(255, 204, 213, 1);
-    --primary-lt-c: rgba(255, 214, 222, 1); // 92% HSL
-    --primary-da-c: rgba(255, 179, 193, 1); // 85% HSL
-
-    --secondary-c: rgba(225, 204, 173, 1);
-    --secondary-lt-c: rgba(245, 228, 204, 1);
-    --secondary-da-c: rgba(219, 195, 158, 1);
-
-    --accent-c: rgba(215, 174, 226, 1);
-    --accent-lt-c: rgba(219, 184, 229, 1);
-    --accent-da-c: rgba(208, 161, 221, 1);
-
-    --bg-c: rgba(251, 250, 249, 1);
-    --bg-lt-c: rgba(254, 254, 254, 1);
-    --bg-da-c: rgba(248, 247, 246, 1);
-
-    --hero-glow-c: rgba(238, 248, 252, 0.40);
-
-    --hero-bg-c: rgba(184, 226, 242, 1);
-}
-
 
 .section {
     max-width: 100%;
