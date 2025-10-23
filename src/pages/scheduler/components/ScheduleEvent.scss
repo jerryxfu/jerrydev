@@ -3,7 +3,7 @@
     left: 2px;
     right: 2px;
     //border-radius: 4px;
-    padding: 8px 10px;
+    padding: 7px 10px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--s-border-c);
     cursor: pointer;
@@ -41,17 +41,25 @@
 
 .schedule-event__title {
     font-weight: 600;
-    font-size: 14px;
-    line-height: 1.2;
+    font-size: 16px;
+    line-height: 1.1;
     margin-bottom: 2px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    @container (max-height: 48px) {
+        line-height: 1;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 14px;
+    }
 }
 
 .schedule-event__time {
-    font-size: 12px;
-    opacity: 0.9;
-    font-weight: 500;
-    margin-bottom: 2px;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 1.2;
 
     @container (max-height: 48px) {
         margin-bottom: 0;
@@ -59,8 +67,7 @@
 }
 
 .schedule-event__location {
-    font-size: 11px;
-    opacity: 0.8;
+    font-size: 12px;
     margin-top: auto;
 
     @container (max-height: 48px) {
@@ -82,17 +89,5 @@
         left: 1px;
         right: 1px;
         padding: 6px 8px;
-    }
-
-    .schedule-event__title {
-        font-size: 12px;
-    }
-
-    .schedule-event__time {
-        font-size: 10px;
-    }
-
-    .schedule-event__location {
-        font-size: 9px;
     }
 }

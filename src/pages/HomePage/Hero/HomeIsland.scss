@@ -4,7 +4,8 @@
     flex-direction: column;
     gap: 0.8rem;
     padding: 0; /* no visible container padding */
-    width: clamp(280px, 28vw, 420px);
+    //width: clamp(280px, 28vw, 420px);
+    max-width: 20rem;
     border-radius: 0; /* invisible parent */
     background: transparent;
     border: none;
@@ -72,8 +73,11 @@
     gap: 0.5rem;
     padding: 0.7rem 0.75rem;
     border-radius: 14px;
-    background: color-mix(in srgb, var(--bg-lt-c) 82%, transparent);
-    border: 1px solid color-mix(in srgb, var(--text-c) 10%, transparent);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.18);
+    backdrop-filter: blur(8px) saturate(105%);
+    -webkit-backdrop-filter: blur(8px) saturate(105%);
 }
 
 .widget-header {
@@ -119,9 +123,11 @@
     border-radius: 12px;
     text-decoration: none;
     color: var(--text-da-c);
-    background: color-mix(in srgb, var(--bg-c) 92%, transparent);
-    border: 1px solid color-mix(in srgb, var(--text-c) 10%, transparent);
-    transition: background 150ms ease, border-color 150ms ease;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 4px 9px rgba(2, 6, 23, 0.15);
+
+    //transition: background 150ms ease, border-color 150ms ease;
 }
 
 .shortcut-row:hover {
@@ -133,7 +139,7 @@
     width: 30px;
     height: 30px;
     border-radius: 6px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .shortcut-row .label {

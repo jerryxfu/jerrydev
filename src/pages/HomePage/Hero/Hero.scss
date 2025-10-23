@@ -186,7 +186,7 @@
 
 .hero_island-fixed {
     position: absolute;
-    right: max(clamp(24px, 6vw, 112px), env(safe-area-inset-right));
+    right: 15%;
     top: 50%;
     transform: translateY(-50%);
     z-index: 3;

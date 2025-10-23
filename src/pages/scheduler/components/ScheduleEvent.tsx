@@ -13,18 +13,38 @@ interface ScheduleEventProps {
 
 const ScheduleEvent: React.FC<ScheduleEventProps> = (
     {event, isCurrent = false, isNext = false, baseStartMinutes = 8 * 60, minuteHeight = 40 / 60}) => {
-    const startMinutes = timeToMinutes(event.startTime);
-    const endMinutes = timeToMinutes(event.endTime);
-    const duration = Math.max(0, endMinutes - startMinutes);
-
-    // Format duration as Hh Mm or just Hh / Mm
-    const durationLabel = (() => {
-        const h = Math.floor(duration / 60);
-        const m = duration % 60;
-        if (h && m) return `${h}h${m}m`;
+    const formatTimeLabel = (minutes: number) => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        const mm = String(m).padStart(2, "0");
+        if (h && m) return `${h}h${mm}m`;
         if (h) return `${h}h`;
         return `${m}m`;
+    };
+
+    const timeUntil = (() => {
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const targetMinutes = isCurrent ? timeToMinutes(event.endTime) : timeToMinutes(event.startTime);
+        const diff = targetMinutes - nowMinutes;
+
+        return formatTimeLabel(Math.max(0, diff));
     })();
+
+    const timeRemaining = (() => {
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const endMinutes = timeToMinutes(event.endTime);
+        const diff = endMinutes - nowMinutes;
+        return formatTimeLabel(Math.max(0, diff));
+    })();
+
+    const startMinutes = timeToMinutes(event.startTime);
+    const endMinutes = timeToMinutes(event.endTime);
+
+    const duration = Math.max(0, endMinutes - startMinutes);
+
+    const durationLabel = formatTimeLabel(duration);
 
     const offsetFromStart = Math.max(0, startMinutes - baseStartMinutes);
     const top = offsetFromStart * minuteHeight;
@@ -48,7 +68,10 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
             <div className="schedule-event__content">
                 <div className="schedule-event__title">{event.title}</div>
                 <div className="schedule-event__time">
-                    {event.startTime}-{event.endTime} ({durationLabel})
+                    <p>{event.startTime}-{event.endTime} ({durationLabel})</p>
+                    <p>{isCurrent ? `Ends in ${timeRemaining}` : `Starts in ${timeUntil}`}</p>
+                </div>
+                <div className="schedule-event__time">
                 </div>
                 {event.location && (
                     <div className="schedule-event__location">{event.location}</div>

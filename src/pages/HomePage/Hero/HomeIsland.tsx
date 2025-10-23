@@ -1,12 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import "./HomeIsland.scss";
 import placeholderIcon from "../../../assets/favicon.png";
+
+// import _word from "../../../assets/word.png";
+// import _excel from "../../../assets/excel.png";
+// import _onedrive from "../../../assets/onedrive.png";
 
 interface ShortcutItem {
     id: string;
     label: string;
     href: string;
-    iconSrc?: string;
+    icon?: string;
 }
 
 interface ShortcutWidget {
@@ -19,14 +23,34 @@ const OLD_LS_KEY = "homeIsland.shortcuts.v1"; // legacy single-list storage
 const WIDGETS_KEY = "homeIsland.widgets.v1";
 
 const seedItems: readonly ShortcutItem[] = [
-    { id: "word", label: "Word", href: "https://www.office.com/launch/word", iconSrc: placeholderIcon },
-    { id: "excel", label: "Excel", href: "https://www.office.com/launch/excel", iconSrc: placeholderIcon },
-    { id: "onedrive", label: "OneDrive", href: "https://onedrive.live.com/", iconSrc: placeholderIcon },
-    { id: "moodle", label: "Moodle", href: "https://moodle.com/", iconSrc: placeholderIcon },
+    {
+        id: "word",
+        label: "Word",
+        href: "https://word.cloud.microsoft/",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20251010.003/assets/brand-icons/product/svg/word_48x1.svg"
+    },
+    {
+        id: "excel",
+        label: "Excel",
+        href: "https://excel.cloud.microsoft",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20251010.003/assets/brand-icons/product/svg/excel_48x1.svg"
+    },
+    {
+        id: "powerpoint",
+        label: "PowerPoint",
+        href: "https://powerpoint.cloud.microsoft",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20251010.003/assets/brand-icons/product/svg/powerpoint_48x1.svg"
+    },
+    {
+        id: "onedrive",
+        label: "OneDrive",
+        href: "https://onedrive.live.com/",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20251010.003/assets/brand-icons/product/svg/onedrive_48x1.svg"
+    },
 ] as const;
 
 const seedWidgets: readonly ShortcutWidget[] = [
-    { id: "default", title: "Shortcuts", items: seedItems.slice() as ShortcutItem[] },
+    {id: "default", title: "Shortcuts", items: seedItems.slice() as ShortcutItem[]},
 ];
 
 const HomeIsland: React.FC = () => {
@@ -56,20 +80,30 @@ const HomeIsland: React.FC = () => {
             if (rawOld) {
                 const oldItems = JSON.parse(rawOld) as ShortcutItem[];
                 if (Array.isArray(oldItems)) {
-                    const migrated: ShortcutWidget[] = [{ id: "migrated", title: "Shortcuts", items: oldItems }];
+                    const migrated: ShortcutWidget[] = [{id: "migrated", title: "Shortcuts", items: oldItems}];
                     setWidgets(migrated);
-                    try { localStorage.setItem(WIDGETS_KEY, JSON.stringify(migrated)); } catch {}
+                    try {
+                        localStorage.setItem(WIDGETS_KEY, JSON.stringify(migrated));
+                    } catch {
+                    }
                     return;
                 }
             }
-        } catch {}
+        } catch {
+        }
         setWidgets(seedWidgets.slice() as ShortcutWidget[]);
-        try { localStorage.setItem(WIDGETS_KEY, JSON.stringify(seedWidgets)); } catch {}
+        try {
+            localStorage.setItem(WIDGETS_KEY, JSON.stringify(seedWidgets));
+        } catch {
+        }
     }, []);
 
     const persist = useCallback((next: ShortcutWidget[]) => {
         setWidgets(next);
-        try { localStorage.setItem(WIDGETS_KEY, JSON.stringify(next)); } catch {}
+        try {
+            localStorage.setItem(WIDGETS_KEY, JSON.stringify(next));
+        } catch {
+        }
     }, []);
 
     const canAddWidget = useMemo(() => newWidgetTitle.trim().length > 0, [newWidgetTitle]);
@@ -98,7 +132,7 @@ const HomeIsland: React.FC = () => {
         if (!canAddItem || !addingWidgetId) return;
         const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const next = widgets.map(w => w.id === addingWidgetId
-            ? { ...w, items: [{ id, label: itemLabel.trim(), href: itemHref.trim(), iconSrc: placeholderIcon }, ...w.items] }
+            ? {...w, items: [{id, label: itemLabel.trim(), href: itemHref.trim(), iconSrc: placeholderIcon}, ...w.items]}
             : w
         );
         persist(next);
@@ -111,7 +145,8 @@ const HomeIsland: React.FC = () => {
         <aside className="home-island" aria-label="Home shortcuts">
             <div className="island-header-row">
                 <div className="island-title">Home</div>
-                <button className="island-add-btn" onClick={() => setShowAddWidget(s => !s)} aria-expanded={showAddWidget} aria-label="Add widget">＋</button>
+                <button className="island-add-btn" onClick={() => setShowAddWidget(s => !s)} aria-expanded={showAddWidget} aria-label="Add widget">＋
+                </button>
             </div>
 
             {showAddWidget && (
@@ -131,13 +166,17 @@ const HomeIsland: React.FC = () => {
                     <section key={w.id} className="island-widget" aria-label={w.title}>
                         <div className="widget-header">
                             <div className="widget-title">{w.title}</div>
-                            <button className="widget-add-btn" onClick={() => openAddItem(w.id)} aria-expanded={addingWidgetId === w.id} aria-label={`Add to ${w.title}`}>＋</button>
+                            <button className="widget-add-btn" onClick={() => openAddItem(w.id)} aria-expanded={addingWidgetId === w.id}
+                                    aria-label={`Add to ${w.title}`}>＋
+                            </button>
                         </div>
 
                         {addingWidgetId === w.id && (
                             <div className="widget-add">
-                                <input className="island-input" placeholder="Label" value={itemLabel} onChange={(e) => setItemLabel(e.target.value)} />
-                                <input className="island-input" placeholder="https://example.com" value={itemHref} onChange={(e) => setItemHref(e.target.value)} />
+                                <input className="island-input" placeholder="Label" value={itemLabel}
+                                       onChange={(e) => setItemLabel(e.target.value)} />
+                                <input className="island-input" placeholder="https://example.com" value={itemHref}
+                                       onChange={(e) => setItemHref(e.target.value)} />
                                 <button className="island-save" onClick={addItem} disabled={!canAddItem}>Add</button>
                             </div>
                         )}
@@ -145,7 +184,7 @@ const HomeIsland: React.FC = () => {
                         <div className="shortcut-list">
                             {w.items.map((it) => (
                                 <a key={it.id} className="shortcut-row" href={it.href} target="_blank" rel="noreferrer noopener">
-                                    <img className="icon-img" src={it.iconSrc || placeholderIcon} alt="" aria-hidden />
+                                    <img className="icon-img" src={it.icon || placeholderIcon} alt="" aria-hidden />
                                     <span className="label">{it.label}</span>
                                 </a>
                             ))}
