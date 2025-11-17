@@ -1,7 +1,7 @@
 import React from "react";
-import {Schedule as ScheduleType, BreakPeriod} from "../../../types/schedule";
+import {BreakPeriod, Schedule as ScheduleType} from "../../../types/schedule";
 import ScheduleEvent from "./ScheduleEvent";
-import {isCurrentEvent, getNextEvent, timeToMinutes, minutesToTime} from "../timeUtils.ts";
+import {getNextEvent, isCurrentEvent, minutesToTime, timeToMinutes} from "../timeUtils.ts";
 import TimeColumn from "./TimeColumn";
 import "./Schedule.scss";
 
@@ -43,7 +43,7 @@ const Schedule: React.FC<ScheduleProps> = (
 
     const baseStartMinutes = timeToMinutes(displayStart);
     const baseEndMinutes = timeToMinutes(displayEnd);
-    const minuteHeight = 0.95; // Reduced from 1.2 to 0.8px per minute (48px per hour)
+    const minuteHeight = 0.94;
     const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * minuteHeight);
 
     const nextEvent = getNextEvent(schedule.events);
@@ -52,6 +52,7 @@ const Schedule: React.FC<ScheduleProps> = (
         <div className="schedule">
             <div className="schedule_header">
                 <h3 className="schedule_title">{schedule.name}</h3>
+                {/*<Transit userSchedule={schedule} />*/}
             </div>
             <div className="schedule_container">
                 {/* Time Column */}

@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import Schedule from "./components/Schedule";
 import {Schedule as ScheduleType} from "../../types/schedule";
-import {findCommonBreaksInRange, timeToMinutes, minutesToTime} from "./timeUtils.ts";
-import schedules from "./schedules";
+import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
+import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";
 
 const DAYS_OF_WEEK = [
@@ -18,18 +18,19 @@ const DAYS_OF_WEEK = [
 const Scheduler: React.FC = () => {
     // Initialize with saved schedule or default to jerry
     const getInitialSchedule = () => {
-        const savedScheduleId = localStorage.getItem('scheduler-last-selected-person');
+        const savedScheduleId = localStorage.getItem("scheduler-last-selected-person");
         if (savedScheduleId) {
-            const savedSchedule = schedules.find((s) => s.id === savedScheduleId);
+            const savedSchedule = scheduleConfig.find((s) => s.id === savedScheduleId);
             if (savedSchedule) {
                 return [savedSchedule];
             }
         }
-        return schedules.slice(0, 1);
+        return scheduleConfig.slice(0, 1);
     };
 
     const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(getInitialSchedule);
     const [comparisonMode, setComparisonMode] = useState(false);
+
     const getInitialDay = () => {
         const now = new Date();
         const hour = now.getHours();
@@ -45,7 +46,7 @@ const Scheduler: React.FC = () => {
     // Save selected person to localStorage whenever it changes
     useEffect(() => {
         if (!comparisonMode && selectedSchedules.length > 0 && selectedSchedules[0]) {
-            localStorage.setItem('scheduler-last-selected-person', selectedSchedules[0].id);
+            localStorage.setItem("scheduler-last-selected-person", selectedSchedules[0].id);
         }
     }, [selectedSchedules, comparisonMode]);
 
@@ -81,10 +82,10 @@ const Scheduler: React.FC = () => {
 
     const toggleComparisonMode = () => {
         if (comparisonMode) {
-            setSelectedSchedules(schedules.slice(0, 1));
+            setSelectedSchedules(scheduleConfig.slice(0, 1));
             setComparisonMode(false);
         } else {
-            const jerry = schedules.find((s) => s.id === "jerry") ?? schedules[0];
+            const jerry = scheduleConfig.find((s) => s.id === "jerry") ?? scheduleConfig[0];
             if (!jerry) {
                 setComparisonMode(false);
                 return;
@@ -95,7 +96,7 @@ const Scheduler: React.FC = () => {
     };
 
     const handleScheduleSelect = (scheduleIndex: number, newScheduleId: string) => {
-        const newSchedule = schedules.find((s) => s.id === newScheduleId);
+        const newSchedule = scheduleConfig.find((s) => s.id === newScheduleId);
         if (newSchedule) {
             const updated = [...selectedSchedules];
             updated[scheduleIndex] = newSchedule;
@@ -104,7 +105,7 @@ const Scheduler: React.FC = () => {
     };
 
     const handleSingleScheduleSelect = (newScheduleId: string) => {
-        const newSchedule = schedules.find((s) => s.id === newScheduleId);
+        const newSchedule = scheduleConfig.find((s) => s.id === newScheduleId);
         if (newSchedule) setSelectedSchedules([newSchedule]);
     };
 
@@ -136,7 +137,7 @@ const Scheduler: React.FC = () => {
                                             onChange={(e) => handleScheduleSelect(index, e.target.value)}
                                             className="scheduler-select"
                                         >
-                                            {schedules.map((schedule) => (
+                                            {scheduleConfig.map((schedule) => (
                                                 <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
                                             ))}
                                         </select>
@@ -151,7 +152,7 @@ const Scheduler: React.FC = () => {
                                     onChange={(e) => handleSingleScheduleSelect(e.target.value)}
                                     className="scheduler-select"
                                 >
-                                    {schedules.map((schedule) => (
+                                    {scheduleConfig.map((schedule) => (
                                         <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
                                     ))}
                                 </select>

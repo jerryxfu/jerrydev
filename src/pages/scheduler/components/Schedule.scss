@@ -14,6 +14,10 @@
     border-bottom: 1px solid var(--s-border-c);
 }
 
+.schedule_title {
+    color: var(--s-text-primary);
+}
+
 // Container that holds time column and grid side by side
 .schedule_container {
     display: flex;

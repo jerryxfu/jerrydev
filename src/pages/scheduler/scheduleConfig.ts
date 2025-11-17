@@ -15,7 +15,7 @@ const subjectColors = {
 };
 
 
-const schedules: ScheduleType[] = [
+const scheduleConfig: ScheduleType[] = [
     {
         id: "jerry",
         name: "Jerry",
@@ -51,7 +51,7 @@ const schedules: ScheduleType[] = [
                 location: "G1-75",
                 color: subjectColors.math
             },
-            {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", location: "A2-24", color: subjectColors.default}, // light gray for TIC
+            // {day: "monday", id: "TIC-PN1", title: "TIC", startTime: "15:30", endTime: "17:20", location: "A2-24", color: subjectColors.default}, // light gray for TIC
             //endregion
             //region Tuesday
             {
@@ -653,4 +653,4 @@ const schedules: ScheduleType[] = [
     }
 ];
 
-export default schedules;
+export default scheduleConfig;
