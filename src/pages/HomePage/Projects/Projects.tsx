@@ -16,6 +16,7 @@ import _scheduler from "../../../assets/projects/scheduler.png";
 import _scorekeeper from "../../../assets/projects/scorekeeper.png";
 import _autoscout from "../../../assets/projects/autoscout.png";
 import _medive from "../../../assets/projects/medive.png";
+import _unveil from "../../../assets/unveil_dark.png";
 
 function formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -39,7 +40,8 @@ const projects: Project[] = [
         image: _medive,
         chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-08-14")),
-        url: "/medive",
+        url: "https://github.com/jerryxfu/medive",
+        // url: "/medive",
         description: "MEDIVE is a personal research project aiming to use vector embeddings to encode symptom and condition meaning.",
     },
     {
@@ -59,15 +61,6 @@ const projects: Project[] = [
         dateDisplay: formatDate(new Date("2025-08-27")),
         url: "/scheduler",
         description: "A web app that allows users to visualize and compare daily/weekly schedules with a clean interface.",
-    },
-    {
-        title: "Conditioner",
-        subTitle: "A rule based diagnostic app",
-        image: _conditioner,
-        chipText: "🔁 Superseded",
-        dateDisplay: formatDate(new Date("2025-07-24")),
-        url: "/conditioner",
-        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
     },
     {
         title: "BapUtils",
@@ -90,6 +83,25 @@ const projects: Project[] = [
         footer: "For Dodo Wheels"
     },
     {
+        title: "UNVEIL",
+        subTitle: "Uncover the unseen",
+        image: _unveil,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2025-10-01")),
+        // Unveil Technologies is an intelligent platform for orchestration and autonomy built to bring clarity to complex missions. From autonomous drone systems to integrated command interfaces, Unveil transforms real-time data into actionable insight—empowering operators to uncover the unseen on the battlefield.
+        url: "",
+        description: "An intelligent orchestration platform for mission control integrating drones to transform real-time data into actionable insight and empower operators to uncover the unseen on the battlefield.",
+    },
+    {
+        title: "Conditioner",
+        subTitle: "A rule based diagnostic app",
+        image: _conditioner,
+        chipText: "🔁 Superseded",
+        dateDisplay: formatDate(new Date("2025-07-24")),
+        url: "/conditioner",
+        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
+    },
+    {
         title: "Kahoot! flood bot",
         subTitle: "Simulates mouse and keyboard input to join kahoots",
         image: _kahootBot,
@@ -108,7 +120,7 @@ const projects: Project[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
-        title: "jerryxf.net, API, PyAPI",
+        title: "jerryxf.net, API",
         subTitle: "This website, right here!",
         image: _jerryxf,
         chipText: "🟢 Stable",

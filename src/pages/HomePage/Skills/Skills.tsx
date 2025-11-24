@@ -11,6 +11,7 @@ import _pytorch from "../../../assets/tech_stack/pytorch.png";
 import _react from "../../../assets/tech_stack/react.svg";
 import _sass from "../../../assets/tech_stack/sass.png";
 import _lightroom from "../../../assets/lightroom.png";
+import _jetbrains from "../../../assets/tech_stack/jetbrains.png";
 
 const tech_stack = [
     {
@@ -29,9 +30,9 @@ const tech_stack = [
         url: "https://www.java.com/en/"
     },
     {
-        name: "JavaScript",
+        name: "JavaScript (+TS)",
         color: "#fff5a610",
-        description: "ReactJS, APIs, services",
+        description: "React, APIs, services",
         iconUrl: _javascript,
         score: 5,
         chipText: "5/5",
@@ -49,38 +50,45 @@ const tech_stack = [
     {
         name: "Python",
         color: "#ffeda610",
-        description: "PyTorch, matplotlib",
+        description: "OpenCV, PyTorch, MAVSDK",
         iconUrl: _python,
         score: 3,
         chipText: "3/5",
         url: "https://www.python.org/"
     },
-    {
-        name: "PyTorch",
-        color: "#ffb5a610",
-        description: "Object detection",
-        iconUrl: _pytorch,
-        score: 3,
-        chipText: "3/5",
-        url: "https://pytorch.org/"
-    },
+    // {
+    //     name: "PyTorch",
+    //     color: "#ffb5a610",
+    //     description: "Object detection",
+    //     iconUrl: _pytorch,
+    //     score: 3,
+    //     chipText: "3/5",
+    //     url: "https://pytorch.org/"
+    // },
     {
         name: "React",
         color: "#a6edff10",
-        description: "JS/TS, Vite, gsap, mui",
+        description: "JS/TS, Vite, mui",
         iconUrl: _react,
         score: 4,
         chipText: "4/5",
         url: "https://react.dev/"
     },
     {name: "Sass/CSS", color: "#ffa6d210", iconUrl: _sass, score: 2, chipText: "2/5", url: "https://sass-lang.com/"},
-    {name: "Adobe Lightroom", color: "#2daaff10", iconUrl: _lightroom, score: 3, chipText: "3/5", url: "https://lightroom.adobe.com/"}
+    {name: "Adobe Lightroom", color: "#2daaff10", iconUrl: _lightroom, score: 3, chipText: "3/5", url: "https://lightroom.adobe.com/"},
+    {
+        name: "JetBrains IDEs",
+        color: "#ff6ea610",
+        iconUrl: _jetbrains,
+        chipText: "❤️",
+        url: "https://www.jetbrains.com/"
+    }
 ];
 
 export default function Skills() {
     return (
         <div className="section skills">
-            <SectionTitle text={"Skills"} />
+            <SectionTitle text={"Tech stack"} />
 
             <div className="skills_container">
                 <div className="skills_grid">

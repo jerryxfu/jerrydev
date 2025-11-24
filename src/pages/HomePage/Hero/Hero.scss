@@ -198,4 +198,9 @@
         margin-right: 6%;
         margin-top: 1rem;
     }
+
+    // hide on mobile for now
+    @media screen and (max-width: 480px) {
+        display: none;
+    }
 }

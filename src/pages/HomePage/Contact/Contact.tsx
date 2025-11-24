@@ -10,8 +10,8 @@ import _discord from "../../../assets/socials/discord_mark.svg";
 import _instagram from "../../../assets/socials/instagram_mark.svg";
 // import _snapchat_lt from "../../../assets/socials/snapchat_light.png";
 // import _snapchat_da from "../../../assets/socials/snapchat_dark.png";
-import _github_lt from "../../../assets/dev_tools/github.svg";
-import _github_da from "../../../assets/dev_tools/github_white.svg";
+import _github_lt from "../../../assets/tech_stack/github.svg";
+import _github_da from "../../../assets/tech_stack/github_white.svg";
 import _youtube from "../../../assets/socials/youtube_mark.png";
 import _reddit from "../../../assets/socials/reddit_mark.svg";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
@@ -21,7 +21,7 @@ import _steam from "../../../assets/socials/steam_mark.svg";
 const medias = [
     // {
     //     title: "Snapchat",
-    //     username: <span className="obfuscate-str contact_obfuscated">jerryxfu</span>,
+    //     username: <span className="obfuscate-str contact_obfuscated"></span>,
     //     image: "",
     //     url: "",
     //     chipText: "secret",
@@ -36,8 +36,15 @@ const medias = [
         chipText: "public",
         color: "#e6a6ff10"
     },
+    {
+        title: "LinkedIn",
+        username: "in/jerryfu-dev",
+        image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg",
+        url: "https://www.linkedin.com/in/jerryfu-dev/",
+        color: "#0a66c210"
+    },
+    // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
-    {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     {
         title: "Reddit",
         username: "u/jerryxf",
@@ -46,7 +53,7 @@ const medias = [
         chipText: "nothing here...",
         color: "#ffb5a610"
     },
-    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "gaming", color: "#00adee10"},
+    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "gaming", color: "#00adee10"}
 ];
 
 export default function Contact() {
@@ -85,7 +92,7 @@ export default function Contact() {
 
             <div className="contact_container">
                 <div className="contact_grid-container">
-                    <SubTitle text={"Public social media"} />
+                    {/*<SubTitle text={"Public social media"} />*/}
                     <div className="contact_grid">
                         {themedMedias.map((media) => (
                             <ContactCard

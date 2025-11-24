@@ -5,8 +5,8 @@ export default function SkillCard({image, title, description, score, chipText, u
     image: string,
     title: string,
     description?: string,
-    score: number,
-    chipText: string,
+    score?: number | undefined,
+    chipText?: string | undefined,
     url?: string
     color?: string,
 }) {

@@ -7,7 +7,7 @@ export default function ContactCard({title, username, image, url, chipText, colo
     username: string | ReactNode,
     image: string,
     url?: string
-    chipText: string,
+    chipText?: string | undefined,
     color?: string,
 }) {
     return (
@@ -20,7 +20,7 @@ export default function ContactCard({title, username, image, url, chipText, colo
                 <p className="contactcard_username">{username}</p>
 
             </div>
-            <Chip className="contactcard_chip" size={"sm"}>{chipText}</Chip>
+            {chipText && <Chip className="contactcard_chip" size={"sm"}>{chipText}</Chip>}
         </div>
     );
 }
