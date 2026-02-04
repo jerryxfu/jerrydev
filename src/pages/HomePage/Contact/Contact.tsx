@@ -27,13 +27,13 @@ const medias = [
     //     chipText: "secret",
     //     color: ""
     // },
-    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "media", color: "#ffb5a610"},
+    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "", color: "#ffb5a610"},
     {
         title: "Discord",
         username: "@jerrydev",
         image: _discord,
         url: "https://discord.com/users/611633988515266562",
-        chipText: "public",
+        chipText: "",
         color: "#e6a6ff10"
     },
     {
@@ -45,15 +45,15 @@ const medias = [
     },
     // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
-    {
-        title: "Reddit",
-        username: "u/jerryxf",
-        image: _reddit,
-        url: "https://reddit.com/user/jerryxf/",
-        chipText: "nothing here...",
-        color: "#ffb5a610"
-    },
-    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "gaming", color: "#00adee10"}
+    // {
+    //     title: "Reddit",
+    //     username: "u/jerryxf",
+    //     image: _reddit,
+    //     url: "https://reddit.com/user/jerryxf/",
+    //     chipText: "",
+    //     color: "#ffb5a610"
+    // },
+    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "", color: "#00adee10"}
 ];
 
 export default function Contact() {
