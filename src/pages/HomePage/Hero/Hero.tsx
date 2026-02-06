@@ -5,7 +5,6 @@ import "./Hero.scss";
 import SplitType from "split-type";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {texts} from "./texts.ts";
-import HomeIsland from "./HomeIsland.tsx";
 
 export default function Hero() {
     const {currentTheme} = useThemeSwitcher();
@@ -157,10 +156,6 @@ export default function Hero() {
                     <div style={{overflow: "hidden"}}>
                         <h1 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h1>
                     </div>
-                </div>
-
-                <div className="hero_island-fixed">
-                    <HomeIsland />
                 </div>
 
                 <div className="text hero_about-container">

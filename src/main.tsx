@@ -29,7 +29,7 @@ gsap.defaults({
     ease: "nativeEase"
 });
 
-const LOCAL_STORAGE_VERSION = "v1.0";
+const LOCAL_STORAGE_VERSION = "v1";
 
 if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
     localStorage.clear();

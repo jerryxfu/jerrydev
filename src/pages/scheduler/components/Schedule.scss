@@ -147,3 +147,30 @@
         font-size: 7px;
     }
 }
+
+/* Home Island mode styles */
+.homeisland-mode .schedule {
+    background: transparent;
+}
+
+.homeisland-mode .schedule_header {
+    display: none;
+}
+
+.homeisland-mode .schedule_time-column {
+    background: transparent;
+    border-right-color: rgba(255, 255, 255, 0.2);
+}
+
+.homeisland-mode .schedule_grid {
+    background: transparent;
+}
+
+.homeisland-mode .schedule_hour-line {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.homeisland-mode .schedule_time-slot {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+

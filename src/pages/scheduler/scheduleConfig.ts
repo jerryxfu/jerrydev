@@ -55,7 +55,7 @@ const scheduleConfig: ScheduleType[] = [
             {
                 day: "monday",
                 id: "MAT-BP2",
-                title: "Math AA HL 2",
+                title: "Algèbre matricielle, intro probabilités et intégral (AA HL)",
                 startTime: "13:30",
                 endTime: "15:20",
                 location: "G1-75",
@@ -75,7 +75,7 @@ const scheduleConfig: ScheduleType[] = [
             {
                 day: "tuesday",
                 id: "ANN-BA2",
-                title: "Culture Topics (Lang & Lit SL)",
+                title: "Culture Topics (Lang & Lit A SL)",
                 startTime: "11:30",
                 endTime: "12:20",
                 location: "G1-114",
@@ -151,7 +151,7 @@ const scheduleConfig: ScheduleType[] = [
             {
                 day: "thursday",
                 id: "TIC-BN2",
-                title: "TIC",
+                title: "Technologie de l'information et de la communication",
                 startTime: "10:30",
                 endTime: "12:20",
                 location: "G1-110",
@@ -160,7 +160,7 @@ const scheduleConfig: ScheduleType[] = [
             {
                 day: "thursday",
                 id: "ANN-BA2",
-                title: "Culture Topics (Lang & Lit SL)",
+                title: "Culture Topics (Lang & Lit A SL)",
                 startTime: "13:30",
                 endTime: "15:20",
                 location: "G1-122",
@@ -248,7 +248,7 @@ const scheduleConfig: ScheduleType[] = [
                 id: "109-102-MQ",
                 title: "Volleyball",
                 startTime: "12:00",
-                endTime: "14:30",
+                endTime: "14:00",
                 location: "GYM A",
                 color: subjectColors.sport
             },

@@ -50,3 +50,23 @@
         font-size: 10px;
     }
 }
+
+/* Home Island mode styles */
+.homeisland-mode .time_column {
+    background: transparent;
+}
+
+.homeisland-mode .time_slot {
+    background: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.homeisland-mode .time_label {
+    color: rgba(160, 160, 160, 1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.homeisland-mode .time_label-end {
+    color: rgba(160, 160, 160, 1);
+}
+

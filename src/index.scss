@@ -6,6 +6,11 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Home Island iframe mode - fully transparent */
+html.homeisland-html {
+    background: transparent !important;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -14,6 +19,16 @@ body {
     background-color: var(--bg-c);
     color: var(--text-c);
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Home Island iframe mode - fully transparent */
+body.homeisland-body {
+    background: transparent !important;
+}
+
+/* Home Island iframe mode - #root transparent */
+.homeisland-body #root {
+    background: transparent !important;
 }
 
 //debugging

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import Schedule from "./components/Schedule";
 import {Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
@@ -16,6 +16,11 @@ const DAYS_OF_WEEK = [
 ];
 
 const Scheduler: React.FC = () => {
+    // Detect Home Island mode
+    const isHomeIslandMode = useMemo(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("homeisland") === "true";
+    }, []);
     // Initialize with saved schedule or default to jerry
     const getInitialSchedule = () => {
         const savedScheduleId = localStorage.getItem("scheduler-last-selected-person");
@@ -49,6 +54,22 @@ const Scheduler: React.FC = () => {
             localStorage.setItem("scheduler-last-selected-person", selectedSchedules[0].id);
         }
     }, [selectedSchedules, comparisonMode]);
+
+    // Home Island mode: scroll to bottom and set transparent body
+    useEffect(() => {
+        if (isHomeIslandMode) {
+            document.body.classList.add("homeisland-body");
+            document.documentElement.classList.add("homeisland-html");
+            // Scroll to bottom after render
+            setTimeout(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+            }, 100);
+        }
+        return () => {
+            document.body.classList.remove("homeisland-body");
+            document.documentElement.classList.remove("homeisland-html");
+        };
+    }, [isHomeIslandMode]);
 
     // Filter events by selected day - FIXED: only include events that explicitly match the selected day
     const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({
@@ -110,21 +131,23 @@ const Scheduler: React.FC = () => {
     };
 
     return (
-        <div className="scheduler">
+        <div className={`scheduler ${isHomeIslandMode ? "homeisland-mode" : ""}`}>
             <div className="scheduler-header">
-                <h1 className="scheduler-title">Schedule viewer</h1>
+                {!isHomeIslandMode && <h1 className="scheduler-title">Schedule viewer</h1>}
 
                 {/* Controls row */}
                 <div className="scheduler-controls">
                     <div className="scheduler-controls-left">
-                        <button
-                            className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
-                            onClick={toggleComparisonMode}
-                            aria-pressed={comparisonMode}
-                            title={comparisonMode ? "Single View" : "Compare"}
-                        >
-                            {comparisonMode ? "Single View" : "Compare"}
-                        </button>
+                        {!isHomeIslandMode && (
+                            <button
+                                className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
+                                onClick={toggleComparisonMode}
+                                aria-pressed={comparisonMode}
+                                title={comparisonMode ? "Single View" : "Compare"}
+                            >
+                                {comparisonMode ? "Single View" : "Compare"}
+                            </button>
+                        )}
 
                         {/* Schedule selectors */}
                         {comparisonMode ? (
@@ -146,7 +169,7 @@ const Scheduler: React.FC = () => {
                             </div>
                         ) : (
                             <div className="scheduler-select-group">
-                                <label className="scheduler-select-label">Schedule:</label>
+                                <label className="scheduler-select-label">{isHomeIslandMode ? "" : "Schedule:"}</label>
                                 <select
                                     value={selectedSchedules[0]?.id ?? "jerry"}
                                     onChange={(e) => handleSingleScheduleSelect(e.target.value)}
@@ -160,22 +183,24 @@ const Scheduler: React.FC = () => {
                         )}
 
                         {/* Day selector */}
-                        <div className="scheduler-day-buttons">
-                            {DAYS_OF_WEEK.map((day) => (
-                                <button
-                                    key={day.key}
-                                    className={`scheduler-day-btn ${selectedDay === day.key ? "scheduler-day-btn-active" : ""}`}
-                                    onClick={() => setSelectedDay(day.key)}
-                                >
-                                    {day.label}
-                                </button>
-                            ))}
-                        </div>
+                        {!isHomeIslandMode && (
+                            <div className="scheduler-day-buttons">
+                                {DAYS_OF_WEEK.map((day) => (
+                                    <button
+                                        key={day.key}
+                                        className={`scheduler-day-btn ${selectedDay === day.key ? "scheduler-day-btn-active" : ""}`}
+                                        onClick={() => setSelectedDay(day.key)}
+                                    >
+                                        {day.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Info */}
                     <div className="scheduler-controls-right">
-                        {comparisonMode && commonBreaks.length > 0 && (
+                        {!isHomeIslandMode && comparisonMode && commonBreaks.length > 0 && (
                             <div className="scheduler-break-info">
                                 <span className="scheduler-break-count">
                                     {commonBreaks.length} common free time{commonBreaks.length !== 1 ? "s" : ""}

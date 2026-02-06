@@ -91,3 +91,33 @@
         padding: 6px 8px;
     }
 }
+
+/* Home Island mode - remove box shadows to prevent z-fighting */
+.homeisland-mode .schedule-event {
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.homeisland-mode .schedule-event--current {
+    box-shadow: none;
+    border: 2px solid var(--s-success-c);
+}
+
+.homeisland-mode .schedule-event--next {
+    box-shadow: none;
+    border: 2px solid var(--s-warn-c);
+}
+
+@keyframes pulse-current-homeisland {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.85;
+    }
+}
+
+.homeisland-mode .schedule-event--current {
+    animation: pulse-current-homeisland 2s infinite;
+}
+
