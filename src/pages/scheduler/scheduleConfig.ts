@@ -16,22 +16,23 @@ const subjectColors = {
     default: "#e0e0e0"      // gray
 };
 
+const BREBEUF_TIME_SLOTS = [
+    {hour: 8, minute: 30, endHour: 9, endMinute: 20},
+    {hour: 9, minute: 30, endHour: 10, endMinute: 20},
+    {hour: 10, minute: 30, endHour: 11, endMinute: 20},
+    {hour: 11, minute: 30, endHour: 12, endMinute: 20},
+    {hour: 12, minute: 30, endHour: 13, endMinute: 20},
+    {hour: 13, minute: 30, endHour: 14, endMinute: 20},
+    {hour: 14, minute: 30, endHour: 15, endMinute: 20},
+    {hour: 15, minute: 30, endHour: 16, endMinute: 20},
+    {hour: 16, minute: 30, endHour: 17, endMinute: 20},
+];
 
 const scheduleConfig: ScheduleType[] = [
     {
         id: "jerry",
         name: "Jerry",
-        timeSlots: [
-            {hour: 8, minute: 30, endHour: 9, endMinute: 20},
-            {hour: 9, minute: 30, endHour: 10, endMinute: 20},
-            {hour: 10, minute: 30, endHour: 11, endMinute: 20},
-            {hour: 11, minute: 30, endHour: 12, endMinute: 20},
-            {hour: 12, minute: 30, endHour: 13, endMinute: 20},
-            {hour: 13, minute: 30, endHour: 14, endMinute: 20},
-            {hour: 14, minute: 30, endHour: 15, endMinute: 20},
-            {hour: 15, minute: 30, endHour: 16, endMinute: 20},
-            {hour: 16, minute: 30, endHour: 17, endMinute: 20},
-        ],
+        timeSlots: BREBEUF_TIME_SLOTS,
         events: [
             //region Monday
             {
@@ -367,6 +368,365 @@ const scheduleConfig: ScheduleType[] = [
                 endTime: "15:00",
                 location: "E-513",
                 color: subjectColors.chemistry
+            },
+            //endregion
+        ],
+    },
+    {
+        id: "noah-lucas",
+        name: "Noah & Lucas",
+        timeSlots: BREBEUF_TIME_SLOTS,
+        events: [
+            //region Monday
+            {
+                day: "monday",
+                id: "LIT-B02",
+                title: "Littérature du XIXe siècle: temps et espace",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "D3-06",
+                color: subjectColors.french
+            },
+            {
+                day: "monday",
+                id: "BIO-BP1",
+                title: "Évolution et diversité",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "G1-75",
+                color: subjectColors.biology
+            },
+            {
+                day: "monday",
+                id: "MAT-BP2",
+                title: "Algèbre matricielle, intro probabilités et intégral (AA HL)",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G1-75",
+                color: subjectColors.math
+            },
+            //endregion
+            //region Tuesday
+            {
+                day: "tuesday",
+                id: "PHI-B02",
+                title: "Theory of Knowledge",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "D3-06",
+                color: subjectColors.humanities
+            },
+            {
+                day: "tuesday",
+                id: "ANN-BA2",
+                title: "Culture Topics (Lang & Lit A SL)",
+                startTime: "11:30",
+                endTime: "12:20",
+                location: "G1-114",
+                color: subjectColors.english
+            },
+            {
+                day: "tuesday",
+                id: "PHY-BP2",
+                title: "Électricité et magnétisme HL",
+                startTime: "13:30",
+                endTime: "14:20",
+                location: "G2-35",
+                color: subjectColors.physics
+            },
+            {
+                day: "tuesday",
+                id: "MAT-BP2",
+                title: "Algèbre matricielle, intro probabilités et intégrales (AA HL)",
+                startTime: "14:30",
+                endTime: "15:20",
+                location: "G1-72",
+                color: subjectColors.math
+            },
+            //endregion
+            //region Wednesday
+            {
+                day: "wednesday",
+                id: "PHY-BP2",
+                title: "Électricité et magnétisme (HL)",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G2-39 (LAB)",
+                color: subjectColors.physics
+            },
+            {
+                day: "wednesday",
+                id: "ACT-B02",
+                title: "Défis scientifiques du XXIe siècle",
+                startTime: "10:30",
+                endTime: "11:20",
+                location: "G1-134",
+                color: subjectColors.social
+            },
+            {
+                day: "wednesday",
+                id: "BIO-BP1",
+                title: "Évolution et diversité",
+                startTime: "11:30",
+                endTime: "12:20",
+                location: "G1-62",
+                color: subjectColors.biology
+            },
+            {
+                day: "wednesday",
+                id: "LIT-B02",
+                title: "Littérature du XIXe siècle: temps et espace",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "D3-06",
+                color: subjectColors.french
+            },
+            //endregion
+            //region Thursday
+            {
+                day: "thursday",
+                id: "MAT-BP2",
+                title: "Algèbre matricielle, intro probabilités et intégral (AA HL)",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G1-72",
+                color: subjectColors.math
+            },
+            {
+                day: "thursday",
+                id: "TIC-BN2",
+                title: "Technologie de l'information et de la communication",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "G1-110",
+                color: subjectColors.default,
+            },
+            {
+                day: "thursday",
+                id: "ANN-BA2",
+                title: "Culture Topics (Lang & Lit A SL)",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G1-122",
+                color: subjectColors.english
+            },
+            {
+                day: "thursday",
+                id: "PHI-B02",
+                title: "Theory of Knowledge",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "D3-15",
+                color: subjectColors.humanities
+            },
+            //endregion
+            //region Friday
+            {
+                day: "friday",
+                id: "ACT-B02",
+                title: "Défis scientifiques du XXIe siècle",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G1-134",
+                color: subjectColors.social
+            },
+            {
+                day: "friday",
+                id: "BIO-BP1",
+                title: "Évolution et diversité",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "G2-74 (LAB)",
+                color: subjectColors.biology
+            },
+            {
+                day: "friday",
+                id: "PHY-BP2",
+                title: "Électricité et magnétisme HL",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G2-35",
+                color: subjectColors.physics
+            },
+            //endregion
+        ],
+    },
+    {
+        id: "giancarlo",
+        name: "Giancarlo",
+        timeSlots: BREBEUF_TIME_SLOTS,
+        events: [
+            //region Monday
+            {
+                day: "monday",
+                id: "PHI-B02",
+                title: "Theory of Knowledge",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "D3-25",
+                color: subjectColors.humanities
+            },
+            {
+                day: "monday",
+                id: "MAT-BS2",
+                title: "Probabilités et statistiques (AA SL)",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "G1-72",
+                color: subjectColors.math
+            },
+            {
+                day: "monday",
+                id: "PHY-N01",
+                title: "Physique Mécanique (SL)",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G2-59 (LAB)",
+                color: subjectColors.biology
+            },
+            {
+                day: "monday",
+                id: "CHI-BS2",
+                title: "Chimie des solutions",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G2-75 (LAB)",
+                color: subjectColors.math
+            },
+            //endregion
+            //region Tuesday
+            {
+                day: "tuesday",
+                id: "TIC-BN2",
+                title: "Technologie de l'information et de la communication",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G2-65",
+                color: subjectColors.default,
+            },
+            {
+                day: "tuesday",
+                id: "ANN-BA2",
+                title: "Culture Topics (Lang & Lit A SL)",
+                startTime: "10:30",
+                endTime: "11:20",
+                location: "G1-114",
+                color: subjectColors.english
+            },
+            {
+                day: "tuesday",
+                id: "LIT-B02",
+                title: "Littérature du XIXe siècle: temps et espace",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G1-75",
+                color: subjectColors.french
+            },
+            //endregion
+            //region Wednesday
+            {
+                day: "wednesday",
+                id: "MAT-BS2",
+                title: "Probabilités et statistiques (AA SL)",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G1-75",
+                color: subjectColors.math
+            },
+            {
+                day: "wednesday",
+                id: "ACT-B02",
+                title: "Défis scientifiques du XXIe siècle",
+                startTime: "10:30",
+                endTime: "11:20",
+                location: "G1-134",
+                color: subjectColors.social
+            },
+            {
+                day: "wednesday",
+                id: "PHY-N01",
+                title: "Physique Mécanique (SL)",
+                startTime: "11:30",
+                endTime: "12:20",
+                location: "G2-35",
+                color: subjectColors.biology
+            },
+            {
+                day: "wednesday",
+                id: "CHI-BS2",
+                title: "Chimie des solutions",
+                startTime: "14:30",
+                endTime: "15:20",
+                location: "G1-118",
+                color: subjectColors.math
+            },
+            {
+                day: "wednesday",
+                id: "PHI-B02",
+                title: "Theory of Knowledge",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "D3-25",
+                color: subjectColors.humanities
+            },
+            //endregion
+            //region Thursday
+            {
+                day: "thursday",
+                id: "LIT-B02",
+                title: "Littérature du XIXe siècle: temps et espace",
+                startTime: "10:30",
+                endTime: "12:20",
+                location: "D3-15",
+                color: subjectColors.french
+            },
+            {
+                day: "thursday",
+                id: "PHY-N01",
+                title: "Physique Mécanique (SL)",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G2-35",
+                color: subjectColors.biology
+            },
+
+            {
+                day: "thursday",
+                id: "MAT-BS2",
+                title: "Probabilités et statistiques (AA SL)",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G1-72",
+                color: subjectColors.math
+            },
+            //endregion
+            //region Friday
+            {
+                day: "friday",
+                id: "ACT-B02",
+                title: "Défis scientifiques du XXIe siècle",
+                startTime: "8:30",
+                endTime: "10:20",
+                location: "G1-134",
+                color: subjectColors.social
+            },
+            {
+                day: "friday",
+                id: "ANN-BA2",
+                title: "Culture Topics (Lang & Lit A SL)",
+                startTime: "13:30",
+                endTime: "15:20",
+                location: "G1-122",
+                color: subjectColors.english
+            },
+            {
+                day: "friday",
+                id: "CHI-BS2",
+                title: "Chimie des solutions",
+                startTime: "15:30",
+                endTime: "17:20",
+                location: "G1-62",
+                color: subjectColors.math
             },
             //endregion
         ],
