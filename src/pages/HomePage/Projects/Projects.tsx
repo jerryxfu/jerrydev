@@ -174,15 +174,6 @@ const projects: Project[] = [
         description: "A collection of useful cheatsheets for various topics.",
     },
     {
-        title: "Mailman",
-        subTitle: "Simple reference tables for writing emails",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: "awaiting",
-        url: "/cheatsheet/mailman",
-        description: "Mailman is a set of simple tips like reference tables for email starting and ending phrases.",
-    },
-    {
         title: "Expedite",
         subTitle: "A tool to share files and text snippets",
         image: _endPortal,
@@ -190,14 +181,6 @@ const projects: Project[] = [
         dateDisplay: "awaiting",
         description: "description.",
         url: "/expedite"
-    },
-    {
-        title: "Breeze",
-        subTitle: "A clean and unrestricted sticky notes workspace",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "description."
     },
     {
         title: "MegaCSV",

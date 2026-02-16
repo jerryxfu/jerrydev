@@ -5,7 +5,9 @@ import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils
 import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";
 
-const DAYS_OF_WEEK = [
+const HIDE_WEEKENDS = true;
+
+const ALL_DAYS_OF_WEEK = [
     {key: "monday", label: "Monday"},
     {key: "tuesday", label: "Tuesday"},
     {key: "wednesday", label: "Wednesday"},
@@ -14,6 +16,10 @@ const DAYS_OF_WEEK = [
     {key: "saturday", label: "Saturday"},
     {key: "sunday", label: "Sunday"},
 ];
+
+const DAYS_OF_WEEK = HIDE_WEEKENDS
+    ? ALL_DAYS_OF_WEEK.filter(day => day.key !== "saturday" && day.key !== "sunday")
+    : ALL_DAYS_OF_WEEK;
 
 const Scheduler: React.FC = () => {
     // Detect Home Island mode and ID parameter
@@ -62,7 +68,11 @@ const Scheduler: React.FC = () => {
         if (hour >= 18) {
             dayIndex = (dayIndex + 1) % 7;
         }
-        return days[dayIndex];
+        let day = days[dayIndex];
+        if (HIDE_WEEKENDS && (day === "saturday" || day === "sunday")) {
+            day = "monday";
+        }
+        return day;
     };
     const [selectedDay, setSelectedDay] = useState(getInitialDay());
 

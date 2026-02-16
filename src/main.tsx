@@ -6,10 +6,8 @@ import {CustomEase, ScrollTrigger, TextPlugin} from "gsap/all";
 
 import "./index.scss";
 import HomePage from "./pages/HomePage/HomePage.tsx";
-import BdayPage from "./pages/BdayPage/BdayPage.tsx";
 import CountdownPage from "./pages/CountdownPage/CountdownPage.tsx";
 import ElementsPage from "./pages/ElementsPage/ElementsPage.tsx";
-import UnixPage from "./pages/UnixPage/UnixPage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
@@ -45,20 +43,12 @@ const router = createBrowserRouter([
         element: <HomePage />
     },
     {
-        path: "/bday",
-        element: <BdayPage />
-    },
-    {
         path: "/countdown",
         element: <CountdownPage />
     },
     {
         path: "/elements",
         element: <ElementsPage />
-    },
-    {
-        path: "/unix",
-        element: <UnixPage />
     },
     {
         path: "/supericu",
