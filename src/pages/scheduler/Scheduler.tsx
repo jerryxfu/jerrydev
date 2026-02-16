@@ -16,13 +16,31 @@ const DAYS_OF_WEEK = [
 ];
 
 const Scheduler: React.FC = () => {
-    // Detect Home Island mode
-    const isHomeIslandMode = useMemo(() => {
+    // Detect Home Island mode and ID parameter
+    const {isHomeIslandMode, homeIslandId} = useMemo(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get("homeisland") === "true";
+        return {
+            isHomeIslandMode: urlParams.get("homeisland") === "true",
+            homeIslandId: urlParams.get("id"),
+        };
     }, []);
-    // Initialize with saved schedule or default to jerry
+
+    // Validate Home Island ID - check if it exists in scheduleConfig
+    const isHomeIslandIdValid = useMemo(() => {
+        if (!isHomeIslandMode) return true; // Not in Home Island mode, no validation needed
+        if (!homeIslandId) return false; // No ID provided in Home Island mode
+        return scheduleConfig.some((s) => s.id === homeIslandId);
+    }, [isHomeIslandMode, homeIslandId]);
+    // Initialize with Home Island ID, saved schedule, or default to jerry
     const getInitialSchedule = () => {
+        // In Home Island mode, use the ID from URL parameter
+        if (isHomeIslandMode && homeIslandId) {
+            const homeIslandSchedule = scheduleConfig.find((s) => s.id === homeIslandId);
+            if (homeIslandSchedule) {
+                return [homeIslandSchedule];
+            }
+        }
+
         const savedScheduleId = localStorage.getItem("scheduler-last-selected-person");
         if (savedScheduleId) {
             const savedSchedule = scheduleConfig.find((s) => s.id === savedScheduleId);
@@ -129,6 +147,11 @@ const Scheduler: React.FC = () => {
         const newSchedule = scheduleConfig.find((s) => s.id === newScheduleId);
         if (newSchedule) setSelectedSchedules([newSchedule]);
     };
+
+    // Home Island mode with invalid/empty ID: render blank page
+    if (isHomeIslandMode && !isHomeIslandIdValid) {
+        return null;
+    }
 
     return (
         <div className={`scheduler ${isHomeIslandMode ? "homeisland-mode" : ""}`}>

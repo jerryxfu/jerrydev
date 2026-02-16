@@ -80,7 +80,7 @@ export default function Conditioner() {
 
         const result = evaluateConditions(input, conditions);
         setTriageResults(result);
-    }, [formData, contextData, conditions]);
+    }, [formData, contextData]);
 
 
     const [bloodPressure, setBloodPressure] = useState<BloodPressure>({
@@ -199,7 +199,7 @@ export default function Conditioner() {
             </div>
         </div>
         <div className="container">
-            WEIGHTS ARE VERY POORLY ADJUSTED, RESULTS ARE LIKELY TO BE WRONG
+            Not medical advice. Poorly designed.
             <p>Symptoms Selected: {Object.entries(formData).filter(([_, value]) => value).length}</p>
             {bloodPressure.systolic && bloodPressure.diastolic && (
                 <div>Selected BP: {bloodPressure.systolic}/{bloodPressure.diastolic}</div>
@@ -219,19 +219,6 @@ export default function Conditioner() {
                     </ul>
                 </div>
             )}
-        </div>
-        <div className="container">
-            <h2>Shortcuts</h2>
-
-            {/*<a href="snapchat://">Open Snapchat</a>*/}
-            {/*<a href="snapchat://chat/jerryxfu">Snapchat to Jerry</a>*/}
-            {/*<a href="instagram://">Open Instagram</a>*/}
-            {/*<a href="instagram://direct_v2">Open Instagram DMs</a>*/}
-
-            {/**Dialing will usually not automatically call*/}
-            {/*<a href="tel:14382258853" className="text-underline">Dial Jerry</a>*/}
-            {/*/!*<a href="tel:911">Dial 9-1-1</a>*!/*/}
-            {/*<a className="text-underline">Dial 9-1-1 (disabled during development)</a>*/}
         </div>
     </div>);
 }

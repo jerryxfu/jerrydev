@@ -200,7 +200,9 @@
 
 /* Home Island iframe mode styles */
 .scheduler.homeisland-mode {
-    background: rgba(255, 255, 255, 0.15);
+    --s-bg-c: transparent;
+    --s-border-c: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.10);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     min-height: 100vh;
@@ -208,7 +210,9 @@
 
 @media (prefers-color-scheme: dark) {
     .scheduler.homeisland-mode {
-        background: rgba(0, 0, 0, 0.25);
+        --s-bg-c: transparent;
+        --s-border-c: rgba(255, 255, 255, 0.15);
+        background: rgba(64, 64, 64, 0.1);
     }
 }
 

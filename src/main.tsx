@@ -18,7 +18,6 @@ import Mailman from "./pages/cheatsheet/Mailman.tsx";
 import SuperIcu from "./pages/supericu/SuperICU.tsx";
 import Conditioner from "./pages/conditioner/Conditioner.tsx";
 import Scheduler from "./pages/scheduler/Scheduler.tsx";
-import Board from "./pages/board/Board.tsx";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, TextPlugin);
 
@@ -72,10 +71,6 @@ const router = createBrowserRouter([
     {
         path: "/scheduler",
         element: <Scheduler />
-    },
-    {
-        path: "/board",
-        element: <Board />
     },
     {
         path: "/cheatsheet/waveform",

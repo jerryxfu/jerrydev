@@ -100,24 +100,6 @@ export type Symptom = {
  */
 export const symptoms: Symptom[] = [
     {
-
-        id: "princess_attitude",
-        label: "Princess attitude",
-        categories: ["constitutional"],
-        description: "A persistent attitude of entitlement.",
-        severity: ["severe"],
-        duration: ["chronic"],
-        onset: "sudden",
-        immediateRedFlag: false,
-        priority: 1,
-        _meta: {quickAccessDisplay: false},
-        contagious: true,
-        riskFactors: ["being a princess"],
-        treatments: [""],
-        complications: ["spoiled behavior", "entitlement"],
-        additionalInfo: "DO NOT CONSIDER DURING TRIAGE, this is a joke."
-    },
-    {
         id: "abdominal_pain",
         label: "Abdominal Pain",
         categories: ["gastrointestinal", "genitourinary"],

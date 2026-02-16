@@ -83,6 +83,16 @@ const projects: Project[] = [
         footer: "For Dodo Wheels"
     },
     {
+        title: "Kahoot! flood bot",
+        subTitle: "",
+        image: _kahootBot,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2024-07-1")),
+        url: "https://github.com/jerryxfu/kahoot-bot",
+        description: "A Kahoot bot that can join games and answer questions at your command. Built using Python and Playwright to automate the web interface.",
+        footer: "(Outdated video)"
+    },
+    {
         title: "UNVEIL",
         subTitle: "Uncover the unseen",
         image: _unveil,
@@ -100,15 +110,6 @@ const projects: Project[] = [
         dateDisplay: formatDate(new Date("2025-07-24")),
         url: "/conditioner",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
-    },
-    {
-        title: "Kahoot! flood bot",
-        subTitle: "Simulates mouse and keyboard input to join kahoots",
-        image: _kahootBot,
-        chipText: "🔴 Broken",
-        dateDisplay: formatDate(new Date("2024-07-1")),
-        url: "https://github.com/jerryxfu/kahoot-bot",
-        description: "Uses PyAutoGUI to simulate inputs to join kahoots and answer questions in one click. No longer works due to Kahoot updates.",
     },
     {
         title: "JerryBot",
