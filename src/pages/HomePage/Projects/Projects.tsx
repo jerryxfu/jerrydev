@@ -1,9 +1,7 @@
-import React from "react";
 import "./Projects.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
-import ProjectCard, {Project} from "./components/ProjectCard.tsx";
+import Card, {CardProps} from "../../../components/Card/Card.tsx";
 import _llmvsllm from "../../../assets/projects/llmvsllm.png";
-import _doublestartyre from "../../../assets/projects/doublestartyre.png";
 import _baputils from "../../../assets/projects/baputils.png";
 import _jerrybot from "../../../assets/projects/jerrybot.png";
 import _jerryxf from "../../../assets/projects/jerryxf.png";
@@ -34,7 +32,7 @@ function formatDate(date: Date): string {
     return `${day}-${month}-${year} (${diffDays} days ago)`;
 }
 
-const projects: Project[] = [
+const projects: CardProps[] = [
     {
         title: "MEDIVE",
         subTitle: "Research project",
@@ -81,16 +79,6 @@ const projects: Project[] = [
         url: "https://github.com/jerryxfu/BapUtils",
         description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities.",
         footer: "/bap"
-    },
-    {
-        title: "Doublestartyre CA",
-        subTitle: "",
-        image: _doublestartyre,
-        chipText: "✅ Delivered",
-        dateDisplay: formatDate(new Date("2024-07-11")),
-        url: "https://doublestartyre.ca",
-        description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
-        footer: "For Dodo Wheels"
     },
     {
         title: "Kahoot! flood bot",
@@ -226,17 +214,7 @@ export default function Projects() {
             <div className="projects-grid">
                 {projects.map((project) => {
                     return (
-                        <ProjectCard
-                            key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}
-                            image={project.image}
-                            title={project.title}
-                            subTitle={project.subTitle}
-                            description={project.description}
-                            chipText={project.chipText}
-                            url={project.url}
-                            dateDisplay={project.dateDisplay}
-                            footer={project.footer}
-                        />
+                        <Card key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()} {...project} />
                     );
                 })}
             </div>

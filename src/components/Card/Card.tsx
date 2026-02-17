@@ -1,12 +1,13 @@
 import {Chip} from "@mui/joy";
-import "./ProjectCard.scss";
+import "./Card.scss";
 
-export interface Project {
+export interface CardProps {
     image: string;
     title: string;
-    subTitle: string;
+    subTitle?: string;
     description: string;
-    chipText: "🌀 Concept"
+    chipText?:
+        "🌀 Concept"
         | "🧩 MVP" // Minimum Viable Product
         | "🚧 WIP" // Work In Progress
         | "🟢 Stable" // The project is stable and maintained
@@ -26,43 +27,43 @@ export interface Project {
     url?: string | undefined;
     color?: string | undefined;
     footer?: string | undefined;
-    dateDisplay: string;
+    dateDisplay?: string;
 }
 
-export default function ProjectCard(props: Project) {
+export default function Card(props: CardProps) {
     const {image, title, subTitle, description, chipText, url, color, footer, dateDisplay} = props;
 
     const isVideo = image.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/);
 
     return (
-        <div className="projectcard" style={{backgroundColor: color || "initial"}}>
-            <div className="projectcard_image_section">
-                <a className="projectcard_image" href={url || undefined} target="_blank" rel="noopener noreferrer">
+        <div className="card" style={{backgroundColor: color || "initial"}}>
+            <div className="card_image_section">
+                <a className="card_image" href={url || undefined} target="_blank" rel="noopener noreferrer">
                     {isVideo ? (
                         <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="metadata" />
                     ) : (
                         <img src={image} alt={`${title} icon`} />
                     )}
                 </a>
-                {chipText && <Chip className="projectcard_image_chip" size={"sm"}>{chipText}</Chip>}
+                {chipText && <Chip className="card_image_chip" size={"sm"}>{chipText}</Chip>}
             </div>
 
-            <div className="projectcard_header">
-                <div className="projectcard_header_content">
+            <div className="card_header">
+                <div className="card_header_content">
                     <h2>{title}</h2>
-                    <h3>{subTitle}</h3>
+                    {subTitle && <h3>{subTitle}</h3>}
                 </div>
             </div>
 
-            <div className="projectcard_content">
+            <div className="card_content">
                 <p>{description}</p>
             </div>
 
-            <div className="projectcard_footer">
-                <div className="projectcard_stats">
+            <div className="card_footer">
+                <div className="card_stats">
                     {/*<span className="stat-item"></span>*/}
                 </div>
-                <div className="projectcard_date">
+                <div className="card_date">
                     {footer && `${footer} | `}
                     {dateDisplay}
                 </div>
@@ -70,3 +71,4 @@ export default function ProjectCard(props: Project) {
         </div>
     );
 }
+

@@ -11,7 +11,7 @@ const linksLeft: { href: string, label: string }[] = [
     {href: "#tools---languages", label: "Skills"},
     {href: "#contact-me", label: "Contact"},
     {href: "#projects", label: "Projects"},
-    {href: "#experience", label: "Experience"},
+    {href: "#experience---extras", label: "Experience"},
 ];
 
 const linksRight: { href: string, label: string, target?: string }[] = [
@@ -67,11 +67,7 @@ export default function Navbar() {
                 borderRadius: navbarBorderRadius,
             }}
         >
-            <a
-                className={`navbar_icon ${isShrunk ? "navbar_icon-shrunk" : ""}`}
-                href="/"
-                aria-label="Go to homepage"
-            >
+            <a className={`navbar_icon ${isShrunk ? "navbar_icon-shrunk" : ""}`} href="/" aria-label="Go to homepage">
                 <img
                     src="/favicon.png"
                     alt="jerrydev sunset sky with moon icon"
@@ -100,8 +96,7 @@ export default function Navbar() {
                             delay: openingDelay + 0.15 + (index * 0.06),
                             duration: 0.9,
                             ease: "easeOut"
-                        }}
-                    >
+                        }}>
                         <a href={link.href} className="text text-underline">
                             {link.label}
                         </a>
@@ -120,8 +115,7 @@ export default function Navbar() {
                             delay: openingDelay + 0.15 + ((index + linksLeft.length) * 0.06),
                             duration: 0.9,
                             ease: "easeOut"
-                        }}
-                    >
+                        }}>
                         <a
                             href={link.href}
                             className="text text-underline"

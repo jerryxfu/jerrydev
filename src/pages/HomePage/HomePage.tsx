@@ -6,6 +6,7 @@ import Skills from "./Skills/Skills.tsx";
 import Contact from "./Contact/Contact.tsx";
 import Projects from "./Projects/Projects.tsx";
 import Footer from "../../components/Footer/Footer.tsx";
+import Experience from "./Experience/Experience.tsx";
 
 export default function HomePage() {
     return (
@@ -16,6 +17,7 @@ export default function HomePage() {
             <Skills />
             <Contact />
             <Projects />
+            <Experience />
             <Footer />
         </div>
     );
