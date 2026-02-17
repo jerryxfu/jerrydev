@@ -1,26 +1,26 @@
 @keyframes gradient-animation-default {
     0% {
-        --c-0: hsla(240, 75%, 75%, 1);
+        --c-0: hsla(230, 70%, 76%, 1);
         --x-0: 55%;
         --y-0: 56%;
         --s-start-0: 10%;
         --s-end-0: 71%;
-        --c-1: hsla(280, 60%, 88%, 1);
+        --c-1: hsla(260, 45%, 88%, 1);
         --x-1: 77%;
         --y-1: 95%;
         --s-start-1: 11%;
         --s-end-1: 54%;
-        --c-2: hsla(245, 85%, 82%, 1);
+        --c-2: hsla(235, 80%, 83%, 1);
         --x-2: 39%;
         --y-2: 37%;
         --s-start-2: 12%;
         --s-end-2: 72%;
-        --c-3: hsla(210, 65%, 72%, 1);
+        --c-3: hsla(205, 65%, 74%, 1);
         --x-3: 29%;
         --y-3: 60%;
         --s-start-3: 0%;
         --s-end-3: 87%;
-        --c-4: hsla(300, 55%, 68%, 1);
+        --c-4: hsla(280, 40%, 70%, 1);
         --x-4: 61%;
         --y-4: 2%;
         --s-start-4: 5%;
@@ -28,27 +28,27 @@
     }
 
     100% {
-        --c-0: hsla(220, 70%, 85%, 1);
+        --c-0: hsla(215, 68%, 85%, 1);
         --x-0: 76%;
         --y-0: 100%;
         --s-start-0: 8%;
         --s-end-0: 74%;
-        --c-1: hsla(351, 99%, 75%, 1);
+        --c-1: hsla(340, 80%, 76%, 1);
         --x-1: 46%;
         --y-1: 38%;
         --s-start-1: 17%;
         --s-end-1: 73%;
-        --c-2: hsla(330, 68%, 74%, 1);
+        --c-2: hsla(315, 52%, 76%, 1);
         --x-2: 2%;
         --y-2: 5%;
         --s-start-2: 9%;
         --s-end-2: 81%;
-        --c-3: hsla(235, 75%, 85%, 1);
+        --c-3: hsla(225, 68%, 84%, 1);
         --x-3: 19%;
         --y-3: 48%;
         --s-start-3: 5%;
         --s-end-3: 79%;
-        --c-4: hsla(238, 60%, 70%, 1);
+        --c-4: hsla(225, 52%, 72%, 1);
         --x-4: 40%;
         --y-4: 91%;
         --s-start-4: 6%;
@@ -207,22 +207,22 @@
 }
 
 .gradient-mesh-default {
-    --c-0: hsla(240, 75%, 75%, 1);
+    --c-0: hsla(230, 70%, 76%, 1);
     --x-0: 55%;
     --y-0: 56%;
-    --c-1: hsla(280, 60%, 88%, 1);
+    --c-1: hsla(260, 45%, 88%, 1);
     --x-1: 77%;
     --y-1: 95%;
-    --c-2: hsla(245, 85%, 82%, 1);
+    --c-2: hsla(235, 80%, 83%, 1);
     --x-2: 39%;
     --y-2: 37%;
-    --c-3: hsla(210, 65%, 72%, 1);
+    --c-3: hsla(205, 65%, 74%, 1);
     --x-3: 29%;
     --y-3: 60%;
-    --c-4: hsla(300, 55%, 68%, 1);
+    --c-4: hsla(280, 40%, 70%, 1);
     --x-4: 61%;
     --y-4: 2%;
-    background-color: hsla(280, 70%, 85%, 1);
+    background-color: hsla(260, 55%, 86%, 1);
     background-image: radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)), radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)), radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)), radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3)), radial-gradient(circle at var(--x-4) var(--y-4), var(--c-4) var(--s-start-4), transparent var(--s-end-4));
     animation: gradient-animation-default 8s linear infinite alternate;
     background-blend-mode: normal, normal, normal, normal, normal;
