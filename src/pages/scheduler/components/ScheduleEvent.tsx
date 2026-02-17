@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {ScheduleEvent as ScheduleEventType} from "../../../types/schedule";
 import {timeToMinutes} from "../timeUtils.ts";
 import "./ScheduleEvent.scss";
@@ -47,11 +47,32 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
 
     const durationLabel = formatTimeLabel(duration);
 
-    // Truncate long titles when Home Island mode is active
-    const MAX_TITLE_LENGTH = 26;
-    const displayTitle = (isHomeIsland && event.title && event.title.length > MAX_TITLE_LENGTH)
-        ? `${event.title.slice(0, MAX_TITLE_LENGTH)}...`
-        : event.title;
+    // Responsive title truncation
+    const [isNarrow, setIsNarrow] = useState<boolean>(() => {
+        if (typeof window === "undefined") return false;
+        return window.innerWidth <= 768;
+    });
+
+    useEffect(() => {
+        const onResize = () => setIsNarrow(window.innerWidth <= 768);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    const MAX_HOME_TITLE = 26;
+    const MAX_MOBILE_TITLE = 30;
+
+    // Truncate long titles in home island mode or on a narrow viewport
+    let displayTitle = event.title;
+    if (event.title) {
+        if (isHomeIsland && event.title.length > MAX_HOME_TITLE) {
+            displayTitle = `${event.title.slice(0, MAX_HOME_TITLE)}...`;
+        } else if (!isHomeIsland && isNarrow && event.title.length > MAX_MOBILE_TITLE) {
+            displayTitle = `${event.title.slice(0, MAX_MOBILE_TITLE)}...`;
+        } else {
+            displayTitle = event.title;
+        }
+    }
 
     const offsetFromStart = Math.max(0, startMinutes - baseStartMinutes);
     const top = offsetFromStart * minuteHeight;
