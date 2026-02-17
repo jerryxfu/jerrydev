@@ -23,24 +23,24 @@ const DAYS_OF_WEEK = HIDE_WEEKENDS
 
 const Scheduler: React.FC = () => {
     // Detect Home Island mode and ID parameter
-    const {isHomeIslandMode, homeIslandId} = useMemo(() => {
+    const {isHomeIsland, homeIslandId} = useMemo(() => {
         const urlParams = new URLSearchParams(window.location.search);
         return {
-            isHomeIslandMode: urlParams.get("homeisland") === "true",
+            isHomeIsland: urlParams.get("homeisland") === "true",
             homeIslandId: urlParams.get("id"),
         };
     }, []);
 
     // Validate Home Island ID - check if it exists in scheduleConfig
     const isHomeIslandIdValid = useMemo(() => {
-        if (!isHomeIslandMode) return true; // Not in Home Island mode, no validation needed
+        if (!isHomeIsland) return true; // Not in Home Island mode, no validation needed
         if (!homeIslandId) return false; // No ID provided in Home Island mode
         return scheduleConfig.some((s) => s.id === homeIslandId);
-    }, [isHomeIslandMode, homeIslandId]);
+    }, [isHomeIsland, homeIslandId]);
     // Initialize with Home Island ID, saved schedule, or default to jerry
     const getInitialSchedule = () => {
         // In Home Island mode, use the ID from URL parameter
-        if (isHomeIslandMode && homeIslandId) {
+        if (isHomeIsland && homeIslandId) {
             const homeIslandSchedule = scheduleConfig.find((s) => s.id === homeIslandId);
             if (homeIslandSchedule) {
                 return [homeIslandSchedule];
@@ -85,7 +85,7 @@ const Scheduler: React.FC = () => {
 
     // Home Island mode: scroll to bottom and set transparent body
     useEffect(() => {
-        if (isHomeIslandMode) {
+        if (isHomeIsland) {
             document.body.classList.add("homeisland-body");
             document.documentElement.classList.add("homeisland-html");
             // Scroll to bottom after render
@@ -97,7 +97,7 @@ const Scheduler: React.FC = () => {
             document.body.classList.remove("homeisland-body");
             document.documentElement.classList.remove("homeisland-html");
         };
-    }, [isHomeIslandMode]);
+    }, [isHomeIsland]);
 
     // Filter events by selected day - FIXED: only include events that explicitly match the selected day
     const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({
@@ -159,19 +159,19 @@ const Scheduler: React.FC = () => {
     };
 
     // Home Island mode with invalid/empty ID: render blank page
-    if (isHomeIslandMode && !isHomeIslandIdValid) {
+    if (isHomeIsland && !isHomeIslandIdValid) {
         return null;
     }
 
     return (
-        <div className={`scheduler ${isHomeIslandMode ? "homeisland-mode" : ""}`}>
+        <div className={`scheduler ${isHomeIsland ? "homeisland-mode" : ""}`}>
             <div className="scheduler-header">
-                {!isHomeIslandMode && <h1 className="scheduler-title">Schedule viewer</h1>}
+                {!isHomeIsland && <h1 className="scheduler-title">Schedule viewer</h1>}
 
                 {/* Controls row */}
                 <div className="scheduler-controls">
                     <div className="scheduler-controls-left">
-                        {!isHomeIslandMode && (
+                        {!isHomeIsland && (
                             <button
                                 className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
                                 onClick={toggleComparisonMode}
@@ -202,7 +202,7 @@ const Scheduler: React.FC = () => {
                             </div>
                         ) : (
                             <div className="scheduler-select-group">
-                                <label className="scheduler-select-label">{isHomeIslandMode ? "" : "Schedule:"}</label>
+                                <label className="scheduler-select-label">{isHomeIsland ? "" : "Schedule:"}</label>
                                 <select
                                     value={selectedSchedules[0]?.id ?? "jerry"}
                                     onChange={(e) => handleSingleScheduleSelect(e.target.value)}
@@ -216,7 +216,7 @@ const Scheduler: React.FC = () => {
                         )}
 
                         {/* Day selector */}
-                        {!isHomeIslandMode && (
+                        {!isHomeIsland && (
                             <div className="scheduler-day-buttons">
                                 {DAYS_OF_WEEK.map((day) => (
                                     <button
@@ -233,7 +233,7 @@ const Scheduler: React.FC = () => {
 
                     {/* Info */}
                     <div className="scheduler-controls-right">
-                        {!isHomeIslandMode && comparisonMode && commonBreaks.length > 0 && (
+                        {!isHomeIsland && comparisonMode && commonBreaks.length > 0 && (
                             <div className="scheduler-break-info">
                                 <span className="scheduler-break-count">
                                     {commonBreaks.length} common free time{commonBreaks.length !== 1 ? "s" : ""}
@@ -253,6 +253,7 @@ const Scheduler: React.FC = () => {
                             schedule={schedule}
                             breakPeriods={commonBreaks}
                             showBreaks={comparisonMode}
+                            isHomeIsland={isHomeIsland}
                         />
                     ))}
                 </div>

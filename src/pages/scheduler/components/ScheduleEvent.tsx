@@ -9,10 +9,11 @@ interface ScheduleEventProps {
     isNext?: boolean;
     baseStartMinutes?: number; // minutes from 00:00 for the top of the grid
     minuteHeight?: number; // px per minute
+    isHomeIsland?: boolean; // explicit prop so truncation works on first render
 }
 
 const ScheduleEvent: React.FC<ScheduleEventProps> = (
-    {event, isCurrent = false, isNext = false, baseStartMinutes = 8 * 60, minuteHeight = 40 / 60}) => {
+    {event, isCurrent = false, isNext = false, baseStartMinutes = 8 * 60, minuteHeight = 40 / 60, isHomeIsland}) => {
     const formatTimeLabel = (minutes: number) => {
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
@@ -46,6 +47,12 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
 
     const durationLabel = formatTimeLabel(duration);
 
+    // Truncate long titles when Home Island mode is active
+    const MAX_TITLE_LENGTH = 26;
+    const displayTitle = (isHomeIsland && event.title && event.title.length > MAX_TITLE_LENGTH)
+        ? `${event.title.slice(0, MAX_TITLE_LENGTH)}...`
+        : event.title;
+
     const offsetFromStart = Math.max(0, startMinutes - baseStartMinutes);
     const top = offsetFromStart * minuteHeight;
     const height = Math.max(2, duration * minuteHeight); // enforce minimum height for visibility
@@ -66,16 +73,16 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = (
             }}
         >
             <div className="schedule-event__content">
-                <div className="schedule-event__title">{event.title}</div>
+                <div className="schedule-event__left">
+                    <div className="schedule-event__title" title={event.title} aria-label={event.title}>{displayTitle}</div>
+                    {event.location && (
+                        <div className="schedule-event__location">{event.location}</div>
+                    )}
+                </div>
                 <div className="schedule-event__time">
                     <p>{event.startTime}-{event.endTime} ({durationLabel})</p>
                     <p>{isCurrent ? `Ends in ${timeRemaining}` : `Starts in ${timeUntil}`}</p>
                 </div>
-                <div className="schedule-event__time">
-                </div>
-                {event.location && (
-                    <div className="schedule-event__location">{event.location}</div>
-                )}
             </div>
         </div>
     );

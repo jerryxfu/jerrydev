@@ -13,10 +13,11 @@ interface ScheduleProps {
     slotMinutes?: number;
     breakPeriods?: BreakPeriod[];
     showBreaks?: boolean;
+    isHomeIsland?: boolean; // forward to events so truncation works on first render
 }
 
 const Schedule: React.FC<ScheduleProps> = (
-    {schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false}) => {
+    {schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false, isHomeIsland = false}) => {
     const displayStart = startTime ?? schedule.startTime ?? "08:00";
     const displayEnd = endTime ?? schedule.endTime ?? "18:00";
     const displaySlotMinutes = slotMinutes ?? schedule.slotMinutes ?? 60;
@@ -105,6 +106,7 @@ const Schedule: React.FC<ScheduleProps> = (
                             isNext={nextEvent?.id === event.id}
                             baseStartMinutes={baseStartMinutes}
                             minuteHeight={minuteHeight}
+                            isHomeIsland={isHomeIsland}
                         />
                     ))}
                 </div>
