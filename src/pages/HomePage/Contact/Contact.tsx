@@ -8,25 +8,14 @@ import ContactCard from "./components/ContactCard.tsx";
 
 import _discord from "../../../assets/socials/discord_mark.svg";
 import _instagram from "../../../assets/socials/instagram_mark.svg";
-// import _snapchat_lt from "../../../assets/socials/snapchat_light.png";
-// import _snapchat_da from "../../../assets/socials/snapchat_dark.png";
-import _github_lt from "../../../assets/tech_stack/github.svg";
-import _github_da from "../../../assets/tech_stack/github_white.svg";
-import _youtube from "../../../assets/socials/youtube_mark.png";
-import _reddit from "../../../assets/socials/reddit_mark.svg";
+import _github_lt from "../../../assets/skills/github.svg";
+import _github_da from "../../../assets/skills/github_white.svg";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
-import {AlternateEmailRounded, Phone} from "@mui/icons-material";
+import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
 import _steam from "../../../assets/socials/steam_mark.svg";
+import {Button} from "@mui/joy";
 
 const medias = [
-    // {
-    //     title: "Snapchat",
-    //     username: <span className="obfuscate-str contact_obfuscated"></span>,
-    //     image: "",
-    //     url: "",
-    //     chipText: "secret",
-    //     color: ""
-    // },
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "", color: "#ffb5a610"},
     {
         title: "Discord",
@@ -53,7 +42,14 @@ const medias = [
     //     chipText: "",
     //     color: "#ffb5a610"
     // },
-    {title: "Steam", username: "jerryxf", image: _steam, url: "https://steamcommunity.com/id/jerryxf/", chipText: "", color: "#00adee10"}
+    {
+        title: "Steam",
+        username: "jerryxf",
+        image: "https://favicon.im/store.steampowered.com?larger=true",
+        url: "https://steamcommunity.com/id/jerryxf/",
+        chipText: "",
+        color: "#00adee10"
+    }
 ];
 
 export default function Contact() {
@@ -112,16 +108,15 @@ export default function Contact() {
                     <ul style={{paddingLeft: 0}}>
                         <li className="contact_list-element">
                             <AlternateEmailRounded sx={{marginRight: "0.20rem"}} />
-                            <a href="mailto:jerryfu_mc@outlook.com">jerryfu_mc@outlook.com</a>
+                            <a className="text" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
                         </li>
-                        {/*<li className="contact_list-element">*/}
-                        {/*    <Phone sx={{marginRight: "0.20rem"}} />*/}
-                        {/*    <a href="tel:+10000000000">+1 (<span className="obfuscate-num">000</span>) <span className="obfuscate-num">000</span>*/}
-                        {/*        -<span className="obfuscate-num">0000</span></a>*/}
-                        {/*</li>*/}
                     </ul>
                     <div className="contact_cv">
                         <SubTitle text={"Curriculum Vitae"} />
+                        <Button variant="outlined" color="neutral" href="https://cv.jerryxf.net" target="_blank" rel="noopener noreferrer"
+                                startDecorator={<OpenInNewRounded />}>
+                            View CV
+                        </Button>
                     </div>
                 </div>
             </div>

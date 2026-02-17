@@ -411,8 +411,8 @@ const scheduleConfig: ScheduleType[] = [
                 day: "tuesday",
                 id: "PHI-B02",
                 title: "Theory of Knowledge",
-                startTime: "15:30",
-                endTime: "17:20",
+                startTime: "8:30",
+                endTime: "10:20",
                 location: "D3-06",
                 color: subjectColors.humanities
             },

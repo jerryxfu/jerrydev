@@ -17,6 +17,7 @@ import _scorekeeper from "../../../assets/projects/scorekeeper.png";
 import _autoscout from "../../../assets/projects/autoscout.png";
 import _medive from "../../../assets/projects/medive.png";
 import _unveil from "../../../assets/unveil_dark.png";
+import _homeisland from "../../../assets/projects/home-island.png";
 
 function formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -36,13 +37,22 @@ function formatDate(date: Date): string {
 const projects: Project[] = [
     {
         title: "MEDIVE",
-        subTitle: "Medical Inference via Vector Embedding",
+        subTitle: "Research project",
         image: _medive,
         chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-08-14")),
         url: "https://github.com/jerryxfu/medive",
-        // url: "/medive",
-        description: "MEDIVE is a personal research project aiming to use vector embeddings to encode symptom and condition meaning.",
+        description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
+    },
+    {
+        title: "Home Island",
+        subTitle: "Custom browser start page",
+        image: _homeisland,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2025-08-21")),
+        url: "https://github.com/jerryxfu/home-island",
+        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome and Firefox (Safari coming soon)",
+        footer: ""
     },
     {
         title: "SuperICU",
@@ -121,12 +131,12 @@ const projects: Project[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
-        title: "jerryxf.net, API",
+        title: "*.jerryxf.net",
         subTitle: "This website, right here!",
         image: _jerryxf,
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
-        description: "This portfolio website, the API, and the PyAPI that empowers other projects.",
+        description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
         title: "FRC Scorekeeper interface",

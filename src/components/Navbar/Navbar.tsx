@@ -8,10 +8,10 @@ import {Drawer, IconButton} from "@mui/joy";
 // Constants outside component to prevent re-creation on every render
 const linksLeft: { href: string, label: string }[] = [
     {href: "#", label: "Home"},
-    {href: "#skills", label: "Skills"},
-    {href: "#experience", label: "Experience"},
+    {href: "#tools---languages", label: "Skills"},
     {href: "#contact-me", label: "Contact"},
-    {href: "#projects", label: "Projects"}
+    {href: "#projects", label: "Projects"},
+    {href: "#experience", label: "Experience"},
 ];
 
 const linksRight: { href: string, label: string, target?: string }[] = [
