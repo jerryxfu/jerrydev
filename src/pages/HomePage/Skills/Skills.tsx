@@ -10,7 +10,7 @@ const tech_stack = [
     {
         name: "DiscordJS",
         color: "#a6adff10",
-        iconUrl: "https://favicon.im/discord.js.org",
+        iconUrl: "https://favicon.im/discord.js.org?larger=true",
         score: 4,
         chipText: "4/5",
         url: "https://discord.js.org/#/"

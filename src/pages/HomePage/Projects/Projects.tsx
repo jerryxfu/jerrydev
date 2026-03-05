@@ -47,10 +47,10 @@ const projects: CardProps[] = [
         subTitle: "Custom browser start page",
         image: _homeisland,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-21")),
+        dateDisplay: formatDate(new Date("2026-02-05")),
         url: "https://github.com/jerryxfu/home-island",
         description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome and Firefox (Safari coming soon)",
-        footer: ""
+        footer: "Click image^ for links"
     },
     {
         title: "SuperICU",

@@ -12,14 +12,13 @@ import _github_lt from "../../../assets/skills/github.svg";
 import _github_da from "../../../assets/skills/github_white.svg";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
-import _steam from "../../../assets/socials/steam_mark.svg";
 import {Button} from "@mui/joy";
 
 const medias = [
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "", color: "#ffb5a610"},
     {
         title: "Discord",
-        username: "@jerrydev",
+        username: "@jerryxf",
         image: _discord,
         url: "https://discord.com/users/611633988515266562",
         chipText: "",
