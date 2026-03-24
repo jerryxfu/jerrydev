@@ -12,6 +12,7 @@ interface ScheduleProps {
     slotMinutes?: number;
     breakPeriods?: BreakPeriod[];
     showBreaks?: boolean;
+    isToday?: boolean;
 }
 
 const MINUTE_HEIGHT = 0.94;
@@ -36,7 +37,7 @@ const mapTimeSlots = (schedule: ScheduleType) =>
         return slot;
     });
 
-const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false}) => {
+const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false, isToday = false}) => {
     const displayStart = startTime ?? schedule.startTime ?? "08:00";
     const displayEnd = endTime ?? schedule.endTime ?? "18:00";
     const displaySlotMinutes = slotMinutes ?? schedule.slotMinutes ?? 60;
@@ -96,6 +97,7 @@ const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMi
                             key={event.id}
                             event={event}
                             isNext={nextEvent?.id === event.id}
+                            isToday={isToday}
                             baseStartMinutes={baseStartMinutes}
                             minuteHeight={MINUTE_HEIGHT}
                         />

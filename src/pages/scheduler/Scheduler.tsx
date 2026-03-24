@@ -119,6 +119,9 @@ const Scheduler: React.FC = () => {
         return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
     }, [comparisonMode, filteredSchedules]);
 
+    // Whether the selected day is actually today (for time-aware event status)
+    const isToday = useMemo(() => selectedDay === getTodayKey(), [selectedDay]);
+
     // Handlers
     const toggleComparison = useCallback(() => {
         if (comparisonMode) {
@@ -234,6 +237,7 @@ const Scheduler: React.FC = () => {
                             schedule={schedule}
                             breakPeriods={commonBreaks}
                             showBreaks={comparisonMode}
+                            isToday={isToday}
                         />
                     ))}
                 </div>
