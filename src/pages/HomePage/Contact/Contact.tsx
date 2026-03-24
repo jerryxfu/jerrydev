@@ -15,6 +15,7 @@ import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
 import {Button} from "@mui/joy";
 
 const medias = [
+    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "", color: "#ffb5a610"},
     {
         title: "Discord",
@@ -32,7 +33,6 @@ const medias = [
         color: "#0a66c210"
     },
     // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
-    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
     // {
     //     title: "Reddit",
     //     username: "u/jerryxf",
@@ -112,8 +112,8 @@ export default function Contact() {
                     </ul>
                     <div className="contact_cv">
                         <SubTitle text={"Curriculum Vitae"} />
-                        <Button variant="outlined" color="neutral" href="https://cv.jerryxf.net" target="_blank" rel="noopener noreferrer"
-                                startDecorator={<OpenInNewRounded />}>
+                        <Button component="a" variant="outlined" color="neutral" href="https://cv.jerryxf.net" target="_blank"
+                                rel="noopener noreferrer" startDecorator={<OpenInNewRounded />}>
                             View CV
                         </Button>
                     </div>

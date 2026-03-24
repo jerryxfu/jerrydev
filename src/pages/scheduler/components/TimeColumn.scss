@@ -1,18 +1,18 @@
+/* Time column */
 .time_column {
     display: flex;
     flex-direction: column;
     width: 100%;
     min-width: 100%;
     background: var(--s-bg-c);
-    /* Border handled by parent (.schedule_time-column) */
-    border-right: 0;
+    border-right: 0; /* border handled by parent .schedule_time-column */
     position: relative;
 }
 
 .time_slot {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* top and bottom labels */
+    justify-content: space-between;
     align-items: flex-start;
     padding: 2px 6px;
     border-bottom: 1px solid var(--s-border-c);
@@ -32,15 +32,11 @@
     white-space: nowrap;
 }
 
-.time_label-start {
-    /* top label uses default styles */
-}
-
 .time_label-end {
-    /* end label at bottom; slightly lighter */
     color: var(--s-text-tertiary);
 }
 
+/* Responsive */
 @media (max-width: 768px) {
     .time_slot {
         padding: 2px 4px;
@@ -51,7 +47,7 @@
     }
 }
 
-/* Home Island mode styles */
+/* Home Island mode */
 .homeisland-mode .time_column {
     background: transparent;
 }
@@ -69,4 +65,3 @@
 .homeisland-mode .time_label-end {
     color: rgba(160, 160, 160, 1);
 }
-

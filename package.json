@@ -26,6 +26,7 @@
         "baffle": "^0.3.6",
         "cross-env": "^7.0.3",
         "d3": "^7.9.0",
+        "framer-motion": "^12.38.0",
         "gsap": "^3.12.7",
         "motion": "^12.23.12",
         "papaparse": "^5.5.3",
@@ -42,9 +43,9 @@
     "devDependencies": {
         "@types/d3": "^7.4.3",
         "@types/node": "^22.10.5",
+        "@types/papaparse": "^5.3.16",
         "@types/react": "^19.0.7",
         "@types/react-dom": "^19.0.3",
-        "@types/papaparse": "^5.3.16",
         "@types/react-plotly.js": "^2.6.3",
         "@typescript-eslint/eslint-plugin": "^8.20.0",
         "@typescript-eslint/parser": "^8.21.0",

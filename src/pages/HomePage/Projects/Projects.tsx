@@ -6,7 +6,7 @@ import _baputils from "../../../assets/projects/baputils.png";
 import _jerrybot from "../../../assets/projects/jerrybot.png";
 import _jerryxf from "../../../assets/projects/jerryxf.png";
 import _conditioner from "../../../assets/projects/conditioner.png";
-import _kahootBot from "../../../assets/projects/khaoot_bot.mp4";
+import _kahootBot from "../../../assets/projects/kahootbot.mp4";
 import _weatherStation from "../../../assets/projects/weather_station.jpg";
 import _endPortal from "../../../assets/projects/end_portal.jpg";
 import _supericu from "../../../assets/projects/supericu.png";
@@ -53,15 +53,6 @@ const projects: CardProps[] = [
         footer: "Click image^ for links"
     },
     {
-        title: "SuperICU",
-        subTitle: "A tool to preview ICU monitor data",
-        image: _supericu,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-19")),
-        url: "/supericu",
-        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
-    },
-    {
         title: "Scheduler",
         subTitle: "A daily/weekly schedule visualizer",
         image: _scheduler,
@@ -91,6 +82,15 @@ const projects: CardProps[] = [
         footer: "(Outdated video)"
     },
     {
+        title: "SuperICU",
+        subTitle: "A tool to preview ICU monitor data",
+        image: _supericu,
+        chipText: "💤 Stalled",
+        dateDisplay: formatDate(new Date("2025-08-19")),
+        url: "/supericu",
+        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
+    },
+    {
         title: "UNVEIL",
         subTitle: "Uncover the unseen",
         image: _unveil,
@@ -98,7 +98,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-10-01")),
         // Unveil Technologies is an intelligent platform for orchestration and autonomy built to bring clarity to complex missions. From autonomous drone systems to integrated command interfaces, Unveil transforms real-time data into actionable insight—empowering operators to uncover the unseen on the battlefield.
         url: "",
-        description: "An intelligent orchestration platform for mission control integrating drones to transform real-time data into actionable insight and empower operators to uncover the unseen on the battlefield.",
+        description: "An intelligent orchestration platform for mission control integrating drones to transform real-time data into actionable insight and empower operators on the battlefield.",
     },
     {
         title: "Conditioner",
@@ -110,6 +110,14 @@ const projects: CardProps[] = [
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
     },
     {
+        title: "*.jerryxf.net",
+        subTitle: "This website, right here!",
+        image: _jerryxf,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
+        description: "This portfolio website as well as the API that empowers other projects.",
+    },
+    {
         title: "JerryBot",
         subTitle: "A comprehensive discord bot",
         image: _jerrybot,
@@ -117,14 +125,6 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/JerryBot",
         dateDisplay: formatDate(new Date("2021-09-01")),
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
-    },
-    {
-        title: "*.jerryxf.net",
-        subTitle: "This website, right here!",
-        image: _jerryxf,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
-        description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
         title: "FRC Scorekeeper interface",
@@ -161,6 +161,24 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
+    },
+    {
+        title: "Cyclic",
+        subTitle: "Sleep cycle calculator and periods tracker",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        dateDisplay: "awaiting",
+        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
+        url: "/megacsv"
+    },
+    {
+        title: "Supersecretchat",
+        subTitle: "Extremely secure chat",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2026-03-18")),
+        description: "An extremely robust and secure chat built on the Signal Protocol (X3DH + Double Ratchet), routed entirely through a Tor hidden service for network-level anonymity.",
+        url: "/megacsv"
     },
     {
         title: "Cheatsheet",

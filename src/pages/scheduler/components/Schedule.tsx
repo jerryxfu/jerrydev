@@ -1,51 +1,50 @@
 import React from "react";
 import {BreakPeriod, Schedule as ScheduleType} from "../../../types/schedule";
 import ScheduleEvent from "./ScheduleEvent";
-import {getNextEvent, isCurrentEvent, minutesToTime, timeToMinutes} from "../timeUtils.ts";
+import {getNextEvent, minutesToTime, timeToMinutes} from "../timeUtils.ts";
 import TimeColumn from "./TimeColumn";
 import "./Schedule.scss";
 
 interface ScheduleProps {
     schedule: ScheduleType;
-    // Optional overrides for display range and slot generation
-    startTime?: string; // "HH:MM"
-    endTime?: string;   // "HH:MM"
+    startTime?: string;
+    endTime?: string;
     slotMinutes?: number;
     breakPeriods?: BreakPeriod[];
     showBreaks?: boolean;
-    isHomeIsland?: boolean; // forward to events so truncation works on first render
 }
 
-const Schedule: React.FC<ScheduleProps> = (
-    {schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false, isHomeIsland = false}) => {
-    const displayStart = startTime ?? schedule.startTime ?? "08:00";
-    const displayEnd = endTime ?? schedule.endTime ?? "18:00";
-    const displaySlotMinutes = slotMinutes ?? schedule.slotMinutes ?? 60;
-    const explicitSlots = schedule.timeSlots?.map(s => {
-        const start = s.hour * 60 + s.minute;
-        const end = s.endHour !== undefined && s.endMinute !== undefined ? (s.endHour * 60 + s.endMinute) : undefined;
+const MINUTE_HEIGHT = 0.94;
 
-        const label = `${s.hour.toString().padStart(2, "0")}:${s.minute.toString().padStart(2, "0")}`;
-
-        const endLabel = (s.endHour != null && s.endMinute != null && end !== undefined)
-            ? `${String(s.endHour).padStart(2, "0")}:${String(s.endMinute).padStart(2, "0")}`
-            : undefined;
+/** Convert schedule.timeSlots config into the format TimeColumn expects */
+const mapTimeSlots = (schedule: ScheduleType) =>
+    schedule.timeSlots?.map(s => {
+        const startLabel = `${String(s.hour).padStart(2, "0")}:${String(s.minute).padStart(2, "0")}`;
+        const hasEnd = s.endHour != null && s.endMinute != null;
 
         const slot: { time: string; label?: string; endTime?: string; endLabel?: string } = {
-            time: minutesToTime(start)
+            time: startLabel,
+            label: s.label ?? startLabel,
         };
 
-        slot.label = s.label ?? label;
-        if (end !== undefined) slot.endTime = minutesToTime(end);
-        const finalEndLabel = s.endLabel ?? endLabel;
-        if (finalEndLabel !== undefined) slot.endLabel = finalEndLabel;
+        if (hasEnd) {
+            slot.endTime = minutesToTime(s.endHour! * 60 + s.endMinute!);
+            const computedEndLabel = `${String(s.endHour).padStart(2, "0")}:${String(s.endMinute).padStart(2, "0")}`;
+            slot.endLabel = s.endLabel ?? computedEndLabel;
+        }
+
         return slot;
     });
 
+const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false}) => {
+    const displayStart = startTime ?? schedule.startTime ?? "08:00";
+    const displayEnd = endTime ?? schedule.endTime ?? "18:00";
+    const displaySlotMinutes = slotMinutes ?? schedule.slotMinutes ?? 60;
+    const explicitSlots = mapTimeSlots(schedule);
+
     const baseStartMinutes = timeToMinutes(displayStart);
     const baseEndMinutes = timeToMinutes(displayEnd);
-    const minuteHeight = 0.94;
-    const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * minuteHeight);
+    const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * MINUTE_HEIGHT);
 
     const nextEvent = getNextEvent(schedule.events);
 
@@ -53,44 +52,38 @@ const Schedule: React.FC<ScheduleProps> = (
         <div className="schedule">
             <div className="schedule_header">
                 <h3 className="schedule_title">{schedule.name}</h3>
-                {/*<Transit userSchedule={schedule} />*/}
             </div>
+
             <div className="schedule_container">
-                {/* Time Column */}
                 <div className="schedule_time-column">
                     <TimeColumn
                         startTime={displayStart}
                         endTime={displayEnd}
                         slotMinutes={displaySlotMinutes}
-                        minuteHeight={minuteHeight}
-                        {...(explicitSlots ? {slots: explicitSlots} : {})}
+                        minuteHeight={MINUTE_HEIGHT}
+                        {...(explicitSlots && {slots: explicitSlots})}
                     />
                 </div>
 
-                {/* Events Grid */}
-                <div
-                    className="schedule_grid"
-                    style={{height: `${containerHeight}px`}}
-                >
+                <div className="schedule_grid" style={{height: `${containerHeight}px`}}>
+                    {/* Break periods (comparison mode) */}
+                    {showBreaks && breakPeriods.map((bp, i) => {
+                        const startMin = timeToMinutes(bp.startTime);
+                        const endMin = timeToMinutes(bp.endTime);
+                        const duration = Math.max(0, endMin - startMin);
+                        const top = Math.max(0, startMin - baseStartMinutes) * MINUTE_HEIGHT;
+                        const height = Math.max(2, duration * MINUTE_HEIGHT);
 
-                    {/* Break periods (for comparison mode) */}
-                    {showBreaks && breakPeriods.map((breakPeriod, index) => {
-                        const startMinutes = timeToMinutes(breakPeriod.startTime);
-                        const endMinutes = timeToMinutes(breakPeriod.endTime);
-                        const duration = Math.max(0, endMinutes - startMinutes);
-                        const offsetFromStart = Math.max(0, startMinutes - baseStartMinutes);
-                        const top = offsetFromStart * minuteHeight;
-                        const height = Math.max(2, duration * minuteHeight);
                         return (
                             <div
-                                key={`break-${index}`}
+                                key={`break-${i}`}
                                 className="schedule-break"
                                 style={{top: `${top}px`, height: `${height}px`}}
                             >
                                 <div className="schedule-break_content">
                                     <span className="schedule-break_label">Free</span>
                                     <span className="schedule-break_time">
-                                        {breakPeriod.startTime}-{breakPeriod.endTime}
+                                        {bp.startTime}-{bp.endTime}
                                     </span>
                                 </div>
                             </div>
@@ -98,15 +91,13 @@ const Schedule: React.FC<ScheduleProps> = (
                     })}
 
                     {/* Events */}
-                    {schedule.events.map((event) => (
+                    {schedule.events.map(event => (
                         <ScheduleEvent
                             key={event.id}
                             event={event}
-                            isCurrent={isCurrentEvent(event)}
                             isNext={nextEvent?.id === event.id}
                             baseStartMinutes={baseStartMinutes}
-                            minuteHeight={minuteHeight}
-                            isHomeIsland={isHomeIsland}
+                            minuteHeight={MINUTE_HEIGHT}
                         />
                     ))}
                 </div>

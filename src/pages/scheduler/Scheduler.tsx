@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import Schedule from "./components/Schedule";
 import {Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
@@ -7,7 +7,7 @@ import "./Scheduler.scss";
 
 const HIDE_WEEKENDS = true;
 
-const ALL_DAYS_OF_WEEK = [
+const ALL_DAYS = [
     {key: "monday", label: "Monday"},
     {key: "tuesday", label: "Tuesday"},
     {key: "wednesday", label: "Wednesday"},
@@ -15,186 +15,170 @@ const ALL_DAYS_OF_WEEK = [
     {key: "friday", label: "Friday"},
     {key: "saturday", label: "Saturday"},
     {key: "sunday", label: "Sunday"},
-];
+] as const;
 
 const DAYS_OF_WEEK = HIDE_WEEKENDS
-    ? ALL_DAYS_OF_WEEK.filter(day => day.key !== "saturday" && day.key !== "sunday")
-    : ALL_DAYS_OF_WEEK;
+    ? ALL_DAYS.filter(d => d.key !== "saturday" && d.key !== "sunday")
+    : [...ALL_DAYS];
+
+const STORAGE_KEY = "scheduler-last-selected-person";
+const DEFAULT_START = "08:00";
+const DEFAULT_END = "18:00";
+
+// Helpers
+const findSchedule = (id: string) => scheduleConfig.find(s => s.id === id);
+
+const getTodayKey = (): string => {
+    const now = new Date();
+    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    let idx = now.getDay();
+    if (now.getHours() >= 18) idx = (idx + 1) % 7;
+    const day = dayNames[idx]!;
+    if (HIDE_WEEKENDS && (day === "saturday" || day === "sunday")) return "monday";
+    return day;
+};
+
+const filterByDay = (schedule: ScheduleType, day: string): ScheduleType => ({
+    ...schedule,
+    events: schedule.events.filter(e => e.day === day),
+});
+
+// URL params hook
+function useHomeIslandParams() {
+    return useMemo(() => {
+        const params = new URLSearchParams(window.location.search);
+        const isHomeIsland = params.get("homeisland") === "true";
+        const homeIslandId = params.get("id");
+        const isValid = !isHomeIsland || (!!homeIslandId && scheduleConfig.some(s => s.id === homeIslandId));
+        return {isHomeIsland, homeIslandId, isValid};
+    }, []);
+}
 
 const Scheduler: React.FC = () => {
-    // Detect Home Island mode and ID parameter
-    const {isHomeIsland, homeIslandId} = useMemo(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        return {
-            isHomeIsland: urlParams.get("homeisland") === "true",
-            homeIslandId: urlParams.get("id"),
-        };
-    }, []);
+    const {isHomeIsland, homeIslandId, isValid: isHomeIslandValid} = useHomeIslandParams();
 
-    // Validate Home Island ID - check if it exists in scheduleConfig
-    const isHomeIslandIdValid = useMemo(() => {
-        if (!isHomeIsland) return true; // Not in Home Island mode, no validation needed
-        if (!homeIslandId) return false; // No ID provided in Home Island mode
-        return scheduleConfig.some((s) => s.id === homeIslandId);
-    }, [isHomeIsland, homeIslandId]);
-    // Initialize with Home Island ID, saved schedule, or default to jerry
-    const getInitialSchedule = () => {
-        // In Home Island mode, use the ID from URL parameter
+    // Initial schedule selection
+    const getInitialSchedules = useCallback((): ScheduleType[] => {
         if (isHomeIsland && homeIslandId) {
-            const homeIslandSchedule = scheduleConfig.find((s) => s.id === homeIslandId);
-            if (homeIslandSchedule) {
-                return [homeIslandSchedule];
-            }
+            const s = findSchedule(homeIslandId);
+            if (s) return [s];
         }
-
-        const savedScheduleId = localStorage.getItem("scheduler-last-selected-person");
-        if (savedScheduleId) {
-            const savedSchedule = scheduleConfig.find((s) => s.id === savedScheduleId);
-            if (savedSchedule) {
-                return [savedSchedule];
-            }
+        const savedId = localStorage.getItem(STORAGE_KEY);
+        if (savedId) {
+            const s = findSchedule(savedId);
+            if (s) return [s];
         }
         return scheduleConfig.slice(0, 1);
-    };
+    }, [isHomeIsland, homeIslandId]);
 
-    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(getInitialSchedule);
+    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(getInitialSchedules);
     const [comparisonMode, setComparisonMode] = useState(false);
+    const [selectedDay, setSelectedDay] = useState(getTodayKey);
 
-    const getInitialDay = () => {
-        const now = new Date();
-        const hour = now.getHours();
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        let dayIndex = now.getDay();
-        if (hour >= 18) {
-            dayIndex = (dayIndex + 1) % 7;
-        }
-        let day = days[dayIndex];
-        if (HIDE_WEEKENDS && (day === "saturday" || day === "sunday")) {
-            day = "monday";
-        }
-        return day;
-    };
-    const [selectedDay, setSelectedDay] = useState(getInitialDay());
-
-    // Save selected person to localStorage whenever it changes
+    // Persist selection
     useEffect(() => {
-        if (!comparisonMode && selectedSchedules.length > 0 && selectedSchedules[0]) {
-            localStorage.setItem("scheduler-last-selected-person", selectedSchedules[0].id);
+        if (!comparisonMode && selectedSchedules[0]) {
+            localStorage.setItem(STORAGE_KEY, selectedSchedules[0].id);
         }
     }, [selectedSchedules, comparisonMode]);
 
-    // Home Island mode: scroll to bottom and set transparent body
+    // Home Island body styling
     useEffect(() => {
-        if (isHomeIsland) {
-            document.body.classList.add("homeisland-body");
-            document.documentElement.classList.add("homeisland-html");
-            // Scroll to bottom after render
-            setTimeout(() => {
-                window.scrollTo(0, document.body.scrollHeight);
-            }, 100);
-        }
+        if (!isHomeIsland) return;
+        document.body.classList.add("homeisland-body");
+        document.documentElement.classList.add("homeisland-html");
+        const timer = setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
         return () => {
+            clearTimeout(timer);
             document.body.classList.remove("homeisland-body");
             document.documentElement.classList.remove("homeisland-html");
         };
     }, [isHomeIsland]);
 
-    // Filter events by selected day - FIXED: only include events that explicitly match the selected day
-    const getScheduleForDay = (schedule: ScheduleType): ScheduleType => ({
-        ...schedule,
-        events: schedule.events.filter(event => event.day === selectedDay)
-    });
+    // Filter events for selected day
+    const filteredSchedules = useMemo(
+        () => selectedSchedules.map(s => filterByDay(s, selectedDay)),
+        [selectedSchedules, selectedDay],
+    );
 
-    const filteredSchedules = selectedSchedules.map(getScheduleForDay);
-
-    // Defaults
-    const defaultStartTime = "08:00";
-    const defaultEndTime = "18:00";
-
-    const getDisplayWindow = (s: ScheduleType) => ({
-        start: s.startTime ?? defaultStartTime,
-        end: s.endTime ?? defaultEndTime,
-    });
-
-    // Common breaks for selected day
-    const commonBreaks = (() => {
-        if (!comparisonMode || filteredSchedules.length !== 2) return [] as { startTime: string; endTime: string }[];
+    // Common breaks (comparison mode only)
+    const commonBreaks = useMemo(() => {
+        if (!comparisonMode || filteredSchedules.length !== 2) return [];
         const [a, b] = filteredSchedules;
         if (!a || !b) return [];
-        const aWin = getDisplayWindow(a);
-        const bWin = getDisplayWindow(b);
-        const start = Math.max(timeToMinutes(aWin.start), timeToMinutes(bWin.start));
-        const end = Math.min(timeToMinutes(aWin.end), timeToMinutes(bWin.end));
-        if (end <= start) return [];
-        return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
-    })();
 
-    const toggleComparisonMode = () => {
+        const aStart = timeToMinutes(a.startTime ?? DEFAULT_START);
+        const bStart = timeToMinutes(b.startTime ?? DEFAULT_START);
+        const aEnd = timeToMinutes(a.endTime ?? DEFAULT_END);
+        const bEnd = timeToMinutes(b.endTime ?? DEFAULT_END);
+
+        const start = Math.max(aStart, bStart);
+        const end = Math.min(aEnd, bEnd);
+        if (end <= start) return [];
+
+        return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
+    }, [comparisonMode, filteredSchedules]);
+
+    // Handlers
+    const toggleComparison = useCallback(() => {
         if (comparisonMode) {
             setSelectedSchedules(scheduleConfig.slice(0, 1));
             setComparisonMode(false);
         } else {
-            const jerry = scheduleConfig.find((s) => s.id === "jerry") ?? scheduleConfig[0];
-            if (!jerry) {
-                setComparisonMode(false);
-                return;
-            }
-            setSelectedSchedules([jerry, jerry]);
+            const defaultSchedule = findSchedule("jerry") ?? scheduleConfig[0];
+            if (!defaultSchedule) return;
+            setSelectedSchedules([defaultSchedule, defaultSchedule]);
             setComparisonMode(true);
         }
-    };
+    }, [comparisonMode]);
 
-    const handleScheduleSelect = (scheduleIndex: number, newScheduleId: string) => {
-        const newSchedule = scheduleConfig.find((s) => s.id === newScheduleId);
-        if (newSchedule) {
-            const updated = [...selectedSchedules];
-            updated[scheduleIndex] = newSchedule;
-            setSelectedSchedules(updated);
-        }
-    };
+    const handleSelect = useCallback((index: number, id: string) => {
+        const s = findSchedule(id);
+        if (!s) return;
+        setSelectedSchedules(prev => {
+            const next = [...prev];
+            next[index] = s;
+            return next;
+        });
+    }, []);
 
-    const handleSingleScheduleSelect = (newScheduleId: string) => {
-        const newSchedule = scheduleConfig.find((s) => s.id === newScheduleId);
-        if (newSchedule) setSelectedSchedules([newSchedule]);
-    };
+    const handleSingleSelect = useCallback((id: string) => {
+        const s = findSchedule(id);
+        if (s) setSelectedSchedules([s]);
+    }, []);
 
-    // Home Island mode with invalid/empty ID: render blank page
-    if (isHomeIsland && !isHomeIslandIdValid) {
-        return null;
-    }
+
+    if (isHomeIsland && !isHomeIslandValid) return null;
 
     return (
         <div className={`scheduler ${isHomeIsland ? "homeisland-mode" : ""}`}>
             <div className="scheduler-header">
                 {!isHomeIsland && <h1 className="scheduler-title">Schedule viewer</h1>}
 
-                {/* Controls row */}
                 <div className="scheduler-controls">
                     <div className="scheduler-controls-left">
                         {!isHomeIsland && (
                             <button
                                 className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
-                                onClick={toggleComparisonMode}
+                                onClick={toggleComparison}
                                 aria-pressed={comparisonMode}
-                                title={comparisonMode ? "Single View" : "Compare"}
                             >
                                 {comparisonMode ? "Single View" : "Compare"}
                             </button>
                         )}
 
-                        {/* Schedule selectors */}
                         {comparisonMode ? (
                             <div className="scheduler-selectors-inline">
-                                {selectedSchedules.map((selected, index) => (
-                                    <div key={index} className="scheduler-select-group">
-                                        <label className="scheduler-select-label">Schedule {index + 1}:</label>
+                                {selectedSchedules.map((selected, i) => (
+                                    <div key={i} className="scheduler-select-group">
+                                        <label className="scheduler-select-label">Schedule {i + 1}:</label>
                                         <select
                                             value={selected.id}
-                                            onChange={(e) => handleScheduleSelect(index, e.target.value)}
+                                            onChange={e => handleSelect(i, e.target.value)}
                                             className="scheduler-select"
                                         >
-                                            {scheduleConfig.map((schedule) => (
-                                                <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
+                                            {scheduleConfig.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -202,23 +186,22 @@ const Scheduler: React.FC = () => {
                             </div>
                         ) : (
                             <div className="scheduler-select-group">
-                                <label className="scheduler-select-label">{isHomeIsland ? "" : "Schedule:"}</label>
+                                {!isHomeIsland && <label className="scheduler-select-label">Schedule:</label>}
                                 <select
                                     value={selectedSchedules[0]?.id ?? "jerry"}
-                                    onChange={(e) => handleSingleScheduleSelect(e.target.value)}
+                                    onChange={e => handleSingleSelect(e.target.value)}
                                     className="scheduler-select"
                                 >
-                                    {scheduleConfig.map((schedule) => (
-                                        <option key={schedule.id} value={schedule.id}>{schedule.name}</option>
+                                    {scheduleConfig.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
                                 </select>
                             </div>
                         )}
 
-                        {/* Day selector */}
                         {!isHomeIsland && (
                             <div className="scheduler-day-buttons">
-                                {DAYS_OF_WEEK.map((day) => (
+                                {DAYS_OF_WEEK.map(day => (
                                     <button
                                         key={day.key}
                                         className={`scheduler-day-btn ${selectedDay === day.key ? "scheduler-day-btn-active" : ""}`}
@@ -231,7 +214,6 @@ const Scheduler: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Info */}
                     <div className="scheduler-controls-right">
                         {!isHomeIsland && comparisonMode && commonBreaks.length > 0 && (
                             <div className="scheduler-break-info">
@@ -244,16 +226,14 @@ const Scheduler: React.FC = () => {
                 </div>
             </div>
 
-            {/* Schedules */}
             <div className="scheduler-content">
                 <div className="scheduler-schedules">
-                    {filteredSchedules.map((schedule, index) => (
+                    {filteredSchedules.map((schedule, i) => (
                         <Schedule
-                            key={`${schedule.id}-${selectedDay}-${index}`}
+                            key={`${schedule.id}-${selectedDay}-${i}`}
                             schedule={schedule}
                             breakPeriods={commonBreaks}
                             showBreaks={comparisonMode}
-                            isHomeIsland={isHomeIsland}
                         />
                     ))}
                 </div>

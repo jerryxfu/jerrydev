@@ -1,11 +1,10 @@
 import {Chip} from "@mui/joy";
 import "./SkillCard.scss";
 
-export default function SkillCard({image, title, description, score, chipText, url, color}: {
+export default function SkillCard({image, title, description, chipText, url, color}: {
     image: string,
     title: string,
     description?: string,
-    score?: number | undefined,
     chipText?: string | undefined,
     url?: string
     color?: string,

@@ -3,7 +3,7 @@ import {AnimatePresence, motion} from "framer-motion";
 import {ExpandMore} from "@mui/icons-material";
 import "./CategoryDropdown.scss";
 
-const CategoryDropdown = ({header, persistent, children, className = "", defaultOpen = false,}: {
+const CategoryDropdown = ({header, persistent, children, className = "", defaultOpen = false}: {
     header: React.ReactNode;
     persistent: React.ReactNode;
     children: React.ReactNode;

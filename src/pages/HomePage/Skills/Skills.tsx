@@ -8,76 +8,53 @@ import _react from "../../../assets/skills/react.svg";
 
 const tech_stack = [
     {
-        name: "DiscordJS",
-        color: "#a6adff10",
-        iconUrl: "https://favicon.im/discord.js.org?larger=true",
-        score: 4,
-        chipText: "4/5",
-        url: "https://discord.js.org/#/"
-    },
-    {
-        name: "HTML", color: "#ffc1a610", iconUrl: _html, score: 4, chipText: "4/5", url: "https://html.spec.whatwg.org/"
+        name: "HTML", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
     },
     {
         name: "Java",
         color: "#a6eaff10",
-        description: "Robots (WPILib), Minecraft Forge",
+        description: "Robots (WPILib), Minecraft Forge modding",
         iconUrl: _java,
-        score: 5,
         chipText: "5/5",
         url: "https://www.java.com/en/"
     },
     {
         name: "JavaScript/TS",
         color: "#2f74c010",
-        description: "React, APIs, apps",
+        description: "React, APIs, scripting, DiscordJS",
         iconUrl: _javascript,
-        score: 5,
         chipText: "5/5",
         url: "https://developer.oracle.com/languages/javascript.html"
     },
     {
         name: "Kotlin",
         color: "#e6a6ff10",
-        description: "Minecraft Forge",
+        description: "Kotlin Multiplatform, Minecraft Forge modding",
         iconUrl: "https://favicon.im/kotlinlang.org",
-        score: 1,
-        chipText: "1/5",
+        chipText: "3/5",
         url: "https://kotlinlang.org/"
     },
     {
         name: "Python",
         color: "#ffeda610",
-        description: "OpenCV, PyTorch, MAVSDK",
+        description: "PyTorch, OpenCV, scripting, MAVSDK",
         iconUrl: "https://favicon.im/www.python.org?larger=true",
-        score: 3,
         chipText: "3/5",
         url: "https://www.python.org/"
     },
-    // {
-    //     name: "PyTorch",
-    //     color: "#ffb5a610",
-    //     description: "Object detection",
-    //     iconUrl: _pytorch,
-    //     score: 3,
-    //     chipText: "3/5",
-    //     url: "https://pytorch.org/"
-    // },
     {
         name: "React",
         color: "#a6edff10",
-        description: "JS/TS, Vite, mui",
+        description: "JS/TS, Vite, mui, framer-motion",
         iconUrl: _react,
-        score: 4,
         chipText: "4/5",
         url: "https://react.dev/"
     },
-    {name: "Sass/CSS", color: "#ffa6d210", iconUrl: "https://favicon.im/sass-lang.com", score: 2, chipText: "2/5", url: "https://sass-lang.com/"},
+    {name: "Sass/CSS", color: "#ffa6d210", iconUrl: "https://favicon.im/sass-lang.com", chipText: "2/5", url: "https://sass-lang.com/"},
     {
         name: "Adobe Lightroom",
         color: "#2daaff10",
         iconUrl: "https://favicon.im/lightroom.adobe.com?larger=true",
-        score: 3,
         chipText: "3/5",
         url: "https://lightroom.adobe.com/"
     },
@@ -103,7 +80,6 @@ export default function Skills() {
                             image={tech.iconUrl}
                             title={tech.name}
                             description={tech.description || ""}
-                            score={tech.score}
                             chipText={tech.chipText}
                             url={tech.url}
                             color={tech.color}
