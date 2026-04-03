@@ -120,7 +120,10 @@ const Scheduler: React.FC = () => {
     }, [comparisonMode, filteredSchedules]);
 
     // Whether the selected day is actually today (for time-aware event status)
-    const isToday = useMemo(() => selectedDay === getTodayKey(), [selectedDay]);
+    const isToday = useMemo(() => {
+        const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        return selectedDay === dayNames[new Date().getDay()];
+    }, [selectedDay]);
 
     // Handlers
     const toggleComparison = useCallback(() => {

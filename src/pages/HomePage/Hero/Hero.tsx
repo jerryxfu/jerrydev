@@ -167,8 +167,7 @@ export default function Hero() {
                     </p></div>
 
                     <p className="hero_typing-text" ref={typingTextRef}>
-                        {/*{headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>*/}
-                        👀 yes, this is a screenshot of the website you're currently on
+                        {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
                     </p>
                 </div>
             </div>

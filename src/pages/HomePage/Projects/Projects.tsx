@@ -127,6 +127,14 @@ const projects: CardProps[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
+        title: "Cyclic",
+        subTitle: "Sleep cycle calculator and periods tracker",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2025-12-28")),
+        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core."
+    },
+    {
         title: "FRC Scorekeeper interface",
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
@@ -161,24 +169,6 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
-    },
-    {
-        title: "Cyclic",
-        subTitle: "Sleep cycle calculator and periods tracker",
-        image: _endPortal,
-        chipText: "🚧 WIP",
-        dateDisplay: "awaiting",
-        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-        url: "/megacsv"
-    },
-    {
-        title: "Supersecretchat",
-        subTitle: "Extremely secure chat",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2026-03-18")),
-        description: "An extremely robust and secure chat built on the Signal Protocol (X3DH + Double Ratchet), routed entirely through a Tor hidden service for network-level anonymity.",
-        url: "/megacsv"
     },
     {
         title: "Cheatsheet",
