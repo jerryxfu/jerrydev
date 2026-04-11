@@ -16,6 +16,7 @@ import _autoscout from "../../../assets/projects/autoscout.png";
 import _medive from "../../../assets/projects/medive.png";
 import _unveil from "../../../assets/unveil_dark.png";
 import _homeisland from "../../../assets/projects/home-island.png";
+import _technexus from "../../../assets/projects/technexus.png";
 
 function formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -60,6 +61,16 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-08-27")),
         url: "/scheduler",
         description: "A web app that allows users to visualize and compare daily/weekly schedules with a clean interface.",
+    },
+    {
+        title: "TechNexus",
+        subTitle: "A companion app for FRC",
+        image: _technexus,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2026-04-08")),
+        url: "https://github.com/jerryxfu/matchtimer",
+        description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
+        footer:"iOS 16.6+ & Android 13+"
     },
     {
         title: "BapUtils",

@@ -5,10 +5,16 @@ import _html from "../../../assets/skills/html.png";
 import _java from "../../../assets/skills/java.svg";
 import _javascript from "../../../assets/skills/javascript.png";
 import _react from "../../../assets/skills/react.svg";
+import _swift from "../../../assets/skills/swift.png";
 
 const tech_stack = [
     {
-        name: "HTML", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
+        name: "JavaScript/TS",
+        color: "#2f74c010",
+        description: "React, APIs, scripting, DiscordJS",
+        iconUrl: _javascript,
+        chipText: "5/5",
+        url: "https://developer.oracle.com/languages/javascript.html"
     },
     {
         name: "Java",
@@ -19,20 +25,20 @@ const tech_stack = [
         url: "https://www.java.com/en/"
     },
     {
-        name: "JavaScript/TS",
-        color: "#2f74c010",
-        description: "React, APIs, scripting, DiscordJS",
-        iconUrl: _javascript,
-        chipText: "5/5",
-        url: "https://developer.oracle.com/languages/javascript.html"
-    },
-    {
         name: "Kotlin",
         color: "#e6a6ff10",
         description: "Kotlin Multiplatform, Minecraft Forge modding",
         iconUrl: "https://favicon.im/kotlinlang.org",
         chipText: "3/5",
         url: "https://kotlinlang.org/"
+    },
+    {
+        name: "React",
+        color: "#a6edff10",
+        description: "JS/TS, Vite, mui, framer-motion",
+        iconUrl: _react,
+        chipText: "4/5",
+        url: "https://react.dev/"
     },
     {
         name: "Python",
@@ -43,12 +49,15 @@ const tech_stack = [
         url: "https://www.python.org/"
     },
     {
-        name: "React",
-        color: "#a6edff10",
-        description: "JS/TS, Vite, mui, framer-motion",
-        iconUrl: _react,
-        chipText: "4/5",
-        url: "https://react.dev/"
+        name: "SwiftUI",
+        color: "#ffc1a610",
+        description: "With Kotlin Multiplatform",
+        iconUrl: _swift,
+        chipText: "1/5",
+        url: "https://developer.apple.com/swiftui/"
+    },
+    {
+        name: "HTML", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
     },
     {name: "Sass/CSS", color: "#ffa6d210", iconUrl: "https://favicon.im/sass-lang.com", chipText: "2/5", url: "https://sass-lang.com/"},
     {
