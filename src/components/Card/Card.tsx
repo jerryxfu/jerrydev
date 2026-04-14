@@ -1,3 +1,4 @@
+import {memo} from "react";
 import {Chip} from "@mui/joy";
 import "./Card.scss";
 
@@ -30,19 +31,24 @@ export interface CardProps {
     dateDisplay?: string;
 }
 
-export default function Card(props: CardProps) {
+const Card = memo(function Card(props: CardProps) {
     const {image, title, subTitle, description, chipText, url, color, footer, dateDisplay} = props;
 
     const isVideo = image.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/);
+    const shouldOpenNewTab = Boolean(url?.startsWith("http"));
 
     return (
         <div className="card" style={{backgroundColor: color || "initial"}}>
             <div className="card_image_section">
-                <a className="card_image" href={url || undefined} target="_blank" rel="noopener noreferrer">
+                <a
+                    className="card_image"
+                    href={url || undefined}
+                    {...(shouldOpenNewTab ? {target: "_blank", rel: "noopener noreferrer"} : {})}
+                >
                     {isVideo ? (
-                        <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="metadata" />
+                        <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="none" />
                     ) : (
-                        <img src={image} alt={`${title} icon`} />
+                        <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" />
                     )}
                 </a>
                 {chipText && <Chip className="card_image_chip" size={"sm"}>{chipText}</Chip>}
@@ -70,5 +76,7 @@ export default function Card(props: CardProps) {
             </div>
         </div>
     );
-}
+});
+
+export default Card;
 

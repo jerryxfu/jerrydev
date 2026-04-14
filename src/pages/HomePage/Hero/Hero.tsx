@@ -1,12 +1,28 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
+import {CustomEase, ScrollTrigger, TextPlugin} from "gsap/all";
 import "./Hero.scss";
 import SplitType from "split-type";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {texts} from "./texts.ts";
 
+let isGsapConfigured = false;
+
+function configureGsap() {
+    if (isGsapConfigured) return;
+
+    gsap.registerPlugin(useGSAP, CustomEase, ScrollTrigger, TextPlugin);
+    CustomEase.create("nativeEase", "0.250, 0.100, 0.250, 1.000");
+    CustomEase.create("customEaseOut", "0.250, 0.100, 0.580, 1.000");
+    gsap.defaults({ease: "nativeEase"});
+
+    isGsapConfigured = true;
+}
+
 export default function Hero() {
+    configureGsap();
+
     const {currentTheme} = useThemeSwitcher();
     const [themeGradientClass, setThemeGradientClass] = useState("gradient-mesh-default");
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);

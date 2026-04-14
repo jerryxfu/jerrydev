@@ -1,7 +1,6 @@
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import "./Skills.scss";
 import SkillCard from "./components/SkillCard.tsx";
-import _html from "../../../assets/skills/html.png";
 import _java from "../../../assets/skills/java.svg";
 import _javascript from "../../../assets/skills/javascript.png";
 import _react from "../../../assets/skills/react.svg";
@@ -82,9 +81,9 @@ export default function Skills() {
 
             <div className="skills_container">
                 <div className="skills_grid">
-                    {tech_stack.map((tech, index) => (
+                    {tech_stack.map((tech) => (
                         <SkillCard
-                            key={index}
+                            key={tech.name}
                             image={tech.iconUrl}
                             title={tech.name}
                             description={tech.description || ""}

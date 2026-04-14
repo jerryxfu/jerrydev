@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo} from "react";
 import "./Contact.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import SubTitle from "../../../components/SubTitle/SubTitle.tsx";
@@ -53,33 +53,35 @@ const medias = [
 
 export default function Contact() {
     const {currentTheme} = useThemeSwitcher();
-    const [themedMedias, setThemedMedias] = useState(medias);
 
-    const updateMediaImage = (mediaName: string, newImage: string) => {
-        setThemedMedias((prevMedias) =>
-            prevMedias.map((media) =>
-                media.title === mediaName ? {...media, image: newImage} : media
-            )
-        );
-    };
+    const themedMedias = useMemo(() => medias.map((media) => {
+        if (media.title !== "Github") return media;
+
+        return {
+            ...media,
+            image: currentTheme === "night" ? _github_da : _github_lt
+        };
+    }), [currentTheme]);
 
     useEffect(() => {
-        // updateMediaImage("Snapchat", currentTheme === "night" ? _snapchat_da : _snapchat_lt);
-        updateMediaImage("Github", currentTheme === "night" ? _github_da : _github_lt);
-    }, [currentTheme]);
+        const baffleNum = baffle(".obfuscate-num", {
+            characters: "0123456789#",
+            speed: 12,
+        });
 
-    const baffle_num = baffle(".obfuscate-num", {
-        characters: "0123456789#",
-        speed: 12,
-    });
+        const baffleStr = baffle(".obfuscate-str", {
+            characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!._-()",
+            speed: 12,
+        });
 
-    const baffle_str = baffle(".obfuscate-str", {
-        characters: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!._-()",
-        speed: 12,
-    });
+        baffleNum.start();
+        baffleStr.start();
 
-    baffle_num.start();
-    baffle_str.start();
+        return () => {
+            baffleNum.stop();
+            baffleStr.stop();
+        };
+    }, []);
 
     return (
         <div className="section contact">
