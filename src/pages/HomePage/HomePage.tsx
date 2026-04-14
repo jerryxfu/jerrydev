@@ -5,15 +5,16 @@ import Hero from "./Hero/Hero.tsx";
 import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";
 import Footer from "../../components/Footer/Footer.tsx";
+
 const Contact = lazy(() => import("./Contact/Contact.tsx"));
 const Projects = lazy(() => import("./Projects/Projects.tsx"));
 const Experience = lazy(() => import("./Experience/Experience.tsx"));
 
 function DeferredSection({
-    component: Component,
-    placeholderMinHeight,
-    rootMargin = "500px 0px",
-}: {
+                             component: Component,
+                             placeholderMinHeight,
+                             rootMargin = "500px 0px",
+                         }: {
     component: ComponentType;
     placeholderMinHeight: number;
     rootMargin?: string;
@@ -42,7 +43,11 @@ function DeferredSection({
     }, [rootMargin, shouldRender]);
 
     return (
-        <div ref={sectionRef} style={!shouldRender ? {minHeight: placeholderMinHeight} : undefined}>
+        <div
+            ref={sectionRef}
+            className="homepage_deferred-section"
+            style={!shouldRender ? {minHeight: placeholderMinHeight} : undefined}
+        >
             {shouldRender && (
                 <Suspense fallback={<div style={{minHeight: placeholderMinHeight}} />}>
                     <Component />

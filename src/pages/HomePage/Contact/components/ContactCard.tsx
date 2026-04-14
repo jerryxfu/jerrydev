@@ -13,7 +13,7 @@ const ContactCard = memo(function ContactCard({title, username, image, url, chip
     return (
         <div className="contactcard" style={{backgroundColor: color || "initial"}}>
             <a className="contactcard_image" href={url || "/"} target="_blank" rel="noopener noreferrer">
-                <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" />
+                <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" fetchPriority="low" />
             </a>
             <div className="contactcard_content">
                 <h3 className="contactcard_title">{title}</h3>

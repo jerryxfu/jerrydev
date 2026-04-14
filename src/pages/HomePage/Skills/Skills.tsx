@@ -98,7 +98,10 @@ export default function Skills() {
                     <img
                         className="skills_languages-card"
                         src="https://github-stats.jerryxf.net/api/top-langs/?username=jerryxfu&layout=compact&langs_count=20&hide_title=true&hide_border=true&bg_color=00000000&title_color=abcdef"
-                        alt="Github languages card" />
+                        alt="Github languages card"
+                        loading="lazy"
+                        decoding="async"
+                        fetchPriority="low" />
                 </div>
             </div>
         </div>

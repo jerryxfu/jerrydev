@@ -48,7 +48,7 @@ const Card = memo(function Card(props: CardProps) {
                     {isVideo ? (
                         <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="none" />
                     ) : (
-                        <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" />
+                        <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" fetchPriority="low" />
                     )}
                 </a>
                 {chipText && <Chip className="card_image_chip" size={"sm"}>{chipText}</Chip>}

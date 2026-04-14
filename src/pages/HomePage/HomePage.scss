@@ -2,3 +2,8 @@
     background-color: var(--bg-c);
     transition: color, background-color 450ms;
 }
+
+.homepage_deferred-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 840px;
+}
