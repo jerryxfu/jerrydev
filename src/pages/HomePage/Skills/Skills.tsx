@@ -5,7 +5,7 @@ import _html from "../../../assets/skills/html.png";
 import _java from "../../../assets/skills/java.svg";
 import _javascript from "../../../assets/skills/javascript.png";
 import _react from "../../../assets/skills/react.svg";
-import _swift from "../../../assets/skills/swift.png";
+import _webstack from "../../../assets/skills/webstack.png";
 
 const tech_stack = [
     {
@@ -52,12 +52,12 @@ const tech_stack = [
         name: "SwiftUI",
         color: "#ffc1a610",
         description: "With Kotlin Multiplatform",
-        iconUrl: _swift,
+        iconUrl: "https://favicon.im/www.swift.org?larger=true",
         chipText: "1/5",
         url: "https://developer.apple.com/swiftui/"
     },
     {
-        name: "HTML, Sass/CSS", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
+        name: "HTML, Sass/CSS", color: "#ffc1a610", iconUrl: _webstack, chipText: "4/5", url: "https://html.spec.whatwg.org/"
     },
     {
         name: "Adobe Lightroom",
