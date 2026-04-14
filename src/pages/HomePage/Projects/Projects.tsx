@@ -54,15 +54,6 @@ const projects: CardProps[] = [
         footer: "Click image^ for links"
     },
     {
-        title: "Scheduler",
-        subTitle: "A daily/weekly schedule visualizer",
-        image: _scheduler,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-27")),
-        url: "/scheduler",
-        description: "A web app that allows users to visualize and compare daily/weekly schedules with a clean interface.",
-    },
-    {
         title: "TechNexus",
         subTitle: "A companion app for FRC",
         image: _technexus,
@@ -70,7 +61,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-04-08")),
         url: "https://github.com/jerryxfu/matchtimer",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
-        footer:"iOS 16.6+ & Android 13+"
+        footer: "iOS 16.6+ & Android 13+"
     },
     {
         title: "BapUtils",
@@ -93,6 +84,15 @@ const projects: CardProps[] = [
         footer: "(Outdated video)"
     },
     {
+        title: "TechDashboard",
+        subTitle: "Pit dashboard for FRC",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: "awaiting",
+        // url: "",
+        description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
+    },
+    {
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
@@ -112,6 +112,23 @@ const projects: CardProps[] = [
         description: "An intelligent orchestration platform for mission control integrating drones to transform real-time data into actionable insight and empower operators on the battlefield.",
     },
     {
+        title: "*.jerryxf.net",
+        subTitle: "This website, right here!",
+        image: _jerryxf,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
+        description: "This portfolio website as well as the API that empowers other projects.",
+    },
+    {
+        title: "Cyclic",
+        subTitle: "Sleep cycle calculator and periods tracker",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2025-12-28")),
+        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
+        footer: "iOS 17+ & Android 13+"
+    },
+    {
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
@@ -119,14 +136,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-07-24")),
         url: "/conditioner",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
-    },
-    {
-        title: "*.jerryxf.net",
-        subTitle: "This website, right here!",
-        image: _jerryxf,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
-        description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
         title: "JerryBot",
@@ -138,18 +147,10 @@ const projects: CardProps[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
-        title: "Cyclic",
-        subTitle: "Sleep cycle calculator and periods tracker",
-        image: _endPortal,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2025-12-28")),
-        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core."
-    },
-    {
         title: "FRC Scorekeeper interface",
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
-        chipText: "🔒 Internal",
+        chipText: "📦 Archived",
         dateDisplay: formatDate(new Date("2025-05-09")),
         url: "https://mail.rseqmontreal.com/fr/evenements-speciaux/competitions-de-robotique/",
         description: "A real-time score tracking/broadcasting app for our off-season competitions using WebSocket.",
@@ -173,6 +174,15 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/auto-scout"
     },
     {
+        title: "Expedite",
+        subTitle: "Share files, text snippets, and links!",
+        image: _endPortal,
+        chipText: "🌀 Concept",
+        dateDisplay: "awaiting",
+        description: "A website for temporary sharing files and text with other people or across your own devices",
+        url: "/expedite"
+    },
+    {
         title: "LLM vs LLM",
         subTitle: "Two LLMs debate on a given topic",
         image: _llmvsllm,
@@ -191,15 +201,6 @@ const projects: CardProps[] = [
         description: "A collection of useful cheatsheets for various topics.",
     },
     {
-        title: "Expedite",
-        subTitle: "A tool to share files and text snippets",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "description.",
-        url: "/expedite"
-    },
-    {
         title: "MegaCSV",
         subTitle: "A tool to preview large CSV files",
         image: _endPortal,
@@ -210,7 +211,7 @@ const projects: CardProps[] = [
     },
     {
         title: "Itinerary",
-        subTitle: "A tool to optimize travel by public transit",
+        subTitle: "Optimize travel by public transit",
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",
@@ -218,7 +219,7 @@ const projects: CardProps[] = [
     },
     {
         title: "Group availability app",
-        subTitle: "A tool for scheduler group events",
+        subTitle: "A tool to help schedule group events",
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",

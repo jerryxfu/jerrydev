@@ -37,11 +37,11 @@ const experiences: CardProps[] = [
         image: _t4k,
         dateDisplay: formatDate(new Date("2023-01-06")),
         url: "https://www.thebluealliance.com/team/3990",
-        description: "Mentored high school students in programming, lectured computer vision and machine learning. Participated (me) in 12 FRC competitions, including 3 World Championships",
+        description: "Mentored high school students in programming, lectured computer vision and machine learning. Participated (me) in 11 FRC competitions, including 3 World Championships",
         // 2023: Finger Lakes, Trois-Rivières, World Championship
         // 2024: Montreal, Long Island, World Championship
         // 2025: Vancouver, Montreal, Las Vegas, World Championship
-        // 2026: Pittsburgh, Las Vegas
+        // 2026: Las Vegas
         footer: "Details on CV"
     },
     {

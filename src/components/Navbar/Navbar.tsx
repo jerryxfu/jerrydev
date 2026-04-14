@@ -16,7 +16,6 @@ const linksLeft: { href: string, label: string }[] = [
 
 const linksRight: { href: string, label: string, target?: string }[] = [
     {href: "https://cv.jerryxf.net/", label: "Curriculum Vitae", target: "_blank"},
-    {href: "/scheduler", label: "📅 Scheduler", target: "_blank"}
 ];
 
 const formatThemeName = (theme: string) =>

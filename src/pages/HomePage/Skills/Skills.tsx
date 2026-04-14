@@ -57,9 +57,8 @@ const tech_stack = [
         url: "https://developer.apple.com/swiftui/"
     },
     {
-        name: "HTML", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
+        name: "HTML, Sass/CSS", color: "#ffc1a610", iconUrl: _html, chipText: "4/5", url: "https://html.spec.whatwg.org/"
     },
-    {name: "Sass/CSS", color: "#ffa6d210", iconUrl: "https://favicon.im/sass-lang.com", chipText: "2/5", url: "https://sass-lang.com/"},
     {
         name: "Adobe Lightroom",
         color: "#2daaff10",
