@@ -28,7 +28,7 @@ const medias = [
     {
         title: "LinkedIn",
         username: "in/jerryfu-dev",
-        image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg",
+        image: "https://favicon.im/www.linkedin.com?larger=true",
         url: "https://www.linkedin.com/in/jerryfu-dev/",
         color: "#0a66c210"
     },
