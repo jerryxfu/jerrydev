@@ -7,11 +7,18 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    react: ["react", "react-dom", "react-router-dom"],
-                    ui: ["@mui/joy", "@mui/material", "@mui/icons-material", "@emotion/react", "@emotion/styled"],
-                    animation: ["gsap", "framer-motion", "split-type"],
-                    charts: ["d3", "plotly.js", "react-plotly.js", "papaparse", "smoothie"]
+                manualChunks(id: string) {
+                    if (id.includes("node_modules")) {
+                        if (id.includes("react")) {
+                            return "react";
+                        } else if (id.includes("@mui") || id.includes("@emotion")) {
+                            return "ui";
+                        } else if (id.includes("gsap") || id.includes("framer-motion") || id.includes("split-type")) {
+                            return "animation";
+                        } else if (id.includes("d3") || id.includes("plotly") || id.includes("papaparse") || id.includes("smoothie")) {
+                            return "charts";
+                        }
+                    }
                 }
             }
         }
