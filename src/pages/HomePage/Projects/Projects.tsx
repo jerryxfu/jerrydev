@@ -105,7 +105,7 @@ const projects: CardProps[] = [
         title: "UNVEIL",
         subTitle: "Uncover the unseen",
         image: _unveil,
-        chipText: "🚧 WIP",
+        chipText: "🌀 Concept",
         dateDisplay: formatDate(new Date("2025-10-01")),
         // Unveil Technologies is an intelligent platform for orchestration and autonomy built to bring clarity to complex missions. From autonomous drone systems to integrated command interfaces, Unveil transforms real-time data into actionable insight—empowering operators to uncover the unseen on the battlefield.
         url: "",

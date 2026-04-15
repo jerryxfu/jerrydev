@@ -6,318 +6,206 @@ import type {AlarmCounters} from "./alarms";
 import {checkAlarms, defaultCounters, computeActiveAlarmLevels} from "./alarms";
 import {alertSound} from "./sound";
 import type {SweepRendererOptions} from "./useSweepRenderer";
-import {CsvSource, TemplateSource, useSweepRenderer} from "./useSweepRenderer";
-
-// New: import shared helpers
+import {useSweepRenderer} from "./useSweepRenderer";
 import {
     randomId,
-    mapLeadName,
     colorForVital,
     unitForVital,
     parseCsv,
     parseVitalsCsv,
     type ParsedVitalsCsv,
     pickVitalsAtTime,
-    minOf,
-    maxOf,
-    fmt9,
     formatWaveVal,
 } from "./helpers";
+import {hasPulseColumn, toAdditionalVitals, toDisplayVitals, toRows} from "./selectors";
+import {CFG, DEFAULT_PALETTE} from "./types";
+import type {AdditionalVital, AlarmLevelOrNull, CsvWaveData, DisplayVitals, FlashMode, Palette, RowDef} from "./types";
 
-// Centralized data color palette (can be overridden via props)
-export type Palette = {
-    ecg: string;      // ECG waveform + HR numeric
-    pleth: string;    // Pleth waveform + SpO2 numeric
-    resp: string;     // Resp waveform + RR numeric
-    bp: string;       // NIBP/ABP numeric
-    spo2: string;     // SpO2 numeric (defaults to pleth)
-    rr: string;       // RR numeric (defaults to resp)
-    etco2: string;    // EtCO2 numeric
-    fio2: string;     // FIO2 numeric
-    temp: string;     // Temperature numeric
-    defaultText: string; // fallback
+export type {Palette, FlashMode};
+
+type Mode = "demo" | "csv";
+type VitalAlarmLevel = {
+    hr: AlarmLevelOrNull;
+    spo2: AlarmLevelOrNull;
+    rr: AlarmLevelOrNull;
+    bp?: AlarmLevelOrNull;
 };
 
-const DEFAULT_PALETTE: Palette = {
-    ecg: "#00ff00",
-    pleth: "#00e5ff",
-    resp: "#ffffff",
-    bp: "#ff5252",
-    spo2: "#00e5ff",
-    rr: "#ffffff",
-    etco2: "#ffffff",
-    fio2: "#ffffff",
-    temp: "#ffffff",
-    defaultText: "#d7e0ea",
+const INPUT_STYLE: React.CSSProperties = {
+    background: "#01060a",
+    color: "inherit",
+    border: "1px solid var(--ui-border)",
+    borderRadius: 4,
+    padding: "2px 4px",
+    fontSize: 12,
 };
 
-// UI config
-const CFG = {
-    DEFAULT_SHOW_SECONDS: 10,
-    WINDOW_CHOICES: [1, 4, 6, 8, 10, 12, 15, 20] as const,
-} as const;
-
-type RowDef = {
-    key: string;
-    label: string;
-    color: string;
-    className?: string; // for styling hooks like ecg/pleth/resp
-    source: TemplateSource | CsvSource;
-    showVital?: "hr" | "spo2" | "rr"; // which vital to show on the right, if any
-    // New: optional raw value range for display/debug
-    yMin?: number;
-    yMax?: number;
-    sampleHz?: number; // CSV only (for display)
+const CONTROL_VALUE_STYLE: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: 14,
+    flexWrap: "wrap",
 };
-
-// Vitals CSV types
-// Removed local ParsedVitalsCsv type (now imported)
-
-export type FlashMode = "invert" | "red-block" | "yellow-block" | "red-text" | "yellow-text" | "auto";
 
 export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     paletteOverrides?: Partial<Palette>;
     flashMode?: FlashMode;
 } = {}) {
-    const palette: Palette = useMemo(() => ({...DEFAULT_PALETTE, ...(paletteOverrides || {})}), [paletteOverrides]);
-
-    // Helper to attach CSS variables to style objects
-    const withVar = (base: React.CSSProperties, vars: Record<string, string | number>): React.CSSProperties => ({...base, ...vars});
-
-    // Helper to map alarm level to a CSS class for flashing
-    const flashClass = useCallback((level: "critical" | "warning" | "advisory" | null) => {
+    const palette = useMemo(() => ({...DEFAULT_PALETTE, ...(paletteOverrides || {})}), [paletteOverrides]);
+    const flashClass = useCallback((level: AlarmLevelOrNull) => {
         if (!level) return "";
-        const mode = flashMode;
-        if (mode === "auto") {
-            if (level === "critical") return `flash-red-block-critical`;
-            if (level === "warning") return `flash-yellow-block-critical`;
-            return `flash-invert-advisory`;
+        if (flashMode === "auto") {
+            if (level === "critical") return "flash-red-block-critical";
+            if (level === "warning") return "flash-yellow-block-critical";
+            return "flash-invert-advisory";
         }
-        return `flash-${mode}-${level}`;
+        return `flash-${flashMode}-${level}`;
     }, [flashMode]);
 
-    // Shared input style
-    const inputStyle: React.CSSProperties = {
-        background: "#01060a",
-        color: "inherit",
-        border: "1px solid var(--ui-border)",
-        borderRadius: 4,
-        padding: "2px 4px",
-        fontSize: 12,
-    };
-
-    // Commit numeric input on Enter
-    const commitOnEnter = (e: React.KeyboardEvent<HTMLInputElement>, apply: (val: number) => void) => {
-        if (e.key !== "Enter") return;
-        const val = parseInt((e.currentTarget.value || "").trim(), 10);
-        if (Number.isFinite(val) && Math.abs(val) < 10000) {
-            apply(Math.abs(val));
-            e.currentTarget.value = "";
-        }
-    };
-
-    // Sound toggles
     const [soundOn, setSoundOn] = useState(false);
     const [silenced, setSilenced] = useState(false);
     const [heartbeatSound, setHeartbeatSound] = useState(false);
-    const heartbeatRef = useRef(heartbeatSound);
-    useEffect(() => {
-        heartbeatRef.current = heartbeatSound;
-    }, [heartbeatSound]);
+
     useEffect(() => {
         alertSound.setEnabled(soundOn || heartbeatSound);
         if (!soundOn) alertSound.stopLooping();
     }, [soundOn, heartbeatSound]);
 
-    // Demo vitals
     const {vitals, correctVital} = useDemoVitals();
-    const vitalsRef = useRef(vitals);
+    const vitalsRef = useLatestRef(vitals);
+    const heartbeatRef = useLatestRef(heartbeatSound);
+
+    const [initialized, setInitialized] = useState(false);
     useEffect(() => {
-        vitalsRef.current = vitals;
-    }, [vitals]);
-
-    const [initialized, setInitialized] = useState<boolean>(false);
-
-    // Alerts list
-    const [alerts, setAlerts] = useState<AlertItem[]>([
-        {id: randomId(), time: new Date().toLocaleTimeString(), level: "advisory", msg: "Monitoring started"}
-    ]);
-
-    // Looping alarm state
-    const loopingRef = useRef<{ active: boolean; level: "critical" | "warning" | "advisory" | null }>({active: false, level: null});
-
-    // Per-vital flashing state
-    const [vitalAlarmLevel, setVitalAlarmLevel] = useState<{
-        hr: "critical" | "warning" | "advisory" | null;
-        spo2: "critical" | "warning" | "advisory" | null;
-        rr: "critical" | "warning" | "advisory" | null;
-        bp?: "critical" | "warning" | "advisory" | null;
-    }>({hr: null, spo2: null, rr: null});
-
-    // Top bar
-    const [timeStr, setTimeStr] = useState<string>(new Date().toLocaleTimeString());
-    const [showSeconds, setShowSeconds] = useState<number>(CFG.DEFAULT_SHOW_SECONDS);
-    useEffect(() => {
-        const t = setInterval(() => setTimeStr(new Date().toLocaleTimeString()), 1000);
-        return () => clearInterval(t);
+        const ready = setTimeout(() => setInitialized(true), 1000);
+        return () => clearTimeout(ready);
     }, []);
 
-    // Waveform templates
-    const {ecgTemplate, plethTemplate, respTemplate} = useWaveTemplates();
+    const [alerts, setAlerts] = useState<AlertItem[]>([
+        {id: randomId(), time: new Date().toLocaleTimeString(), level: "advisory", msg: "Monitoring started"},
+    ]);
+    const [vitalAlarmLevel, setVitalAlarmLevel] = useState<VitalAlarmLevel>({hr: null, spo2: null, rr: null});
 
-    // CSV state
-    const [mode, setMode] = useState<"demo" | "csv">("demo");
-    const [csvData, setCsvData] = useState<null | {
-        sampleHz: number;
-        columns: { name: string; values: Float32Array; yMin: number; yMax: number }[]
-    }>(null);
-    const [vitalsCsv, setVitalsCsv] = useState<null | ParsedVitalsCsv>(null);
+    const [timeStr, setTimeStr] = useState<string>(new Date().toLocaleTimeString());
+    useEffect(() => {
+        const timer = setInterval(() => setTimeStr(new Date().toLocaleTimeString()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const [showSeconds, setShowSeconds] = useState<number>(CFG.DEFAULT_SHOW_SECONDS);
+
+    const [mode, setMode] = useState<Mode>("demo");
+    const [csvData, setCsvData] = useState<CsvWaveData | null>(null);
+    const [vitalsCsv, setVitalsCsv] = useState<ParsedVitalsCsv | null>(null);
     const [csvStartMs, setCsvStartMs] = useState<number | null>(null);
+
     useEffect(() => {
         if (mode !== "csv") {
             setCsvStartMs(null);
             return;
         }
-        if (csvData || vitalsCsv) {
-            if (csvStartMs == null) setCsvStartMs(performance.now());
+        if ((csvData || vitalsCsv) && csvStartMs == null) {
+            setCsvStartMs(performance.now());
         }
     }, [mode, csvData, vitalsCsv, csvStartMs]);
+
     const [, setTick] = useState(0);
     const csvElapsedSec = csvStartMs == null ? 0 : (performance.now() - csvStartMs) / 1000;
     useEffect(() => {
         if (csvStartMs == null) return;
-        const t = setInterval(() => setTick(x => (x + 1) % 1000), 200);
-        return () => clearInterval(t);
+        const timer = setInterval(() => setTick(x => (x + 1) % 1000), 200);
+        return () => clearInterval(timer);
     }, [csvStartMs]);
 
-    // Canvas refs per row
-    const canvasRefs = useRef(new Map<string, React.RefObject<HTMLCanvasElement | null>>());
-    const getCanvasRef = (key: string) => {
-        const m = canvasRefs.current;
-        const e = m.get(key);
-        if (e) return e;
-        const c = React.createRef<HTMLCanvasElement | null>();
-        m.set(key, c);
-        return c;
-    };
-
-    // Live waveform values under lead name (renderer callback -> throttled state)
-    const waveformValsRef = useRef(new Map<string, { val: number | null; raw: number | null }>());
     const [waveformVals, setWaveformVals] = useState<Map<string, { val: number | null; raw: number | null }>>(new Map());
+    const waveformValsRef = useRef(new Map<string, { val: number | null; raw: number | null }>());
     const onValueCb = useCallback((key: string, val: number | null, raw?: number | null) => {
         waveformValsRef.current.set(key, {val, raw: typeof raw === "number" || raw === null ? raw : val});
     }, []);
     useEffect(() => {
-        const t = setInterval(() => setWaveformVals(new Map(waveformValsRef.current)), 200); // refresh rate
-        return () => clearInterval(t);
+        const timer = setInterval(() => setWaveformVals(new Map(waveformValsRef.current)), 200);
+        return () => clearInterval(timer);
     }, []);
 
-    // Detect if CSV vitals include a Pulse/PR column
-    const hasCsvPulse = useMemo(() => {
-        if (!vitalsCsv) return false;
-        const pats = [/^pulse$/i, /^pr$/i, /pulse\s*rate/i];
-        return vitalsCsv.columns.some(c => pats.some(p => p.test(c.name)));
-    }, [vitalsCsv]);
+    const {ecgTemplate, plethTemplate, respTemplate} = useWaveTemplates();
 
-    // Build rows
-    const rows: RowDef[] = useMemo(() => {
-        if (mode === "csv") {
-            if (csvData) {
-                return csvData.columns.map(col => {
-                    const mapped = mapLeadName(col.name, palette);
-                    const src: CsvSource = {kind: "csv", samples: col.values, sampleHz: csvData.sampleHz, yMin: col.yMin, yMax: col.yMax};
-                    let showVital: RowDef["showVital"] | undefined;
-                    if (mapped.className === "ecg") showVital = "hr"; else if (mapped.className === "pleth") showVital = "spo2"; else if (mapped.className === "resp") showVital = "rr";
-                    return {
-                        key: `csv:${col.name}`,
-                        label: mapped.label,
-                        color: mapped.color,
-                        className: mapped.className,
-                        source: src,
-                        showVital,
-                        yMin: col.yMin,
-                        yMax: col.yMax,
-                        sampleHz: csvData.sampleHz
-                    } as RowDef;
-                });
-            }
-            return [];
-        }
-        return [
-            {
-                key: "ECG",
-                label: "Lead II",
-                color: palette.ecg,
-                className: "ecg",
-                source: {kind: "template", template: ecgTemplate, pace: "hr", heartbeat: true},
-                showVital: "hr",
-                yMin: minOf(ecgTemplate),
-                yMax: maxOf(ecgTemplate)
-            },
-            {
-                key: "Pleth",
-                label: "Pleth",
-                color: palette.pleth,
-                className: "pleth",
-                source: {kind: "template", template: plethTemplate, pace: "hr"},
-                showVital: "spo2",
-                yMin: minOf(plethTemplate),
-                yMax: maxOf(plethTemplate)
-            },
-            {
-                key: "RESP",
-                label: "RESP",
-                color: palette.resp,
-                className: "resp",
-                source: {kind: "template", template: respTemplate, pace: "rr"},
-                showVital: "rr",
-                yMin: minOf(respTemplate),
-                yMax: maxOf(respTemplate)
-            },
-        ] as RowDef[];
-    }, [mode, csvData, palette, ecgTemplate, plethTemplate, respTemplate]);
+    const rows: RowDef[] = useMemo(() => toRows({
+        mode,
+        csvData,
+        palette,
+        ecgTemplate,
+        plethTemplate,
+        respTemplate,
+    }), [mode, csvData, palette, ecgTemplate, plethTemplate, respTemplate]);
 
-    // Sweep renderer
-    const channels = useMemo(() => rows.map(r => ({key: r.key, ref: getCanvasRef(r.key), color: r.color, source: r.source})), [rows]);
+    const hasCsvPulse = useMemo(() => hasPulseColumn(vitalsCsv), [vitalsCsv]);
+
+    const disp: DisplayVitals = useMemo(() => toDisplayVitals({
+        mode,
+        vitalsCsv,
+        csvElapsedSec,
+        initialized,
+        vitals,
+    }), [mode, vitalsCsv, csvElapsedSec, initialized, vitals]);
+
+    const additionalVitals: AdditionalVital[] = useMemo(() => toAdditionalVitals({
+        mode,
+        vitalsCsv,
+        csvElapsedSec,
+        disp,
+        palette,
+        bpLevel: vitalAlarmLevel.bp || null,
+    }), [mode, vitalsCsv, csvElapsedSec, disp, palette, vitalAlarmLevel.bp]);
+
+    const canvasRefs = useRef(new Map<string, React.RefObject<HTMLCanvasElement | null>>());
+    const getCanvasRef = useCallback((key: string) => {
+        const existing = canvasRefs.current.get(key);
+        if (existing) return existing;
+        const created = React.createRef<HTMLCanvasElement | null>();
+        canvasRefs.current.set(key, created);
+        return created;
+    }, []);
+
+    const channels = useMemo(() => rows.map(r => ({key: r.key, ref: getCanvasRef(r.key), color: r.color, source: r.source})), [rows, getCanvasRef]);
     const rendererOpts: SweepRendererOptions = useMemo(() => ({
         channels,
         showSeconds,
         initialized,
         vitalsRef,
-        heartbeatRef, ...(mode === "csv" ? {externalTimeSec: csvElapsedSec} : {}),
+        heartbeatRef,
+        ...(mode === "csv" ? {externalTimeSec: csvElapsedSec} : {}),
         onValue: onValueCb,
-        timeEpochMs: csvStartMs
+        timeEpochMs: csvStartMs,
     }), [channels, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb, csvStartMs]);
     useSweepRenderer(rendererOpts);
 
-    // Alarm loop
     useEffect(() => {
         const countersRef: { current: AlarmCounters } = {current: defaultCounters};
+        const loopingRef: { current: { active: boolean; level: AlarmLevelOrNull } } = {current: {active: false, level: null}};
+
         const check = setInterval(() => {
-            // Select vitals source
             let vForAlarms: Vitals;
             if (mode === "csv") {
                 if (vitalsCsv) {
                     const elapsed = csvStartMs == null ? 0 : (performance.now() - csvStartMs) / 1000;
                     const cur = pickVitalsAtTime(vitalsCsv, elapsed);
-                    const asNumOrUnknown = (x: number | null | undefined): number | "-?-" => (x == null || !Number.isFinite(x)) ? "-?-" : x;
                     vForAlarms = {
                         hr: asNumOrUnknown(cur.hr),
                         spo2: asNumOrUnknown(cur.spo2),
                         rr: asNumOrUnknown(cur.rr),
-                        bp: {sys: asNumOrUnknown(cur.bpSys), dia: asNumOrUnknown(cur.bpDia)}
+                        bp: {sys: asNumOrUnknown(cur.bpSys), dia: asNumOrUnknown(cur.bpDia)},
                     };
                 } else {
                     vForAlarms = {hr: "-?-", spo2: "-?-", rr: "-?-", bp: {sys: "-?-", dia: "-?-"}};
                 }
             } else {
-                vForAlarms = vitalsRef.current as Vitals;
+                vForAlarms = vitalsRef.current;
             }
 
             const evald = checkAlarms(vForAlarms, countersRef.current);
             countersRef.current = evald.counters;
 
-            // append new alerts
             if (evald.alerts.length) {
                 if (soundOn && !silenced) {
                     for (const a of evald.alerts) {
@@ -327,7 +215,6 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
                 setAlerts(prev => [...evald.alerts, ...prev].slice(0, 50));
             }
 
-            // Compute continuous active levels, critical > warning
             const activeLevels = computeActiveAlarmLevels(countersRef.current);
             setVitalAlarmLevel({
                 hr: activeLevels.hr,
@@ -336,11 +223,12 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
                 bp: activeLevels.bp,
             });
 
-            // Determine highest active level for looping sound
-            const highestLevel = (activeLevels.hr === "critical" || activeLevels.spo2 === "critical" || activeLevels.bp === "critical")
-                ? "critical" : ((activeLevels.hr === "warning" || activeLevels.spo2 === "warning" || activeLevels.bp === "warning") ? "warning" : null);
+            const highestLevel: AlarmLevelOrNull =
+                (activeLevels.hr === "critical" || activeLevels.spo2 === "critical" || activeLevels.bp === "critical")
+                    ? "critical"
+                    : ((activeLevels.hr === "warning" || activeLevels.spo2 === "warning" || activeLevels.bp === "warning") ? "warning" : null);
 
-            if (!highestLevel && silenced) setSilenced(false); // auto-unsilence when cleared
+            if (!highestLevel && silenced) setSilenced(false);
 
             if (soundOn && highestLevel && !silenced) {
                 if (!loopingRef.current.active || loopingRef.current.level !== highestLevel) {
@@ -352,240 +240,209 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
                 loopingRef.current = {active: false, level: null};
             }
         }, 1000);
-        return () => clearInterval(check);
-    }, [soundOn, silenced, mode, vitalsCsv, csvStartMs]);
 
-    // Init delay
-    useEffect(() => {
-        const ready = setTimeout(() => setInitialized(true), 1000);
-        return () => clearTimeout(ready);
+        return () => {
+            clearInterval(check);
+            if (loopingRef.current.active) alertSound.stopLooping();
+        };
+    }, [soundOn, silenced, mode, vitalsCsv, csvStartMs, vitalsRef]);
+
+    const withVar = useCallback((base: React.CSSProperties, vars: Record<string, string | number>) => ({...base, ...vars}), []);
+
+    const onClearAlerts = useCallback(() => {
+        setAlerts([]);
+        setSilenced(true);
+        alertSound.stopLooping();
     }, []);
 
-    // Displayed numerics
-    const disp = useMemo(() => {
-        if (mode === "csv") {
-            if (vitalsCsv) {
-                const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
-                const fmt = (x: number | null | undefined, digits = 0) => (x == null || !Number.isFinite(x)) ? "-?-" : Number(x.toFixed(digits));
-                return {
-                    hr: fmt(cur.hr),
-                    spo2: fmt(cur.spo2),
-                    rr: fmt(cur.rr),
-                    bpSys: fmt(cur.bpSys),
-                    bpDia: fmt(cur.bpDia),
-                    pulse: fmt(cur.pulse)
-                } as const;
-            }
-            return {hr: "-?-", spo2: "-?-", rr: "-?-", bpSys: "-?-", bpDia: "-?-", pulse: "-?-"} as const;
+    const onToggleSound = useCallback(async () => {
+        if (!soundOn) await alertSound.kickstart();
+        setSoundOn(v => !v);
+    }, [soundOn]);
+
+    const onToggleHrSound = useCallback(async () => {
+        if (!heartbeatSound) await alertSound.kickstart();
+        setHeartbeatSound(v => !v);
+    }, [heartbeatSound]);
+
+    const onUseDemo = useCallback(() => {
+        setMode("demo");
+        setCsvData(null);
+        setVitalsCsv(null);
+        setCsvStartMs(null);
+    }, []);
+
+    const onLoadWaveCsv = useCallback(async (file: File) => {
+        try {
+            const text = await readTextFile(file);
+            const parsed = parseCsv(text);
+            setCsvData(parsed);
+            setMode("csv");
+            setCsvStartMs(performance.now());
+        } catch (e) {
+            console.error("CSV parse error", e);
+            alert("Failed to parse CSV. Check console for details.");
         }
-        return {
-            hr: (!initialized) ? "-?-" : vitals.hr,
-            spo2: (!initialized) ? "-?-" : vitals.spo2,
-            rr: (!initialized) ? "-?-" : vitals.rr,
-            bpSys: (!initialized) ? "-?-" : vitals.bp.sys,
-            bpDia: (!initialized) ? "-?-" : vitals.bp.dia,
-            pulse: "-?-" // demo: do not display pulse
-        } as const;
-    }, [mode, vitalsCsv, csvElapsedSec, initialized, vitals]);
+    }, []);
 
-    // Dynamic additional vitals (including NIBP and others)
-    const additionalVitals: Array<{
-        key: string;
-        label: string;
-        value: string;
-        color: string;
-        alarmLevel?: "critical" | "warning" | "advisory" | null
-    }> = useMemo(() => {
-        const vitals: Array<{
-            key: string;
-            label: string;
-            value: string;
-            color: string;
-            alarmLevel?: "critical" | "warning" | "advisory" | null
-        }> = [];
-
-        // Always include NIBP if we have bp data
-        if (disp.bpSys !== "-?-" && disp.bpDia !== "-?-") {
-            vitals.push({
-                key: "nibp",
-                label: "NIBP",
-                value: `${disp.bpSys}/${disp.bpDia}`,
-                color: palette.bp,
-                alarmLevel: vitalAlarmLevel.bp || null
-            });
+    const onLoadVitalsCsv = useCallback(async (file: File) => {
+        try {
+            const text = await readTextFile(file);
+            const parsed = parseVitalsCsv(text);
+            setVitalsCsv(parsed);
+            setMode("csv");
+            setCsvStartMs(performance.now());
+        } catch (e) {
+            console.error("Vitals CSV parse error", e);
+            alert("Failed to parse Vitals CSV. Check console for details.");
         }
-
-        // Add other CSV vitals if in CSV mode
-        if (mode === "csv" && vitalsCsv) {
-            const cur = pickVitalsAtTime(vitalsCsv, csvElapsedSec);
-            const used = new Set<string>(["HR", "%SpO2", "SpO2", "RESP", "RR", "NBP SYS", "NBP DIAS", "NIBP SYS", "NIBP DIAS", "PULSE", "PR", "Pulse Rate"]);
-            for (const c of vitalsCsv.columns) {
-                if (used.has(c.name)) continue;
-                const v = cur.extra.get(c.name);
-                if (v == null || !Number.isFinite(v)) continue;
-                vitals.push({
-                    key: c.name.toLowerCase().replace(/\s+/g, "_"),
-                    label: c.name,
-                    value: String(Number(v.toFixed(1))),
-                    color: palette.defaultText
-                });
-            }
-        }
-
-        return vitals.slice(0, 8); // Limit total additional vitals
-    }, [mode, vitalsCsv, csvElapsedSec, disp, palette, vitalAlarmLevel.bp]);
+    }, []);
 
     return (
         <div className="super-icu">
             <div className="super-icu-core">
-                {/* TOP BAR */}
                 <div className="top-bar">
                     SuperICU 🔮
                     <span className="status-pill">{timeStr}</span>
                     <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
-                    <span className="status-pill" style={{cursor: "pointer"}}
-                          onClick={async () => {
-                              if (!soundOn) await alertSound.kickstart();
-                              setSoundOn(v => !v);
-                          }}>
+                    <span className="status-pill" style={{cursor: "pointer"}} onClick={onToggleSound}>
                         Sound: {soundOn ? "On" : "Off"}
                     </span>
-                    <span className="status-pill" style={{cursor: "pointer"}} onClick={async () => {
-                        if (!heartbeatSound) await alertSound.kickstart();
-                        setHeartbeatSound(v => !v);
-                    }}>
+                    <span className="status-pill" style={{cursor: "pointer"}} onClick={onToggleHrSound}>
                         HR sound: {heartbeatSound ? "On" : "Off"}
                     </span>
-                    <span className="status-pill" style={{cursor: "pointer"}} onClick={() => {
-                        setAlerts([]);
-                        setSilenced(true);
-                        alertSound.stopLooping();
-                    }}>
+                    <span className="status-pill" style={{cursor: "pointer"}} onClick={onClearAlerts}>
                         Clear Alerts
                     </span>
                     <div className="window-ctl" style={{marginLeft: "auto"}}>
                         <span className="muted">Window</span>
-                        <select className="window-select" value={showSeconds} onChange={(e) =>
-                            setShowSeconds(parseInt(e.target.value, 10))}>
+                        <select className="window-select" value={showSeconds} onChange={(e) => setShowSeconds(parseInt(e.target.value, 10))}>
                             {CFG.WINDOW_CHOICES.map(s => <option key={s} value={s}>{s}s</option>)}
                         </select>
                     </div>
                 </div>
 
-                {/* ROWS */}
                 {rows.map((r) => (
                     <div key={r.key} className={`wave-row ${r.className ?? ""}`}>
-                        {/* LABEL */}
                         <div className="lead-label" style={{color: r.color}}>
                             {r.label}
                             <div style={{fontSize: 12, opacity: 0.9, color: r.color, lineHeight: 1.2}}>
                                 {formatWaveVal(waveformVals, r.key, mode)}
                             </div>
-                            <div style={{fontSize: 10, opacity: 0.8, color: "#9fb2c8", lineHeight: 1.2}}>
-                                <div>min {fmt9(r.yMin)}</div>
-                                <div>max {fmt9(r.yMax)}</div>
-                            </div>
                         </div>
+
                         <div className="canvas-wrap">
                             <canvas ref={getCanvasRef(r.key)} />
                         </div>
 
-                        {/* WAVEFORM */}
-                        {r.showVital && (<div className="vitals">
-                            <div className={`vital ${r.showVital}`}>
-                                <div className="label">{r.showVital.toUpperCase()}</div>
-                                <div className={`value ${flashClass(vitalAlarmLevel[r.showVital])}`}
-                                     style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}>
-                                    {disp[r.showVital]}
-                                    <span style={{fontSize: 14, marginLeft: r.showVital === "rr" ? 4 : 0}}>
+                        {r.showVital && (
+                            <div className="vitals">
+                                <div className={`vital ${r.showVital}`}>
+                                    <div className="label">{r.showVital.toUpperCase()}</div>
+                                    <div
+                                        className={`value ${flashClass(vitalAlarmLevel[r.showVital])}`}
+                                        style={withVar({color: colorForVital(r.showVital, palette)}, {"--vital-color": colorForVital(r.showVital, palette) as string})}
+                                    >
+                                        {disp[r.showVital]}
+                                        <span style={{fontSize: 14, marginLeft: r.showVital === "rr" ? 4 : 0}}>
                                             {disp[r.showVital] === "-?-" ? "" : unitForVital(r.showVital)}
                                         </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* VITALS */}
-                            {r.showVital === "hr" && mode === "csv" && hasCsvPulse && (<div className="vital pulse">
-                                <div className="label">PULSE</div>
-                                <div className="value"
-                                     style={withVar({color: colorForVital("pulse", palette)}, {"--vital-color": colorForVital("pulse", palette) as string})}>
-                                    {disp.pulse}
-                                    <span style={{fontSize: 14}}> {disp.pulse === "-?-" ? "" : unitForVital("pulse")}</span>
-                                </div>
-                            </div>)}
-                        </div>)}
+                                {r.showVital === "hr" && mode === "csv" && hasCsvPulse && (
+                                    <div className="vital pulse">
+                                        <div className="label">PULSE</div>
+                                        <div
+                                            className="value"
+                                            style={withVar({color: colorForVital("pulse", palette)}, {"--vital-color": colorForVital("pulse", palette) as string})}
+                                        >
+                                            {disp.pulse}
+                                            <span style={{fontSize: 14}}> {disp.pulse === "-?-" ? "" : unitForVital("pulse")}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 ))}
 
-                {/* ROWS VITALS */}
-                {additionalVitals.length > 0 && (<div className="data-row">
-                    <div className="vitals">
-                        {additionalVitals.map(vital => (
-                            <div key={vital.key} className="vital">
-                                <div className="label" style={{color: vital.color}}>{vital.label}</div>
-                                <div className={`value ${flashClass(vital.alarmLevel ?? null)}`}
-                                     style={withVar({color: vital.color}, {"--vital-color": vital.color as string})}>
-                                    {vital.value}
+                {additionalVitals.length > 0 && (
+                    <div className="data-row">
+                        <div className="vitals">
+                            {additionalVitals.map(vital => (
+                                <div key={vital.key} className="vital">
+                                    <div className="label" style={{color: vital.color}}>{vital.label}</div>
+                                    <div className={`value ${flashClass(vital.alarmLevel ?? null)}`}
+                                         style={withVar({color: vital.color}, {"--vital-color": vital.color})}>
+                                        {vital.value}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>)}
+                )}
 
                 <div className="data-row">
                     <div className="vitals">
-                        {mode !== "csv" && (<div className="vital">
-                            <div className="label" style={{color: palette.defaultText}}>Set Values</div>
-                            <div className="value"
-                                 style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14}}>
-                                <input type="number" placeholder="HR" min={0} max={360} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({hr: val}))} />
-                                <input type="number" placeholder="SpO2" min={0} max={100} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({spo2: val}))} />
-                                <input type="number" placeholder="RR" min={0} max={99} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({rr: val}))} />
-                                <input type="number" placeholder="SYS" min={50} max={210} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpSys: val}))} />
-                                <input type="number" placeholder="DIA" min={35} max={120} style={inputStyle}
-                                       onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpDia: val}))} />
+                        {mode !== "csv" && (
+                            <div className="vital">
+                                <div className="label" style={{color: palette.defaultText}}>Set Values</div>
+                                <div className="value" style={{...CONTROL_VALUE_STYLE, color: palette.defaultText}}>
+                                    <input type="number" placeholder="HR" min={0} max={360} style={INPUT_STYLE}
+                                           onKeyDown={(e) => commitOnEnter(e, val => correctVital({hr: val}))} />
+                                    <input type="number" placeholder="SpO2" min={0} max={100} style={INPUT_STYLE}
+                                           onKeyDown={(e) => commitOnEnter(e, val => correctVital({spo2: val}))} />
+                                    <input type="number" placeholder="RR" min={0} max={99} style={INPUT_STYLE}
+                                           onKeyDown={(e) => commitOnEnter(e, val => correctVital({rr: val}))} />
+                                    <input type="number" placeholder="SYS" min={50} max={210} style={INPUT_STYLE}
+                                           onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpSys: val}))} />
+                                    <input type="number" placeholder="DIA" min={35} max={120} style={INPUT_STYLE}
+                                           onKeyDown={(e) => commitOnEnter(e, val => correctVital({bpDia: val}))} />
+                                </div>
                             </div>
-                        </div>)}
+                        )}
 
                         <div className="vital">
                             <div className="label" style={{color: palette.defaultText}}>Waveform CSV</div>
-                            <div className="value"
-                                 style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14, flexWrap: "wrap"}}>
-                                <input type="file" accept=".csv,text/csv" style={inputStyle} onChange={e => {
-                                    const f = e.target.files?.[0];
-                                    if (f) handleCsvFile(f);
-                                    e.currentTarget.value = "";
-                                }} />
-                                <button style={{...inputStyle, cursor: "pointer"}} onClick={() => {
-                                    setMode("demo");
-                                    setCsvData(null);
-                                    setVitalsCsv(null);
-                                    setCsvStartMs(null);
-                                }}>Use Demo
-                                </button>
+                            <div className="value" style={{...CONTROL_VALUE_STYLE, color: palette.defaultText}}>
+                                <input
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    style={INPUT_STYLE}
+                                    onChange={e => {
+                                        const f = e.target.files?.[0];
+                                        if (f) onLoadWaveCsv(f);
+                                        e.currentTarget.value = "";
+                                    }}
+                                />
+                                <button style={{...INPUT_STYLE, cursor: "pointer"}} onClick={onUseDemo}>Use Demo</button>
                                 {mode === "csv" && csvData && (
-                                    <span style={{opacity: 0.8}}>Loaded {csvData.columns.length} lead(s) @ {csvData.sampleHz} Hz</span>)}
+                                    <span style={{opacity: 0.8}}>Loaded {csvData.columns.length} lead(s) @ {csvData.sampleHz} Hz</span>
+                                )}
                             </div>
                         </div>
 
                         <div className="vital">
                             <div className="label" style={{color: palette.defaultText}}>Vitals CSV</div>
-                            <div className="value"
-                                 style={{color: palette.defaultText, display: "flex", alignItems: "center", gap: 6, fontSize: 14, flexWrap: "wrap"}}>
-                                <input type="file" accept=".csv,text/csv" style={inputStyle} onChange={e => {
-                                    const f = e.target.files?.[0];
-                                    if (f) handleVitalsCsvFile(f);
-                                    e.currentTarget.value = "";
-                                }} />
-                                {vitalsCsv && (<span style={{opacity: 0.8}}>Loaded {vitalsCsv.columns.length} vital(s)</span>)}
+                            <div className="value" style={{...CONTROL_VALUE_STYLE, color: palette.defaultText}}>
+                                <input
+                                    type="file"
+                                    accept=".csv,text/csv"
+                                    style={INPUT_STYLE}
+                                    onChange={e => {
+                                        const f = e.target.files?.[0];
+                                        if (f) onLoadVitalsCsv(f);
+                                        e.currentTarget.value = "";
+                                    }}
+                                />
+                                {vitalsCsv && <span style={{opacity: 0.8}}>Loaded {vitalsCsv.columns.length} vital(s)</span>}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div className="side">
                 <div className="side-header">Alerts</div>
                 <div className="alerts">
@@ -599,39 +456,34 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
             </div>
         </div>
     );
+}
 
-    // helpers inside component (file APIs need state setters)
-    function handleCsvFile(file: File) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const text = String(reader.result || "");
-                const parsed = parseCsv(text);
-                setCsvData(parsed);
-                setMode("csv");
-                setCsvStartMs(performance.now());
-            } catch (e) {
-                console.error("CSV parse error", e);
-                alert("Failed to parse CSV. Check console for details.");
-            }
-        };
-        reader.readAsText(file);
-    }
+function useLatestRef<T>(value: T) {
+    const ref = useRef(value);
+    useEffect(() => {
+        ref.current = value;
+    }, [value]);
+    return ref;
+}
 
-    function handleVitalsCsvFile(file: File) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const text = String(reader.result || "");
-                const parsed = parseVitalsCsv(text);
-                setVitalsCsv(parsed);
-                setMode("csv");
-                setCsvStartMs(performance.now());
-            } catch (e) {
-                console.error("Vitals CSV parse error", e);
-                alert("Failed to parse Vitals CSV. Check console for details.");
-            }
-        };
-        reader.readAsText(file);
+function commitOnEnter(e: React.KeyboardEvent<HTMLInputElement>, apply: (val: number) => void) {
+    if (e.key !== "Enter") return;
+    const val = parseInt((e.currentTarget.value || "").trim(), 10);
+    if (Number.isFinite(val) && Math.abs(val) < 10000) {
+        apply(Math.abs(val));
+        e.currentTarget.value = "";
     }
+}
+
+function asNumOrUnknown(x: number | null | undefined): number | "-?-" {
+    return (x == null || !Number.isFinite(x)) ? "-?-" : x;
+}
+
+function readTextFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+        reader.readAsText(file);
+    });
 }
