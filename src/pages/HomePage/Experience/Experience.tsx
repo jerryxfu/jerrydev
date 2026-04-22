@@ -3,7 +3,6 @@ import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Card, {CardProps} from "../../../components/Card/Card.tsx";
 import _crchum from "../../../assets/experience/crchum.png";
 import _t4k from "../../../assets/experience/t4k_special_edition.png";
-import _doublestartyre from "../../../assets/projects/doublestartyre.png";
 import _ftc from "../../../assets/experience/ftc_icon_horz.png";
 
 function formatDate(date: Date): string {
@@ -43,16 +42,6 @@ const experiences: CardProps[] = [
         // 2025: Vancouver, Montreal, Las Vegas, World Championship
         // 2026: Las Vegas
         footer: "Details on CV"
-    },
-    {
-        title: "Doublestartyre CA",
-        subTitle: "",
-        image: _doublestartyre,
-        chipText: "✅ Delivered",
-        dateDisplay: formatDate(new Date("2024-07-11")),
-        url: "https://doublestartyre.ca",
-        description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
-        footer: "For Dodo Wheels"
     },
     {
         title: "FIRST Tech Challenge",

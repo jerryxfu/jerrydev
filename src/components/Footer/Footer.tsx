@@ -5,7 +5,8 @@ import Copyright from "../Copyright.tsx";
 export default function Footer() {
     const links = [
         {text: "Curriculum Vitae", url: "https://cv.jerryxf.net", decorator: <></>},
-        {text: "BapUtils Minecraft Hypixel Skyblock mod", url: "https://github.com/jerryxfu/BapUtils", decorator: <></>},
+        {text: "BapUtils Minecraft Hypixel Skyblock mod", url: "https://github.com/jerryxfu/BapUtils#readme", decorator: <></>},
+        {text: "Status", url: "https://status.jerryxf.net", decorator: <></>},
     ];
 
     return (

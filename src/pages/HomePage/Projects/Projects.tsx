@@ -10,7 +10,7 @@ import _kahootBot from "../../../assets/projects/kahootbot.mp4";
 import _weatherStation from "../../../assets/projects/weather_station.jpg";
 import _endPortal from "../../../assets/projects/end_portal.jpg";
 import _supericu from "../../../assets/projects/supericu.png";
-import _scheduler from "../../../assets/projects/scheduler.png";
+import _doublestartyre from "../../../assets/projects/doublestartyre.png";
 import _scorekeeper from "../../../assets/projects/scorekeeper.png";
 import _autoscout from "../../../assets/projects/autoscout.png";
 import _medive from "../../../assets/projects/medive.png";
@@ -61,7 +61,17 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-04-08")),
         url: "https://github.com/jerryxfu/matchtimer",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
-        footer: "iOS 16.6+ & Android 13+"
+        footer: "iOS 16.7+ & Android 13+"
+    },
+    {
+        title: "Pulse",
+        subTitle: "Screen time micro-session limiter",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2026-04-20")),
+        url: "",
+        description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
+        footer: "iOS 16.7+ & Android 13+"
     },
     {
         title: "BapUtils",
@@ -102,14 +112,23 @@ const projects: CardProps[] = [
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
     },
     {
-        title: "UNVEIL",
-        subTitle: "Uncover the unseen",
+        title: "Unveil Technologies",
+        subTitle: "Building what's next",
         image: _unveil,
-        chipText: "🌀 Concept",
+        chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-10-01")),
-        // Unveil Technologies is an intelligent platform for orchestration and autonomy built to bring clarity to complex missions. From autonomous drone systems to integrated command interfaces, Unveil transforms real-time data into actionable insight—empowering operators to uncover the unseen on the battlefield.
+        url: "https://unveiltechnologies.com",
+        description: "A technology company built to ship — spanning client software, consumer apps, and defense-related systems. Unveil is the umbrella behind ORCA and everything else.",
+        footer: "unvl.tech"
+    },
+    {
+        title: "ORCA",
+        subTitle: "Uncover the unseen",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2025-10-01")),
         url: "",
-        description: "An intelligent orchestration platform for mission control integrating drones to transform real-time data into actionable insight and empower operators on the battlefield.",
+        description: "An intelligent orchestration platform for mission control, integrating drones and assets to transform real-time field data into actionable insight.",
     },
     {
         title: "*.jerryxf.net",
@@ -118,6 +137,16 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
         description: "This portfolio website as well as the API that empowers other projects.",
+    },
+    {
+        title: "Doublestartyre CA",
+        subTitle: "",
+        image: _doublestartyre,
+        chipText: "✅ Delivered",
+        dateDisplay: formatDate(new Date("2024-07-11")),
+        url: "https://doublestartyre.ca",
+        description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
+        footer: "For Dodo Wheels"
     },
     {
         title: "Cyclic",
