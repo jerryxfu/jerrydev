@@ -17,8 +17,7 @@ const ContactCard = memo(function ContactCard({title, username, image, url, chip
             </a>
             <div className="contactcard_content">
                 <h3 className="contactcard_title">{title}</h3>
-                <p className="contactcard_username">{username}</p>
-
+                <p style={{lineHeight: 1.3}} className="contactcard_username">{username}</p>
             </div>
             {chipText && <Chip className="contactcard_chip" size={"sm"}>{chipText}</Chip>}
         </div>

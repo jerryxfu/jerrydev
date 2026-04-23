@@ -16,22 +16,22 @@ import {Button} from "@mui/joy";
 
 const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
-    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "", color: "#ffb5a610"},
+    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "📷", color: "#ffb5a610"},
     {
         title: "Discord",
         username: "@jerryxf",
         image: _discord,
         url: "https://discord.com/users/611633988515266562",
-        chipText: "",
+        chipText: "💬",
         color: "#e6a6ff10"
     },
-    {
-        title: "LinkedIn",
-        username: "in/jerryfu-dev",
-        image: "https://favicon.im/www.linkedin.com?larger=true",
-        url: "https://www.linkedin.com/in/jerryfu-dev/",
-        color: "#0a66c210"
-    },
+    // {
+    //     title: "LinkedIn",
+    //     username: "in/jerryfu-dev",
+    //     image: "https://favicon.im/www.linkedin.com?larger=true",
+    //     url: "https://www.linkedin.com/in/jerryfu-dev/",
+    //     color: "#0a66c210"
+    // },
     // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     // {
     //     title: "Reddit",
@@ -43,10 +43,10 @@ const medias = [
     // },
     {
         title: "Steam",
-        username: "jerryxf",
+        username: "jerryxf 1650859595",
         image: "https://favicon.im/store.steampowered.com?larger=true",
         url: "https://steamcommunity.com/id/jerryxf/",
-        chipText: "",
+        chipText: "🎮",
         color: "#00adee10"
     }
 ];

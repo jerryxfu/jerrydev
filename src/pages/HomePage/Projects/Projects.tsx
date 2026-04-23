@@ -42,6 +42,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-08-14")),
         url: "https://github.com/jerryxfu/medive",
         description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
+        footer: "IB EE"
     },
     {
         title: "Home Island",
@@ -50,8 +51,8 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2026-02-05")),
         url: "https://github.com/jerryxfu/home-island",
-        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome and Firefox (Safari coming soon)",
-        footer: "Click image^ for links"
+        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
+        footer: "Click image card for links"
     },
     {
         title: "TechNexus",
@@ -71,7 +72,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-04-20")),
         url: "",
         description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
-        footer: "iOS 16.7+ & Android 13+"
+        footer: "iOS 17+ & Android 13+"
     },
     {
         title: "BapUtils",
@@ -91,7 +92,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2024-07-1")),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games and answer questions at your command. Built using Python and Playwright to automate the web interface.",
-        footer: "(Outdated video)"
     },
     {
         title: "TechDashboard",
@@ -106,7 +106,7 @@ const projects: CardProps[] = [
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
-        chipText: "💤 Stalled",
+        chipText: "🎖️ Completed",
         dateDisplay: formatDate(new Date("2025-08-19")),
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
@@ -115,7 +115,7 @@ const projects: CardProps[] = [
         title: "Unveil Technologies",
         subTitle: "Building what's next",
         image: _unveil,
-        chipText: "🚧 WIP",
+        chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-10-01")),
         url: "https://unveiltechnologies.com",
         description: "A technology company built to ship — spanning client software, consumer apps, and defense-related systems. Unveil is the umbrella behind ORCA and everything else.",
@@ -155,7 +155,17 @@ const projects: CardProps[] = [
         chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-12-28")),
         description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-        footer: "iOS 17+ & Android 13+"
+        footer: "iOS 17.7+ & Android 13+"
+    },
+    {
+        title: "FRC Scorekeeper interface",
+        subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
+        image: _scorekeeper,
+        chipText: "📦 Archived",
+        dateDisplay: formatDate(new Date("2025-05-09")),
+        url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
+        description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
+        footer: "RSEQ Montreal & CRA"
     },
     {
         title: "Conditioner",
@@ -164,7 +174,7 @@ const projects: CardProps[] = [
         chipText: "🔁 Superseded",
         dateDisplay: formatDate(new Date("2025-07-24")),
         url: "/conditioner",
-        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\".",
+        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE.",
     },
     {
         title: "JerryBot",
@@ -176,20 +186,10 @@ const projects: CardProps[] = [
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
-        title: "FRC Scorekeeper interface",
-        subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
-        image: _scorekeeper,
-        chipText: "📦 Archived",
-        dateDisplay: formatDate(new Date("2025-05-09")),
-        url: "https://mail.rseqmontreal.com/fr/evenements-speciaux/competitions-de-robotique/",
-        description: "A real-time score tracking/broadcasting app for our off-season competitions using WebSocket.",
-        footer: "For RSEQ Montreal"
-    },
-    {
         title: "RPI Pico weather station",
         subTitle: "A small indoor weather station",
         image: _weatherStation,
-        chipText: "🎖️ Fulfilled",
+        chipText: "🎖️ Completed",
         dateDisplay: formatDate(new Date("2025-02-08")),
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
     },
@@ -197,7 +197,7 @@ const projects: CardProps[] = [
         title: "FRC AutoScout",
         subTitle: "Autonomous scouting for FRC",
         image: _autoscout,
-        chipText: "💤 Stalled",
+        chipText: "🗑️ Obsolete",
         dateDisplay: formatDate(new Date("2024-03-23")), // MotionLens creation (-> auto-scout)
         description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
         url: "https://github.com/jerryxfu/auto-scout"
@@ -208,14 +208,14 @@ const projects: CardProps[] = [
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",
-        description: "A website for temporary sharing files and text with other people or across your own devices",
+        description: "A website for sharing files and text with other people or across your own devices",
         url: "/expedite"
     },
     {
         title: "LLM vs LLM",
         subTitle: "Two LLMs debate on a given topic",
         image: _llmvsllm,
-        chipText: "🎖️ Fulfilled",
+        chipText: "📦 Archived",
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
@@ -224,10 +224,18 @@ const projects: CardProps[] = [
         title: "Cheatsheet",
         subTitle: "A collection of useful cheatsheets",
         image: _endPortal,
-        chipText: "🚧 WIP",
+        chipText: "🧩 MVP",
         dateDisplay: "awaiting",
         url: "/cheatsheet",
         description: "A collection of useful cheatsheets for various topics.",
+    },
+    {
+        title: "Group availability app",
+        subTitle: "A tool to help schedule group events",
+        image: _endPortal,
+        chipText: "🌀 Concept",
+        dateDisplay: "awaiting",
+        description: "description."
     },
     {
         title: "MegaCSV",
@@ -241,14 +249,6 @@ const projects: CardProps[] = [
     {
         title: "Itinerary",
         subTitle: "Optimize travel by public transit",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "description."
-    },
-    {
-        title: "Group availability app",
-        subTitle: "A tool to help schedule group events",
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",

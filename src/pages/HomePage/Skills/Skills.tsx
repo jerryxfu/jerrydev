@@ -51,7 +51,7 @@ const tech_stack = [
         name: "SwiftUI",
         color: "#ffc1a610",
         description: "With Kotlin Multiplatform",
-        iconUrl: "https://favicon.im/www.swift.org?larger=true",
+        iconUrl: "https://favicon.im/www.swift.org",
         chipText: "1/5",
         url: "https://developer.apple.com/swiftui/"
     },
@@ -94,7 +94,8 @@ export default function Skills() {
                     ))}
                 </div>
                 <div className="skills_text">
-                    <h4>Github top languages</h4>
+                    {/*<SubTitle text={"Github languages"} />*/}
+                    <h2 style={{fontWeight: 400}}>Github top languages</h2>
                     <img
                         className="skills_languages-card"
                         src="https://github-stats.jerryxf.net/api/top-langs/?username=jerryxfu&layout=compact&langs_count=20&hide_title=true&hide_border=true&bg_color=00000000&title_color=abcdef"

@@ -20,8 +20,8 @@ export interface CardProps {
         | "🔴 Broken" // The project does not work
         | "❌Abandoned" // The project does not work and no longer maintained
         | "🛠️ Maintenance" // The project is under maintenance
-        | "🌅 Sunset" // The project is no longer maintained but still available
-        | "🎖️ Fulfilled" // The project has fulfilled its purpose and is sunsetting
+        | "🌅 Sunsetting" // The project is no longer maintained but still available
+        | "🎖️ Completed" // The project is completed and no further work is planned
         | "📦 Archived" // The project is archived and read-only
         | "🔒 Internal" // The project is internal and not publicly available
         | string;
