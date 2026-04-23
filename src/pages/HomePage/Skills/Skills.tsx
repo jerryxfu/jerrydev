@@ -94,7 +94,6 @@ export default function Skills() {
                     ))}
                 </div>
                 <div className="skills_text">
-                    {/*<SubTitle text={"Github languages"} />*/}
                     <h2 style={{fontWeight: 400}}>Github top languages</h2>
                     <img
                         className="skills_languages-card"
