@@ -22,7 +22,7 @@
         "@mui/joy": "5.0.0-beta.52",
         "@mui/material": "^9.0.0",
         "@types/smoothie": "^1.29.1",
-        "axios": "^1.15.0",
+        "axios": "^1.15.2",
         "baffle": "^0.3.6",
         "cross-env": "^10.1.0",
         "d3": "^7.9.0",
