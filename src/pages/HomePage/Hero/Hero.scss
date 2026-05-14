@@ -34,8 +34,7 @@
 
 .hero_title {
     scale: 1;
-    font-size: 6rem;
-    font-weight: 400;
+    font-size: 6.5rem;
     //line-height: 1.21;
     //margin-bottom: -7px;
     height: 7.60rem;
@@ -54,7 +53,6 @@
 
 .hero_title-part1 {
     font-size: inherit;
-    font-weight: inherit;
 }
 
 .hero_title-part2 {
@@ -63,7 +61,6 @@
     display: inline-block;
     position: relative;
     overflow: hidden;
-    font-weight: inherit;
 }
 
 .hero_title-mask {
@@ -73,7 +70,7 @@
 }
 
 .hero_subtitle {
-    font-weight: 450;
+    font-weight: 400;
     font-size: 2.25rem;
     margin-left: 0.55rem;
     margin-top: -8px;
@@ -91,7 +88,6 @@
 }
 
 .hero_hero-text {
-    font-weight: 300;
     font-size: 7rem;
 
     overflow: hidden;
