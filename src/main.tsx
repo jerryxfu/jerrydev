@@ -2,6 +2,7 @@ import {lazy, type ReactNode, StrictMode, Suspense} from "react";
 import {createRoot} from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 
+import "@fontsource-variable/outfit/index.css";
 import "./index.scss";
 import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";

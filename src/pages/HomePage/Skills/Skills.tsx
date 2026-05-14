@@ -5,6 +5,11 @@ import _java from "../../../assets/skills/java.svg";
 import _javascript from "../../../assets/skills/javascript.jpeg";
 import _react from "../../../assets/skills/react.svg";
 import _webstack from "../../../assets/skills/webstack.png";
+import _python from "../../../assets/skills/python.svg";
+import _lightroom from "../../../assets/skills/lightroom.svg";
+import _jetbrains from "../../../assets/skills/jetbrains.svg";
+import _swift from "../../../assets/skills/swift.svg";
+import _kotlin from "../../../assets/skills/kotlin.svg";
 
 const tech_stack = [
     {
@@ -27,7 +32,7 @@ const tech_stack = [
         name: "Kotlin",
         color: "#e6a6ff10",
         description: "Kotlin Multiplatform, Minecraft Forge modding",
-        iconUrl: "https://favicon.im/kotlinlang.org",
+        iconUrl: _kotlin,
         chipText: "3/5",
         url: "https://kotlinlang.org/"
     },
@@ -43,15 +48,14 @@ const tech_stack = [
         name: "Python",
         color: "#ffeda610",
         description: "PyTorch, OpenCV, scripting, MAVSDK",
-        iconUrl: "https://favicon.im/www.python.org?larger=true",
-        chipText: "3/5",
+        iconUrl: _python,
         url: "https://www.python.org/"
     },
     {
         name: "SwiftUI",
         color: "#ffc1a610",
         description: "With Kotlin Multiplatform",
-        iconUrl: "https://favicon.im/www.swift.org",
+        iconUrl: _swift,
         chipText: "1/5",
         url: "https://developer.apple.com/swiftui/"
     },
@@ -61,14 +65,14 @@ const tech_stack = [
     {
         name: "Adobe Lightroom",
         color: "#2daaff10",
-        iconUrl: "https://favicon.im/lightroom.adobe.com?larger=true",
+        iconUrl: _lightroom,
         chipText: "3/5",
         url: "https://lightroom.adobe.com/"
     },
     {
         name: "JetBrains IDEs",
         color: "#ff6ea610",
-        iconUrl: "https://favicon.im/www.jetbrains.com",
+        iconUrl: _jetbrains,
         chipText: "❤️",
         url: "https://www.jetbrains.com/"
     }

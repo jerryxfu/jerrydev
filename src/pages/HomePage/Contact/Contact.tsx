@@ -1,4 +1,7 @@
 import {useEffect, useMemo} from "react";
+import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
+import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
+import {Button} from "@mui/joy";
 import "./Contact.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import SubTitle from "../../../components/SubTitle/SubTitle.tsx";
@@ -10,9 +13,7 @@ import _discord from "../../../assets/socials/discord_mark.svg";
 import _instagram from "../../../assets/socials/instagram_mark.png";
 import _github_lt from "../../../assets/socials/github.svg";
 import _github_da from "../../../assets/socials/github_white.svg";
-import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
-import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
-import {Button} from "@mui/joy";
+import _steam from "../../../assets/socials/steam.svg";
 
 const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
@@ -25,13 +26,6 @@ const medias = [
         chipText: "💬",
         color: "#e6a6ff10"
     },
-    // {
-    //     title: "LinkedIn",
-    //     username: "in/jerryfu-dev",
-    //     image: "https://favicon.im/www.linkedin.com?larger=true",
-    //     url: "https://www.linkedin.com/in/jerryfu-dev/",
-    //     color: "#0a66c210"
-    // },
     // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     // {
     //     title: "Reddit",
@@ -44,7 +38,7 @@ const medias = [
     {
         title: "Steam",
         username: "jerryxf 1650859595",
-        image: "https://favicon.im/store.steampowered.com?larger=true",
+        image: _steam,
         url: "https://steamcommunity.com/id/jerryxf/",
         chipText: "🎮",
         color: "#00adee10"
