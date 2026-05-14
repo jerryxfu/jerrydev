@@ -1,37 +1,23 @@
 import "./Projects.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Card, {CardProps} from "../../../components/Card/Card.tsx";
-import _llmvsllm from "../../../assets/projects/llmvsllm.png";
-import _baputils from "../../../assets/projects/baputils.png";
+import _llmvsllm from "../../../assets/projects/llmvsllm.jpeg";
+import _baputils from "../../../assets/projects/baputils.jpeg";
 import _jerrybot from "../../../assets/projects/jerrybot.png";
-import _jerryxf from "../../../assets/projects/jerryxf.png";
-import _conditioner from "../../../assets/projects/conditioner.png";
+import _jerryxf from "../../../assets/projects/jerryxf.jpeg";
+import _conditioner from "../../../assets/projects/conditioner.jpeg";
 import _kahootBot from "../../../assets/projects/kahootbot.mp4";
-import _weatherStation from "../../../assets/projects/weather_station.jpg";
+import _weatherStation from "../../../assets/projects/weather_station.jpeg";
 import _endPortal from "../../../assets/projects/end_portal.jpg";
-import _supericu from "../../../assets/projects/supericu.png";
-import _doublestartyre from "../../../assets/projects/doublestartyre.png";
-import _scorekeeper from "../../../assets/projects/scorekeeper.png";
-import _autoscout from "../../../assets/projects/autoscout.png";
-import _medive from "../../../assets/projects/medive.png";
-import _unveil from "../../../assets/unveil_dark.png";
-import _homeisland from "../../../assets/projects/home-island.png";
+import _supericu from "../../../assets/projects/supericu.jpeg";
+import _doublestartyre from "../../../assets/projects/doublestartyre.jpeg";
+import _scorekeeper from "../../../assets/projects/scorekeeper.jpeg";
+import _autoscout from "../../../assets/projects/autoscout.jpeg";
+import _medive from "../../../assets/projects/medive.jpeg";
+import _unveil from "../../../assets/projects/unveil_dark.png";
+import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
-
-function formatDate(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const day = pad(date.getDate());
-    const month = pad(date.getMonth() + 1);
-    const year = date.getFullYear();
-    const today = new Date();
-    // Zero out time for both dates
-    today.setHours(0, 0, 0, 0);
-    const initial_date = new Date(date);
-    initial_date.setHours(0, 0, 0, 0);
-    const diffMs = today.getTime() - initial_date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    return `${day}-${month}-${year} (${diffDays} days ago)`;
-}
+import {formatDate} from "../../../utils.ts";
 
 const projects: CardProps[] = [
     {

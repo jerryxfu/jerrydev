@@ -68,7 +68,7 @@ export default function Navbar() {
         >
             <a className={`navbar_icon ${isShrunk ? "navbar_icon-shrunk" : ""}`} href="/" aria-label="Go to homepage">
                 <img
-                    src="/favicon.png"
+                    src="/favicon.jpeg"
                     alt="jerrydev sunset sky with moon icon"
                 />
             </a>

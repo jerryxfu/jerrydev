@@ -2,7 +2,7 @@ import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import "./Skills.scss";
 import SkillCard from "./components/SkillCard.tsx";
 import _java from "../../../assets/skills/java.svg";
-import _javascript from "../../../assets/skills/javascript.png";
+import _javascript from "../../../assets/skills/javascript.jpeg";
 import _react from "../../../assets/skills/react.svg";
 import _webstack from "../../../assets/skills/webstack.png";
 

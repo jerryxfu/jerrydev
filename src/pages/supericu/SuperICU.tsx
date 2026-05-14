@@ -3,23 +3,14 @@ import "./SuperICU.scss";
 import type {AlertItem, Vitals} from "./sim";
 import {useDemoVitals, useWaveTemplates} from "./sim";
 import type {AlarmCounters} from "./alarms";
-import {checkAlarms, defaultCounters, computeActiveAlarmLevels} from "./alarms";
+import {checkAlarms, computeActiveAlarmLevels, defaultCounters} from "./alarms";
 import {alertSound} from "./sound";
 import type {SweepRendererOptions} from "./useSweepRenderer";
 import {useSweepRenderer} from "./useSweepRenderer";
-import {
-    randomId,
-    colorForVital,
-    unitForVital,
-    parseCsv,
-    parseVitalsCsv,
-    type ParsedVitalsCsv,
-    pickVitalsAtTime,
-    formatWaveVal,
-} from "./helpers";
+import {colorForVital, formatWaveVal, parseCsv, type ParsedVitalsCsv, parseVitalsCsv, pickVitalsAtTime, randomId, unitForVital,} from "./helpers";
 import {hasPulseColumn, toAdditionalVitals, toDisplayVitals, toRows} from "./selectors";
-import {CFG, DEFAULT_PALETTE} from "./types";
 import type {AdditionalVital, AlarmLevelOrNull, CsvWaveData, DisplayVitals, FlashMode, Palette, RowDef} from "./types";
+import {CFG, DEFAULT_PALETTE} from "./types";
 
 export type {Palette, FlashMode};
 

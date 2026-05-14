@@ -1,4 +1,4 @@
-import type {AlertItem, AlarmLevel, Vitals} from "./sim";
+import type {AlarmLevel, AlertItem, Vitals} from "./sim";
 import {randomId} from "./helpers";
 
 export type AlarmCounters = {

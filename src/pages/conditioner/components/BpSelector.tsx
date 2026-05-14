@@ -92,7 +92,7 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
         if (value && value.diastolicIndex !== selectedDia) {
             setSelectedDia(value.diastolicIndex);
         }
-    }, [value?.systolicIndex, value?.diastolicIndex]);
+    }, [value?.systolicIndex, value?.diastolicIndex, value, selectedSys, selectedDia]);
 
     return (
         <div className={`bp-selector ${className}`}>

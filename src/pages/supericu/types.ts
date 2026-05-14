@@ -1,4 +1,4 @@
-import type {TemplateSource, CsvSource} from "./useSweepRenderer";
+import type {CsvSource, TemplateSource} from "./useSweepRenderer";
 
 export type Palette = {
     ecg: string;

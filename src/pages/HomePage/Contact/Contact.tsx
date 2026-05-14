@@ -7,9 +7,9 @@ import baffle from "baffle";
 import ContactCard from "./components/ContactCard.tsx";
 
 import _discord from "../../../assets/socials/discord_mark.svg";
-import _instagram from "../../../assets/socials/instagram_mark.svg";
-import _github_lt from "../../../assets/skills/github.svg";
-import _github_da from "../../../assets/skills/github_white.svg";
+import _instagram from "../../../assets/socials/instagram_mark.png";
+import _github_lt from "../../../assets/socials/github.svg";
+import _github_da from "../../../assets/socials/github_white.svg";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
 import {Button} from "@mui/joy";

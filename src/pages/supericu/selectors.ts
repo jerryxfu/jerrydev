@@ -1,5 +1,5 @@
 import type {ParsedVitalsCsv} from "./helpers";
-import {mapLeadName, minOf, maxOf, pickVitalsAtTime} from "./helpers";
+import {mapLeadName, maxOf, minOf, pickVitalsAtTime} from "./helpers";
 import type {Vitals} from "./sim";
 import type {AdditionalVital, AlarmLevelOrNull, CsvWaveData, DisplayVitals, Palette, RowDef} from "./types";
 

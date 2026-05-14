@@ -1,5 +1,5 @@
 import {RefObject, useEffect} from "react";
-import {Vitals, modifyDemoSample, sampleTemplate} from "./sim";
+import {modifyDemoSample, sampleTemplate, Vitals} from "./sim";
 import {alertSound} from "./sound";
 
 // Rendering-specific constants

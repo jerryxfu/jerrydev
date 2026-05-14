@@ -1,4 +1,4 @@
-import {ComponentType, lazy, Suspense, useEffect, useRef, useState} from "react";
+import {lazy, Suspense} from "react";
 import "./HomePage.scss";
 import Navbar from "../../components/Navbar/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
