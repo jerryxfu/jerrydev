@@ -1,7 +1,9 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
-import {CustomEase, ScrollTrigger, TextPlugin} from "gsap/all";
+import {CustomEase} from "gsap/CustomEase";
+import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import SplitType from "split-type";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";

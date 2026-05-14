@@ -1,9 +1,8 @@
 import {useEffect, useState} from "react";
 import {useTheme} from "../../context/ThemeContext.tsx";
 import "./Navbar.scss";
-import {motion, useScroll, useTransform} from "framer-motion";
-import MenuIcon from "@mui/icons-material/Menu";
-import {Drawer, IconButton} from "@mui/joy";
+import {AnimatePresence, motion, useScroll, useTransform} from "framer-motion";
+import {Menu} from "lucide-react";
 
 // Constants outside component to prevent re-creation on every render
 const linksLeft: { href: string, label: string }[] = [
@@ -74,14 +73,13 @@ export default function Navbar() {
             </a>
 
             <div className="navbar_menu-button">
-                <IconButton
-                    variant="outlined"
-                    color="neutral"
+                <button
+                    className="navbar_menu-button-inner"
                     onClick={() => setIsDrawerOpen(true)}
                     aria-label="Open navigation menu"
                 >
-                    <MenuIcon />
-                </IconButton>
+                    <Menu />
+                </button>
             </div>
 
             <ul className="navbar_links">
@@ -140,37 +138,48 @@ export default function Navbar() {
                 </p>
             </motion.button>
 
-            <Drawer
-                open={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                anchor="top"
-                size="sm"
-                variant="soft"
-            >
-                <ul className="navbar_links-mobile">
-                    {linksLeft.map((link, index) => (
-                        <li key={index}>
-                            <a href={link.href} className="text text-underline">
-                                {link.label}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-
-                <ul className="navbar_links-mobile navbar_links-external">
-                    {linksRight.map((link, index) => (
-                        <li key={index}>
-                            <a
-                                href={link.href}
-                                className="text text-underline"
-                                {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
-                            >
-                                {link.label}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </Drawer>
+            <AnimatePresence>
+                {isDrawerOpen && (
+                    <>
+                        <motion.div
+                            className="drawer-backdrop"
+                            initial={{opacity: 0}}
+                            animate={{opacity: 1}}
+                            exit={{opacity: 0}}
+                            onClick={() => setIsDrawerOpen(false)}
+                        />
+                        <motion.div
+                            className="drawer drawer-top"
+                            initial={{y: "-100%"}}
+                            animate={{y: 0}}
+                            exit={{y: "-100%"}}
+                            transition={{type: "spring", damping: 25, stiffness: 200}}
+                        >
+                            <ul className="navbar_links-mobile">
+                                {linksLeft.map((link, index) => (
+                                    <li key={index}>
+                                        <a href={link.href} className="text text-underline">
+                                            {link.label}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                            <ul className="navbar_links-mobile navbar_links-external">
+                                {linksRight.map((link, index) => (
+                                    <li key={index}>
+                                        <a href={link.href}
+                                           className="text text-underline"
+                                           {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
+                                        >
+                                            {link.label}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </motion.nav>
     );
 }

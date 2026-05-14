@@ -75,3 +75,21 @@
     display: flex;
     flex-direction: column;
 }
+
+.contact_cv-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    font-weight: 500;
+    transition: background 0.15s ease;
+    width: fit-content;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+}

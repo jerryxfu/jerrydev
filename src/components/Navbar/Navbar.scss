@@ -136,3 +136,16 @@
         height: 24px;
     }
 }
+
+.navbar_menu-button-inner {
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover { background: rgba(0, 0, 0, 0.05); }
+}

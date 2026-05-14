@@ -1,5 +1,5 @@
 import {memo, ReactNode} from "react";
-import {Chip} from "@mui/joy";
+import Chip from "../../../../components/Chip/Chip.tsx";
 import "./ContactCard.scss";
 
 const ContactCard = memo(function ContactCard({title, username, image, url, chipText, color}: {

@@ -1,5 +1,4 @@
 import "./Conditioner.scss";
-import {Checkbox, FormControlLabel, FormGroup} from "@mui/material";
 import BpSelector, {type BloodPressure} from "./components/BpSelector.tsx";
 import CategoryDropdown from "./components/CategoryDropdown.tsx";
 import {useEffect, useState} from "react";
@@ -12,18 +11,6 @@ export type FormData = Record<string, boolean>;
 export type ContextData = Record<string, boolean>;
 
 export type bgBlink = "red" | "yellow" | "green" | null;
-
-const checkboxStyles = {
-    padding: "2px",
-    "& .MuiSvgIcon-root": {
-        fontSize: "0.85rem"
-    },
-    margin: "0px",
-    "& + .MuiFormControlLabel-label": {
-        fontSize: "0.80rem",
-        marginLeft: "2px"
-    }
-};
 
 const symptomsByCategory = symptoms.reduce((acc, symptom) => {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_OR_assignment
@@ -124,37 +111,30 @@ export default function Conditioner() {
                         return (<CategoryDropdown
                             key={category}
                             header={`${category.charAt(0).toUpperCase()}${category.slice(1)} [${commonSymptoms.length}+${regularSymptoms.length}]`}
-                            persistent={<FormGroup
-                                sx={{display: "flex", flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", width: "100%"}}>
+                            persistent={<div className="checkbox-group">
                                 {commonSymptoms.map(({id, label}) => (
-                                    <FormControlLabel
-                                        key={id} label={label}
-                                        control={
-                                            <Checkbox
-                                                size="small"
-                                                sx={checkboxStyles}
-                                                checked={formData[id]}
-                                                onChange={(e) => setSymptom(id, e.target.checked)}
-                                            />
-                                        }
-                                    />
+                                    <label key={id} className="checkbox-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData[id]}
+                                            onChange={(e) => setSymptom(id, e.target.checked)}
+                                        />
+                                        <span>{label}</span>
+                                    </label>
                                 ))}
-                            </FormGroup>}>
-                            <FormGroup sx={{display: "flex", flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", width: "100%"}}>
+                            </div>}>
+                            <div className="checkbox-group">
                                 {regularSymptoms.map(({id, label}) => (
-                                    <FormControlLabel
-                                        key={id} label={label}
-                                        control={
-                                            <Checkbox
-                                                size="small"
-                                                sx={checkboxStyles}
-                                                checked={formData[id]}
-                                                onChange={(e) => setSymptom(id, e.target.checked)}
-                                            />
-                                        }
-                                    />
+                                    <label key={id} className="checkbox-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData[id]}
+                                            onChange={(e) => setSymptom(id, e.target.checked)}
+                                        />
+                                        <span>{label}</span>
+                                    </label>
                                 ))}
-                            </FormGroup>
+                            </div>
                         </CategoryDropdown>);
                     })}
                 </div>
@@ -177,24 +157,24 @@ export default function Conditioner() {
                 </div>
                 <div className="container context" style={{alignItems: "flex-end"}}>
                     <h2>Context</h2>
-                    <FormGroup
-                        sx={{display: "flex", flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", width: "100%"}}
-                        className="context-checkbox-container">
-                        {contexts.map((label) => (
-                            <FormControlLabel
-                                key={label.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}
-                                label={label}
-                                control={
-                                    <Checkbox
-                                        size="small"
-                                        sx={checkboxStyles}
+                    <div className="container context" style={{alignItems: "flex-end"}}>
+                        <h2>Context</h2>
+                        <div className="checkbox-group">
+                            {contexts.map((label) => (
+                                <label
+                                    key={label.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}
+                                    className="checkbox-item"
+                                >
+                                    <input
+                                        type="checkbox"
                                         checked={contextData[label]}
                                         onChange={(e) => setContext(label, e.target.checked)}
                                     />
-                                }
-                            />
-                        ))}
-                    </FormGroup>
+                                    <span>{label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

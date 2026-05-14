@@ -1,5 +1,5 @@
 import {memo} from "react";
-import {Chip} from "@mui/joy";
+import Chip from "../../components/Chip/Chip.tsx";
 import "./Card.scss";
 
 export interface CardProps {

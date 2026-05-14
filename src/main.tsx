@@ -82,11 +82,9 @@ const root = createRoot(rootElement);
 root.render(
     <StrictMode>
         <ErrorBoundary>
-            {/*<AuthProvider>*/}
             <ThemeProvider>
                 <RouterProvider router={router} />
             </ThemeProvider>
-            {/*</AuthProvider>*/}
         </ErrorBoundary>
     </StrictMode>
 );

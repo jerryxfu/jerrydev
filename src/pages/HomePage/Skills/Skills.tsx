@@ -49,6 +49,7 @@ const tech_stack = [
         color: "#ffeda610",
         description: "PyTorch, OpenCV, scripting, MAVSDK",
         iconUrl: _python,
+        chipText: "2/5",
         url: "https://www.python.org/"
     },
     {

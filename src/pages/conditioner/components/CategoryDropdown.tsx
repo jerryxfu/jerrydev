@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
-import {ExpandMore} from "@mui/icons-material";
+import {ChevronDown} from "lucide-react";
 import "./CategoryDropdown.scss";
 
 const CategoryDropdown = ({header, persistent, children, className = "", defaultOpen = false}: {
@@ -21,7 +21,7 @@ const CategoryDropdown = ({header, persistent, children, className = "", default
                 aria-controls="accordion-content"
             >
                 <span className="accordion-header-content">{header}</span>
-                <ExpandMore className={`accordion-icon ${open ? "open" : ""}`} />
+                <ChevronDown className={`accordion-icon ${open ? "open" : ""}`} />
             </button>
 
             <div className="accordion-persistent">

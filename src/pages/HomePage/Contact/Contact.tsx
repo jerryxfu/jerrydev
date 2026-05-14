@@ -1,7 +1,6 @@
 import {useEffect, useMemo} from "react";
 import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
-import {AlternateEmailRounded, OpenInNewRounded} from "@mui/icons-material";
-import {Button} from "@mui/joy";
+import {AtSign, ExternalLink} from "lucide-react";
 import "./Contact.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import SubTitle from "../../../components/SubTitle/SubTitle.tsx";
@@ -102,16 +101,21 @@ export default function Contact() {
                     <SubTitle text={"Get in touch"} />
                     <ul style={{paddingLeft: 0}}>
                         <li className="contact_list-element">
-                            <AlternateEmailRounded sx={{marginRight: "0.20rem"}} />
+                            <AtSign />
                             <a className="text" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
                         </li>
                     </ul>
                     <div className="contact_cv">
                         <SubTitle text={"Curriculum Vitae"} />
-                        <Button component="a" variant="outlined" color="neutral" href="https://cv.jerryxf.net" target="_blank"
-                                rel="noopener noreferrer" startDecorator={<OpenInNewRounded />}>
-                            View CV
-                        </Button>
+                        <a
+                            className="contact_cv-button"
+                            href="https://cv.jerryxf.net"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <ExternalLink size={16} />
+                            <span>View CV</span>
+                        </a>
                     </div>
                 </div>
             </div>

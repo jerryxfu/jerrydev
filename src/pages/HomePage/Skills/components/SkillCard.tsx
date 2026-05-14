@@ -1,5 +1,5 @@
 import {memo} from "react";
-import {Chip} from "@mui/joy";
+import Chip from "../../../../components/Chip/Chip.tsx";
 import "./SkillCard.scss";
 
 const SkillCard = memo(function SkillCard({image, title, description, chipText, url, color}: {
