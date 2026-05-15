@@ -31,7 +31,7 @@ const tech_stack = [
     {
         name: "Kotlin",
         color: "#e6a6ff10",
-        description: "Kotlin Multiplatform, Minecraft Forge modding",
+        description: "Kotlin Multiplatform, Minecraft modding",
         iconUrl: _kotlin,
         chipText: "3/5",
         url: "https://kotlinlang.org/"
@@ -39,7 +39,7 @@ const tech_stack = [
     {
         name: "React",
         color: "#a6edff10",
-        description: "JS/TS, Vite, mui, framer-motion",
+        description: "TS/JS, Vite, OAuth",
         iconUrl: _react,
         chipText: "4/5",
         url: "https://react.dev/"
@@ -55,7 +55,7 @@ const tech_stack = [
     {
         name: "SwiftUI",
         color: "#ffc1a610",
-        description: "With Kotlin Multiplatform",
+        description: "iOS, iPadOS, watchOS",
         iconUrl: _swift,
         chipText: "1/5",
         url: "https://developer.apple.com/swiftui/"

@@ -164,7 +164,7 @@
     background-color: rgba(0, 0, 0, 0.02);
     font-size: 0.75rem;
     font-weight: 500;
-    color: #777777;
+    color: var(--gray);
     box-sizing: border-box;
 
     @media screen and (max-width: 768px) {

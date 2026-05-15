@@ -113,7 +113,7 @@ export default function Contact() {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <ExternalLink size={16} />
+                            <ExternalLink size={22} />
                             <span>View CV</span>
                         </a>
                     </div>

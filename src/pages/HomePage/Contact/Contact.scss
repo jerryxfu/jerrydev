@@ -34,9 +34,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        //gap: 1rem;
-        //margin: 0;
-        //padding: 0;
     }
 }
 
@@ -61,11 +58,9 @@
     color: var(--secondary-da-c) !important;
 
     a {
-        //text-decoration: none;
         color: unset;
     }
 }
-
 
 .contact_obfuscated {
     color: var(--shadow-c);
@@ -74,22 +69,24 @@
 .contact_cv {
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .contact_cv-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid currentColor;
-    border-radius: 8px;
+    gap: 0.2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
     text-decoration: none;
     color: inherit;
-    font-weight: 500;
-    transition: background 0.15s ease;
-    width: fit-content;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
 
     &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        opacity: 1;
     }
 }

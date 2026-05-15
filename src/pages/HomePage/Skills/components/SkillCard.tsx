@@ -16,7 +16,7 @@ const SkillCard = memo(function SkillCard({image, title, description, chipText, 
                 <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" fetchPriority="low" />
             </a>
             <div className="skillcard_content">
-                <h3>{title}</h3>
+                <h3 className="skillcard_title">{title}</h3>
                 <p className="skillcard_description">{description}</p>
 
             </div>
