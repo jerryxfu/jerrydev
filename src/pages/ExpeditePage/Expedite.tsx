@@ -420,7 +420,7 @@ export default function Expedite() {
                                         <>
                                             <Upload size={28} strokeWidth={1} />
                                             <p>Click to choose a file or drag & drop</p>
-                                            <p className="expedite_file-limit">Max 50 MB</p>
+                                            <p className="expedite_file-limit">Max 100 MB</p>
                                         </>
                                     )}
                                 </div>
