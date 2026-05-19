@@ -104,6 +104,11 @@ export default function Expedite() {
     const [isDragging, setIsDragging] = useState(false);
     const [settings, setSettings] = useState<DropSettings>({...DEFAULT_SETTINGS});
     const [maxViewsInput, setMaxViewsInput] = useState("");
+    const [stats, setStats] = useState<{
+        activeDrops: number;
+        totalSize: number;
+        totalViews: number;
+    } | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const viewRef = useRef<HTMLDivElement>(null);
@@ -120,6 +125,7 @@ export default function Expedite() {
             // Trigger retrieve after mount
             setTimeout(() => retrieveDrop(code.toUpperCase()), 100);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Animate view transitions
@@ -137,6 +143,16 @@ export default function Expedite() {
             });
         }
     }, [isDragging]);
+
+    useEffect(() => {
+        fetch(`${apiBaseUrl}/expedite/stats`)
+            .then(r => r.json())
+            .then(json => {
+                if (json._success) setStats(json.data);
+            })
+            .catch(() => {
+            }); // silent
+    }, [view]);
 
     const transitionTo = async (nextView: ViewMode) => {
         await animateOut(viewRef.current);
@@ -181,7 +197,11 @@ export default function Expedite() {
                     })
                 });
             } else {
-                if (!selectedFile) throw new Error("No file selected");
+                if (!selectedFile) {
+                    setError("No file selected");
+                    setLoading(false);
+                    return;
+                }
                 const formData = new FormData();
                 formData.append("file", selectedFile);
                 formData.append("deletable", String(settings.deletable));
@@ -191,7 +211,11 @@ export default function Expedite() {
             }
 
             const json = await res.json();
-            if (!json._success) throw new Error(json.error?.message || "Upload failed");
+            if (!json._success) {
+                setError(json.error?.message || "Upload failed");
+                setLoading(false);
+                return;
+            }
 
             setCreatedCode(json.data.code);
             await transitionTo("created");
@@ -211,7 +235,11 @@ export default function Expedite() {
         try {
             const res = await fetch(`${apiBaseUrl}/expedite/drop/${targetCode}`);
             const json = await res.json();
-            if (!json._success) throw new Error(json.error?.message || "Not found");
+            if (!json._success) {
+                setError(json.error?.message || "Not found");
+                setLoading(false);
+                return;
+            }
             setResult(json.data as DropMeta);
             await transitionTo("result");
         } catch (err: unknown) {
@@ -417,11 +445,15 @@ export default function Expedite() {
                                     <div className="expedite_setting-input-group">
                                         <input
                                             className="expedite_setting-input"
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             min={1}
                                             placeholder="unlimited"
                                             value={maxViewsInput}
-                                            onChange={(e) => handleMaxViewsChange(e.target.value)}
+                                            onChange={(e) => {
+                                                const cleaned = e.target.value.replace(/\D/g, "");
+                                                handleMaxViewsChange(cleaned);
+                                            }}
                                         />
                                         <button
                                             className={`expedite_setting-pill ${settings.maxViews === null ? "active" : ""}`}
@@ -630,6 +662,16 @@ export default function Expedite() {
                     )}
                 </div>
             </div>
+
+            {stats && (
+                <div className="expedite_stats">
+                    <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
+                    <span>·</span>
+                    <span>{formatBytes(stats.totalSize)}</span>
+                    <span>·</span>
+                    <span>{stats.totalViews} view{stats.totalViews !== 1 ? "s" : ""}</span>
+                </div>
+            )}
 
             {/* Footer */}
             <footer className="expedite_footer">

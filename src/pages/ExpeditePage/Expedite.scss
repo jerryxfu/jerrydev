@@ -710,6 +710,18 @@
     }
 }
 
+.expedite_stats {
+    position: fixed;
+    bottom: 2.25rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
 // --- Footer ---
 .expedite_footer {
     position: fixed;
