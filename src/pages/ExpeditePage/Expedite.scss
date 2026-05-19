@@ -5,7 +5,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 4.5rem 1.5rem 3rem;
+    padding: 4.5rem 1.5rem 0;
     position: relative;
     overflow-y: auto;
 
@@ -710,26 +710,23 @@
     }
 }
 
+.expedite_spacer {
+    flex: 1;
+}
+
 .expedite_stats {
-    position: fixed;
-    bottom: 2.25rem;
-    left: 0;
-    right: 0;
+    margin-top: auto;
+    padding-top: 2rem;
     display: flex;
     justify-content: center;
     gap: 0.5rem;
     opacity: 0.4;
-    pointer-events: none;
+    font-size: 0.68rem;
 }
 
-// --- Footer ---
 .expedite_footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     text-align: center;
-    padding: 0.75rem;
+    padding: 0.5rem 0 0.75rem;
 
     p {
         margin: 0;

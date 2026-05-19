@@ -666,6 +666,7 @@ export default function Expedite() {
                 </div>
             </div>
 
+            <div className="expedite_spacer" />
             {stats && (
                 <div className="expedite_stats">
                     <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
@@ -676,7 +677,6 @@ export default function Expedite() {
                 </div>
             )}
 
-            {/* Footer */}
             <footer className="expedite_footer">
                 <p>
                     <a href="/expedite">📦 Expedite</a>, made with ❤️ by Jerry
