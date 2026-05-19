@@ -52,8 +52,14 @@ body.homeisland-body {
     --blue: #4d8aff;
     --purple: #6b5fff;
     --gold: #ffd700;
-    --gray: rgba(100, 100, 100, 1);
+    --gray: rgba(110, 110, 110, 1);
+    --gray-da: rgba(80, 80, 80, 1);
+    --gray-lt: rgba(150, 150, 150, 1);
     --shadow: rgba(128, 128, 128, 0.1);
+    --success: rgba(76, 192, 134, 1);
+    --warning: rgb(255, 234, 97, 1);
+    --danger: rgb(255, 105, 97, 1);
+    --info: rgb(76, 157, 250, 1);
 }
 
 // Default theme
@@ -83,11 +89,6 @@ body.homeisland-body {
     --shadow-c: rgba(150, 150, 150, 0.80);
     --shadow-lt-c: rgba(144, 144, 144, 0.60);
     --hero-glow-c: rgba(238, 248, 252, 0.40);
-
-    --success-c: rgba(76, 192, 134, 1);
-    --warning-c: rgb(255, 234, 97, 1);
-    --danger-c: rgb(255, 105, 97, 1);
-    --info-c: rgb(76, 157, 250, 1);
 
     --hero-bg-c: rgba(212, 237, 247, 1);
 }
@@ -186,9 +187,24 @@ p {
 .small-text {
     font-size: 1rem;
     line-height: 1.25;
-    font-weight: 350;
 
     color: var(--text-lt-c);
+    transition: color 450ms;
+}
+
+.caption-text {
+    font-size: 0.98rem;
+    line-height: 1.25;
+
+    color: color-mix(in srgb, var(--text-lt-c) 55%, transparent);
+    transition: color 450ms;
+}
+
+.smaller-caption-text {
+    font-size: 0.95rem;
+    line-height: 1.25;
+
+    color: color-mix(in srgb, var(--text-lt-c) 45%, transparent);
     transition: color 450ms;
 }
 

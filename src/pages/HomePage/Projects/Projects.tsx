@@ -31,6 +31,15 @@ const projects: CardProps[] = [
         footer: "Click image card for links"
     },
     {
+        title: "Expedite 📦",
+        subTitle: "Share files and text snippets instantly!",
+        image: _endPortal,
+        chipText: "🟢 Stable",
+        dateDisplay: "awaiting",
+        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
+        url: "/expedite"
+    },
+    {
         title: "TechNexus",
         subTitle: "A companion app for FRC",
         image: _technexus,
@@ -39,15 +48,6 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/matchtimer",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
         footer: "iOS 16.7+ & Android 13+"
-    },
-    {
-        title: "Expedite 📦",
-        subTitle: "Share files, text snippets, and links!",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: "awaiting",
-        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
-        url: "/expedite"
     },
     {
         title: "MEDIVE",

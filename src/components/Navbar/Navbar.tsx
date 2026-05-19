@@ -50,7 +50,7 @@ export default function Navbar() {
         // Slide navbar in from top
         gsap.from(nav, {
             yPercent: -100,
-            duration: 1.55,
+            duration: 1.50,
             delay: openingDelay,
             ease: "elastic.out(1,0.95)",
         });
