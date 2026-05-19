@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
+import Expedite from "./pages/ExpeditePage/Expedite.tsx";
 
 const CountdownPage = lazy(() => import("./pages/CountdownPage/CountdownPage.tsx"));
 const ElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
@@ -40,6 +41,18 @@ const router = createBrowserRouter([
         element: <HomePage />
     },
     {
+        path: "/expedite",
+        element: renderLazy(<Expedite />)
+    },
+    {
+        path: "/scheduler",
+        element: renderLazy(<Scheduler />)
+    },
+    {
+        path: "/supericu",
+        element: renderLazy(<SuperIcu />)
+    },
+    {
         path: "/countdown",
         element: renderLazy(<CountdownPage />)
     },
@@ -48,16 +61,8 @@ const router = createBrowserRouter([
         element: renderLazy(<ElementsPage />)
     },
     {
-        path: "/supericu",
-        element: renderLazy(<SuperIcu />)
-    },
-    {
         path: "/conditioner",
         element: renderLazy(<Conditioner />)
-    },
-    {
-        path: "/scheduler",
-        element: renderLazy(<Scheduler />)
     },
     {
         path: "/cheatsheet/waveform",
