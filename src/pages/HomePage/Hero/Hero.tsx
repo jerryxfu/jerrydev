@@ -177,12 +177,16 @@ export default function Hero() {
                 </div>
 
                 <div className="text hero_about-container">
-                    <p className="hero_line" ref={line1Ref}>
-                        Aspiring physician-engineer, exploring where medicine and technology meet
-                    </p>
-                    <p className="hero_line" ref={line2Ref}>
-                        Medicine, AI, Robotics, Science, Computer Vision, Deep Learning, Coding
-                    </p>
+                    <div style={{overflow: "hidden"}}>
+                        <p className="hero_line" ref={line1Ref}>
+                            Aspiring physician-engineer, exploring where medicine and technology meet
+                        </p>
+                    </div>
+                    <div style={{overflow: "hidden"}}>
+                        <p className="hero_line" ref={line2Ref}>
+                            Medicine, AI, Robotics, Science, Computer Vision, Deep Learning, Coding
+                        </p>
+                    </div>
 
                     <p className="hero_typing-text" ref={typingTextRef}>
                         {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>

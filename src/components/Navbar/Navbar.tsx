@@ -12,8 +12,9 @@ const linksLeft: { href: string, label: string }[] = [
     {href: "#experience---extras", label: "Experience"},
 ];
 
-const linksRight: { href: string, label: string, target?: string }[] = [
-    {href: "https://cv.jerryxf.net/", label: "Curriculum Vitae"},
+const linksRight: { label: string, href: string, target?: string }[] = [
+    {label: "Expedite", href: "/expedite"},
+    {label: "Curriculum Vitae", href: "https://cv.jerryxf.net/"},
 ];
 
 const formatThemeName = (theme: string) =>
@@ -101,9 +102,8 @@ export default function Navbar() {
                             initial={{opacity: 0, y: "-125%"}}
                             animate={{opacity: 1, y: 0}}
                             transition={{
-                                delay: openingDelay + 0.15 + (index * 0.06),
-                                duration: 0.9,
-                                ease: "easeOut"
+                                delay: openingDelay + 0.15 + (index * 0.07),
+                                duration: 0.75,
                             }}>
                             <a href={link.href} className="text text-underline">
                                 {link.label}
@@ -120,9 +120,8 @@ export default function Navbar() {
                             initial={{opacity: 0, y: "-125%"}}
                             animate={{opacity: 1, y: 0}}
                             transition={{
-                                delay: openingDelay + 0.15 + ((index + linksLeft.length) * 0.06),
-                                duration: 0.9,
-                                ease: "easeOut"
+                                delay: openingDelay + 0.15 + ((index + linksLeft.length) * 0.07),
+                                duration: 0.75,
                             }}>
                             <a href={link.href}
                                className="text text-underline"
