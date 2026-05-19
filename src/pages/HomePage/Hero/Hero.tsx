@@ -160,7 +160,7 @@ export default function Hero() {
     });
 
     return (
-        <div style={{overflow: "hidden"}}>
+        <>
             <div className={themeGradientClass} />
             {/*<div className="gradient-mesh-default" />*/}
             <div className="hero">
@@ -171,24 +171,24 @@ export default function Hero() {
 
                     <div className="hero_glowing-separator" ref={dividerRef} />
 
-                    <div style={{overflow: "hidden"}}>
+                    <div>
                         <h1 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h1>
                     </div>
                 </div>
 
                 <div className="text hero_about-container">
-                    <div style={{overflow: "hidden"}}><p className="hero_line" ref={line1Ref}>
+                    <p className="hero_line" ref={line1Ref}>
                         Aspiring physician-engineer, exploring where medicine and technology meet
-                    </p></div>
-                    <div style={{overflow: "hidden"}}><p className="hero_line" ref={line2Ref}>
+                    </p>
+                    <p className="hero_line" ref={line2Ref}>
                         Medicine, AI, Robotics, Science, Computer Vision, Deep Learning, Coding
-                    </p></div>
+                    </p>
 
                     <p className="hero_typing-text" ref={typingTextRef}>
                         {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
                     </p>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

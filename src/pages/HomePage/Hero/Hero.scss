@@ -2,7 +2,6 @@
     display: flex;
     position: relative;
     flex-direction: column;
-    width: 100%;
     align-items: flex-start;
     justify-content: center;
     height: 100vh;
@@ -102,12 +101,6 @@
         line-height: 4.20rem;
         font-size: 5rem;
     }
-}
-
-.hero_shadow {
-    width: 100vw;
-    box-shadow: 0 0 48px 32px var(--primary-lt-c);
-    transition: box-shadow 0.75s;
 }
 
 .hero_glowing-separator {

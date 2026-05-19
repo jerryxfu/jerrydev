@@ -21,16 +21,6 @@ import {formatDate} from "../../../utils.ts";
 
 const projects: CardProps[] = [
     {
-        title: "MEDIVE",
-        subTitle: "Research project",
-        image: _medive,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2025-08-14")),
-        url: "https://github.com/jerryxfu/medive",
-        description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
-        footer: "IB EE"
-    },
-    {
         title: "Home Island",
         subTitle: "Custom browser start page",
         image: _homeisland,
@@ -49,6 +39,25 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/matchtimer",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
         footer: "iOS 16.7+ & Android 13+"
+    },
+    {
+        title: "Expedite",
+        subTitle: "Share files, text snippets, and links!",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: "awaiting",
+        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
+        url: "/expedite"
+    },
+    {
+        title: "MEDIVE",
+        subTitle: "Research project",
+        image: _medive,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2025-08-14")),
+        url: "https://github.com/jerryxfu/medive",
+        description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
+        footer: "IB EE"
     },
     {
         title: "Pulse",
@@ -187,15 +196,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2024-03-23")), // MotionLens creation (-> auto-scout)
         description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
         url: "https://github.com/jerryxfu/auto-scout"
-    },
-    {
-        title: "Expedite",
-        subTitle: "Share files, text snippets, and links!",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "A website for sharing files and text with other people or across your own devices",
-        url: "/expedite"
     },
     {
         title: "LLM vs LLM",
