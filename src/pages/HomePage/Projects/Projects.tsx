@@ -29,7 +29,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-02-05")),
         url: "https://github.com/jerryxfu/home-island",
         description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
-        footer: "Click image card for links"
+        footer: "Click image for links"
     },
     {
         title: "Expedite",
@@ -170,7 +170,7 @@ const projects: CardProps[] = [
         image: _conditioner,
         chipText: "🗑️ Obsolete",
         dateDisplay: formatDate(new Date("2025-07-24")),
-        url: "/medive",
+        url: "/#:~:text=MEDIVE",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". 🔼 Superseded by MEDIVE.",
         footer: "Superseded by MEDIVE"
     },

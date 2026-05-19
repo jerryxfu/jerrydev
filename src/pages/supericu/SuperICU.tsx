@@ -11,6 +11,7 @@ import {colorForVital, formatWaveVal, parseCsv, type ParsedVitalsCsv, parseVital
 import {hasPulseColumn, toAdditionalVitals, toDisplayVitals, toRows} from "./selectors";
 import type {AdditionalVital, AlarmLevelOrNull, CsvWaveData, DisplayVitals, FlashMode, Palette, RowDef} from "./types";
 import {CFG, DEFAULT_PALETTE} from "./types";
+import useTitle from "../../hooks/useTitle.ts";
 
 export type {Palette, FlashMode};
 
@@ -43,6 +44,8 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     paletteOverrides?: Partial<Palette>;
     flashMode?: FlashMode;
 } = {}) {
+    useTitle("SuperICU | jerryxf");
+
     const palette = useMemo(() => ({...DEFAULT_PALETTE, ...(paletteOverrides || {})}), [paletteOverrides]);
     const flashClass = useCallback((level: AlarmLevelOrNull) => {
         if (!level) return "";

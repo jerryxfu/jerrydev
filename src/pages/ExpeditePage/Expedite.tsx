@@ -3,6 +3,7 @@ import {ArrowLeft, Check, Clipboard, Download, ExternalLink, File, FileText, Lin
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Expedite.scss";
+import useTitle from "../../hooks/useTitle.ts";
 
 type DropType = "text" | "file";
 type ViewMode = "idle" | "uploading" | "created" | "retrieving" | "result";
@@ -114,6 +115,8 @@ export default function Expedite() {
     const viewRef = useRef<HTMLDivElement>(null);
     const dragOverlayRef = useRef<HTMLDivElement>(null);
     // endregion
+
+    useTitle("Expedite 📦 | jerryxf"); // update page title
 
     // Auto-retrieve from URL param
     useEffect(() => {

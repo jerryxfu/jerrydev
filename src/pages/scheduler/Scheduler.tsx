@@ -4,6 +4,7 @@ import {Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
 import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";
+import useTitle from "../../hooks/useTitle.ts";
 
 const HIDE_WEEKENDS = true;
 
@@ -55,6 +56,8 @@ function useHomeIslandParams() {
 }
 
 const Scheduler: React.FC = () => {
+    useTitle("Scheduler | jerryxf");
+
     const {isHomeIsland, homeIslandId, isValid: isHomeIslandValid} = useHomeIslandParams();
 
     // Initial schedule selection
