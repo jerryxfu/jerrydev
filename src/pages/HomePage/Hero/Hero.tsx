@@ -114,8 +114,8 @@ export default function Hero() {
         // Slide up "Hello"
         tl.from([titleRef.current], {
             yPercent: 100,
-            ease: "nativeEase",
-            duration: 0.90
+            ease: "elastic.out(1,1.15)",
+            duration: 1.8
         }, 0.20 + opening_delay);
 
         // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement

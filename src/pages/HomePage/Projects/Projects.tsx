@@ -41,7 +41,7 @@ const projects: CardProps[] = [
         footer: "iOS 16.7+ & Android 13+"
     },
     {
-        title: "Expedite",
+        title: "Expedite 📦",
         subTitle: "Share files, text snippets, and links!",
         image: _endPortal,
         chipText: "🧩 MVP",
@@ -166,10 +166,11 @@ const projects: CardProps[] = [
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
-        chipText: "🔁 Superseded",
+        chipText: "🗑️ Obsolete",
         dateDisplay: formatDate(new Date("2025-07-24")),
-        url: "/conditioner",
-        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE.",
+        url: "/medive",
+        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". 🔼 Superseded by MEDIVE.",
+        footer: "Superseded by MEDIVE"
     },
     {
         title: "JerryBot",

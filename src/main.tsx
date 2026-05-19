@@ -8,15 +8,12 @@ import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
-import Expedite from "./pages/ExpeditePage/Expedite.tsx";
 
-const CountdownPage = lazy(() => import("./pages/CountdownPage/CountdownPage.tsx"));
-const ElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
-const Waveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
-const Mailman = lazy(() => import("./pages/cheatsheet/Mailman.tsx"));
-const SuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
-const Conditioner = lazy(() => import("./pages/conditioner/Conditioner.tsx"));
-const Scheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
+const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
+const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
+const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
+const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
+const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 
@@ -42,35 +39,23 @@ const router = createBrowserRouter([
     },
     {
         path: "/expedite",
-        element: renderLazy(<Expedite />)
+        element: renderLazy(<LazyExpedite />)
     },
     {
         path: "/scheduler",
-        element: renderLazy(<Scheduler />)
+        element: renderLazy(<LazyScheduler />)
     },
     {
         path: "/supericu",
-        element: renderLazy(<SuperIcu />)
-    },
-    {
-        path: "/countdown",
-        element: renderLazy(<CountdownPage />)
+        element: renderLazy(<LazySuperIcu />)
     },
     {
         path: "/elements",
-        element: renderLazy(<ElementsPage />)
-    },
-    {
-        path: "/conditioner",
-        element: renderLazy(<Conditioner />)
+        element: renderLazy(<LazyElementsPage />)
     },
     {
         path: "/cheatsheet/waveform",
-        element: renderLazy(<Waveform />)
-    },
-    {
-        path: "/cheatsheet/mailman",
-        element: renderLazy(<Mailman />)
+        element: renderLazy(<LazyWaveform />)
     },
     {
         path: "*",

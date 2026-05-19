@@ -1,5 +1,4 @@
 import type {commonTreatment, SymptomIds} from "./symptoms.ts";
-import type {Contexts} from "./context.ts";
 
 export type Condition = {
     id: string;
@@ -12,7 +11,6 @@ export type Condition = {
     /** If any of these are present, reduce likelihood */
     excludingSymptoms?: SymptomIds[];
     /** Contexts that make this condition more likely */
-    relevantContexts?: Contexts[];
     riskFactors?: string[];
     immediateActions?: (commonTreatment | string)[];
     recommendedActions: (commonTreatment | string)[];

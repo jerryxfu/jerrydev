@@ -4,6 +4,7 @@
     z-index: 500;
     top: 0;
     position: fixed;
+    scale: 1;
 
     display: flex;
     flex-direction: column;
@@ -21,6 +22,7 @@
     align-items: center;
     width: 100%;
     flex-shrink: 0;
+    height: 68px;
 }
 
 .navbar_icon {
@@ -98,7 +100,7 @@
     justify-content: flex-end;
 }
 
-// Panel lives inside the navbar (height animated by framer-motion)
+// Panel lives inside the navbar
 .navbar_panel {
     display: none;
 

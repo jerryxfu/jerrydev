@@ -14,7 +14,6 @@ export interface CardProps {
         | "🟢 Stable" // The project is stable and maintained
         | "✅ Delivered" // The project has been delivered and is stable
         | "💤 Stalled" // The project works but is not actively maintained
-        | "🔁 Superseded" // The project has been replaced
         | "⚠️ Deprecated" // The project is deprecated and should not be used
         | "🗑️ Obsolete" // The project is no longer relevant or useful
         | "🔴 Broken" // The project does not work

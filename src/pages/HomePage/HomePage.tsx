@@ -1,4 +1,3 @@
-import {lazy, Suspense} from "react";
 import "./HomePage.scss";
 import Navbar from "../../components/Navbar/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
@@ -6,9 +5,9 @@ import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";
 import Footer from "../../components/Footer/Footer.tsx";
 
-const Contact = lazy(() => import("./Contact/Contact.tsx"));
-const Projects = lazy(() => import("./Projects/Projects.tsx"));
-const Experience = lazy(() => import("./Experience/Experience.tsx"));
+import Contact from "./Contact/Contact.tsx";
+import Projects from "./Projects/Projects.tsx";
+import Experience from "./Experience/Experience.tsx";
 
 export default function HomePage() {
     return (
@@ -17,15 +16,9 @@ export default function HomePage() {
             <Hero />
             <About />
             <Skills />
-            <Suspense fallback={<div style={{minHeight: 560}} />}>
-                <Contact />
-            </Suspense>
-            <Suspense fallback={<div style={{minHeight: 920}} />}>
-                <Projects />
-            </Suspense>
-            <Suspense fallback={<div style={{minHeight: 680}} />}>
-                <Experience />
-            </Suspense>
+            <Contact />
+            <Projects />
+            <Experience />
             <Footer />
         </div>
     );

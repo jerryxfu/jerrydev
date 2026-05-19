@@ -1,5 +1,5 @@
 import React from "react";
-import SelectableButton from "./SelectableButton";
+import SelectableButton from "../../../components/SelectableButton.tsx";
 import "./BpSelector.scss";
 
 export type SystolicRange = typeof systolicLabelsRange[number];
@@ -23,18 +23,18 @@ interface BpSelectorProps {
 
 // based on systolic numbers
 const bpColors = [
-    "#5a2781", // <60 — critically low
-    "#6b3f93", // 60–65 — very low
-    "#8563af", // 65–70 — low
-    "#9a85c4", // 70–75 — borderline low
-    "#7b9edd", // 75–80 — low‑normal
-    "#59aadf", // 80–90 — normal-lower
-    "#4ab7b2", // 90–100 — normal
-    "#54c48a", // 100–110 — normal-upper
-    "#8bd88f", // 110–120 — ideal
-    "#c2e49a", // 120–130 — elevated
-    "#fce38a", // 130–140 — stage 1 HTN
-    "#f9b672", // 140–160 — stage 2 HTN
+    "#5a2781", // <60 - critically low
+    "#6b3f93", // 60–65 - very low
+    "#8563af", // 65–70 - low
+    "#9a85c4", // 70–75 - borderline low
+    "#7b9edd", // 75–80 - low‑normal
+    "#59aadf", // 80–90 - normal-lower
+    "#4ab7b2", // 90–100 - normal
+    "#54c48a", // 100–110 - normal-upper
+    "#8bd88f", // 110–120 - ideal
+    "#c2e49a", // 120–130 - elevated
+    "#fce38a", // 130–140 - stage 1 HTN
+    "#f9b672", // 140–160 - stage 2 HTN
     "#e17f6f"  // >160 crisis
 ];
 
