@@ -3,6 +3,7 @@ import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Card, {CardProps} from "../../../components/Card/Card.tsx";
 import _llmvsllm from "../../../assets/projects/llmvsllm.jpeg";
 import _baputils from "../../../assets/projects/baputils.jpeg";
+import _expedite from "../../../assets/projects/expedite.jpeg";
 import _jerrybot from "../../../assets/projects/jerrybot.png";
 import _jerryxf from "../../../assets/projects/jerryxf.jpeg";
 import _conditioner from "../../../assets/projects/conditioner.jpeg";
@@ -31,13 +32,14 @@ const projects: CardProps[] = [
         footer: "Click image card for links"
     },
     {
-        title: "Expedite 📦",
+        title: "Expedite",
         subTitle: "Share files and text snippets instantly!",
-        image: _endPortal,
+        image: _expedite,
         chipText: "🟢 Stable",
-        dateDisplay: "awaiting",
+        dateDisplay: formatDate(new Date("2026-05-18")),
         description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
-        url: "/expedite"
+        url: "/expedite",
+        footer: "Same-day shipping!"
     },
     {
         title: "TechNexus",
