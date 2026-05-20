@@ -5,12 +5,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 4.5rem 1.5rem 0;
+    padding: 1.2rem 1.5rem 0;
     position: relative;
     overflow-y: auto;
 
     @media screen and (max-width: 768px) {
-        padding: 2.8rem 1.25rem 3rem;
+        padding: 0.8rem 1.25rem 3rem;
     }
 }
 
@@ -30,11 +30,7 @@
     font-size: 1.1rem;
 }
 
-// Home link absolute top-left
 .expedite_home-link {
-    position: fixed;
-    top: 1rem;
-    left: 1.25rem;
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
@@ -43,7 +39,7 @@
     color: inherit;
     opacity: 0.3;
     transition: opacity 0.15s;
-    z-index: 10;
+    align-self: flex-start;
 
     &:hover {
         opacity: 0.6;
@@ -729,8 +725,8 @@
 
     p {
         margin: 0;
-        font-size: 0.75rem;
-        opacity: 0.4;
+        font-size: 0.80rem;
+        opacity: 0.3;
 
         a {
             color: inherit;

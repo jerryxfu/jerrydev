@@ -323,13 +323,11 @@ export default function Expedite() {
                 <p>Drop file to upload</p>
             </div>
 
-            {/* Home link top left corner */}
-            <a href="/" className="expedite_home-link">
-                <ExternalLink size={13} />
-                <span>jerryxf.net</span>
-            </a>
-
             <div className="expedite_container">
+                <a href="/" className="expedite_home-link">
+                    <ExternalLink size={13} />
+                    <span>jerryxf.net</span>
+                </a>
                 <header className="expedite_header">
                     {view !== "idle" && (
                         <button className="expedite_back" onClick={reset}>

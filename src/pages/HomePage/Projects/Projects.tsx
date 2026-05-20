@@ -1,3 +1,4 @@
+import {useMemo} from "react";
 import "./Projects.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Card, {CardProps} from "../../../components/Card/Card.tsx";
@@ -15,10 +16,12 @@ import _doublestartyre from "../../../assets/projects/doublestartyre.jpeg";
 import _scorekeeper from "../../../assets/projects/scorekeeper.jpeg";
 import _autoscout from "../../../assets/projects/autoscout.jpeg";
 import _medive from "../../../assets/projects/medive.jpeg";
-import _unveil from "../../../assets/projects/unveil_dark.png";
+import _unveil_dark from "../../../assets/projects/unveil_dark.png";
+import _unveil_light from "../../../assets/projects/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
 import {formatDate} from "../../../utils.ts";
+import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 
 const projects: CardProps[] = [
     {
@@ -26,7 +29,7 @@ const projects: CardProps[] = [
         subTitle: "Custom browser start page",
         image: _homeisland,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-02-05")),
+        dateDisplay: formatDate(new Date("2026-02-05T00:00:00")),
         url: "https://github.com/jerryxfu/home-island",
         description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
         footer: "Click image for links"
@@ -36,7 +39,7 @@ const projects: CardProps[] = [
         subTitle: "Share files and text snippets instantly!",
         image: _expedite,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-05-18")),
+        dateDisplay: formatDate(new Date("2026-05-18T00:00:00")),
         description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
         url: "/expedite",
         footer: "Same-day shipping!"
@@ -46,7 +49,7 @@ const projects: CardProps[] = [
         subTitle: "A companion app for FRC",
         image: _technexus,
         chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2026-04-08")),
+        dateDisplay: formatDate(new Date("2026-04-08T00:00:00")),
         url: "https://github.com/jerryxfu/matchtimer",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
         footer: "iOS 16.7+ & Android 13+"
@@ -56,64 +59,45 @@ const projects: CardProps[] = [
         subTitle: "Research project",
         image: _medive,
         chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2025-08-14")),
+        dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
         url: "https://github.com/jerryxfu/medive",
         description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
         footer: "IB EE"
     },
     {
-        title: "Pulse",
-        subTitle: "Screen time micro-session limiter",
-        image: _endPortal,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2026-04-20")),
-        url: "",
-        description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
-        footer: "iOS 17+ & Android 13+"
-    },
-    {
         title: "BapUtils",
-        subTitle: "A Hypixel Skyblock Minecraft Forge mod",
+        subTitle: "A Hypixel Skyblock Minecraft mod",
         image: _baputils,
         chipText: "💤 Stalled",
-        dateDisplay: formatDate(new Date("2023-06-24")),
+        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
         url: "https://github.com/jerryxfu/BapUtils",
-        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities.",
+        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities. An update to 1.21+ is planned",
         footer: "/bap"
     },
     {
-        title: "Kahoot! flood bot",
+        title: "Kahoot! bot",
         subTitle: "",
         image: _kahootBot,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2024-07-1")),
+        dateDisplay: formatDate(new Date("2024-07-1T00:00:00")),
         url: "https://github.com/jerryxfu/kahoot-bot",
-        description: "A Kahoot bot that can join games and answer questions at your command. Built using Python and Playwright to automate the web interface.",
-    },
-    {
-        title: "TechDashboard",
-        subTitle: "Pit dashboard for FRC",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: "awaiting",
-        // url: "",
-        description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
+        description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
     },
     {
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
         chipText: "🎖️ Completed",
-        dateDisplay: formatDate(new Date("2025-08-19")),
+        dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
     },
     {
         title: "Unveil Technologies",
         subTitle: "Building what's next",
-        image: _unveil,
+        image: _unveil_dark,
         chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-10-01")),
+        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
         description: "A technology company built to ship — spanning client software, consumer apps, and defense-related systems. Unveil is the umbrella behind ORCA and everything else.",
         footer: "unvl.tech"
@@ -123,7 +107,7 @@ const projects: CardProps[] = [
         subTitle: "Uncover the unseen",
         image: _endPortal,
         chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-10-01")),
+        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "",
         description: "An intelligent orchestration platform for mission control, integrating drones and assets to transform real-time field data into actionable insight.",
     },
@@ -132,7 +116,7 @@ const projects: CardProps[] = [
         subTitle: "This website, right here!",
         image: _jerryxf,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2022-07-25")), // aspectofjerry.dev registration date
+        dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
         description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
@@ -140,7 +124,7 @@ const projects: CardProps[] = [
         subTitle: "",
         image: _doublestartyre,
         chipText: "✅ Delivered",
-        dateDisplay: formatDate(new Date("2024-07-11")),
+        dateDisplay: formatDate(new Date("2024-07-11T00:00:00")),
         url: "https://doublestartyre.ca",
         description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
         footer: "For Dodo Wheels"
@@ -150,7 +134,7 @@ const projects: CardProps[] = [
         subTitle: "Sleep cycle calculator and periods tracker",
         image: _endPortal,
         chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-12-28")),
+        dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
         description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
         footer: "iOS 17.7+ & Android 13+"
     },
@@ -159,7 +143,7 @@ const projects: CardProps[] = [
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
         chipText: "📦 Archived",
-        dateDisplay: formatDate(new Date("2025-05-09")),
+        dateDisplay: formatDate(new Date("2025-05-09T00:00:00")),
         url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
         description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
         footer: "RSEQ Montreal & CRA"
@@ -169,10 +153,9 @@ const projects: CardProps[] = [
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
         chipText: "🗑️ Obsolete",
-        dateDisplay: formatDate(new Date("2025-07-24")),
+        dateDisplay: formatDate(new Date("2025-07-24T00:00:00")),
         url: "/#:~:text=MEDIVE",
-        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". 🔼 Superseded by MEDIVE.",
-        footer: "Superseded by MEDIVE"
+        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE."
     },
     {
         title: "JerryBot",
@@ -180,7 +163,7 @@ const projects: CardProps[] = [
         image: _jerrybot,
         chipText: "📦 Archived",
         url: "https://github.com/jerryxfu/JerryBot",
-        dateDisplay: formatDate(new Date("2021-09-01")),
+        dateDisplay: formatDate(new Date("2021-09-01T00:00:00")),
         description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
@@ -188,7 +171,7 @@ const projects: CardProps[] = [
         subTitle: "A small indoor weather station",
         image: _weatherStation,
         chipText: "🎖️ Completed",
-        dateDisplay: formatDate(new Date("2025-02-08")),
+        dateDisplay: formatDate(new Date("2025-02-08T00:00:00")),
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
     },
     {
@@ -196,7 +179,7 @@ const projects: CardProps[] = [
         subTitle: "Autonomous scouting for FRC",
         image: _autoscout,
         chipText: "🗑️ Obsolete",
-        dateDisplay: formatDate(new Date("2024-03-23")), // MotionLens creation (-> auto-scout)
+        dateDisplay: formatDate(new Date("2024-03-23T00:00:00")), // MotionLens creation
         description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
         url: "https://github.com/jerryxfu/auto-scout"
     },
@@ -206,8 +189,26 @@ const projects: CardProps[] = [
         image: _llmvsllm,
         chipText: "📦 Archived",
         url: "https://github.com/jerryxfu/llmvsllm",
-        dateDisplay: formatDate(new Date("2024-05-18")),
+        dateDisplay: formatDate(new Date("2024-05-18T00:00:00")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
+    },
+    {
+        title: "Group availability app",
+        subTitle: "A tool to help schedule group events",
+        image: _endPortal,
+        chipText: "🌀 Concept",
+        dateDisplay: "awaiting",
+        description: "description."
+    },
+    {
+        title: "Pulse",
+        subTitle: "Screen time micro-session limiter",
+        image: _endPortal,
+        chipText: "🌀 Concept",
+        dateDisplay: formatDate(new Date("2026-04-20T00:00:00")),
+        url: "",
+        description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
+        footer: "iOS 17+ & Android 13+"
     },
     {
         title: "Cheatsheet",
@@ -219,16 +220,16 @@ const projects: CardProps[] = [
         description: "A collection of useful cheatsheets for various topics.",
     },
     {
-        title: "Group availability app",
-        subTitle: "A tool to help schedule group events",
+        title: "TechDashboard",
+        subTitle: "Pit dashboard for FRC",
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",
-        description: "description."
+        description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
     },
     {
         title: "MegaCSV",
-        subTitle: "A tool to preview large CSV files",
+        subTitle: "Preview large CSV files",
         image: _endPortal,
         chipText: "🌀 Concept",
         dateDisplay: "awaiting",
@@ -246,15 +247,24 @@ const projects: CardProps[] = [
 ];
 
 export default function Projects() {
+    const {currentTheme} = useThemeSwitcher();
+
+    const themedProjects = useMemo(() => projects.map((project) => {
+        if (project.title !== "Unveil Technologies") return project;
+
+        return {
+            ...project,
+            image: currentTheme === "night" ? _unveil_light : _unveil_dark
+        };
+    }), [currentTheme]);
+
     return (
         <div className="section projects">
             <SectionTitle text={"Projects"} />
             <div className="projects-grid">
-                {projects.map((project) => {
-                    return (
-                        <Card key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()} {...project} />
-                    );
-                })}
+                {themedProjects.map((project) => (
+                    <Card key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()} {...project} />
+                ))}
             </div>
         </div>
     );
