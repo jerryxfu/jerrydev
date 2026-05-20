@@ -338,7 +338,7 @@ export default function Expedite() {
                         </button>
                     )}
                     <h1>Expedite 📦</h1>
-                    <p className="caption-text">Share files and text snippets instantly!</p>
+                    <p className="caption-text">Share files and text snippets with instantaneous same-day shipping (guaranteed)!</p>
                 </header>
 
                 {/* Views */}
