@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
+import {Helmet} from "react-helmet-async";
 import Schedule from "./components/Schedule";
 import {Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
 import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";
-import useTitle from "../../hooks/useTitle.ts";
 
 const HIDE_WEEKENDS = true;
 
@@ -56,8 +56,6 @@ function useHomeIslandParams() {
 }
 
 const Scheduler: React.FC = () => {
-    useTitle("Scheduler | jerryxf");
-
     const {isHomeIsland, homeIslandId, isValid: isHomeIslandValid} = useHomeIslandParams();
 
     // Initial schedule selection
@@ -161,6 +159,13 @@ const Scheduler: React.FC = () => {
 
     return (
         <div className={`scheduler ${isHomeIsland ? "homeisland-mode" : ""}`}>
+            <Helmet>
+                <title>Scheduler | jerryxf</title>
+                <meta name="description"
+                      content="View and compare schedules" />
+                <link rel="canonical" href="https://jerryxf.net/scheduler" />
+            </Helmet>
+
             <div className="scheduler-header">
                 {!isHomeIsland && <h1 className="scheduler-title">Schedule viewer</h1>}
 

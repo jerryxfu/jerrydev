@@ -1,0 +1,101 @@
+.expedite_retrieved {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.expedite_meta {
+    border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.expedite_meta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.95rem;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 6%, transparent);
+    background: color-mix(in srgb, currentColor 2.5%, transparent);
+}
+
+.expedite_meta-type {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.55;
+}
+
+.expedite_meta-code {
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    opacity: 0.35;
+}
+
+.expedite_meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.expedite_meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.6rem 0.95rem;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 4%, transparent);
+
+    &:nth-child(odd) {
+        border-right: 1px solid color-mix(in srgb, currentColor 4%, transparent);
+    }
+
+    &:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        border-right: none;
+    }
+}
+
+.expedite_meta-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.3;
+}
+
+.expedite_meta-value {
+    font-size: 0.88rem;
+    word-break: break-all;
+}
+
+// Content label
+.expedite_content-label {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.3;
+}
+
+// Text preview
+.expedite_text-preview {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+    border-radius: 10px;
+    padding: 0.85rem;
+
+    pre {
+        margin: 0;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: "Outfit Variable", monospace;
+        line-height: 1.55;
+    }
+}

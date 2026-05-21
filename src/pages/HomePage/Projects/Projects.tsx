@@ -79,7 +79,7 @@ const projects: CardProps[] = [
         subTitle: "",
         image: _kahootBot,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2024-07-1T00:00:00")),
+        dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
     },

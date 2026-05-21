@@ -1,4 +1,4 @@
-export function formatDate(date: Date): string {
+export function formatDate(date: Date): string { // 0 pad for Safari
     const pad = (n: number) => n.toString().padStart(2, "0");
     const day = pad(date.getDate());
     const month = pad(date.getMonth() + 1);

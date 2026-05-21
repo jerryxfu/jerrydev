@@ -1,4 +1,5 @@
 import "./HomePage.scss";
+import {Helmet} from "react-helmet-async";
 import Navbar from "../../components/Navbar/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
 import About from "./About/About.tsx";
@@ -12,6 +13,12 @@ import Experience from "./Experience/Experience.tsx";
 export default function HomePage() {
     return (
         <div className="homepage">
+            <Helmet>
+                <title>jerryxf</title>
+                <meta name="description"
+                      content="Hi there, I'm Jerry!" />
+                <link rel="canonical" href="https://jerryxf.net/" />
+            </Helmet>
             <Navbar />
             <Hero />
             <About />

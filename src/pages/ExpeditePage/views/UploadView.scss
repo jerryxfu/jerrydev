@@ -1,0 +1,249 @@
+// --- Type toggle ---
+.expedite_type-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.expedite_type-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.15s, background 0.15s;
+
+    &.active {
+        opacity: 1;
+        background: color-mix(in srgb, currentColor 6%, transparent);
+        border-color: color-mix(in srgb, currentColor 18%, transparent);
+    }
+
+    &:hover {
+        opacity: 0.75;
+    }
+}
+
+// --- Upload ---
+.expedite_upload {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.expedite_textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 10px;
+    background: transparent;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 8rem;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &::placeholder {
+        opacity: 0.3;
+    }
+
+    &:focus {
+        border-color: color-mix(in srgb, var(--gray-da) 25%, transparent);
+    }
+}
+
+.expedite_file-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 2.25rem;
+    border: 1.5px dashed color-mix(in srgb, currentColor 13%, transparent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    text-align: center;
+    min-height: 130px;
+
+    p {
+        margin: 0;
+        font-size: 0.88rem;
+        opacity: 0.5;
+    }
+
+    &:hover {
+        background: color-mix(in srgb, currentColor 3%, transparent);
+        border-color: color-mix(in srgb, currentColor 22%, transparent);
+    }
+}
+
+.expedite_file-selected {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.expedite_file-name {
+    font-weight: 500;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.expedite_file-size {
+    font-size: 0.8rem;
+    opacity: 0.4;
+    margin: 0;
+}
+
+.expedite_file-limit {
+    font-size: 0.75rem !important;
+    opacity: 0.25 !important;
+}
+
+.expedite_file-clear {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.4;
+    padding: 0.25rem;
+    display: flex;
+    transition: opacity 0.15s;
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+// --- Settings ---
+.expedite_settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 8%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--gray-lt) 2%, transparent);
+}
+
+.expedite_settings-title {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.expedite_setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+// Toggle switch
+.expedite_toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    border: 1.5px solid color-mix(in srgb, currentColor 15%, transparent);
+    background: color-mix(in srgb, currentColor 6%, transparent);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, border-color 0.2s;
+
+    &.active {
+        background: color-mix(in srgb, var(--primary-c) 50%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 40%, transparent);
+
+        .expedite_toggle-knob {
+            transform: translateX(16px);
+        }
+    }
+}
+
+.expedite_toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gray);
+    opacity: 0.6;
+    transition: transform 0.2s ease;
+}
+
+// Settings inputs
+.expedite_setting-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.expedite_setting-input {
+    width: 60px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
+    border-radius: 5px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.82rem;
+    text-align: center;
+    outline: none;
+
+    &:focus {
+        border-color: color-mix(in srgb, var(--gray-da) 25%, transparent);
+    }
+
+    &::placeholder {
+        opacity: 0.3;
+    }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    -moz-appearance: textfield;
+}
+
+.expedite_ttl-presets {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.expedite_setting-pill {
+    padding: 0.25rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 5px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.15s, background 0.15s;
+
+    &.active {
+        opacity: 1;
+        background: color-mix(in srgb, var(--primary-c) 15%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 40%, transparent);
+    }
+
+    &:hover {
+        opacity: 0.7;
+    }
+}

@@ -1,6 +1,5 @@
 .navbar {
     width: 100%;
-    padding: 0.50rem 0.25rem;
     z-index: 500;
     top: 0;
     position: fixed;
@@ -10,6 +9,8 @@
     flex-direction: column;
     backdrop-filter: blur(10px);
     box-shadow: 0 0 10px 0 var(--shadow-c);
+
+    padding: calc(0.50rem + env(safe-area-inset-top)) 0.25rem 0.50rem;
 
     @media screen and (max-width: 768px) {
         padding: 0.25rem 0.50rem;

@@ -1,6 +1,7 @@
 import {lazy, type ReactNode, StrictMode, Suspense} from "react";
 import {createRoot} from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {HelmetProvider} from "react-helmet-async";
 
 import "@fontsource-variable/outfit/index.css";
 import "./index.scss";
@@ -72,9 +73,11 @@ const root = createRoot(rootElement);
 root.render(
     <StrictMode>
         <ErrorBoundary>
-            <ThemeProvider>
-                <RouterProvider router={router} />
-            </ThemeProvider>
+            <HelmetProvider>
+                <ThemeProvider>
+                    <RouterProvider router={router} />
+                </ThemeProvider>
+            </HelmetProvider>
         </ErrorBoundary>
     </StrictMode>
 );

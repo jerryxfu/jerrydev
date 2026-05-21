@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {Helmet} from "react-helmet-async";
 import "./SuperICU.scss";
 import type {AlertItem, Vitals} from "./sim";
 import {useDemoVitals, useWaveTemplates} from "./sim";
@@ -11,7 +12,6 @@ import {colorForVital, formatWaveVal, parseCsv, type ParsedVitalsCsv, parseVital
 import {hasPulseColumn, toAdditionalVitals, toDisplayVitals, toRows} from "./selectors";
 import type {AdditionalVital, AlarmLevelOrNull, CsvWaveData, DisplayVitals, FlashMode, Palette, RowDef} from "./types";
 import {CFG, DEFAULT_PALETTE} from "./types";
-import useTitle from "../../hooks/useTitle.ts";
 
 export type {Palette, FlashMode};
 
@@ -44,8 +44,6 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     paletteOverrides?: Partial<Palette>;
     flashMode?: FlashMode;
 } = {}) {
-    useTitle("SuperICU | jerryxf");
-
     const palette = useMemo(() => ({...DEFAULT_PALETTE, ...(paletteOverrides || {})}), [paletteOverrides]);
     const flashClass = useCallback((level: AlarmLevelOrNull) => {
         if (!level) return "";
@@ -294,6 +292,13 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
 
     return (
         <div className="super-icu">
+            <Helmet>
+                <title>SuperICU | jerryxf</title>
+                <meta name="description"
+                      content="A tool to preview ICU data in a patient monitor-like interface." />
+                <link rel="canonical" href="https://jerryxf.net/supericu" />
+            </Helmet>
+
             <div className="super-icu-core">
                 <div className="top-bar">
                     SuperICU 🔮

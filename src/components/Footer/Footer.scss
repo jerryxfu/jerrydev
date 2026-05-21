@@ -1,11 +1,11 @@
 .footer {
     background-color: var(--bg-da-c);
     padding-top: 0.5rem;
-    padding-bottom: 32px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
     position: relative;
 
     @media screen and (max-width: 768px) {
-        padding-bottom: 48px;
+        padding-bottom: calc(48px + env(safe-area-inset-bottom));
     }
 }
 

@@ -1,0 +1,79 @@
+.expedite_created {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.expedite_code-display {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.1rem 1.75rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: color-mix(in srgb, var(--gray-lt) 3%, transparent);
+    }
+}
+
+.expedite_code-text {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    font-family: "Outfit Variable", monospace;
+}
+
+.expedite_link-box {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+
+    &:focus-within {
+        border-color: color-mix(in srgb, var(--gray-da) 25%, transparent);
+    }
+}
+
+.expedite_link-input {
+    flex: 1;
+    padding: 1rem 0.85rem;
+    font-size: 1.2rem;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    outline: none;
+    min-width: 0;
+    opacity: 0.75;
+
+    &:focus {
+        opacity: 0.90;
+    }
+}
+
+.expedite_link-copy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border: none;
+    border-left: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.15s, background 0.15s;
+
+    &:hover {
+        opacity: 0.7;
+        background: color-mix(in srgb, var(--gray) 3%, transparent);
+    }
+}

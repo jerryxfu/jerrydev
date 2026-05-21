@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://jerryxf.net/</loc></url>
-<!--  <url><loc>https://jerryxf.net/supericu</loc></url>-->
-<!--  <url><loc>https://jerryxf.net/conditioner</loc></url>-->
-  <url><loc>https://jerryxf.net/scheduler</loc></url>
-<!--  <url><loc>https://jerryxf.net/cheatsheet/waveform</loc></url>-->
-<!--  <url><loc>https://jerryxf.net/cheatsheet/mailman</loc></url>-->
+    <url>
+        <loc>https://jerryxf.net/</loc>
+        <priority>1.0</priority>
+        <changefreq>weekly</changefreq>
+    </url>
+    <url>
+        <loc>https://jerryxf.net/expedite</loc>
+        <priority>0.8</priority>
+        <changefreq>monthly</changefreq>
+    </url>
+    <url>
+        <loc>https://jerryxf.net/scheduler</loc>
+        <priority>0.4</priority>
+        <changefreq>monthly</changefreq>
+    </url>
 </urlset>
