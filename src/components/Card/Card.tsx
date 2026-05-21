@@ -55,8 +55,8 @@ const Card = memo(function Card(props: CardProps) {
 
             <div className="card_header">
                 <div className="card_header_content">
-                    <h2>{title}</h2>
-                    {subTitle && <h3>{subTitle}</h3>}
+                    <h3>{title}</h3>
+                    {subTitle && <h4>{subTitle}</h4>}
                 </div>
             </div>
 
@@ -65,13 +65,13 @@ const Card = memo(function Card(props: CardProps) {
             </div>
 
             <div className="card_footer">
-                <div className="card_stats">
+                <p className="card_stats">
                     {/*<span className="stat-item"></span>*/}
-                </div>
-                <div className="card_date">
+                </p>
+                <p className="card_date">
                     {footer && `${footer} | `}
                     {dateDisplay}
-                </div>
+                </p>
             </div>
         </div>
     );

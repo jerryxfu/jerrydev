@@ -150,7 +150,7 @@ function buildFromBoundaries(slots: SlotInput[], rangeStart: number, rangeEnd: n
             endMinutes: next.minutes,
         };
         if (current.label !== undefined) slot.label = current.label;
-        if ((current as any).endLabel !== undefined) slot.endLabel = (current as any).endLabel;
+        if (current.endLabel !== undefined) slot.endLabel = current.endLabel;
         result.push(slot);
     }
     return result;

@@ -14,6 +14,7 @@ import _endPortal from "../../../assets/projects/end_portal.jpg";
 import _supericu from "../../../assets/projects/supericu.jpeg";
 import _doublestartyre from "../../../assets/projects/doublestartyre.jpeg";
 import _scorekeeper from "../../../assets/projects/scorekeeper.jpeg";
+import _scheduler from "../../../assets/projects/scheduler.jpeg";
 import _autoscout from "../../../assets/projects/autoscout.jpeg";
 import _medive from "../../../assets/projects/medive.jpeg";
 import _unveil_dark from "../../../assets/projects/unveil_dark.png";
@@ -21,7 +22,7 @@ import _unveil_light from "../../../assets/projects/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
 import {formatDate} from "../../../utils.ts";
-import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
+import {useTheme} from "../../../context/ThemeContext.tsx";
 
 const projects: CardProps[] = [
     {
@@ -118,6 +119,14 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
         description: "This portfolio website as well as the API that empowers other projects.",
+    },
+    {
+        title: "Scheduler",
+        subTitle: "A schedule visualizer and comparer",
+        image: _scheduler,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2025-08-27")),
+        description: "A web app to visualize and compare daily/weekly schedules.",
     },
     {
         title: "Doublestartyre CA",
@@ -247,7 +256,7 @@ const projects: CardProps[] = [
 ];
 
 export default function Projects() {
-    const {currentTheme} = useThemeSwitcher();
+    const {currentTheme} = useTheme();
 
     const themedProjects = useMemo(() => projects.map((project) => {
         if (project.title !== "Unveil Technologies") return project;

@@ -27,7 +27,7 @@ const formatThemeName = (theme: string) =>
 
 export default function Navbar() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const {currentTheme, toggleTheme} = useTheme();
+    const {currentTheme, themePreference, toggleTheme} = useTheme();
 
     const navRef = useRef<HTMLElement>(null);
     const barRef = useRef<HTMLDivElement>(null);
@@ -155,8 +155,6 @@ export default function Navbar() {
         setTimeout(() => setIsPanelOpen(false), 100);
     };
 
-    const totalLinks = linksLeft.length + linksRight.length;
-
     return (
         <nav className="navbar" ref={navRef}>
             <div className="navbar_bar" ref={barRef}>
@@ -178,7 +176,7 @@ export default function Navbar() {
                                 linkRefs.current[index] = el;
                             }}
                         >
-                            <a href={link.href} className="text text-underline">
+                            <a href={link.href} className="text-body text-underline">
                                 {link.label}
                             </a>
                         </li>
@@ -196,7 +194,7 @@ export default function Navbar() {
                         >
                             <a
                                 href={link.href}
-                                className="text text-underline"
+                                className="text-body text-underline"
                                 {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
                             >
                                 {link.label}
@@ -211,8 +209,10 @@ export default function Navbar() {
                     aria-label={`Switch to next theme (current: ${currentTheme})`}
                 >
                     <div className="navbar_theme-circle" />
-                    <p className="text" style={{textTransform: "capitalize"}}>
-                        {formatThemeName(currentTheme)}
+                    <p className="text-body" style={{textTransform: "capitalize"}}>
+                        <p className="text-body" style={{textTransform: "capitalize"}}>
+                            {themePreference === "auto" ? "Auto" : formatThemeName(themePreference)}
+                        </p>
                     </p>
                 </button>
 
@@ -244,7 +244,7 @@ export default function Navbar() {
                             <li key={index}>
                                 <a
                                     href={link.href}
-                                    className="text text-underline"
+                                    className="text-body text-underline"
                                     onClick={handlePanelLinkClick}
                                 >
                                     {link.label}
@@ -258,7 +258,7 @@ export default function Navbar() {
                             <li key={index}>
                                 <a
                                     href={link.href}
-                                    className="text text-underline"
+                                    className="text-body text-underline"
                                     onClick={handlePanelLinkClick}
                                     {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
                                 >

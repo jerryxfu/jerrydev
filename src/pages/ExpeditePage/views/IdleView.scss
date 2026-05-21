@@ -10,7 +10,7 @@
     gap: 1rem;
     width: 100%;
     padding: 1.15rem 1.35rem;
-    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border: 1px solid var(--border-c);
     border-radius: 10px;
     background: transparent;
     color: inherit;
@@ -20,8 +20,8 @@
     transition: background 0.15s, border-color 0.15s;
 
     &:hover {
-        background: color-mix(in srgb, var(--gray-lt) 3%, transparent);
-        border-color: color-mix(in srgb, var(--gray-da) 18%, transparent);
+        background: var(--surface-c);
+        border-color: var(--border-da-c);
     }
 }
 

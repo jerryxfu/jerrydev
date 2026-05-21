@@ -6,8 +6,8 @@ import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import SplitType from "split-type";
-import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {texts} from "./texts.ts";
+import {useTheme} from "../../../context/ThemeContext.tsx";
 
 let isGsapConfigured = false;
 
@@ -25,7 +25,7 @@ function configureGsap() {
 export default function Hero() {
     configureGsap();
 
-    const {currentTheme} = useThemeSwitcher();
+    const {currentTheme} = useTheme();
     const [themeGradientClass, setThemeGradientClass] = useState("gradient-mesh-default");
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
@@ -39,7 +39,6 @@ export default function Hero() {
     const [isBlinking, setIsBlinking] = useState(false);
 
     const dividerRef = useRef(null);
-    const heroTitleRef = useRef(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef(null);
     const typingTextRef = useRef(null);
@@ -114,7 +113,7 @@ export default function Hero() {
         // Slide up "Hello"
         tl.from([titleRef.current], {
             yPercent: 100,
-            ease: "elastic.out(1,1.15)",
+            ease: "elastic.out(1,1.1)",
             duration: 1.8
         }, 0.20 + opening_delay);
 
@@ -165,18 +164,18 @@ export default function Hero() {
             {/*<div className="gradient-mesh-default" />*/}
             <div className="hero">
                 <div className="hero_container">
-                    <div className={"hero_title"} ref={heroTitleRef}>
-                        <h1 ref={titleRef} className="hero_title-part1">Hello</h1>
+                    <div className="hero_title">
+                        <h1 ref={titleRef} className="hero_title">Hello</h1>
                     </div>
 
                     <div className="hero_glowing-separator" ref={dividerRef} />
 
                     <div>
-                        <h1 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h1>
+                        <h2 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h2>
                     </div>
                 </div>
 
-                <div className="text hero_about-container">
+                <div className="text-body hero_about-container">
                     <div style={{overflow: "hidden"}}>
                         <p className="hero_line" ref={line1Ref}>
                             Aspiring physician-engineer, exploring where medicine and technology meet

@@ -5,12 +5,12 @@
     width: 15rem;
     height: 4.8rem;
     padding: 0.20rem;
-    border: 1px solid #dddddd;
+    border: 1px solid var(--border-c);
     border-radius: 8px;
     margin: 0.9rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 5px 10px -6px color-mix(in srgb, var(--shadow-c) 35%, transparent);
+    box-shadow: 0 5px 10px -6px var(--shadow-c);
 
     @media screen and (max-width: 768px) {
         width: 10.70rem;
@@ -54,8 +54,7 @@
 }
 
 .skillcard_description {
-    font-size: 0.8rem;
-    margin-top: -0.13rem;
+    font-size: var(--text-smm);
     line-height: 113%;
 }
 
@@ -63,7 +62,7 @@
     position: absolute !important;
     top: 10px;
     right: 10px;
-    background-color: var(--accent-lt-c) !important;
+    background-color: color-mix(in srgb, var(--accent-lt-c) 78%, transparent) !important;
 
     @media screen and (max-width: 768px) {
         top: 2px;

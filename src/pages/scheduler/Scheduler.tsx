@@ -166,6 +166,10 @@ const Scheduler: React.FC = () => {
                 <link rel="canonical" href="https://jerryxf.net/scheduler" />
             </Helmet>
 
+            <div className="scheduler-overlay-disabled">
+                <h2>Disabled during summer ☀️🏝️</h2>
+            </div>
+
             <div className="scheduler-header">
                 {!isHomeIsland && <h1 className="scheduler-title">Schedule viewer</h1>}
 

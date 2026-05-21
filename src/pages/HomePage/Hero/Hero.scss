@@ -34,13 +34,11 @@
 .hero_title {
     scale: 1;
     font-size: 6.5rem;
-    //line-height: 1.21;
-    //margin-bottom: -7px;
     height: 7.60rem;
-    //background-color: #ff64f9;
     display: flex;
     justify-content: center;
     overflow: hidden;
+    color: var(--text-da-c);
 
     @media screen and (max-width: 768px) {
         font-size: 3.5rem;
@@ -48,18 +46,6 @@
         margin-bottom: -7px;
         height: 4.21rem;
     }
-}
-
-.hero_title-part1 {
-    font-size: inherit;
-}
-
-.hero_title-part2 {
-    font-size: inherit;
-    scale: 1; // gsap, do not remove
-    display: inline-block;
-    position: relative;
-    overflow: hidden;
 }
 
 .hero_title-mask {
@@ -73,7 +59,7 @@
     font-size: 2.25rem;
     margin-left: 0.55rem;
     margin-top: -8px;
-    //background-color: #ff64f9;
+    color: var(--text-c);
 
     overflow: hidden;
 
@@ -141,6 +127,7 @@
 .hero_typing-text {
     height: 2rem;
     margin-top: 1.75rem;
+    color: color-mix(in srgb, var(--text-lt-c) 90%, transparent);
 
     @media screen and (max-width: 1024px) {
         font-size: 96%;

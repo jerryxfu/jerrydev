@@ -5,13 +5,13 @@
     width: 13rem;
     height: 5rem;
     padding: 0.5rem;
-    border: 1px solid #dddddd;
+    border: 1px solid var(--border-c);
     border-radius: 8px;
     //margin-bottom: 10px;
     margin: 0.9rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 5px 10px -6px color-mix(in srgb, var(--shadow-c) 35%, transparent);
+    box-shadow: 0 5px 10px -6px var(--shadow-lt-c);
 
     @media screen and (max-width: 768px) {
         width: 90%;
@@ -57,7 +57,7 @@
     position: absolute !important;
     top: 8px;
     right: 8px;
-    background-color: var(--accent-lt-c) !important;
+    background-color: color-mix(in srgb, var(--accent-lt-c) 78%, transparent) !important;
 
     @media screen and (max-width: 768px) {
         top: 6px;

@@ -1,71 +1,81 @@
 import React, {createContext, ReactNode, useContext, useEffect, useState} from "react";
 
 type Theme = "default" | "night";
+type ThemePreference = "auto" | Theme;
 
 interface ThemeContextType {
-    currentTheme: Theme;
+    currentTheme: Theme;              // the resolved theme
+    themePreference: ThemePreference; // what the user chose, including "auto"
     toggleTheme: () => void;
-    setTheme: (theme: Theme) => void;
-    availableThemes: readonly Theme[];
+    setTheme: (pref: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
-interface ThemeProviderProps {
-    children: ReactNode;
+// theme order
+const preferences: readonly ThemePreference[] = ["default", "night", "auto"] as const;
+
+function resolveTheme(pref: ThemePreference): Theme {
+    if (pref !== "auto") return pref;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default";
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({children}) => {
-    const themes: readonly Theme[] = ["default", "night"] as const;
+function getInitialPreference(): ThemePreference {
+    try {
+        const stored = localStorage.getItem("themeName") as ThemePreference;
+        return preferences.includes(stored) ? stored : "default";
+    } catch {
+        return "default";
+    }
+}
 
-    const getInitialTheme = (): Theme => {
-        try {
-            const stored = localStorage.getItem("themeName") as Theme;
-            return themes.includes(stored) ? stored : themes[0] || "default";
-        } catch {
-            return themes[0] || "default";
-        }
-    };
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+    const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
+    const [currentTheme, setCurrentTheme] = useState<Theme>(() => resolveTheme(getInitialPreference()));
 
-    const [currentTheme, setCurrentTheme] = useState<Theme>(getInitialTheme);
-
+    // Apply theme to DOM
     useEffect(() => {
+        const resolved = resolveTheme(themePreference);
+        setCurrentTheme(resolved);
+        document.documentElement.setAttribute("data-theme", resolved);
+        document.body.setAttribute("data-theme", resolved);
         try {
-            // Set the theme on the body element for CSS cascade
-            document.body.setAttribute("data-theme", currentTheme);
-            localStorage.setItem("themeName", currentTheme);
-
-            // Set on the HTML element for more global scope
-            document.documentElement.setAttribute("data-theme", currentTheme);
+            localStorage.setItem("themeName", themePreference);
         } catch (error) {
             console.warn("Failed to save theme preference:", error);
         }
-    }, [currentTheme]);
+    }, [themePreference]);
+
+    // Listen for OS theme changes when on auto
+    useEffect(() => {
+        if (themePreference !== "auto") return;
+
+        const mq = window.matchMedia("(prefers-color-scheme: dark)");
+        const handler = () => {
+            const resolved = resolveTheme("auto");
+            setCurrentTheme(resolved);
+            document.documentElement.setAttribute("data-theme", resolved);
+            document.body.setAttribute("data-theme", resolved);
+        };
+
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
+    }, [themePreference]);
 
     const toggleTheme = () => {
-        const currentIndex = themes.indexOf(currentTheme);
-        const nextIndex = (currentIndex + 1) % themes.length;
-        const nextTheme = themes[nextIndex];
-        if (nextTheme) {
-            setCurrentTheme(nextTheme);
-        }
+        const currentIndex = preferences.indexOf(themePreference);
+        const nextIndex = (currentIndex + 1) % preferences.length;
+        setThemePreference(preferences[nextIndex]!);
     };
 
-    const setTheme = (theme: Theme) => {
-        if (themes.includes(theme)) {
-            setCurrentTheme(theme);
+    const setTheme = (pref: ThemePreference) => {
+        if (preferences.includes(pref)) {
+            setThemePreference(pref);
         }
-    };
-
-    const contextValue: ThemeContextType = {
-        currentTheme,
-        toggleTheme,
-        setTheme,
-        availableThemes: themes,
     };
 
     return (
-        <ThemeContext.Provider value={contextValue}>
+        <ThemeContext.Provider value={{currentTheme, themePreference, toggleTheme, setTheme}}>
             {children}
         </ThemeContext.Provider>
     );

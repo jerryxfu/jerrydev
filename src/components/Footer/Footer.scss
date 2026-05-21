@@ -11,8 +11,8 @@
 
 .footer_divider {
     width: 95%;
-    color: var(--shadow-lt-c);
-    background-color: var(--shadow-lt-c);
+    color: var(--shadow-da-c);
+    background-color: var(--shadow-da-c);
 }
 
 .footer_links {
@@ -22,6 +22,11 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 3rem;
+
+    h3 {
+        font-size: var(--text-mdd);
+        font-weight: 420;
+    }
 
     p {
         line-height: 110%;

@@ -4,22 +4,22 @@
     left: 2px;
     right: 2px;
     padding: 7px 10px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--s-border-c);
+    box-shadow: 0 1px 2px var(--shadow-da-c);
+    border: 1px solid var(--border-c);
     cursor: pointer;
     overflow: hidden;
     box-sizing: border-box;
     container-type: size;
 
     &--current {
-        border: 2px solid var(--s-success-c);
-        box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3);
+        border: 2px solid var(--success);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 30%, transparent);
         animation: pulse-current 2s infinite;
     }
 
     &--next {
-        border: 2px solid var(--s-warn-c);
-        box-shadow: 0 0 0 1px rgba(255, 211, 110, 0.3);
+        border: 2px solid var(--warning);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 30%, transparent);
     }
 
     &--ended {
@@ -47,17 +47,16 @@
 .schedule-event__left {
     display: flex;
     flex-direction: column;
-    min-width: 0; /* allow text-overflow to work */
+    min-width: 0;
     max-width: 100%;
 }
 
 .schedule-event__title {
     font-weight: 600;
-    font-size: 16px;
+    font-size: var(--text-base);
     line-height: 1.1;
     margin-bottom: 2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    /* CSS truncation instead of JS */
+    text-shadow: 0 1px 2px var(--shadow-da-c);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -67,12 +66,12 @@
     }
 
     @media (max-width: 768px) {
-        font-size: 14px;
+        font-size: var(--text-sm);
     }
 }
 
 .schedule-event__location {
-    font-size: 12px;
+    font-size: var(--text-xs);
     margin-top: auto;
 
     @container (max-height: 48px) {
@@ -87,7 +86,7 @@
 .schedule-event__time {
     display: flex;
     flex-direction: column;
-    font-size: 13px;
+    font-size: var(--text-smm);
     line-height: 1.2;
 
     @container (max-height: 48px) {
@@ -98,10 +97,10 @@
 /* Animations */
 @keyframes pulse-current {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 50%, transparent);
     }
     50% {
-        box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.5);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 50%, transparent);
     }
 }
 
@@ -145,13 +144,13 @@
 
     &--current {
         box-shadow: none;
-        border: 2px solid var(--s-success-c);
+        border: 2px solid var(--success);
         animation: pulse-current-homeisland 2s infinite;
     }
 
     &--next {
         box-shadow: none;
-        border: 2px solid var(--s-warn-c);
+        border: 2px solid var(--warning);
     }
 }
 

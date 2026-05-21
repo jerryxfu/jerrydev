@@ -16,7 +16,7 @@ const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
 const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 
-const LOCAL_STORAGE_VERSION = "v1";
+const LOCAL_STORAGE_VERSION = "v1.0";
 
 if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
     localStorage.clear();

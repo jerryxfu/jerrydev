@@ -4,7 +4,7 @@ html {
     width: 100%;
     height: 100%;
     scroll-behavior: smooth;
-     background-color: var(--bg-c);
+    background-color: var(--bg-c);
 }
 
 /* Home Island iframe mode - fully transparent */
@@ -44,6 +44,18 @@ body.homeisland-body {
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
 
+    --text-xs: 0.75rem; // 12px - fine print, labels
+    --text-smm: 0.8125rem; // 13px - small captions, emphasized secondary
+    --text-sm: 0.875rem; // 14px - captions, secondary
+    --text-base: 1rem; // 16px - body text
+    --text-md: 1.125rem; // 18px - slightly emphasized body
+    --text-mdd: 1.1875rem; // 19px - emphasized body
+    --text-lg: 1.25rem; // 20px - subheadings
+    --text-lgg: 1.375rem; // 22px - emphasized subheadings
+    --text-xl: 1.5rem; // 24px - section titles
+    --text-2xl: 2rem; // 32px - page titles
+    --text-3xl: 2.5rem; // 40px - hero
+
     // Color constants that don't change between themes
     --pink: #ff64f9;
     --red: #ff6565;
@@ -76,22 +88,35 @@ body.homeisland-body {
     --secondary-da-c: rgba(207, 163, 210, 1);
 
     --accent-c: rgba(225, 204, 173, 1);
-    --accent-lt-c: rgba(241, 227, 208, 0.76);
+    --accent-lt-c: rgba(241, 227, 208, 1);
     --accent-da-c: rgba(219, 195, 158, 1);
 
     --bg-c: rgba(251, 250, 249, 1);
     --bg-lt-c: rgba(254, 254, 254, 1);
     --bg-da-c: rgba(248, 247, 246, 1);
 
-    --text-c: rgba(28, 28, 28, 1);
-    --text-lt-c: rgba(30, 30, 30, 1);
+    --border-lt-c: rgba(238, 238, 238, 1);
+    --border-c: rgba(224, 224, 224, 1);
+    --border-da-c: rgba(220, 220, 220, 1);
+
+    --surface-lt-c: rgba(0, 0, 0, 0.01);
+    --surface-c: rgba(0, 0, 0, 0.02);
+    --surface-da-c: rgba(0, 0, 0, 0.03);
+    --surface-daa-c: rgba(0, 0, 0, 0.3);
+
     --text-da-c: rgba(26, 26, 26, 1);
+    --text-c: rgba(28, 28, 28, 1);
+    --text-lt-c: rgba(52, 52, 52, 1);
+    --text-ltt-c: rgba(86, 86, 86, 1);
+    --text-lttt-c: rgba(100, 100, 100, 1);
+    --text-ltttt-c: rgba(138, 138, 138, 1);
 
-    --shadow-c: rgba(150, 150, 150, 0.80);
-    --shadow-lt-c: rgba(144, 144, 144, 0.60);
+    --shadow-daa-c: rgba(138, 138, 138, 0.5);
+    --shadow-da-c: rgba(150, 150, 150, 0.20);
+    --shadow-c: rgba(160, 160, 160, 0.10);
+    --shadow-lt-c: rgba(160, 160, 160, 0.08);
+
     --hero-glow-c: rgba(238, 248, 252, 0.40);
-
-    --hero-bg-c: rgba(212, 237, 247, 1);
 }
 
 // Apply theme colors to body for proper inheritance
@@ -104,6 +129,7 @@ body {
 [data-theme="night"] {
     --primary-c: rgba(16, 64, 128, 1);
     --primary-lt-c: rgba(17, 69, 136, 1);
+    --primary-ltx-c: rgba(18, 74, 144, 1);
     --primary-da-c: rgba(15, 60, 118, 1);
 
     --secondary-c: rgba(215, 174, 226, 1);
@@ -118,15 +144,27 @@ body {
     --bg-lt-c: rgba(24, 24, 24, 1);
     --bg-da-c: rgba(8, 8, 8, 1);
 
-    --text-c: rgba(251, 250, 249, 1);
-    --text-lt-c: rgba(252, 251, 250, 1);
-    --text-da-c: rgba(250, 249, 248, 1);
+    --border-lt-c: rgba(48, 48, 48, 1);
+    --border-c: rgba(56, 56, 56, 1);
+    --border-da-c: rgba(64, 64, 64, 1);
 
-    --shadow-c: rgba(150, 150, 150, 0.80);
+    --surface-lt-c: rgba(255, 255, 255, 0.02);
+    --surface-c: rgba(255, 255, 255, 0.04);
+    --surface-da-c: rgba(255, 255, 255, 0.06);
+
+    --text-da-c: rgba(250, 249, 248, 1);
+    --text-c: rgba(251, 250, 249, 1);
+    --text-lt-c: rgba(200, 200, 200, 1);
+    --text-ltt-c: rgba(160, 160, 160, 1);
+    --text-lttt-c: rgba(130, 130, 130, 1);
+    --text-ltttt-c: rgba(100, 100, 100, 1);
+
+    --shadow-daa-c: rgba(0, 0, 0, 0.6);
+    --shadow-da-c: rgba(0, 0, 0, 0.30);
+    --shadow-c: rgba(0, 0, 0, 0.20);
+    --shadow-lt-c: rgba(0, 0, 0, 0.12);
 
     --hero-glow-c: rgba(238, 248, 252, 0.40);
-
-    --hero-bg-c: rgba(184, 226, 242, 1);
 }
 
 
@@ -151,14 +189,25 @@ h1 {
     font-weight: 350;
 }
 
-h2, h3 {
-    font-weight: 550;
+h2 {
+    font-weight: 450;
+}
+
+h3 {
+    font-weight: 470;
+    line-height: 1.2;
+}
+
+h4 {
+    font-weight: 420;
+    line-height: 1.18;
 }
 
 p {
     margin: 0;
     color: var(--text-c);
     transition: color 450ms;
+    line-height: 1.38;
 }
 
 .container {
@@ -185,38 +234,35 @@ p {
     width: 100%;
 }
 
-.small-text {
-    font-size: 1rem;
-    line-height: 1.25;
-
-    color: var(--text-lt-c);
-    transition: color 450ms;
-}
-
-.caption-text {
-    font-size: 0.98rem;
-    line-height: 1.25;
-
-    color: color-mix(in srgb, var(--text-lt-c) 55%, transparent);
-    transition: color 450ms;
-}
-
-.smaller-caption-text {
-    font-size: 0.95rem;
-    line-height: 1.25;
-
-    color: color-mix(in srgb, var(--text-lt-c) 45%, transparent);
-    transition: color 450ms;
-}
-
-.text {
-    font-size: 1.18rem;
+.text-body {
+    font-size: var(--text-md);
     line-height: 1.5;
     margin: 0;
     font-weight: 400;
 
     color: var(--text-c);
     transition: color 450ms;
+}
+
+.text-small {
+    font-size: var(--text-base);
+    line-height: 1.35;
+    color: var(--text-lt-c);
+}
+
+.text-caption {
+    font-size: var(--text-sm);
+    line-height: 1.25;
+    color: color-mix(in srgb, var(--text-lt-c) 55%, transparent);
+}
+
+.text-label {
+    font-size: var(--text-xs);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--text-lt-c) 40%, transparent);
 }
 
 .text-underline {
@@ -303,27 +349,6 @@ p {
         background: initial;
     }
 }
-
-$debug-modes: (
-    "1": (
-        "*": "1px solid red",
-        "div": "1px solid blue",
-        "p, span, h1, h2, h3": "1px solid green",
-    ),
-    "2": (
-        "*": "1px solid rgba(255,0,0,0.3)",
-        "section, .section": "2px dashed orange",
-        "img, svg": "2px solid purple",
-    ),
-    "3": (
-        "*": "1px solid red",
-        "div": "1px solid blue",
-        "p, span, h1, h2, h3": "1px solid green",
-        "section, .section": "2px dashed orange",
-        "img, svg": "2px solid purple",
-        "a": "1px solid cyan",
-    ),
-);
 
 [data-debug="1"] {
     * {

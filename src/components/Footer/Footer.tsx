@@ -42,7 +42,7 @@ export default function Footer() {
                 <div className="footer_links">
                     {links.map((section) => (
                         <div key={section.category}>
-                            <h3 className="text">{section.category}</h3>
+                            <h3>{section.category}</h3>
 
                             {section.content.map((link) => (
                                 <div

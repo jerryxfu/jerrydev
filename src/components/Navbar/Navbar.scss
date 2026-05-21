@@ -8,7 +8,7 @@
     display: flex;
     flex-direction: column;
     backdrop-filter: blur(10px);
-    box-shadow: 0 0 10px 0 var(--shadow-c);
+    box-shadow: 0 0 10px 0 var(--shadow-daa-c);
 
     padding: calc(0.50rem + env(safe-area-inset-top)) 0.25rem 0.50rem;
 
@@ -165,7 +165,7 @@
     transition: background-color 0.30s;
 
     &:hover {
-        background-color: var(--primary-da-c);
+        background-color: color-mix(in srgb, var(--primary-lt-c) 25%, transparent);
     }
 
     @media screen and (max-width: 768px) {
@@ -179,8 +179,8 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: var(--primary-c);
-    border: 2px solid var(--secondary-c);
+    background-color: color-mix(in srgb, var(--primary-c) 85%, transparent);
+    border: 2px solid color-mix(in srgb, var(--secondary-c) 85%, transparent);;
 
     @media screen and (max-width: 768px) {
         width: 24px;

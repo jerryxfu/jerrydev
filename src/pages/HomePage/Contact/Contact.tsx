@@ -1,9 +1,8 @@
 import {useEffect, useMemo} from "react";
-import useThemeSwitcher from "../../../hooks/useThemeSwitcher.ts";
 import {AtSign, ExternalLink} from "lucide-react";
 import "./Contact.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
-import SubTitle from "../../../components/SubTitle/SubTitle.tsx";
+import SubSectionTitle from "../../../components/SubTitle/SubSectionTitle.tsx";
 // @ts-ignore
 import baffle from "baffle";
 import ContactCard from "./components/ContactCard.tsx";
@@ -13,6 +12,7 @@ import _instagram from "../../../assets/socials/instagram_mark.png";
 import _github_lt from "../../../assets/socials/github.svg";
 import _github_da from "../../../assets/socials/github_white.svg";
 import _steam from "../../../assets/socials/steam.svg";
+import {useTheme} from "../../../context/ThemeContext.tsx";
 
 const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
@@ -45,7 +45,7 @@ const medias = [
 ];
 
 export default function Contact() {
-    const {currentTheme} = useThemeSwitcher();
+    const {currentTheme} = useTheme();
 
     const themedMedias = useMemo(() => medias.map((media) => {
         if (media.title !== "Github") return media;
@@ -98,15 +98,15 @@ export default function Contact() {
                     </div>
                 </div>
                 <div className="contact_info-container">
-                    <SubTitle text={"Get in touch"} />
+                    <SubSectionTitle text={"Get in touch"} />
                     <ul style={{paddingLeft: 0}}>
                         <li className="contact_list-element">
                             <AtSign />
-                            <a className="text" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
+                            <a className="text-body" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
                         </li>
                     </ul>
                     <div className="contact_cv">
-                        <SubTitle text={"Curriculum Vitae"} />
+                        <SubSectionTitle text={"Curriculum Vitae"} />
                         <a
                             className="contact_cv-button"
                             href="https://cv.jerryxf.net"

@@ -5,7 +5,7 @@
 }
 
 .expedite_meta {
-    border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid var(--border-da-c);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -15,8 +15,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.65rem 0.95rem;
-    border-bottom: 1px solid color-mix(in srgb, currentColor 6%, transparent);
-    background: color-mix(in srgb, currentColor 2.5%, transparent);
+    border-bottom: 1px solid var(--border-c);
+    background: var(--surface-lt-c);
 }
 
 .expedite_meta-type {
@@ -47,10 +47,10 @@
     flex-direction: column;
     gap: 0.1rem;
     padding: 0.6rem 0.95rem;
-    border-bottom: 1px solid color-mix(in srgb, currentColor 4%, transparent);
+    border-bottom: 1px solid var(--border-lt-c);
 
     &:nth-child(odd) {
-        border-right: 1px solid color-mix(in srgb, currentColor 4%, transparent);
+        border-right: 1px solid var(--border-lt-c);
     }
 
     &:last-child:nth-child(odd) {
@@ -86,7 +86,8 @@
 .expedite_text-preview {
     max-height: 320px;
     overflow-y: auto;
-    border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid var(--border-da-c);
+    color: var(--text-c);
     border-radius: 10px;
     padding: 0.85rem;
 
