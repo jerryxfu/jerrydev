@@ -1,5 +1,4 @@
 import React from "react";
-import {Search} from "lucide-react";
 import "./JoinView.scss";
 
 interface JoinViewProps {
@@ -12,37 +11,29 @@ interface JoinViewProps {
 }
 
 export default function JoinView({code, setCode, error, loading, onJoin, onCancel}: JoinViewProps) {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") onJoin();
-    };
-
     return (
         <div className="rv_join">
-            <p className="smaller-caption-text">Enter event code</p>
-            <div className="rv_code-input-row">
-                <input
-                    className="rv_code-input"
-                    type="text"
-                    placeholder="Enter event code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                    onKeyDown={handleKeyDown}
-                    maxLength={8}
-                    autoFocus
-                />
+            <input
+                className="rv_code-input"
+                type="text"
+                placeholder="Enter event code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                maxLength={5}
+                autoFocus={true}
+                onKeyDown={(e) => e.key === "Enter" && onJoin()}
+            />
+            {error && <p className="rv_error">{error}</p>}
+            <div className="rv_btn-row">
+                <button className="rv_btn-secondary" onClick={onCancel}>Cancel</button>
                 <button
                     className="rv_btn-primary"
                     onClick={onJoin}
-                    disabled={loading || !code.trim()}
-                    style={{flex: "none"}}
+                    disabled={loading || code.trim().length < 3}
                 >
-                    {loading ? "..." : <Search size={16} />}
+                    {loading ? "Looking up..." : "Join"}
                 </button>
             </div>
-
-            {error && <p className="rv_error">{error}</p>}
-
-            <button className="rv_btn-secondary rv_btn-full" onClick={onCancel}>Cancel</button>
         </div>
     );
 }
