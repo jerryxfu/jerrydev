@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useEffect, useState} from "react";
 
 export function useDebugMode() {
     const [mode, setMode] = useState(0); // styles are in index.scss, button is in Footer

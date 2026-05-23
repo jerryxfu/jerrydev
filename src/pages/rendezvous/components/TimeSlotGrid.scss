@@ -1,0 +1,176 @@
+// --- Time-slot grid layout ---
+.rv_grid-wrapper {
+    overflow-x: auto;
+    margin: 0 -0.25rem;
+    padding: 0 0.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rv_grid {
+    display: flex;
+    gap: 0;
+    min-width: fit-content;
+}
+
+.rv_grid-time-col {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.rv_grid-corner {
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.rv_grid-time-label {
+    height: 28px;
+    margin: 1px 0;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+    opacity: 0.35;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.rv_grid-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 52px;
+
+    &--gap {
+        min-width: 24px;
+        max-width: 28px;
+        opacity: 0.25;
+    }
+}
+
+.rv_grid-date-header {
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    border: none;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0.2rem 0;
+    border-radius: 6px;
+    transition: background 0.12s;
+
+    &:hover:not(.rv_grid-date-header--gap):not(.rv_grid-date-header--result) {
+        background: color-mix(in srgb, currentColor 5%, transparent);
+    }
+
+    &--gap {
+        cursor: default;
+        opacity: 0.6;
+    }
+
+    &--result {
+        cursor: default;
+    }
+}
+
+.rv_grid-date-day {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.5;
+}
+
+.rv_grid-date-num {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+// --- Shared cell base ---
+.rv_grid-cell {
+    height: 28px;
+    margin: 1px 2px;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.1s, border-color 0.1s;
+
+    &:hover:not(.rv_grid-cell--gap):not(.rv_grid-cell--active) {
+        background: color-mix(in srgb, var(--primary-c) 10%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 25%, transparent);
+    }
+
+    // Respond mode
+    &--active {
+        background: color-mix(in srgb, var(--primary-c) 25%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 45%, transparent);
+
+        &:hover {
+            background: color-mix(in srgb, var(--primary-c) 35%, transparent) !important;
+            border-color: color-mix(in srgb, var(--primary-c) 55%, transparent) !important;
+        }
+    }
+
+    // Result mode (heatmap)
+    &--heatmap {
+        cursor: default;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        &:hover {
+            background: transparent;
+            border-color: color-mix(in srgb, var(--gray-da) 12%, transparent);
+        }
+    }
+
+    &--filled {
+        cursor: pointer;
+        background: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 70% + 8%),
+            transparent
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 40% + 10%),
+            transparent
+        );
+    }
+
+    &--best {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-c) 50%, transparent);
+    }
+
+    &--hovered {
+        transform: scale(1.08);
+        z-index: 1;
+        border-color: var(--primary-c);
+        transition: border-color 0.12s, transform 0.1s;
+    }
+
+    &--gap {
+        border-color: transparent;
+        cursor: default;
+        background: color-mix(in srgb, currentColor 2%, transparent);
+
+        &:hover {
+            background: color-mix(in srgb, currentColor 2%, transparent);
+            border-color: transparent;
+        }
+    }
+}
+
+.rv_grid-cell-count {
+    font-size: 0.6rem;
+    font-weight: 600;
+    opacity: 0.7;
+}

@@ -1,7 +1,9 @@
 import React from "react";
 import {BarChart3, Send} from "lucide-react";
 import {type EventMeta} from "../types.ts";
-import {formatDateShort, formatTime12h, generateTimeSlots, getDateRange, getWeekRows, slotKey} from "../utils.ts";
+import {formatDateShort, generateTimeSlots, getDateRange, getWeekRows, slotKey} from "../utils.ts";
+import WeekGrid from "../components/WeekGrid.tsx";
+import TimeSlotGrid from "../components/TimeSlotGrid.tsx";
 import Divider from "../../../components/Divider/Divider.tsx";
 import "./RespondView.scss";
 
@@ -28,8 +30,6 @@ export default function RespondView(
     const toggleColumn = (dateStr: string) => {
         const columnSlots = timeSlots.map(t => slotKey(dateStr, t));
         const allSelected = columnSlots.every(k => selectedSlots.has(k));
-
-        // If all are selected, deselect all; otherwise select all
         columnSlots.forEach(k => {
             if (allSelected) {
                 if (selectedSlots.has(k)) onToggleSlot(k);
@@ -71,113 +71,57 @@ export default function RespondView(
 
             {/* Availability grid */}
             {isDay ? (
-                <div className="rv_week-grid">
-                    {/* Weekday headers */}
-                    <div className="rv_week-header">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-                            <div key={d} className="rv_week-header-cell smaller-caption-text">{d}</div>
-                        ))}
-                    </div>
-
-                    {/* Week rows */}
-                    {weekRows.map((week, wi) => (
-                        <div key={wi} className="rv_week-row">
-                            {week.map(cell => {
-                                const info = formatDateShort(cell.date);
-                                const key = slotKey(cell.date, "00:00");
-                                const isActive = selectedSlots.has(key);
-
-                                if (!cell.isSelected) {
-                                    return (
-                                        <div key={cell.date} className="rv_week-cell rv_week-cell--context">
-                                            <span className="rv_week-cell-num">{info.date}</span>
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <button
-                                        key={cell.date}
-                                        className={[
-                                            "rv_week-cell",
-                                            "rv_week-cell--selectable",
-                                            isActive && "rv_week-cell--active",
-                                        ].filter(Boolean).join(" ")}
-                                        onClick={() => onToggleSlot(key)}
-                                    >
-                                        <span className="rv_week-cell-num">{info.date}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))}
-
-                    {weekRows.length > 0 && (
-                        <p className="rv_week-month-label smaller-caption-text">
-                            {formatDateShort(weekRows[0][0].date).month} {new Date(weekRows[0][0].date + "T00:00:00").getFullYear()}
-                            {weekRows.length > 1 && weekRows[0][0].date.slice(0, 7) !== weekRows[weekRows.length - 1][6].date.slice(0, 7) && (
-                                <> – {formatDateShort(weekRows[weekRows.length - 1][6].date).month} {new Date(weekRows[weekRows.length - 1][6].date + "T00:00:00").getFullYear()}</>
-                            )}
-                        </p>
-                    )}
-                </div>
-            ) : (
-                <div className="rv_grid-wrapper">
-                    <div className="rv_grid">
-                        {/* Time label column */}
-                        <div className="rv_grid-time-col">
-                            <div className="rv_grid-corner" />
-                            {timeSlots.map(t => (
-                                <div key={t} className="rv_grid-time-label smaller-caption-text">
-                                    {formatTime12h(t)}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Date columns */}
-                        {dateRange.map(({date, isSelected}) => {
-                            const info = formatDateShort(date);
-
-                            if (!isSelected) {
-                                return (
-                                    <div key={date} className="rv_grid-col rv_grid-col--gap">
-                                        <div className="rv_grid-date-header rv_grid-date-header--gap smaller-caption-text">
-                                            <span>{info.day}</span>
-                                            <span>{info.date}</span>
-                                        </div>
-                                        {timeSlots.map((_, i) => (
-                                            <div key={i} className="rv_grid-cell rv_grid-cell--gap" />
-                                        ))}
-                                    </div>
-                                );
-                            }
-
+                <WeekGrid
+                    weekRows={weekRows}
+                    renderCell={(cell, key) => {
+                        const info = formatDateShort(cell.date);
+                        if (!cell.isSelected) {
                             return (
-                                <div key={date} className="rv_grid-col">
-                                    <button
-                                        className="rv_grid-date-header"
-                                        onClick={() => toggleColumn(date)}
-                                        title="Select/deselect entire day"
-                                    >
-                                        <span className="rv_grid-date-day">{info.day}</span>
-                                        <span className="rv_grid-date-num">{info.date}</span>
-                                    </button>
-                                    {timeSlots.map(t => {
-                                        const key = slotKey(date, t);
-                                        const isActive = selectedSlots.has(key);
-                                        return (
-                                            <button
-                                                key={key}
-                                                className={`rv_grid-cell ${isActive ? "rv_grid-cell--active" : ""}`}
-                                                onClick={() => onToggleSlot(key)}
-                                            />
-                                        );
-                                    })}
+                                <div key={cell.date} className="rv_week-cell rv_week-cell--context">
+                                    <span className="rv_week-cell-num">{info.date}</span>
                                 </div>
                             );
-                        })}
-                    </div>
-                </div>
+                        }
+                        const isActive = selectedSlots.has(key);
+                        return (
+                            <button
+                                key={cell.date}
+                                className={[
+                                    "rv_week-cell rv_week-cell--selectable",
+                                    isActive && "rv_week-cell--active",
+                                ].filter(Boolean).join(" ")}
+                                onClick={() => onToggleSlot(key)}
+                            >
+                                <span className="rv_week-cell-num">{info.date}</span>
+                            </button>
+                        );
+                    }}
+                />
+            ) : (
+                <TimeSlotGrid
+                    timeSlots={timeSlots}
+                    dateRange={dateRange}
+                    renderDateHeader={(date, info) => (
+                        <button
+                            className="rv_grid-date-header"
+                            onClick={() => toggleColumn(date)}
+                            title="Select/deselect entire day"
+                        >
+                            <span className="rv_grid-date-day">{info.day}</span>
+                            <span className="rv_grid-date-num">{info.date}</span>
+                        </button>
+                    )}
+                    renderCell={(_date, _time, key) => {
+                        const isActive = selectedSlots.has(key);
+                        return (
+                            <button
+                                key={key}
+                                className={`rv_grid-cell ${isActive ? "rv_grid-cell--active" : ""}`}
+                                onClick={() => onToggleSlot(key)}
+                            />
+                        );
+                    }}
+                />
             )}
 
             <p className="rv_slot-count smaller-caption-text">

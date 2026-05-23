@@ -21,6 +21,7 @@ import _unveil_dark from "../../../assets/projects/unveil_dark.png";
 import _unveil_light from "../../../assets/projects/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
+import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import {formatDate} from "../../../utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
@@ -44,6 +45,15 @@ const projects: CardProps[] = [
         description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
         url: "/expedite",
         footer: "Same-day shipping!"
+    },
+    {
+        title: "Rendezvous",
+        subTitle: "A tool to help schedule group events",
+        image: _rendezvous,
+        chipText: "🟢 Stable",
+        description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
+        url: "/rendezvous",
+        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
     },
     {
         title: "TechNexus",
@@ -83,15 +93,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
-    },
-    {
-        title: "Rendezvous",
-        subTitle: "A tool to help schedule group events",
-        image: _endPortal,
-        chipText: "🚧 WIP",
-        description: "Want to plan a meetup but handling availabilities is a pain? This app would allow users to easily share their availabilities and find the best time for a group event.",
-        url: "/rendezvous",
-        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
     },
     {
         title: "SuperICU",

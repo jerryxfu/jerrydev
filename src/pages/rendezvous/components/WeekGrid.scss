@@ -1,0 +1,112 @@
+.rv_week-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.rv_week-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.rv_week-header-cell {
+    text-align: center;
+    font-weight: 600;
+    text-transform: uppercase;
+    opacity: 0.4;
+    padding: 0.25rem 0;
+}
+
+.rv_week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.rv_week-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 8%, transparent);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    padding: 0;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    min-height: 48px;
+
+    &--context {
+        opacity: 0.18;
+        border-color: transparent;
+        cursor: default;
+    }
+
+    &--selectable {
+        cursor: pointer;
+        border-color: color-mix(in srgb, var(--gray-da) 14%, transparent);
+    }
+
+    // Respond mode: tap to toggle
+    &--active {
+        background: color-mix(in srgb, var(--primary-c) 22%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 45%, transparent);
+        color: var(--primary-c);
+
+        &:hover {
+            background: color-mix(in srgb, var(--primary-c) 30%, transparent);
+        }
+    }
+
+    &--selectable:hover:not(.rv_week-cell--active):not(.rv_week-cell--filled) {
+        background: color-mix(in srgb, var(--primary-c) 8%, transparent);
+        border-color: color-mix(in srgb, var(--primary-c) 20%, transparent);
+    }
+
+    // Result mode: heatmap
+    &--filled {
+        background: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 70% + 8%),
+            transparent
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 40% + 10%),
+            transparent
+        );
+        cursor: pointer;
+    }
+
+    &--best {
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--primary-c) 50%, transparent);
+    }
+
+    &--hovered {
+        transform: scale(1.06);
+        z-index: 1;
+        border-color: var(--primary-c);
+    }
+}
+
+.rv_week-cell-num {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.rv_week-cell-count {
+    font-size: 0.55rem;
+    font-weight: 600;
+    opacity: 0.55;
+    letter-spacing: 0.02em;
+}
+
+.rv_week-month-label {
+    text-align: center;
+    opacity: 0.3;
+    margin: 0.25rem 0 0;
+}
