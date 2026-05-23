@@ -1,0 +1,161 @@
+.rv_result {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.rv_result-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.rv_result-meta {
+    margin: 0.15rem 0 0;
+    opacity: 0.35;
+    letter-spacing: 0.02em;
+}
+
+// --- Respondents ---
+.rv_respondents {
+    border: 1px solid var(--border-c);
+    border-radius: 10px;
+    padding: 0.75rem 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rv_respondents-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0.6;
+}
+
+.rv_respondent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.rv_respondent-chip {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
+    border-radius: 5px;
+    background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+// --- Legend ---
+.rv_legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.rv_legend-label {
+    opacity: 0.4;
+}
+
+.rv_legend-gradient {
+    width: 100px;
+    height: 12px;
+    border-radius: 3px;
+    background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--primary-c) 10%, transparent),
+        color-mix(in srgb, var(--primary-c) 55%, transparent),
+        color-mix(in srgb, var(--primary-c) 90%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, var(--primary-c) 15%, transparent);
+}
+
+// --- Heatmap grid (extends base grid from RespondView) ---
+.rv_grid-date-header--result {
+    cursor: default;
+
+    &:hover {
+        background: transparent;
+    }
+}
+
+.rv_heatmap-cell {
+    height: 28px;
+    margin: 1px 2px;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 8%, transparent);
+    border-radius: 4px;
+    background: transparent;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.12s, transform 0.1s;
+    position: relative;
+
+    &--filled {
+        // Dynamic background using CSS custom property --heat (0..1)
+        background: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 70% + 8%),
+            transparent
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--primary-c) calc(var(--heat) * 40% + 10%),
+            transparent
+        );
+        cursor: pointer;
+    }
+
+    &--best {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-c) 50%, transparent);
+    }
+
+    &--hovered {
+        transform: scale(1.08);
+        z-index: 1;
+        border-color: var(--primary-c);
+    }
+
+    &--gap {
+        border-color: transparent;
+        background: color-mix(in srgb, currentColor 2%, transparent);
+    }
+}
+
+.rv_heatmap-count {
+    font-size: 0.6rem;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+// --- Tooltip ---
+.rv_tooltip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border-da-c);
+    border-radius: 8px;
+    background: var(--surface-c);
+}
+
+.rv_tooltip-time {
+    opacity: 0.5;
+    font-weight: 500;
+}
+
+.rv_tooltip-names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.rv_tooltip-name {
+    font-size: 0.82rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--primary-c) 12%, transparent);
+}

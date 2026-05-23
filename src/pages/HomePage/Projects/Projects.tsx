@@ -85,6 +85,15 @@ const projects: CardProps[] = [
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
     },
     {
+        title: "Rendezvous",
+        subTitle: "A tool to help schedule group events",
+        image: _endPortal,
+        chipText: "🚧 WIP",
+        description: "Want to plan a meetup but handling availabilities is a pain? This app would allow users to easily share their availabilities and find the best time for a group event.",
+        url: "/rendezvous",
+        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
+    },
+    {
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
@@ -200,14 +209,6 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18T00:00:00")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
-    },
-    {
-        title: "Group availability app",
-        subTitle: "A tool to help schedule group events",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        description: "Want to plan a meetup but handling availabilities is a pain? This app would allow users to easily share their availabilities and find the best time for a group event.",
-        dateDisplay: "awaiting"
     },
     {
         title: "Pulse",

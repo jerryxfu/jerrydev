@@ -1,0 +1,180 @@
+.rv {
+    height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 1.2rem 1.5rem 0;
+    position: relative;
+    overflow-y: auto;
+
+    @media screen and (max-width: 768px) {
+        padding: 0.8rem 1.25rem 3rem;
+    }
+}
+
+.rv_home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.3;
+    transition: opacity 0.15s;
+    align-self: flex-start;
+
+    &:hover {
+        opacity: 0.6;
+    }
+}
+
+.rv_container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.rv_header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    h1 {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.025em;
+    }
+}
+
+.rv_back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.5;
+    margin-bottom: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s;
+
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+// --- Shared buttons ---
+.rv_btn--success {
+    border-color: color-mix(in srgb, var(--success) 80%, transparent) !important;
+    background: color-mix(in srgb, var(--success) 9%, transparent) !important;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.rv_btn-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rv_btn-primary {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary-c);
+    color: var(--bg-da-c);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+        opacity: 0.85;
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+}
+
+.rv_btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+        background: color-mix(in srgb, currentColor 4%, transparent);
+    }
+}
+
+.rv_btn-full {
+    width: 100%;
+    margin-top: 0.25rem;
+}
+
+.rv_error {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #c0392b;
+}
+
+.rv_spacer {
+    flex: 1;
+}
+
+.rv_stats {
+    margin-top: auto;
+    padding-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0.4;
+}
+
+.rv_footer {
+    text-align: center;
+    padding: 0.5rem 0 0.75rem;
+
+    p {
+        margin: 0;
+        font-size: 0.80rem;
+        opacity: 0.3;
+
+        a {
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}

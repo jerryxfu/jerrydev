@@ -9,12 +9,14 @@ import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
+import Rendezvous from "./pages/rendezvous/Rendezvous.tsx";
 
 const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
 const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
 const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
 const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
+const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1.0";
 
@@ -45,6 +47,10 @@ const router = createBrowserRouter([
     {
         path: "/scheduler",
         element: renderLazy(<LazyScheduler />)
+    },
+    {
+        path: "/rendezvous",
+        element: renderLazy(<Rendezvous />)
     },
     {
         path: "/supericu",
