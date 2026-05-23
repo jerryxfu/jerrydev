@@ -9,7 +9,6 @@ import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
-import Rendezvous from "./pages/rendezvous/Rendezvous.tsx";
 
 const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
 const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
@@ -50,7 +49,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/rendezvous",
-        element: renderLazy(<Rendezvous />)
+        element: renderLazy(<LazyRendezvous />)
     },
     {
         path: "/supericu",

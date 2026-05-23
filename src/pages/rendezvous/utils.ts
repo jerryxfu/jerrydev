@@ -173,7 +173,7 @@ export function getWeekRows(selectedDates: string[]): WeekCell[][] {
 
     // Build all weeks in range
     const allWeeks: WeekCell[][] = [];
-    let weekStart = new Date(monday);
+    const weekStart = new Date(monday);
 
     while (weekStart <= sunday) {
         const week: WeekCell[] = [];
