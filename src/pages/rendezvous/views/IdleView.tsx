@@ -12,16 +12,16 @@ export default function IdleView({onCreateEvent, onJoinEvent}: IdleViewProps) {
             <button className="rv_action-btn" onClick={onCreateEvent}>
                 <CalendarPlus size={22} strokeWidth={1.5} />
                 <div className="rv_action-text">
-                    <span className="small-text">Create event</span>
-                    <span className="smaller-caption-text">Pick dates and share with your group</span>
+                    <h3 className="text-small">Create event</h3>
+                    <p className="text-caption">Pick dates and share with your group</p>
                 </div>
             </button>
 
             <button className="rv_action-btn" onClick={onJoinEvent}>
                 <Users size={22} strokeWidth={1.5} />
                 <div className="rv_action-text">
-                    <span className="small-text">Join event</span>
-                    <span className="smaller-caption-text">Enter a code to add your availability</span>
+                    <h3 className="text-small">Join event</h3>
+                    <p className="text-caption">Enter a code to add your availability</p>
                 </div>
             </button>
         </div>
