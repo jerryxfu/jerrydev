@@ -18,7 +18,7 @@ function animateIn(el: HTMLElement | null, delay = 0) {
     if (!el) return;
     gsap.fromTo(el,
         {opacity: 0, y: 16},
-        {opacity: 1, y: 0, duration: 0.4, delay, ease: "power2.out"}
+        {opacity: 1, y: 0, duration: 0.33, delay, ease: "power2.out"}
     );
 }
 
@@ -243,7 +243,9 @@ export default function Rendezvous() {
                         </button>
                     )}
                     <h1>Rendezvous 🗓️</h1>
-                    <p className="caption-text">Find the best time for your group to meet!</p>
+                    {view === "idle" && (
+                        <p className="caption-text">Find the best time for your group to meet!</p>
+                    )}
                 </header>
 
                 {/* Views */}

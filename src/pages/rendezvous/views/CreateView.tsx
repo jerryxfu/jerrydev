@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 import {type EventSettings, GRANULARITY_OPTIONS, TTL_PRESETS} from "../types.ts";
 import {formatDuration, getCalendarMonth, toISODate} from "../utils.ts";
+import Divider from "../../../components/Divider/Divider.tsx";
 import "./CreateView.scss";
 
 interface CreateViewProps {
@@ -172,6 +173,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
 
             {error && <p className="rv_error">{error}</p>}
 
+            <Divider />
             <div className="rv_btn-row">
                 <button className="rv_btn-secondary" onClick={onCancel}>Cancel</button>
                 <button

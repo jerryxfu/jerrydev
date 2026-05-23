@@ -72,9 +72,7 @@
     border: 1px solid color-mix(in srgb, var(--primary-c) 15%, transparent);
 }
 
-// =============================================
-// Week grid (full-day mode)
-// =============================================
+// --- Week grid (full-day mode) ---
 .rv_week-grid {
     display: flex;
     flex-direction: column;

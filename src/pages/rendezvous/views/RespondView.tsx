@@ -2,6 +2,7 @@ import React from "react";
 import {BarChart3, Send} from "lucide-react";
 import {type EventMeta} from "../types.ts";
 import {formatDateShort, formatTime12h, generateTimeSlots, getDateRange, getWeekRows, slotKey} from "../utils.ts";
+import Divider from "../../../components/Divider/Divider.tsx";
 import "./RespondView.scss";
 
 interface RespondViewProps {
@@ -185,6 +186,7 @@ export default function RespondView(
 
             {error && <p className="rv_error">{error}</p>}
 
+            <Divider />
             <div className="rv_btn-row">
                 <button className="rv_btn-secondary" onClick={onViewResults}>
                     <BarChart3 size={14} />

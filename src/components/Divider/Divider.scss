@@ -1,0 +1,18 @@
+.divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    margin: 0;
+
+    &--sm {
+        margin: 0.25rem 0;
+    }
+
+    &--md {
+        margin: 0.6rem 0;
+    }
+
+    &--lg {
+        margin: 1rem 0;
+    }
+}

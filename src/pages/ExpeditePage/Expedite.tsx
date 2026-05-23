@@ -18,7 +18,7 @@ function animateIn(el: HTMLElement | null, delay = 0) {
     if (!el) return;
     gsap.fromTo(el,
         {opacity: 0, y: 16},
-        {opacity: 1, y: 0, duration: 0.4, delay, ease: "power2.out"}
+        {opacity: 1, y: 0, duration: 0.33, delay, ease: "power2.out"}
     );
 }
 
@@ -275,7 +275,9 @@ export default function Expedite() {
                         </button>
                     )}
                     <h1>Expedite 📦</h1>
-                    <p className="caption-text">Share files and text snippets with instantaneous same-day shipping (guaranteed)!</p>
+                    {view === "idle" && (
+                        <p className="caption-text">Share files and text snippets with instantaneous same-day shipping (guaranteed)!</p>
+                    )}
                 </header>
 
                 {/* Views */}

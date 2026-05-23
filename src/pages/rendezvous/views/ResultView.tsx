@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {Check, Clipboard, Link, UserPlus, Users} from "lucide-react";
 import {type EventMeta} from "../types.ts";
 import {formatDateShort, formatTime12h, generateTimeSlots, getDateRange, getEventUrl, getWeekRows, slotKey, timeUntil} from "../utils.ts";
+import Divider from "../../../components/Divider/Divider.tsx";
 import "./ResultView.scss";
 
 const WEEKDAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -31,7 +32,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
         }
     }
 
-    // Find the best slot(s) — most people available
+    // Find the best slot(s): most people available
     const maxAvail = Math.max(0, ...Array.from(slotAvailability.values()).map(v => v.length));
 
     // Get names for hovered slot
@@ -230,6 +231,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             )}
 
             {/* Actions */}
+            <Divider />
             <div className="rv_btn-row">
                 <button
                     className="rv_btn-secondary"
