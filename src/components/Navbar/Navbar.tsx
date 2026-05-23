@@ -18,8 +18,9 @@ const linksLeft: { href: string; label: string }[] = [
 
 const linksRight: { label: string; href: string; target?: string }[] = [
     {label: "Expedite 📦", href: "/expedite"},
-    {label: "GitHub", href: "https://github.com/jerryxfu"},
-    {label: "Curriculum Vitae", href: "https://cv.jerryxf.net/"},
+    {label: "Rendezvous 🗓️", href: "/expedite"},
+    // {label: "GitHub", href: "https://github.com/jerryxfu"},
+    // {label: "Curriculum Vitae", href: "https://cv.jerryxf.net/"},
 ];
 
 const formatThemeName = (theme: string) =>

@@ -1,8 +1,9 @@
 export type ViewMode = "idle" | "creating" | "created" | "joining" | "responding" | "result";
 
-export type Granularity = 15 | 30 | 60;
+export type Granularity = "day" | 15 | 30 | 60;
 
 export const GRANULARITY_OPTIONS: { label: string; value: Granularity }[] = [
+    {label: "Full day", value: "day"},
     {label: "15 min", value: 15},
     {label: "30 min", value: 30},
     {label: "1 hour", value: 60},

@@ -5,6 +5,8 @@ import {type Granularity} from "./types.ts";
  * Returns array of "HH:MM" strings.
  */
 export function generateTimeSlots(start: string, end: string, granularity: Granularity): string[] {
+    if (granularity === "day") return ["00:00"];
+
     const slots: string[] = [];
     const [startH, startM] = start.split(":").map(Number);
     const [endH, endM] = end.split(":").map(Number);
@@ -137,4 +139,58 @@ export function getCalendarMonth(year: number, month: number): (Date | null)[][]
  */
 export function toISODate(d: Date): string {
     return d.toISOString().split("T")[0];
+}
+
+export interface WeekCell {
+    date: string;         // ISO date
+    isSelected: boolean;  // part of the event's selected dates
+    dayOfWeek: number;    // 0=Mon, 1=Tue, ..., 6=Sun
+}
+
+/**
+ * Group selected dates into Mon–Sun week rows.
+ * Only returns weeks containing at least one selected date.
+ * Each week is padded to 7 cells with context days.
+ */
+export function getWeekRows(selectedDates: string[]): WeekCell[][] {
+    if (selectedDates.length === 0) return [];
+
+    const selectedSet = new Set(selectedDates);
+    const sorted = [...selectedDates].sort();
+
+    // Find the Monday of the earliest date's week and Sunday of the latest
+    const firstDate = new Date(sorted[0] + "T00:00:00");
+    const lastDate = new Date(sorted[sorted.length - 1] + "T00:00:00");
+
+    // getDay: 0=Sun,1=Mon,...,6=Sat → convert to 0=Mon,...,6=Sun
+    const toMondayBased = (d: Date) => (d.getDay() + 6) % 7;
+
+    const monday = new Date(firstDate);
+    monday.setDate(monday.getDate() - toMondayBased(firstDate));
+
+    const sunday = new Date(lastDate);
+    sunday.setDate(sunday.getDate() + (6 - toMondayBased(lastDate)));
+
+    // Build all weeks in range
+    const allWeeks: WeekCell[][] = [];
+    let weekStart = new Date(monday);
+
+    while (weekStart <= sunday) {
+        const week: WeekCell[] = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(weekStart);
+            d.setDate(d.getDate() + i);
+            const iso = toISODate(d);
+            week.push({
+                date: iso,
+                isSelected: selectedSet.has(iso),
+                dayOfWeek: i,
+            });
+        }
+        allWeeks.push(week);
+        weekStart.setDate(weekStart.getDate() + 7);
+    }
+
+    // Filter to only weeks containing at least one selected date
+    return allWeeks.filter(week => week.some(cell => cell.isSelected));
 }

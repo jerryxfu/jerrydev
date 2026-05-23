@@ -117,27 +117,6 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                 <p className="rv_settings-title caption-text">Settings</p>
 
                 <div className="rv_setting-row">
-                    <label className="smaller-caption-text">Time range</label>
-                    <div className="rv_time-range">
-                        <select
-                            className="rv_time-select"
-                            value={settings.timeStart}
-                            onChange={(e) => setSettings(s => ({...s, timeStart: e.target.value}))}
-                        >
-                            {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
-                        </select>
-                        <span className="rv_time-separator">–</span>
-                        <select
-                            className="rv_time-select"
-                            value={settings.timeEnd}
-                            onChange={(e) => setSettings(s => ({...s, timeEnd: e.target.value}))}
-                        >
-                            {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
-                        </select>
-                    </div>
-                </div>
-
-                <div className="rv_setting-row">
                     <label className="smaller-caption-text">Slot size</label>
                     <div className="rv_pill-row">
                         {GRANULARITY_OPTIONS.map(g => (
@@ -151,6 +130,29 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                         ))}
                     </div>
                 </div>
+
+                {settings.granularity !== "day" && (
+                    <div className="rv_setting-row">
+                        <label className="smaller-caption-text">Time range</label>
+                        <div className="rv_time-range">
+                            <select
+                                className="rv_time-select"
+                                value={settings.timeStart}
+                                onChange={(e) => setSettings(s => ({...s, timeStart: e.target.value}))}
+                            >
+                                {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
+                            </select>
+                            <span className="rv_time-separator">–</span>
+                            <select
+                                className="rv_time-select"
+                                value={settings.timeEnd}
+                                onChange={(e) => setSettings(s => ({...s, timeEnd: e.target.value}))}
+                            >
+                                {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 <div className="rv_setting-row">
                     <label className="smaller-caption-text">Expires after</label>
