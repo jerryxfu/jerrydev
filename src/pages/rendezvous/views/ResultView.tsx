@@ -41,7 +41,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             {/* Event info */}
             <div className="rv_result-header">
                 <div>
-                    <h2 className="rv_event-title">{event.title}</h2>
+                    <h2 className="rv_event-title">Event: {event.title}</h2>
                     <p className="rv_result-meta smaller-caption-text">
                         {event.code} · expires {timeUntil(event.expiresAt)}
                     </p>

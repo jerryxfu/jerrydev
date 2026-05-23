@@ -6,6 +6,7 @@ import {type Granularity} from "./types.ts";
  */
 export function generateTimeSlots(start: string, end: string, granularity: Granularity): string[] {
     if (granularity === "day") return ["00:00"];
+    if (granularity === "half") return ["00:00", "12:00"];
 
     const slots: string[] = [];
     const [startH, startM] = start.split(":").map(Number);

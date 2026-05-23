@@ -23,7 +23,7 @@ export default function JoinView({code, setCode, error, loading, onJoin, onCance
                 <input
                     className="rv_code-input"
                     type="text"
-                    placeholder="ABC123"
+                    placeholder="Enter event code"
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
                     onKeyDown={handleKeyDown}

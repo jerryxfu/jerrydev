@@ -132,7 +132,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                     </div>
                 </div>
 
-                {settings.granularity !== "day" && (
+                {settings.granularity !== "day" && settings.granularity !== "half" && (
                     <div className="rv_setting-row">
                         <label className="smaller-caption-text">Time range</label>
                         <div className="rv_time-range">
