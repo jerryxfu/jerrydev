@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS: EventSettings = {
     dates: [],
     timeStart: "09:00",
     timeEnd: "21:00",
-    granularity: 30,
+    granularity: "day",
     ttlMs: 259_200_000, // 3 days
 };
 
