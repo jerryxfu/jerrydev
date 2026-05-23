@@ -1,5 +1,5 @@
 import React from "react";
-import {BreakPeriod, Schedule as ScheduleType} from "../../../types/schedule";
+import {type BreakPeriod, type Schedule as ScheduleType} from "../../../types/schedule";
 import ScheduleEvent from "./ScheduleEvent";
 import {getNextEvent, minutesToTime, timeToMinutes} from "../timeUtils.ts";
 import TimeColumn from "./TimeColumn";

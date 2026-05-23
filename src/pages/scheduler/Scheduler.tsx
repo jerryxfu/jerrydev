@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {Helmet} from "react-helmet-async";
 import Schedule from "./components/Schedule";
-import {Schedule as ScheduleType} from "../../types/schedule";
+import {type Schedule as ScheduleType} from "../../types/schedule";
 import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
 import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";

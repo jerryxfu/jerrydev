@@ -1,4 +1,4 @@
-import React, {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import React, {createContext, type ReactNode, useContext, useEffect, useMemo, useState} from "react";
 
 type Theme = "default" | "night";
 type ThemePreference = "auto" | Theme;
@@ -31,47 +31,39 @@ function getInitialPreference(): ThemePreference {
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
-    const [currentTheme, setCurrentTheme] = useState<Theme>(() => resolveTheme(getInitialPreference()));
+    const [autoTheme, setAutoTheme] = useState<Theme>(() => resolveTheme("auto"));
 
-    // Apply theme to DOM
+    const currentTheme = useMemo(() =>
+            themePreference === "auto" ? autoTheme : themePreference,
+        [themePreference, autoTheme]);
+
+    // Apply theme to DOM + persist
     useEffect(() => {
-        const resolved = resolveTheme(themePreference);
-        setCurrentTheme(resolved);
-        document.documentElement.setAttribute("data-theme", resolved);
-        document.body.setAttribute("data-theme", resolved);
+        document.documentElement.setAttribute("data-theme", currentTheme);
+        document.body.setAttribute("data-theme", currentTheme);
         try {
             localStorage.setItem("themeName", themePreference);
         } catch (error) {
             console.warn("Failed to save theme preference:", error);
         }
-    }, [themePreference]);
+    }, [currentTheme, themePreference]);
 
     // Listen for OS theme changes when on auto
     useEffect(() => {
         if (themePreference !== "auto") return;
-
         const mq = window.matchMedia("(prefers-color-scheme: dark)");
-        const handler = () => {
-            const resolved = resolveTheme("auto");
-            setCurrentTheme(resolved);
-            document.documentElement.setAttribute("data-theme", resolved);
-            document.body.setAttribute("data-theme", resolved);
-        };
-
+        const handler = () => setAutoTheme(resolveTheme("auto"));
         mq.addEventListener("change", handler);
         return () => mq.removeEventListener("change", handler);
     }, [themePreference]);
 
     const toggleTheme = () => {
         const currentIndex = preferences.indexOf(themePreference);
-        const nextIndex = (currentIndex + 1) % preferences.length;
-        setThemePreference(preferences[nextIndex]!);
+        setThemePreference(preferences[(currentIndex + 1) % preferences.length]!);
     };
 
     const setTheme = (pref: ThemePreference) => {
-        if (preferences.includes(pref)) {
-            setThemePreference(pref);
-        }
+        if (preferences.includes(pref)) setThemePreference(pref);
     };
 
     return (

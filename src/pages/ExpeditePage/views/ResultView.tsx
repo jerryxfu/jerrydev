@@ -1,6 +1,6 @@
 import React from "react";
 import {Check, Clipboard, Download, File, FileText, Link, Trash2} from "lucide-react";
-import {DropMeta} from "../types.ts";
+import {type DropMeta} from "../types.ts";
 import {formatBytes, getDropUrl, timeUntil} from "../utils.ts";
 import "./ResultView.scss";
 

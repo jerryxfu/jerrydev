@@ -5,7 +5,7 @@ import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Expedite.scss";
 
-import {DEFAULT_SETTINGS, DropMeta, DropSettings, DropType, ViewMode} from "./types.ts";
+import {DEFAULT_SETTINGS, type DropMeta, type DropSettings, type DropType, type ViewMode} from "./types.ts";
 import {formatBytes} from "./utils.ts";
 import IdleView from "./views/IdleView.tsx";
 import UploadView from "./views/UploadView.tsx";

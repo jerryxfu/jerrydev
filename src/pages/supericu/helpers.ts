@@ -7,11 +7,12 @@ export type PaletteLike = {
     defaultText: string;
 };
 
-export function randomId() {
+export function randomId(): string {
     try {
         const b = (crypto && crypto.getRandomValues) ? crypto.getRandomValues(new Uint8Array(8)) : null;
         if (b) return Array.from(b).map(x => x.toString(16).padStart(2, "0")).join("");
     } catch {
+        // fall through
     }
     return Math.random().toString(36).slice(2);
 }

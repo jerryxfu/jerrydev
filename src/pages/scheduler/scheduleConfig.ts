@@ -1,4 +1,4 @@
-import {Schedule as ScheduleType} from "../../types/schedule";
+import {type Schedule as ScheduleType} from "../../types/schedule";
 
 const subjectColors = {
     biology: "#c1e1c1",     // green

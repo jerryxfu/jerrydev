@@ -1,6 +1,6 @@
 import "./Experience.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
-import Card, {CardProps} from "../../../components/Card/Card.tsx";
+import Card, {type CardProps} from "../../../components/Card/Card.tsx";
 import _crchum from "../../../assets/experience/crchum.png";
 import _t4k from "../../../assets/experience/t4k_special_edition.png";
 import _ftc from "../../../assets/experience/ftc_icon_horz.png";

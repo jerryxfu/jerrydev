@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
 
 export type AlarmLevel = "critical" | "warning" | "advisory";
 export type AlertItem = { id: string; time: string; level: AlarmLevel; msg: string };
@@ -41,50 +41,6 @@ function mergeDemoSettings(base: DemoSettings, overrides?: DeepPartial<DemoSetti
             dia: {...base.bp.dia, ...(overrides.bp?.dia ?? {})},
         },
     };
-}
-
-// Waveform templates isolated here
-export function useWaveTemplates() {
-    const ecgTemplate = useMemo(() => {
-        const samples = 300;
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples;
-            const p = 0.15 * Math.exp(-Math.pow((x - 0.22) / 0.03, 2));
-            const q = -0.15 * Math.exp(-Math.pow((x - 0.34) / 0.008, 2));
-            const r = 1.2 * Math.exp(-Math.pow((x - 0.36) / 0.006, 2));
-            const s = -0.25 * Math.exp(-Math.pow((x - 0.39) / 0.01, 2));
-            const t = 0.35 * Math.exp(-Math.pow((x - 0.62) / 0.06, 2));
-            arr[i] = p + q + r + s + t + (Math.random() - 0.5) * 0.02;
-        }
-        return arr;
-    }, []);
-
-    const plethTemplate = useMemo(() => {
-        const samples = 300;
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples;
-            const upstroke = Math.exp(-8 * Math.pow(x - 0.2, 2));
-            const decay = Math.exp(-3 * Math.max(0, x - 0.25));
-            const notch = -0.15 * Math.exp(-Math.pow((x - 0.45) / 0.02, 2));
-            arr[i] = 0.4 * upstroke + 0.6 * decay + notch + 0.02 * Math.sin(20 * x * Math.PI);
-        }
-        const min = Math.min(...arr), max = Math.max(...arr);
-        return arr.map(v => (v - min) / (max - min));
-    }, []);
-
-    const respTemplate = useMemo(() => {
-        const samples = 600;
-        const arr = new Array<number>(samples);
-        for (let i = 0; i < samples; i++) {
-            const x = i / samples;
-            arr[i] = Math.sin(2 * Math.PI * x) * 0.8 + 0.1 * Math.sin(6 * Math.PI * x);
-        }
-        return arr;
-    }, []);
-
-    return {ecgTemplate, plethTemplate, respTemplate} as const;
 }
 
 // Linear-interpolation sampler. phaseIdx can be fractional when spb=1.
@@ -197,3 +153,46 @@ export function modifyDemoSample(channel: "ecg" | "pleth" | "resp", raw: number,
 function clamp(x: number, lo: number, hi: number) {
     return Math.max(lo, Math.min(hi, x));
 }
+
+function generateEcgTemplate(): number[] {
+    const samples = 300;
+    const arr = new Array<number>(samples);
+    for (let i = 0; i < samples; i++) {
+        const x = i / samples;
+        const p = 0.15 * Math.exp(-Math.pow((x - 0.22) / 0.03, 2));
+        const q = -0.15 * Math.exp(-Math.pow((x - 0.34) / 0.008, 2));
+        const r = 1.2 * Math.exp(-Math.pow((x - 0.36) / 0.006, 2));
+        const s = -0.25 * Math.exp(-Math.pow((x - 0.39) / 0.01, 2));
+        const t = 0.35 * Math.exp(-Math.pow((x - 0.62) / 0.06, 2));
+        arr[i] = p + q + r + s + t + (Math.random() - 0.5) * 0.02;
+    }
+    return arr;
+}
+
+function generatePlethTemplate(): number[] {
+    const samples = 300;
+    const arr = new Array<number>(samples);
+    for (let i = 0; i < samples; i++) {
+        const x = i / samples;
+        const upstroke = Math.exp(-8 * Math.pow(x - 0.2, 2));
+        const decay = Math.exp(-3 * Math.max(0, x - 0.25));
+        const notch = -0.15 * Math.exp(-Math.pow((x - 0.45) / 0.02, 2));
+        arr[i] = 0.4 * upstroke + 0.6 * decay + notch + 0.02 * Math.sin(20 * x * Math.PI);
+    }
+    const min = Math.min(...arr), max = Math.max(...arr);
+    return arr.map(v => (v - min) / (max - min));
+}
+
+function generateRespTemplate(): number[] {
+    const samples = 600;
+    const arr = new Array<number>(samples);
+    for (let i = 0; i < samples; i++) {
+        const x = i / samples;
+        arr[i] = Math.sin(2 * Math.PI * x) * 0.8 + 0.1 * Math.sin(6 * Math.PI * x);
+    }
+    return arr;
+}
+
+export const ecgTemplate = generateEcgTemplate();
+export const plethTemplate = generatePlethTemplate();
+export const respTemplate = generateRespTemplate();

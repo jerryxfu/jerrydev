@@ -79,7 +79,7 @@ class AlertSound {
             type AudioContextCtor = { new(): AudioContext };
             const AnyWindow = window as unknown as { AudioContext?: AudioContextCtor; webkitAudioContext?: AudioContextCtor };
             const Ctor = AnyWindow.AudioContext ?? AnyWindow.webkitAudioContext;
-            // @ts-ignore
+            // @ts-expect-error type on Ctor could be undefined
             this.context = new Ctor();
         }
         return this.context;

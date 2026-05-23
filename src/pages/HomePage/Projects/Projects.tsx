@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import "./Projects.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
-import Card, {CardProps} from "../../../components/Card/Card.tsx";
+import Card, {type CardProps} from "../../../components/Card/Card.tsx";
 import _llmvsllm from "../../../assets/projects/llmvsllm.jpeg";
 import _baputils from "../../../assets/projects/baputils.jpeg";
 import _expedite from "../../../assets/projects/expedite.jpeg";
@@ -132,7 +132,7 @@ const projects: CardProps[] = [
         title: "Doublestartyre CA",
         subTitle: "",
         image: _doublestartyre,
-        chipText: "✅ Delivered",
+        chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2024-07-11T00:00:00")),
         url: "https://doublestartyre.ca",
         description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
@@ -206,8 +206,8 @@ const projects: CardProps[] = [
         subTitle: "A tool to help schedule group events",
         image: _endPortal,
         chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "description."
+        description: "Want to plan a meetup but handling availabilities is a pain? This app would allow users to easily share their availabilities and find the best time for a group event.",
+        dateDisplay: "awaiting"
     },
     {
         title: "Pulse",

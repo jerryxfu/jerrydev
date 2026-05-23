@@ -1,4 +1,4 @@
-import {Component, ErrorInfo, ReactNode} from "react";
+import {Component, type ErrorInfo, type ReactNode} from "react";
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -25,6 +25,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
         // Error reporting service?
         if (import.meta.env.MODE === "production") {
+            return;
         }
     }
 

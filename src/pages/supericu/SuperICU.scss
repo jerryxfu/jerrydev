@@ -20,9 +20,9 @@
     padding: 12px 8px 12px 12px;
     position: relative;
     overflow: auto;
+    z-index: 0; // establish stacking context
 }
 
-/* Subtle grid background like ICU screens */
 .super-icu .super-icu-core::before {
     content: "";
     position: absolute;
@@ -31,6 +31,7 @@
     linear-gradient(90deg, rgba(90, 110, 130, 0.18) 1px, transparent 1px);
     background-size: 24px 24px, 24px 24px;
     pointer-events: none;
+    z-index: -1; // behind all child content
 }
 
 /* Top bar */

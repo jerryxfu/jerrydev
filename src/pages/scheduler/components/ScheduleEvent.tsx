@@ -1,5 +1,5 @@
 import React from "react";
-import {ScheduleEvent as ScheduleEventType} from "../../../types/schedule";
+import {type ScheduleEvent as ScheduleEventType} from "../../../types/schedule";
 import {getEventTimeInfo, timeToMinutes} from "../timeUtils.ts";
 import "./ScheduleEvent.scss";
 

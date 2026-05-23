@@ -1,78 +1,91 @@
-import {RefObject, useEffect} from "react";
-import {modifyDemoSample, sampleTemplate, Vitals} from "./sim";
+import {type RefObject, useEffect} from "react";
+import {modifyDemoSample, sampleTemplate, type Vitals} from "./sim";
 import {alertSound} from "./sound";
 
-// Rendering-specific constants
+// --- Rendering constants ---
 const RENDER_CFG = {
-    TICK_MS: 20,
     LINE_WIDTH: 2,
-    CLEAR_WIDTH: 2,
-    AMP_FRAC: 0.4,
-    VAL_CLAMP: 1.2,
-    MIN_SAMPLES_PER_BEAT: 300,
+    AMP_FRAC: 0.40,          // vertical usage of canvas height
+    VAL_CLAMP: 1.2,          // clamp sample values to +/- 1.2
+    MIN_SAMPLES_PER_BEAT: 60, // for template sources, minimum samples to draw per beat (for smoothness at low rates)
+    ERASE_BAND_PX: 6,       // width of the gradient erase band ahead of the sweep
+
 } as const;
 
+// ---Types ---
 export type TemplateSource = {
     kind: "template";
     template: number[];
-    pace: "hr" | "rr"; // advance rate source
-    connected?: boolean; // for ECG lead-off rendering
-    heartbeat?: boolean; // emit heartbeat on wrap
+    pace: "hr" | "rr";
+    connected?: boolean;
+    heartbeat?: boolean;
 };
 
 export type CsvSource = {
     kind: "csv";
-    samples: number[] | Float32Array; // raw samples (unmodified)
+    samples: number[] | Float32Array;
     sampleHz: number;
-    yMin?: number; // optional render scaling domain
+    yMin?: number;
     yMax?: number;
 };
 
 export type DynamicChannel = {
     key: string;
-    ref: RefObject<HTMLCanvasElement | null>;
     color: string;
     source: TemplateSource | CsvSource;
 };
 
 export type SweepRendererOptions = {
     channels: DynamicChannel[];
+    canvasRefs: RefObject<Map<string, { current: HTMLCanvasElement | null }>>;
     showSeconds: number;
     initialized: boolean;
     vitalsRef: RefObject<Vitals>;
     heartbeatRef: RefObject<boolean>;
-    externalTimeSec?: number; // optional shared playhead for CSV channels
-    // New: optional callback to receive latest value per channel (val used for draw, and raw if available)
+    externalTimeSec?: number;
     onValue?: (key: string, val: number | null, raw?: number | null) => void;
-    // New: epoch time marker to reset renderer when playhead restarts (stable between ticks)
     timeEpochMs?: number | null;
 };
 
-// Sets up and runs the canvas sweep renderers for a dynamic set of channels
+// --- Sweep state per canvas ---
+type Sweep = {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+    dpr: number;
+    x: number;
+    lastX: number | null;
+    lastY: number | null;
+    color: string;
+    resize: () => void;
+    clearAll: () => void;
+};
+
+// --- Hook ---
 export function useSweepRenderer(opts: SweepRendererOptions) {
-    const {channels, showSeconds, initialized, vitalsRef, heartbeatRef, externalTimeSec, onValue, timeEpochMs} = opts;
+    const {channels, canvasRefs, showSeconds, initialized, vitalsRef, heartbeatRef, externalTimeSec, onValue, timeEpochMs} = opts;
 
     useEffect(() => {
-        // Build sweep objects for each channel that currently has a canvas element
-        type Sweep = {
-            canvas: HTMLCanvasElement;
-            ctx: CanvasRenderingContext2D;
-            width: number; height: number; dpr: number;
-            x: number; lastX: number | null; lastY: number | null;
-            color: string; lineWidth: number; clearW: number;
-            resize: () => void; clearAll: () => void;
-        };
+        const localObservers: ResizeObserver[] = [];
 
+        // Build sweep objects
         const sweeps: (Sweep | null)[] = channels.map(ch => {
-            const el = ch.ref.current;
+            const el = canvasRefs.current.get(ch.key)?.current ?? null;
             if (!el) return null;
             const ctx = el.getContext("2d");
             if (!ctx) return null;
+
             const s: Sweep = {
-                canvas: el, ctx,
-                width: 0, height: 0, dpr: window.devicePixelRatio || 1,
-                x: 0, lastX: null, lastY: null,
-                color: ch.color, lineWidth: RENDER_CFG.LINE_WIDTH, clearW: RENDER_CFG.CLEAR_WIDTH,
+                canvas: el,
+                ctx,
+                width: 0,
+                height: 0,
+                dpr: window.devicePixelRatio || 1,
+                x: 0,
+                lastX: null,
+                lastY: null,
+                color: ch.color,
                 resize: () => {
                     const dpr = window.devicePixelRatio || 1;
                     s.dpr = dpr;
@@ -95,44 +108,43 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                     ctx.restore();
                 },
             };
+
             s.resize();
             const ro = new ResizeObserver(() => s.resize());
             ro.observe(el);
-            resizeObservers.push(ro);
+            localObservers.push(ro);
             return s;
         });
 
-        // Track per-channel state (phase for templates)
+        // Per-channel phase tracking (template sources)
         const templatePhase = new Map<number, number>();
 
-        const tickMs = RENDER_CFG.TICK_MS;
         let tSec = 0;
         let lastTs = performance.now();
-        // For CSV playhead: base time from external playhead (if provided) plus local wall-clock accumulation
         const baseCsvSec = (typeof externalTimeSec === "number") ? externalTimeSec : 0;
         let wallAccumCsvSec = 0;
+        let rafId: number;
 
-        const timer = setInterval(() => {
-            const now = performance.now();
-            const elapsedSecWall = Math.max(0, (now - lastTs) / 1000);
+        // --- Main render loop (rAF) ---
+        const tick = (now: number) => {
+            const elapsedSecWall = Math.max(0, Math.min(0.1, (now - lastTs) / 1000)); // cap at 100ms to handle tab-switch
             lastTs = now;
             wallAccumCsvSec += elapsedSecWall;
             const playCsvSec = baseCsvSec + wallAccumCsvSec;
 
-            // Clear screens if not initialized
             if (!initialized) {
-                sweeps.forEach(s => s && s.clearAll());
-                // Also publish nulls so UI can blank values while not initialized
-                if (onValue) {
-                    channels.forEach(ch => onValue(ch.key, null, null));
-                }
+                sweeps.forEach(s => s?.clearAll());
+                if (onValue) channels.forEach(ch => onValue(ch.key, null, null));
+                rafId = requestAnimationFrame(tick);
                 return;
             }
 
             const v = vitalsRef.current;
-            if (!v) return;
+            if (!v) {
+                rafId = requestAnimationFrame(tick);
+                return;
+            }
 
-            // Iterate each channel and render
             channels.forEach((ch, idx) => {
                 const s = sweeps[idx];
                 if (!s) return;
@@ -170,7 +182,7 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                             alertSound.playHeartbeat();
                         }
                     }
-                    if (onValue) onValue(ch.key, lastValDrawn, lastValDrawn); // for templates, raw-ish equals drawn val
+                    if (onValue) onValue(ch.key, lastValDrawn, lastValDrawn);
                     templatePhase.set(idx, phase);
                 } else {
                     // CSV source
@@ -181,9 +193,9 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                         return;
                     }
                     const prevPlayCsvSec = playCsvSec - elapsedSecWall;
-                    const totalAdvance = sampleHz * elapsedSecWall; // samples advanced this frame
+                    const totalAdvance = sampleHz * elapsedSecWall;
                     const sub = Math.max(1, Math.ceil(Math.max(0, totalAdvance)));
-                    const subDt = (elapsedSecWall) / sub;
+                    const subDt = elapsedSecWall / sub;
 
                     let lastValDrawn: number | null = null;
                     let lastRaw: number | null = null;
@@ -194,15 +206,11 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                         if (pos < 0) pos += n;
                         const raw = sampleAt(samples, pos);
                         lastRaw = Number.isFinite(raw) ? raw : null;
-                        // Map to [-1,1] for rendering only (no data mutation)
                         let val: number;
-                        const ymin = yMin;
-                        const ymax = yMax;
-                        if (Number.isFinite(raw) && typeof ymin === "number" && typeof ymax === "number" && ymax > ymin) {
-                            const range = ymax - ymin;
-                            val = ((raw - ymin) / range) * 2 - 1;
+                        if (Number.isFinite(raw) && typeof yMin === "number" && typeof yMax === "number" && yMax > yMin) {
+                            val = ((raw - yMin) / (yMax - yMin)) * 2 - 1;
                         } else {
-                            val = raw as number; // fallback
+                            val = raw as number;
                         }
                         lastValDrawn = Number.isFinite(val) ? val : null;
                         drawSweep(s, val, dxTotal / sub);
@@ -211,56 +219,53 @@ export function useSweepRenderer(opts: SweepRendererOptions) {
                     if (onValue) onValue(ch.key, lastValDrawn, lastRaw);
                 }
             });
-        }, tickMs);
+
+            rafId = requestAnimationFrame(tick);
+        };
+
+        rafId = requestAnimationFrame(tick);
 
         return () => {
-            clearInterval(timer);
-            resizeObservers.forEach(r => r.disconnect());
-            resizeObservers.length = 0;
+            cancelAnimationFrame(rafId);
+            localObservers.forEach(r => r.disconnect());
         };
-        // do not include externalTimeSec in deps, we only want to capture its initial value
+        // do not include externalTimeSec in deps — we only capture its initial value
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channels, showSeconds, initialized, vitalsRef, heartbeatRef, onValue, timeEpochMs]);
+    }, [channels, canvasRefs, showSeconds, initialized, vitalsRef, heartbeatRef, onValue, timeEpochMs]);
 }
 
-const resizeObservers: ResizeObserver[] = [];
+// --- Drawing helpers ---
 
-const OVERWRITE_BAND_PX = 8;
+function drawSweep(
+    s: Sweep,
+    val: number,
+    dx: number,
+) {
+    const {ctx, width, height, color} = s;
+    const mid = height / 2;
+    const amp = height * RENDER_CFG.AMP_FRAC;
+    const eraseBand = RENDER_CFG.ERASE_BAND_PX;
 
-function drawSweep(s: {
-    ctx: CanvasRenderingContext2D;
-    width: number;
-    height: number;
-    x: number;
-    lastX: number | null;
-    lastY: number | null;
-    color: string;
-    lineWidth: number
-}, val: number, dx: number) {
-    const ctx = s.ctx;
-    const mid = s.height / 2;
-    const amp = s.height * RENDER_CFG.AMP_FRAC;
+    // Erase band ahead of the sweep cursor with a gradient fade
+    eraseAhead(ctx, s.x, width, height, Math.max(dx, eraseBand));
+
     if (!Number.isFinite(val)) {
-        // advance without drawing, clear strip
-        const clearW = Math.max(dx, OVERWRITE_BAND_PX);
-        ctx.clearRect(s.x, 0, clearW, s.height);
-        // move cursor
         const newX = s.x + dx;
-        // @ts-ignore
-        s.x = newX >= s.width ? 0 : newX;
-        // @ts-ignore
+        s.x = newX >= width ? 0 : newX;
         s.lastX = null;
-        // @ts-ignore
         s.lastY = null;
         return;
     }
-    const y = mid - Math.max(-RENDER_CFG.VAL_CLAMP, Math.min(RENDER_CFG.VAL_CLAMP, val)) * amp;
 
+    const clamped = Math.max(-RENDER_CFG.VAL_CLAMP, Math.min(RENDER_CFG.VAL_CLAMP, val));
+    const y = mid - clamped * amp;
+
+    // Main trace
     ctx.save();
-    const clearW = Math.max(dx, OVERWRITE_BAND_PX);
-    ctx.clearRect(s.x, 0, clearW, s.height);
-    ctx.strokeStyle = s.color;
-    ctx.lineWidth = s.lineWidth;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = RENDER_CFG.LINE_WIDTH;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.beginPath();
     if (s.lastX == null || (s.x === 0 && s.lastX !== 0)) {
         ctx.moveTo(s.x, y);
@@ -274,16 +279,39 @@ function drawSweep(s: {
 
     s.lastX = newX;
     s.lastY = y;
-    // @ts-ignore - mutate width/x on the sweep object
     s.x = newX;
-    // @ts-ignore
-    if (s.x >= s.width) {
-        // @ts-ignore
+    if (s.x >= width) {
         s.x = 0;
-        // @ts-ignore
         s.lastX = null;
-        // @ts-ignore
         s.lastY = null;
+    }
+}
+
+/**
+ * Gradient erase band: fully transparent at the sweep cursor,
+ * fading to opaque black ahead. Mimics a CRT phosphor decay.
+ */
+function eraseAhead(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    canvasW: number,
+    canvasH: number,
+    bandW: number,
+) {
+    // Hard-clear the immediate area (where we're about to draw)
+    ctx.clearRect(x, 0, bandW, canvasH);
+
+    // Gradient fade from transparent → panel background ahead of the band
+    const fadeStart = x + bandW;
+    const fadeEnd = fadeStart + bandW;
+    if (fadeStart < canvasW) {
+        const grad = ctx.createLinearGradient(fadeStart, 0, Math.min(fadeEnd, canvasW), 0);
+        grad.addColorStop(0, "rgba(11, 15, 20, 0.8)"); // match --ui-panel
+        grad.addColorStop(1, "rgba(11, 15, 20, 0)");
+        ctx.save();
+        ctx.fillStyle = grad;
+        ctx.fillRect(fadeStart, 0, Math.min(fadeEnd, canvasW) - fadeStart, canvasH);
+        ctx.restore();
     }
 }
 
@@ -301,16 +329,14 @@ function sampleAt(arr: number[] | Float32Array, idx: number) {
     return a + (b - a) * frac;
 }
 
-function drawLeadOff(s: { ctx: CanvasRenderingContext2D; width: number; height: number }, text: string) {
-    const ctx = s.ctx;
+function drawLeadOff(s: Pick<Sweep, "ctx" | "width" | "height">, text: string) {
+    const {ctx, width, height} = s;
     ctx.save();
     ctx.fillStyle = "#0b0d10";
-    ctx.fillRect(0, 0, s.width, s.height);
+    ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = "#9fb2c8";
     ctx.font = "12px monospace";
     const metrics = ctx.measureText(text);
-    const x = (s.width - metrics.width) / 2;
-    const y = s.height / 2;
-    ctx.fillText(text, x, y);
+    ctx.fillText(text, (width - metrics.width) / 2, height / 2);
     ctx.restore();
 }

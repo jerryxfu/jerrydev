@@ -1,4 +1,4 @@
-import {BreakPeriod, ScheduleEvent} from "../../types/schedule.ts";
+import {type BreakPeriod, type ScheduleEvent} from "../../types/schedule.ts";
 
 // Time conversions
 export const timeToMinutes = (time: string): number => {

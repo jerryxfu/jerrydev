@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Helmet} from "react-helmet-async";
 import "./SuperICU.scss";
 import type {AlertItem, Vitals} from "./sim";
-import {useDemoVitals, useWaveTemplates} from "./sim";
+import {ecgTemplate, plethTemplate, respTemplate, useDemoVitals} from "./sim";
 import type {AlarmCounters} from "./alarms";
 import {checkAlarms, computeActiveAlarmLevels, defaultCounters} from "./alarms";
 import {alertSound} from "./sound";
@@ -92,21 +92,13 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     const [vitalsCsv, setVitalsCsv] = useState<ParsedVitalsCsv | null>(null);
     const [csvStartMs, setCsvStartMs] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (mode !== "csv") {
-            setCsvStartMs(null);
-            return;
-        }
-        if ((csvData || vitalsCsv) && csvStartMs == null) {
-            setCsvStartMs(performance.now());
-        }
-    }, [mode, csvData, vitalsCsv, csvStartMs]);
+    const [csvElapsedSec, setCsvElapsedSec] = useState(0);
 
-    const [, setTick] = useState(0);
-    const csvElapsedSec = csvStartMs == null ? 0 : (performance.now() - csvStartMs) / 1000;
     useEffect(() => {
-        if (csvStartMs == null) return;
-        const timer = setInterval(() => setTick(x => (x + 1) % 1000), 200);
+        if (csvStartMs == null) return; // just return, don't set state
+        const timer = setInterval(() => {
+            setCsvElapsedSec((performance.now() - csvStartMs) / 1000);
+        }, 200);
         return () => clearInterval(timer);
     }, [csvStartMs]);
 
@@ -120,16 +112,10 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
         return () => clearInterval(timer);
     }, []);
 
-    const {ecgTemplate, plethTemplate, respTemplate} = useWaveTemplates();
-
     const rows: RowDef[] = useMemo(() => toRows({
-        mode,
-        csvData,
-        palette,
-        ecgTemplate,
-        plethTemplate,
-        respTemplate,
-    }), [mode, csvData, palette, ecgTemplate, plethTemplate, respTemplate]);
+        mode, csvData, palette,
+        ecgTemplate, plethTemplate, respTemplate,
+    }), [mode, csvData, palette]);
 
     const hasCsvPulse = useMemo(() => hasPulseColumn(vitalsCsv), [vitalsCsv]);
 
@@ -151,17 +137,16 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     }), [mode, vitalsCsv, csvElapsedSec, disp, palette, vitalAlarmLevel.bp]);
 
     const canvasRefs = useRef(new Map<string, React.RefObject<HTMLCanvasElement | null>>());
-    const getCanvasRef = useCallback((key: string) => {
-        const existing = canvasRefs.current.get(key);
-        if (existing) return existing;
-        const created = React.createRef<HTMLCanvasElement | null>();
-        canvasRefs.current.set(key, created);
-        return created;
-    }, []);
 
-    const channels = useMemo(() => rows.map(r => ({key: r.key, ref: getCanvasRef(r.key), color: r.color, source: r.source})), [rows, getCanvasRef]);
+    const channels = useMemo(() => rows.map(r => ({
+        key: r.key,
+        color: r.color,
+        source: r.source,
+    })), [rows]);
+
     const rendererOpts: SweepRendererOptions = useMemo(() => ({
         channels,
+        canvasRefs,
         showSeconds,
         initialized,
         vitalsRef,
@@ -169,7 +154,8 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
         ...(mode === "csv" ? {externalTimeSec: csvElapsedSec} : {}),
         onValue: onValueCb,
         timeEpochMs: csvStartMs,
-    }), [channels, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb, csvStartMs]);
+    }), [channels, canvasRefs, showSeconds, initialized, vitalsRef, heartbeatRef, mode, csvElapsedSec, onValueCb, csvStartMs]);
+
     useSweepRenderer(rendererOpts);
 
     useEffect(() => {
@@ -301,7 +287,7 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
 
             <div className="super-icu-core">
                 <div className="top-bar">
-                    SuperICU 🔮
+                    SuperICU
                     <span className="status-pill">{timeStr}</span>
                     <span className="status-pill">Alarms: {silenced ? "Silenced" : "On"}</span>
                     <span className="status-pill" style={{cursor: "pointer"}} onClick={onToggleSound}>
@@ -331,7 +317,14 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
                         </div>
 
                         <div className="canvas-wrap">
-                            <canvas ref={getCanvasRef(r.key)} />
+                            <canvas ref={el => {
+                                const existing = canvasRefs.current.get(r.key);
+                                if (existing) {
+                                    existing.current = el;
+                                } else if (el) {
+                                    canvasRefs.current.set(r.key, {current: el});
+                                }
+                            }} />
                         </div>
 
                         {r.showVital && (

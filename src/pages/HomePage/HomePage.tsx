@@ -9,10 +9,12 @@ import Footer from "../../components/Footer/Footer.tsx";
 import Contact from "./Contact/Contact.tsx";
 import Projects from "./Projects/Projects.tsx";
 import Experience from "./Experience/Experience.tsx";
+// import OpeningAnimation from "../../components/OpeningAnimation/OpeningAnimation.tsx";
 
 export default function HomePage() {
     return (
         <div className="homepage">
+            {/*<OpeningAnimation/>*/}
             <Helmet>
                 <title>jerryxf</title>
                 <meta name="description"

@@ -40,10 +40,10 @@ export default function Hero() {
 
     const dividerRef = useRef(null);
     const titleRef = useRef(null);
-    const subtitleRef = useRef(null);
+    const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
-    const line1Ref = useRef(null);
-    const line2Ref = useRef(null);
+    const line1Ref = useRef<HTMLParagraphElement>(null);
+    const line2Ref = useRef<HTMLParagraphElement>(null);
 
     useEffect(() => {
         switch (currentTheme) {
@@ -113,25 +113,23 @@ export default function Hero() {
         // Slide up "Hello"
         tl.from([titleRef.current], {
             yPercent: 100,
-            ease: "elastic.out(1,1.1)",
+            ease: "elastic.out(1,1.15)",
             duration: 1.8
         }, 0.20 + opening_delay);
 
-        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
-        const subtitleSplit = new SplitType(subtitleRef.current, {types: "chars"});
+        const subtitleSplit = subtitleRef.current ? new SplitType(subtitleRef.current, {types: "chars"}) : null;
 
-        tl.from(subtitleSplit.chars, {
+        tl.from(subtitleSplit?.chars ?? [], {
             y: "-100%",
             ease: "nativeEase",
             stagger: 0.03,
             duration: 0.75
         }, 0.65 + opening_delay);
 
-        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
-        const line1Split = new SplitType(line1Ref.current, {types: "words"});
-        // @ts-ignore TS2345: Argument of type null is not assignable to parameter of type TargetElement
-        const line2Split = new SplitType(line2Ref.current, {types: "words"});
+        if (!line1Ref.current || !line2Ref.current) return;
 
+        const line1Split = new SplitType(line1Ref.current, {types: "words"});
+        const line2Split = new SplitType(line2Ref.current, {types: "words"});
 
         tl.from(line1Split.words, {
             yPercent: 100,
@@ -140,7 +138,7 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 0.8 + opening_delay);
+        }, 0.85 + opening_delay);
 
         tl.from(line2Split.words, {
             yPercent: 100,
@@ -149,13 +147,13 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 1.25 + opening_delay);
+        }, 1.30 + opening_delay);
 
         tl.from(typingTextRef.current, {
             opacity: 0,
             ease: "nativeEase",
-            duration: 1
-        }, 2 + opening_delay);
+            duration: 1.2
+        }, 2.25 + opening_delay);
     });
 
     return (

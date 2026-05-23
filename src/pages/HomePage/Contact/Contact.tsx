@@ -3,7 +3,6 @@ import {AtSign, ExternalLink} from "lucide-react";
 import "./Contact.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import SubSectionTitle from "../../../components/SubTitle/SubSectionTitle.tsx";
-// @ts-ignore
 import baffle from "baffle";
 import ContactCard from "./components/ContactCard.tsx";
 

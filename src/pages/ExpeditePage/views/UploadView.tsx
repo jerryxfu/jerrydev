@@ -1,6 +1,6 @@
 import React, {useRef} from "react";
 import {File, FileText, Upload, X} from "lucide-react";
-import {DropSettings, DropType, TTL_PRESETS} from "../types.ts";
+import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
 import "./UploadView.scss";
 
