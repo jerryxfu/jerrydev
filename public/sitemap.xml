@@ -11,6 +11,11 @@
         <changefreq>monthly</changefreq>
     </url>
     <url>
+        <loc>https://jerryxf.net/rendezvous</loc>
+        <priority>0.7</priority>
+        <changefreq>monthly</changefreq>
+    </url>
+    <url>
         <loc>https://jerryxf.net/scheduler</loc>
         <priority>0.4</priority>
         <changefreq>monthly</changefreq>
