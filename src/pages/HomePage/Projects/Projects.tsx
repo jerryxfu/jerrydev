@@ -110,8 +110,7 @@ const projects: CardProps[] = [
         chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
-        description: "A technology company built to ship — spanning client software, consumer apps, and defense-related systems. Unveil is the umbrella behind ORCA and everything else.",
-        footer: "unvl.tech"
+        description: "A technology company built to ship — spanning software products to tactical intelligence systems. Unveil is the umbrella behind ORCA and everything that follows.",
     },
     {
         title: "ORCA",
@@ -119,8 +118,8 @@ const projects: CardProps[] = [
         image: _endPortal,
         chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-        url: "",
-        description: "An intelligent orchestration platform for mission control, integrating drones and assets to transform real-time field data into actionable insight.",
+        url: "https://unveiltechnologies.com",
+        description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
     },
     {
         title: "*.jerryxf.net",
