@@ -38,11 +38,14 @@
 }
 
 .footer_link-decorator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 28px;
     width: auto;
+    margin-left: 1px;
 
     img {
-        margin-right: 1px;
         height: 28px;
         width: auto;
     }

@@ -17,8 +17,8 @@ import _scorekeeper from "../../../assets/projects/scorekeeper.jpeg";
 import _scheduler from "../../../assets/projects/scheduler.jpeg";
 import _autoscout from "../../../assets/projects/autoscout.jpeg";
 import _medive from "../../../assets/projects/medive.jpeg";
-import _unveil_dark from "../../../assets/projects/unveil_dark.png";
-import _unveil_light from "../../../assets/projects/unveil_light.png";
+import _unveil_dark from "../../../assets/projects/unveil/unveil_dark.png";
+import _unveil_light from "../../../assets/projects/unveil/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
 import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
@@ -95,19 +95,10 @@ const projects: CardProps[] = [
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
     },
     {
-        title: "SuperICU",
-        subTitle: "A tool to preview ICU monitor data",
-        image: _supericu,
-        chipText: "🎖️ Completed",
-        dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
-        url: "/supericu",
-        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
-    },
-    {
         title: "Unveil Technologies",
         subTitle: "Building what's next",
         image: _unveil_dark,
-        chipText: "🧩 MVP",
+        chipText: "Founder",
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
         description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
@@ -120,6 +111,15 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
         description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
+    },
+    {
+        title: "SuperICU",
+        subTitle: "A tool to preview ICU monitor data",
+        image: _supericu,
+        chipText: "🎖️ Completed",
+        dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
+        url: "/supericu",
+        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
     },
     {
         title: "*.jerryxf.net",
