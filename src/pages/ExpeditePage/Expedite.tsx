@@ -33,11 +33,15 @@ function animateOut(el: HTMLElement | null): Promise<void> {
 }
 
 export default function Expedite() {
-    const [view, setView] = useState<ViewMode>("idle");
+    const [view, setView] = useState<ViewMode>(() =>
+        new URLSearchParams(window.location.search).get("code") ? "retrieving" : "idle"
+    );
+    const [retrieveCode, setRetrieveCode] = useState(() =>
+        new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? ""
+    );
     const [dropType, setDropType] = useState<DropType>("text");
     const [textContent, setTextContent] = useState("");
     const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
-    const [retrieveCode, setRetrieveCode] = useState("");
     const [result, setResult] = useState<DropMeta | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -54,18 +58,7 @@ export default function Expedite() {
 
     const viewRef = useRef<HTMLDivElement>(null);
     const dragOverlayRef = useRef<HTMLDivElement>(null);
-
-    // Auto-retrieve from URL param
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        if (code) {
-            setRetrieveCode(code.toUpperCase());
-            setView("retrieving");
-            setTimeout(() => retrieveDrop(code.toUpperCase()), 100);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const hasInitialized = useRef(false);
 
     // Animate view transitions
     useEffect(() => {
@@ -186,6 +179,15 @@ export default function Expedite() {
             setLoading(false);
         }
     };
+
+    // Auto-retrieve when arriving via a ?code= link (retrieveCode is seeded from the URL above)
+    useEffect(() => {
+        if (retrieveCode && !hasInitialized.current) {
+            hasInitialized.current = true;
+            void retrieveDrop(retrieveCode);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleDownload = () => {
         if (!result) return;

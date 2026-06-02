@@ -9,6 +9,8 @@ import SplitType from "split-type";
 import {texts} from "./texts.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
+import("../../../assets/styles/gradient-mesh-default.scss");
+
 let isGsapConfigured = false;
 
 function configureGsap() {
@@ -26,17 +28,19 @@ export default function Hero() {
     configureGsap();
 
     const {currentTheme} = useTheme();
-    const [themeGradientClass, setThemeGradientClass] = useState("gradient-mesh-default");
+    const themeGradientClass = currentTheme === "night" ? "gradient-mesh-night" : "gradient-mesh-default";
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
     // combine general and month-specific texts
     const combinedTexts = useMemo(() => [...(texts[0] || []), ...(texts[currentMonth] || [])], [currentMonth]);
 
     const [headerText, setHeaderText] = useState("");
-    const [textIndex, setTextIndex] = useState(Math.floor(Math.random() * combinedTexts.length));
+    const [textIndex, setTextIndex] = useState(() => Math.floor(Math.random() * combinedTexts.length));
     const [charIndex, setCharIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isBlinking, setIsBlinking] = useState(false);
+
+    const currentText = combinedTexts[textIndex] ?? "";
+    const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
 
     const dividerRef = useRef(null);
     const titleRef = useRef(null);
@@ -46,22 +50,12 @@ export default function Hero() {
     const line2Ref = useRef<HTMLParagraphElement>(null);
 
     useEffect(() => {
-        switch (currentTheme) {
-            case "night":
-                import("../../../assets/styles/gradient-mesh-night.scss");
-                setThemeGradientClass("gradient-mesh-night");
-                break;
-            default:
-                import("../../../assets/styles/gradient-mesh-default.scss");
-                setThemeGradientClass("gradient-mesh-default");
-                break;
-        }
-    }, [currentTheme]);
+        // Preload the other styles on mount so the first switch doesn't jump/look buggy
+        import("../../../assets/styles/gradient-mesh-night.scss");
+    }, []);
 
     useEffect(() => {
         const typeText = () => {
-            setIsBlinking(false);
-            const currentText = combinedTexts[textIndex];
             if (!currentText) return; // Safety check
 
             if (!isDeleting) {
@@ -83,7 +77,6 @@ export default function Hero() {
             const timeout = setTimeout(typeText, 15); // deleting delay
             return () => clearTimeout(timeout);
         } else {
-            setIsBlinking(true);
             const timeout = setTimeout(() => {
                 if (isDeleting) {
                     setTextIndex(Math.floor(Math.random() * combinedTexts.length));

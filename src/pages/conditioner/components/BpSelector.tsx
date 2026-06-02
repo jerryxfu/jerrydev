@@ -86,13 +86,12 @@ const BPColorGrid = ({className = "", onChange, value}: BpSelectorProps) => {
 
     // Update local state if parent state changes
     React.useEffect(() => {
-        if (value && value.systolicIndex !== selectedSys) {
+        if (value) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedSys(value.systolicIndex);
-        }
-        if (value && value.diastolicIndex !== selectedDia) {
             setSelectedDia(value.diastolicIndex);
         }
-    }, [value?.systolicIndex, value?.diastolicIndex, value, selectedSys, selectedDia]);
+    }, [value]);
 
     return (
         <div className={`bp-selector ${className}`}>

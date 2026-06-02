@@ -33,9 +33,13 @@ function animateOut(el: HTMLElement | null): Promise<void> {
 }
 
 export default function Rendezvous() {
-    const [view, setView] = useState<ViewMode>("idle");
+    const [view, setView] = useState<ViewMode>(() =>
+        new URLSearchParams(window.location.search).get("code") ? "joining" : "idle"
+    );
     const [settings, setSettings] = useState<EventSettings>({...DEFAULT_SETTINGS});
-    const [joinCode, setJoinCode] = useState("");
+    const [joinCode, setJoinCode] = useState(() =>
+        new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? ""
+    );
     const [createdCode, setCreatedCode] = useState<string | null>(null);
     const [event, setEvent] = useState<EventMeta | null>(null);
     const [respondName, setRespondName] = useState("");
@@ -46,18 +50,7 @@ export default function Rendezvous() {
     const [stats, setStats] = useState<{ activeEvents: number } | null>(null);
 
     const viewRef = useRef<HTMLDivElement>(null);
-
-    // Auto-join from URL param
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        if (code) {
-            setJoinCode(code.toUpperCase());
-            setView("joining");
-            setTimeout(() => fetchEvent(code.toUpperCase()), 100);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const hasInitialized = useRef(false);
 
     // Animate view transitions
     useEffect(() => {
@@ -154,6 +147,15 @@ export default function Rendezvous() {
             setLoading(false);
         }
     };
+
+    // Auto-fetch when arriving via a ?code= link (joinCode is seeded from the URL above)
+    useEffect(() => {
+        if (joinCode && !hasInitialized.current) {
+            hasInitialized.current = true;
+            void fetchEvent(joinCode);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleRespond = async () => {
         if (!event || !respondName.trim()) return;

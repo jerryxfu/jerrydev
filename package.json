@@ -14,12 +14,6 @@
         "preview": "vite preview",
         "analyze": "pnpm run build && npx vite-bundle-analyzer"
     },
-    "pnpm": {
-        "approvedBuilds": [
-            "@parcel/watcher",
-            "es5-ext"
-        ]
-    },
     "dependencies": {
         "@fontsource-variable/outfit": "^5.2.8",
         "@gsap/react": "^2.1.2",
