@@ -110,7 +110,7 @@ const projects: CardProps[] = [
         chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
-        description: "A technology company built to ship — spanning software products to tactical intelligence systems. Unveil is the umbrella behind ORCA and everything that follows.",
+        description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
     },
     {
         title: "ORCA",
