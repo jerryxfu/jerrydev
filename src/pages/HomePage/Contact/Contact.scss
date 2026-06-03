@@ -53,6 +53,7 @@
 .contact_list-element {
     display: flex;
     flex-direction: row;
+    gap: 3px;
     align-items: center;
     justify-content: center;
     color: var(--secondary-da-c) !important;
