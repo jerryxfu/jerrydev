@@ -29,9 +29,17 @@ function getInitialPreference(): ThemePreference {
     }
 }
 
+// thing to fix the FOUC (Flash of Unstyled Content) problem
+function getInitialAutoTheme(): Theme {
+    // If the inline script in index.html already set data-theme, trust it
+    const applied = document.documentElement.getAttribute("data-theme") as Theme;
+    if (applied === "night" || applied === "default") return applied;
+    return resolveTheme("auto");
+}
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
-    const [autoTheme, setAutoTheme] = useState<Theme>(() => resolveTheme("auto"));
+    const [autoTheme, setAutoTheme] = useState<Theme>(getInitialAutoTheme);
 
     const currentTheme = useMemo(() =>
             themePreference === "auto" ? autoTheme : themePreference,

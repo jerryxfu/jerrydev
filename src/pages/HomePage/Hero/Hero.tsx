@@ -131,7 +131,7 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 0.85 + opening_delay);
+        }, 0.88 + opening_delay);
 
         tl.from(line2Split.words, {
             yPercent: 100,
@@ -140,13 +140,13 @@ export default function Hero() {
             ease: "nativeEase",
             duration: 1,
             stagger: 0.05
-        }, 1.30 + opening_delay);
+        }, 1.20 + opening_delay);
 
         tl.from(typingTextRef.current, {
             opacity: 0,
             ease: "nativeEase",
             duration: 1.2
-        }, 2.25 + opening_delay);
+        }, 2.00 + opening_delay);
     });
 
     return (
@@ -169,12 +169,12 @@ export default function Hero() {
                 <div className="text-body hero_about-container">
                     <div style={{overflow: "hidden"}}>
                         <p className="hero_line" ref={line1Ref}>
-                            Aspiring physician-engineer, exploring where medicine and technology meet
+                            Welcome to my personal website
                         </p>
                     </div>
                     <div style={{overflow: "hidden"}}>
                         <p className="hero_line" ref={line2Ref}>
-                            Medicine, AI, Robotics, Science, Computer Vision, Deep Learning, Coding
+                            Robotics, AI, Medicine, Coding, Science
                         </p>
                     </div>
 

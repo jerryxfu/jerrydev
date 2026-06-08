@@ -111,6 +111,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
         url: "https://unveiltechnologies.com",
         description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
+        footer: "TRL-3"
     },
     {
         title: "SuperICU",

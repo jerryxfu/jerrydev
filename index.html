@@ -20,6 +20,29 @@
     <meta property="og:image" content="https://jerryxf.net/favicon.jpeg" />
     <meta property="og:site_name" content="jerryxf" />
 
+    <!-- Theme init runs synchronously before first paint to fix FOUC (Flash of Unstyled Content) problem -->
+    <!--suppress ES6ConvertVarToLetConst -->
+    <script>
+
+        (function () {
+            var stored = null;
+            try {
+                stored = localStorage.getItem("themeName");
+            } catch (e) {
+            }
+            var pref = (stored === "default" || stored === "night" || stored === "auto")
+                ? stored : "default";
+            var theme = pref === "auto" || pref === "default"
+                ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default")
+                : pref;
+            document.documentElement.setAttribute("data-theme", theme);
+
+            // Firefox paints before external CSS resolves custom properties,
+            // so set bg color inline to cover the gap
+            document.documentElement.style.background = theme === "night" ? "#101010bf" : "#fbfaf9";
+        })();
+    </script>
+
     <link rel="preconnect" href="https://github-stats.jerryxf.net" crossorigin>
 </head>
 <body>

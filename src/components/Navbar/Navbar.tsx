@@ -211,9 +211,7 @@ export default function Navbar() {
                 >
                     <div className="navbar_theme-circle" />
                     <p className="text-body" style={{textTransform: "capitalize"}}>
-                        <p className="text-body" style={{textTransform: "capitalize"}}>
-                            {themePreference === "auto" ? "Auto" : formatThemeName(themePreference)}
-                        </p>
+                        {themePreference === "auto" ? "Auto" : formatThemeName(themePreference)}
                     </p>
                 </button>
 
