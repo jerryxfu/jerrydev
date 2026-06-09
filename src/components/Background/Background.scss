@@ -1,0 +1,30 @@
+// Dynamic theme only: make the page transparent so the sky/stars show through
+html.theme-dynamic,
+body.theme-dynamic,
+body.theme-dynamic .homepage {
+    background: transparent;
+}
+
+.site-bg_sky {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    transition: background 6s ease-in-out;
+}
+
+.site-bg_stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; // hero height
+    z-index: -1;
+    pointer-events: none;
+
+    canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+}

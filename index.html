@@ -20,33 +20,51 @@
     <meta property="og:image" content="https://jerryxf.net/favicon.jpeg" />
     <meta property="og:site_name" content="jerryxf" />
 
-    <!-- Theme init runs synchronously before first paint to fix FOUC (Flash of Unstyled Content) problem -->
-    <!--suppress ES6ConvertVarToLetConst -->
+    <!-- Theme init runs synchronously before first paint to fix FOUC (Flash of Unstyled Content) -->
     <script>
-
         (function () {
-            var stored = null;
+            let stored = null;
             try {
                 stored = localStorage.getItem("themeName");
             } catch (e) {
             }
-            var pref = (stored === "default" || stored === "night" || stored === "auto")
+            const pref = (stored === "default" || stored === "night" || stored === "auto" || stored === "dynamic")
                 ? stored : "default";
-            var theme = pref === "auto" || pref === "default"
-                ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default")
-                : pref;
-            document.documentElement.setAttribute("data-theme", theme);
 
-            // Firefox paints before external CSS resolves custom properties,
-            // so set bg color inline to cover the gap
-            document.documentElement.style.background = theme === "night" ? "#101010bf" : "#fbfaf9";
+            let theme;
+            if (pref === "night") theme = "night";
+            else if (pref === "default") theme = "default";
+            else if (pref === "auto") theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default";
+            else {
+                const h = new Date().getHours();
+                theme = (h >= 21 || h < 5) ? "night" : "default";
+            } // dynamic
+
+            document.documentElement.setAttribute("data-theme", theme);
+            // Firefox paints before external CSS resolves custom properties, so cover the gap inline
+            document.documentElement.style.background = theme === "night" ? "#101010" : "#fbfaf9";
         })();
     </script>
 
     <link rel="preconnect" href="https://github-stats.jerryxf.net" crossorigin>
 </head>
 <body>
+<div id="boot-overlay" style="position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: #000; opacity: 0.20;"></div>
 <div id="root"></div>
+<script>
+    (function () {
+        const ov = document.getElementById("boot-overlay");
+        if (!ov) return;
+        // overlay starts dimmed; brighten once content has rendered
+        setTimeout(function () {
+            ov.style.transition = "opacity 1s ease-out";
+            ov.style.opacity = "0";
+            setTimeout(function () {
+                ov.remove();
+            }, 1100);
+        }, 250);
+    })();
+</script>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

@@ -180,7 +180,9 @@
     height: 32px;
     border-radius: 50%;
     background-color: color-mix(in srgb, var(--primary-c) 85%, transparent);
-    border: 2px solid color-mix(in srgb, var(--secondary-c) 85%, transparent);;
+    border: 2px solid color-mix(in srgb, var(--secondary-c) 85%, transparent);
+    overflow: hidden;
+    background-clip: padding-box;
 
     @media screen and (max-width: 768px) {
         width: 24px;
