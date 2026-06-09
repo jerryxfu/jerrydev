@@ -1,11 +1,10 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useTheme} from "../../context/ThemeContext.tsx";
 import "./Navbar.scss";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import {ChevronUp} from "lucide-react";
-import {getAllDayGradient} from "../../context/dynamicTheme.ts";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,7 +28,7 @@ const formatThemeName = (theme: string) =>
 
 export default function Navbar() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const {currentTheme, themePreference, isDynamic, toggleTheme} = useTheme();
+    const {currentTheme, themePreference, toggleTheme} = useTheme();
 
     const navRef = useRef<HTMLElement>(null);
     const barRef = useRef<HTMLDivElement>(null);
@@ -157,8 +156,6 @@ export default function Navbar() {
         setTimeout(() => setIsPanelOpen(false), 100);
     };
 
-    const circleGradient = useMemo(() => getAllDayGradient(), []);
-
     return (
         <nav className="navbar" ref={navRef}>
             <div className="navbar_bar" ref={barRef}>
@@ -212,10 +209,7 @@ export default function Navbar() {
                     onClick={toggleTheme}
                     aria-label={`Switch to next theme (current: ${currentTheme})`}
                 >
-                    <div
-                        className="navbar_theme-circle"
-                        style={isDynamic ? {background: circleGradient} : undefined}
-                    />
+                    <div className="navbar_theme-circle" />
                     <p className="text-body" style={{textTransform: "capitalize"}}>
                         {themePreference === "auto" ? "Auto" : formatThemeName(themePreference)}
                     </p>

@@ -8,9 +8,10 @@ interface CreatedViewProps {
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onDone: () => void;
+    onOpen: () => void;
 }
 
-export default function CreatedView({code, copiedField, onCopy, onDone}: CreatedViewProps) {
+export default function CreatedView({code, copiedField, onCopy, onDone, onOpen}: CreatedViewProps) {
     return (
         <div className="rv_created">
             <p className="smaller-caption-text">Your event code</p>
@@ -37,6 +38,7 @@ export default function CreatedView({code, copiedField, onCopy, onDone}: Created
                 </button>
             </div>
 
+            <button className="rv_btn-primary rv_btn-full" onClick={onOpen}>Open event</button>
             <button className="rv_btn-secondary rv_btn-full" onClick={onDone}>
                 Done
             </button>

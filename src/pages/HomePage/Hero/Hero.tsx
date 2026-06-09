@@ -27,7 +27,7 @@ function configureGsap() {
 export default function Hero() {
     configureGsap();
 
-    const {currentTheme, isDynamic} = useTheme();
+    const {currentTheme} = useTheme();
     const themeGradientClass = currentTheme === "night" ? "gradient-mesh-night" : "gradient-mesh-default";
 
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -152,7 +152,7 @@ export default function Hero() {
 
     return (
         <>
-            {!isDynamic && <div className={themeGradientClass} />}
+            <div className={themeGradientClass} />
             {/*<div className="gradient-mesh-default" />*/}
             <div className="hero">
                 <div className="hero_container">

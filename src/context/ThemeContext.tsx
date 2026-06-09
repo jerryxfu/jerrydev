@@ -1,14 +1,11 @@
 import React, {createContext, type ReactNode, useContext, useEffect, useMemo, useState} from "react";
-import {getDecimalHour, isDarkTime} from "./dynamicTheme";
-import Background from "../components/Background/Background.tsx";
 
 type Theme = "default" | "night";
-type ThemePreference = "auto" | "dynamic" | Theme;
+type ThemePreference = "auto" | Theme;
 
 interface ThemeContextType {
-    currentTheme: Theme;              // the resolved theme (text/contrast)
-    themePreference: ThemePreference; // what the user chose, including "auto" / "dynamic"
-    isDynamic: boolean;               // true when the time-based theme is active
+    currentTheme: Theme;              // the resolved theme
+    themePreference: ThemePreference; // what the user chose, including "auto"
     toggleTheme: () => void;
     setTheme: (pref: ThemePreference) => void;
 }
@@ -16,12 +13,10 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 // theme order
-const preferences: readonly ThemePreference[] = ["default", "night", "dynamic", "auto"] as const;
+const preferences: readonly ThemePreference[] = ["default", "night", "auto"] as const;
 
 function resolveTheme(pref: ThemePreference): Theme {
-    if (pref === "default" || pref === "night") return pref;
-    // "dynamic" resolves its text theme from the clock; "auto" from the OS
-    if (pref === "dynamic") return isDarkTime(getDecimalHour()) ? "night" : "default";
+    if (pref !== "auto") return pref;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default";
 }
 
@@ -44,21 +39,16 @@ function getInitialAutoTheme(): Theme {
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
-    // Holds the resolved theme for the time/OS-driven modes ("auto" and "dynamic")
     const [autoTheme, setAutoTheme] = useState<Theme>(getInitialAutoTheme);
 
-    const isDynamic = themePreference === "dynamic";
-
     const currentTheme = useMemo(() =>
-            themePreference === "auto" || themePreference === "dynamic" ? autoTheme : themePreference,
+            themePreference === "auto" ? autoTheme : themePreference,
         [themePreference, autoTheme]);
 
     // Apply theme to DOM + persist
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", currentTheme);
         document.body.setAttribute("data-theme", currentTheme);
-        document.documentElement.classList.toggle("theme-dynamic", isDynamic);
-        document.body.classList.toggle("theme-dynamic", isDynamic);
         // Hand the background back to CSS once styles are loaded (clears the inline boot bg)
         document.documentElement.style.background = "";
         try {
@@ -66,7 +56,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
         } catch (error) {
             console.warn("Failed to save theme preference:", error);
         }
-    }, [currentTheme, themePreference, isDynamic]);
+    }, [currentTheme, themePreference]);
 
     // Listen for OS theme changes when on auto
     useEffect(() => {
@@ -75,15 +65,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
         const handler = () => setAutoTheme(resolveTheme("auto"));
         mq.addEventListener("change", handler);
         return () => mq.removeEventListener("change", handler);
-    }, [themePreference]);
-
-    // Re-check the clock when on dynamic so the text theme flips at dawn/dusk
-    useEffect(() => {
-        if (themePreference !== "dynamic") return;
-        const tick = () => setAutoTheme(resolveTheme("dynamic"));
-        tick();
-        const id = window.setInterval(tick, 60_000);
-        return () => window.clearInterval(id);
     }, [themePreference]);
 
     const toggleTheme = () => {
@@ -96,8 +77,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
     };
 
     return (
-        <ThemeContext.Provider value={{currentTheme, themePreference, isDynamic, toggleTheme, setTheme}}>
-            {isDynamic && <Background />}
+        <ThemeContext.Provider value={{currentTheme, themePreference, toggleTheme, setTheme}}>
             {children}
         </ThemeContext.Provider>
     );

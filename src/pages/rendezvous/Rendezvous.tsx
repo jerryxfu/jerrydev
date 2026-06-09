@@ -276,6 +276,7 @@ export default function Rendezvous() {
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
                             onDone={reset}
+                            onOpen={() => fetchEvent(createdCode)}
                         />
                     )}
 

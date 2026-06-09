@@ -28,17 +28,13 @@
                 stored = localStorage.getItem("themeName");
             } catch (e) {
             }
-            const pref = (stored === "default" || stored === "night" || stored === "auto" || stored === "dynamic")
+            const pref = (stored === "default" || stored === "night" || stored === "auto")
                 ? stored : "default";
 
             let theme;
             if (pref === "night") theme = "night";
             else if (pref === "default") theme = "default";
-            else if (pref === "auto") theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default";
-            else {
-                const h = new Date().getHours();
-                theme = (h >= 21 || h < 5) ? "night" : "default";
-            } // dynamic
+            else theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default"; // auto
 
             document.documentElement.setAttribute("data-theme", theme);
             // Firefox paints before external CSS resolves custom properties, so cover the gap inline
