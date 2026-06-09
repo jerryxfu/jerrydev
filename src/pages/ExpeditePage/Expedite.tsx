@@ -5,13 +5,15 @@ import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Expedite.scss";
 
-import {DEFAULT_SETTINGS, type DropMeta, type DropSettings, type DropType, type ViewMode} from "./types.ts";
+import {DEFAULT_SETTINGS, type DropMeta, type DropSettings, type DropType, type UploadSnapshot, type ViewMode} from "./types.ts";
 import {formatBytes} from "./utils.ts";
 import IdleView from "./views/IdleView.tsx";
 import UploadView from "./views/UploadView.tsx";
 import CreatedView from "./views/CreatedView.tsx";
 import RetrieveView from "./views/RetrieveView.tsx";
 import ResultView from "./views/ResultView.tsx";
+import {uploadFile} from "./uploadEngine.ts";
+import UploadProgress from "./views/UploadProgress.tsx";
 
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
@@ -50,10 +52,14 @@ export default function Expedite() {
     const [isDragging, setIsDragging] = useState(false);
     const [settings, setSettings] = useState<DropSettings>({...DEFAULT_SETTINGS});
     const [maxViewsInput, setMaxViewsInput] = useState("");
+
+    const [uploadSnapshot, setUploadSnapshot] = useState<UploadSnapshot | null>(null);
+    const uploadAbortRef = useRef<AbortController | null>(null);
     const [stats, setStats] = useState<{
         activeDrops: number;
-        totalSize: number;
         totalViews: number;
+        usedBytes?: number;
+        maxBytes?: number;
     } | null>(null);
 
     const viewRef = useRef<HTMLDivElement>(null);
@@ -93,6 +99,9 @@ export default function Expedite() {
     };
 
     const reset = async () => {
+        uploadAbortRef.current?.abort();
+        uploadAbortRef.current = null;
+        setUploadSnapshot(null);
         await animateOut(viewRef.current);
         setDropType("text");
         setTextContent("");
@@ -113,11 +122,10 @@ export default function Expedite() {
         setLoading(true);
         setError(null);
 
-        try {
-            let res: Response;
-
-            if (dropType === "text") {
-                res = await fetch(`${apiBaseUrl}/expedite/drop/text`, {
+        // TEXT — unchanged, inline JSON
+        if (dropType === "text") {
+            try {
+                const res = await fetch(`${apiBaseUrl}/expedite/drop/text`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
@@ -127,35 +135,48 @@ export default function Expedite() {
                         ttlMs: settings.ttlMs,
                     })
                 });
-            } else {
-                if (!selectedFile) {
-                    setError("No file selected");
+                const json = await res.json();
+                if (!json._success) {
+                    setError(json.error?.message || "Upload failed");
                     setLoading(false);
                     return;
                 }
-                const formData = new FormData();
-                formData.append("file", selectedFile);
-                formData.append("deletable", String(settings.deletable));
-                if (settings.maxViews !== null) formData.append("maxViews", String(settings.maxViews));
-                formData.append("ttlMs", String(settings.ttlMs));
-                res = await fetch(`${apiBaseUrl}/expedite/drop/file`, {method: "POST", body: formData});
-            }
-
-            const json = await res.json();
-            if (!json._success) {
-                setError(json.error?.message || "Upload failed");
+                setCreatedCode(json.data.code);
+                await transitionTo("created");
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Upload failed");
+            } finally {
                 setLoading(false);
-                return;
             }
+            return;
+        }
 
-            setCreatedCode(json.data.code);
+        // FILE — presigned engine (single or multipart), direct to R2
+        if (!selectedFile) {
+            setError("No file selected");
+            setLoading(false);
+            return;
+        }
+        const controller = new AbortController();
+        uploadAbortRef.current = controller;
+        setUploadSnapshot(null);
+        try {
+            const meta = await uploadFile(selectedFile, settings, apiBaseUrl, setUploadSnapshot, controller.signal);
+            setCreatedCode(meta.code);
             await transitionTo("created");
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Upload failed");
+            // AbortError = user cancelled; stay on the form silently
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "Upload failed");
+            }
         } finally {
+            uploadAbortRef.current = null;
+            setUploadSnapshot(null);
             setLoading(false);
         }
     };
+
+    const cancelUpload = () => uploadAbortRef.current?.abort();
 
     const retrieveDrop = async (code?: string) => {
         const targetCode = (code || retrieveCode).trim().toUpperCase();
@@ -258,13 +279,14 @@ export default function Expedite() {
                 <link rel="canonical" href="https://jerryxf.net/expedite" />
             </Helmet>
 
+
             {/* Drag overlay */}
             <div ref={dragOverlayRef} className="expedite_drag-overlay" style={{opacity: 0, pointerEvents: "none"}}>
                 <Upload size={48} strokeWidth={1} />
                 <p>Drop file to upload</p>
             </div>
 
-            <div className="expedite_container">
+            <div className={`expedite_container ${view === "uploading" && uploadSnapshot ? "expedite_container--wide" : ""}`}>
                 <a href="/" className="expedite_home-link">
                     <ExternalLink size={13} />
                     <span>jerryxf.net</span>
@@ -292,22 +314,25 @@ export default function Expedite() {
                     )}
 
                     {view === "uploading" && (
-                        <UploadView
-                            dropType={dropType}
-                            setDropType={setDropType}
-                            textContent={textContent}
-                            setTextContent={setTextContent}
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
-                            settings={settings}
-                            setSettings={setSettings}
-                            maxViewsInput={maxViewsInput}
-                            onMaxViewsChange={handleMaxViewsChange}
-                            error={error}
-                            loading={loading}
-                            onUpload={handleUpload}
-                            onCancel={reset}
-                        />
+                        <div className={`expedite_upload-layout ${uploadSnapshot ? "is-uploading" : ""}`}>
+                            <UploadView
+                                dropType={dropType}
+                                setDropType={setDropType}
+                                textContent={textContent}
+                                setTextContent={setTextContent}
+                                selectedFile={selectedFile}
+                                setSelectedFile={setSelectedFile}
+                                settings={settings}
+                                setSettings={setSettings}
+                                maxViewsInput={maxViewsInput}
+                                onMaxViewsChange={handleMaxViewsChange}
+                                error={error}
+                                loading={loading}
+                                onUpload={handleUpload}
+                                onCancel={loading ? cancelUpload : reset}
+                            />
+                            {uploadSnapshot && <UploadProgress snapshot={uploadSnapshot} />}
+                        </div>
                     )}
 
                     {view === "created" && createdCode && (
@@ -347,9 +372,13 @@ export default function Expedite() {
                 <div className="expedite_stats">
                     <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
                     <span>·</span>
-                    <span>{formatBytes(stats.totalSize)}</span>
-                    <span>·</span>
                     <span>{stats.totalViews} view{stats.totalViews !== 1 ? "s" : ""}</span>
+                    {stats.maxBytes != null && (
+                        <>
+                            <span>·</span>
+                            <span>{formatBytes(stats.usedBytes ?? 0)} / {formatBytes(stats.maxBytes)} used</span>
+                        </>
+                    )}
                 </div>
             )}
 

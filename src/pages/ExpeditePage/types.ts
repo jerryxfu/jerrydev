@@ -37,3 +37,19 @@ export const TTL_PRESETS = [
     {label: "12 hr", value: 43_200_000},
     {label: "24 hr", value: 86_400_000},
 ];
+
+export type PartState = "queued" | "uploading" | "done" | "failed" | "retrying";
+
+export interface PartProgress {
+    partNumber: number;
+    state: PartState;
+    loaded: number;  // bytes uploaded for this part
+    total: number;   // part size (last part is smaller)
+}
+
+export interface UploadSnapshot {
+    mode: "single" | "multipart";
+    parts: PartProgress[];
+    uploadedBytes: number;  // sum of loaded across parts
+    totalBytes: number;     // file size
+}

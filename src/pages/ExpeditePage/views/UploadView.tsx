@@ -49,12 +49,14 @@ export default function UploadView(
                 <button
                     className={`small-text expedite_type-btn ${dropType === "text" ? "active" : ""}`}
                     onClick={() => setDropType("text")}
+                    disabled={loading}
                 >
                     <FileText size={14} /> Text
                 </button>
                 <button
                     className={`small-text expedite_type-btn ${dropType === "file" ? "active" : ""}`}
                     onClick={() => setDropType("file")}
+                    disabled={loading}
                 >
                     <File size={14} /> File
                 </button>
@@ -71,7 +73,9 @@ export default function UploadView(
                 />
             ) : (
                 <>
-                    <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
+                    <div className="expedite_file-zone" onClick={() => {
+                        if (!loading) fileInputRef.current?.click();
+                    }}>
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -92,8 +96,9 @@ export default function UploadView(
                                     className="expedite_file-clear"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setSelectedFile(null);
+                                        if (!loading) setSelectedFile(null);
                                     }}
+                                    disabled={loading}
                                 >
                                     <X size={14} />
                                 </button>
@@ -102,7 +107,7 @@ export default function UploadView(
                             <>
                                 <Upload size={28} strokeWidth={1} />
                                 <p>Click to choose a file or drag & drop</p>
-                                <p className="expedite_file-limit">Max 100 MB</p>
+                                <p className="expedite_file-limit">Max 16 GB</p>
                             </>
                         )}
                     </div>
@@ -120,7 +125,7 @@ export default function UploadView(
             )}
 
             {/* Settings */}
-            <div className="expedite_settings">
+            <div className={`expedite_settings ${loading ? "is-disabled" : ""}`}>
                 <p className="expedite_settings-title caption-text">Settings</p>
 
                 <div className="expedite_setting-row">
@@ -179,7 +184,12 @@ export default function UploadView(
             {error && <p className="expedite_error">{error}</p>}
 
             <div className="expedite_btn-row">
-                <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
+                <button
+                    className={`expedite_btn-secondary ${loading ? "expedite_btn-secondary--danger" : ""}`}
+                    onClick={onCancel}
+                >
+                    {loading ? "Cancel upload" : "Cancel"}
+                </button>
                 <button
                     className="expedite_btn-primary"
                     onClick={onUpload}

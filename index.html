@@ -41,26 +41,30 @@
             document.documentElement.style.background = theme === "night" ? "#101010" : "#fbfaf9";
         })();
     </script>
+    <script>
+        (function () {
+            const hour = new Date().getHours();
+            const isNight = hour >= 21 || hour < 6;
+            if (!isNight) return;
 
+            const ov = document.createElement("div");
+            ov.id = "boot-overlay";
+            ov.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background:#000;opacity:0.30;";
+            document.documentElement.appendChild(ov);
+
+            setTimeout(function () {
+                ov.style.transition = "opacity 1s ease-out";
+                ov.style.opacity = "0";
+                setTimeout(function () {
+                    ov.remove();
+                }, 1100);
+            }, 250);
+        })();
+    </script>
     <link rel="preconnect" href="https://github-stats.jerryxf.net" crossorigin>
 </head>
 <body>
-<div id="boot-overlay" style="position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: #000; opacity: 0.30;"></div>
 <div id="root"></div>
-<script>
-    (function () {
-        const ov = document.getElementById("boot-overlay");
-        if (!ov) return;
-        // overlay starts dimmed; brighten once content has rendered
-        setTimeout(function () {
-            ov.style.transition = "opacity 1s ease-out";
-            ov.style.opacity = "0";
-            setTimeout(function () {
-                ov.remove();
-            }, 1100);
-        }, 250);
-    })();
-</script>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
