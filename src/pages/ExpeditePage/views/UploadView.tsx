@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useMemo, useRef} from "react";
 import {File, FileText, Upload, X} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
@@ -28,6 +28,21 @@ export default function UploadView(
     }: UploadViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const isImage = !!selectedFile && selectedFile.type.startsWith("image/");
+    const isPdf = !!selectedFile && selectedFile.type === "application/pdf";
+
+    // Derive the preview URL during render — no setState needed
+    const filePreview = useMemo(() => {
+        if (!selectedFile || (!isImage && !isPdf)) return null;
+        return URL.createObjectURL(selectedFile);
+    }, [selectedFile, isImage, isPdf]);
+
+    // Effect's only job: revoke the previous URL when it changes/unmounts
+    useEffect(() => {
+        if (!filePreview) return;
+        return () => URL.revokeObjectURL(filePreview);
+    }, [filePreview]);
+
     return (
         <div className="expedite_upload">
             <div className="expedite_type-toggle">
@@ -55,41 +70,53 @@ export default function UploadView(
                     autoFocus
                 />
             ) : (
-                <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) setSelectedFile(f);
-                        }}
-                    />
-                    {selectedFile ? (
-                        <div className="expedite_file-selected">
-                            <File size={22} />
-                            <div>
-                                <p className="expedite_file-name">{selectedFile.name}</p>
-                                <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
+                <>
+                    <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            hidden
+                            onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) setSelectedFile(f);
+                            }}
+                        />
+                        {selectedFile ? (
+                            <div className="expedite_file-selected">
+                                <File size={22} />
+                                <div>
+                                    <p className="expedite_file-name">{selectedFile.name}</p>
+                                    <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
+                                </div>
+                                <button
+                                    className="expedite_file-clear"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedFile(null);
+                                    }}
+                                >
+                                    <X size={14} />
+                                </button>
                             </div>
-                            <button
-                                className="expedite_file-clear"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedFile(null);
-                                }}
-                            >
-                                <X size={14} />
-                            </button>
+                        ) : (
+                            <>
+                                <Upload size={28} strokeWidth={1} />
+                                <p>Click to choose a file or drag & drop</p>
+                                <p className="expedite_file-limit">Max 100 MB</p>
+                            </>
+                        )}
+                    </div>
+
+                    {filePreview && (isImage || isPdf) && (
+                        <div className="expedite_file-preview">
+                            {isImage ? (
+                                <img src={filePreview} alt={selectedFile!.name} className="expedite_preview-img" />
+                            ) : (
+                                <iframe src={filePreview} title="preview" className="expedite_preview-frame" />
+                            )}
                         </div>
-                    ) : (
-                        <>
-                            <Upload size={28} strokeWidth={1} />
-                            <p>Click to choose a file or drag & drop</p>
-                            <p className="expedite_file-limit">Max 100 MB</p>
-                        </>
                     )}
-                </div>
+                </>
             )}
 
             {/* Settings */}

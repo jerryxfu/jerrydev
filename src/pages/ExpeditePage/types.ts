@@ -20,6 +20,7 @@ export interface DropMeta {
     fileName?: string;
     mimeType?: string;
     encoding?: string;
+    fileUrl?: string;
 }
 
 export const DEFAULT_SETTINGS: DropSettings = {

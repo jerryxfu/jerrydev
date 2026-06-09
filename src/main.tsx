@@ -26,7 +26,7 @@ if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
 
 export const isDev = import.meta.env.DEV || import.meta.env.MODE === "development";
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
-    (isDev ? "https://api.jerryxf.net" : "https://api.jerryxf.net");
+    (isDev ? "http://localhost:3001" : "https://api.jerryxf.net");
 
 const renderLazy = (element: ReactNode) => (
     <Suspense fallback={null}>

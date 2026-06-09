@@ -13,6 +13,9 @@ interface ResultViewProps {
 }
 
 export default function ResultView({result, copiedField, onCopy, onDownload, onDelete}: ResultViewProps) {
+    const isImage = result.type === "file" && !!result.mimeType && /^image\//.test(result.mimeType);
+    const isPdf = result.type === "file" && result.mimeType === "application/pdf";
+
     return (
         <div className="expedite_retrieved">
             {/* Metadata card */}
@@ -63,6 +66,16 @@ export default function ResultView({result, copiedField, onCopy, onDownload, onD
                     </div>
                 </div>
             </div>
+
+            {result.fileUrl && (isImage || isPdf) && (
+                <div className="expedite_file-preview">
+                    {isImage ? (
+                        <img src={result.fileUrl} alt={result.fileName ?? "preview"} className="expedite_preview-img" />
+                    ) : (
+                        <iframe src={result.fileUrl} title="preview" className="expedite_preview-frame" />
+                    )}
+                </div>
+            )}
 
             {/* Content */}
             {result.type === "text" && result.text && (

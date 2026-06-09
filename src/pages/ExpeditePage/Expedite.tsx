@@ -199,9 +199,9 @@ export default function Expedite() {
             a.download = `expedite-${result.code}.txt`;
             a.click();
             URL.revokeObjectURL(url);
-        } else {
-            window.open(`${apiBaseUrl}/expedite/drop/${result.code}/download`, "_blank");
+            return;
         }
+        if (result.fileUrl) window.open(result.fileUrl, "_blank");
     };
 
     const handleDelete = async () => {
