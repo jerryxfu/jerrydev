@@ -44,12 +44,12 @@
     <script>
         (function () {
             const hour = new Date().getHours();
-            const isNight = hour >= 21 || hour < 6;
+            const isNight = hour >= 22 || hour < 6;
             if (!isNight) return;
 
             const ov = document.createElement("div");
             ov.id = "boot-overlay";
-            ov.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background:#000;opacity:0.30;";
+            ov.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background:#000;opacity:0.25;";
             document.documentElement.appendChild(ov);
 
             setTimeout(function () {

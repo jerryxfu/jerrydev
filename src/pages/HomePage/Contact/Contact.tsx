@@ -17,13 +17,21 @@ const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "📷", color: "#ffb5a610"},
     {
+        title: "Steam",
+        username: "jerryxf 1650859595",
+        image: _steam,
+        url: "https://steamcommunity.com/id/jerryxf/",
+        chipText: "🎮",
+        color: "#00adee10"
+    },
+    {
         title: "Discord",
         username: "@jerryxf",
         image: _discord,
         url: "https://discord.com/users/611633988515266562",
         chipText: "💬",
         color: "#e6a6ff10"
-    },
+    }
     // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
     // {
     //     title: "Reddit",
@@ -33,14 +41,6 @@ const medias = [
     //     chipText: "",
     //     color: "#ffb5a610"
     // },
-    {
-        title: "Steam",
-        username: "jerryxf 1650859595",
-        image: _steam,
-        url: "https://steamcommunity.com/id/jerryxf/",
-        chipText: "🎮",
-        color: "#00adee10"
-    }
 ];
 
 export default function Contact() {

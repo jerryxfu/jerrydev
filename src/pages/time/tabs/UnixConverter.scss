@@ -1,0 +1,130 @@
+.unix {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+.unix_live {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-c);
+    border-radius: 10px;
+}
+
+.unix_live-label {
+    font-size: 0.8rem;
+    opacity: 0.55;
+}
+
+.unix_live-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: auto;
+
+    &:hover {
+        opacity: 0.7;
+    }
+}
+
+.unix_unit-toggle {
+    display: flex;
+    gap: 0.25rem;
+
+    button {
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--border-c);
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+        font-family: inherit;
+        font-size: 0.8rem;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.15s, background 0.15s;
+
+        &.active {
+            opacity: 1;
+            background: color-mix(in srgb, var(--time-accent) 14%, transparent);
+            border-color: color-mix(in srgb, var(--time-accent) 35%, transparent);
+        }
+    }
+}
+
+.unix_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.unix_card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.1rem;
+    border: 1px solid var(--border-c);
+    border-radius: 10px;
+}
+
+.unix_card-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+.unix_input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-c);
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+        border-color: var(--border-da-c);
+    }
+}
+
+.unix_out {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.unix_row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.unix_row-label {
+    opacity: 0.45;
+    flex-shrink: 0;
+}
+
+.unix_row-value {
+    text-align: right;
+    word-break: break-all;
+
+    &.is-copy {
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.7;
+        }
+    }
+}

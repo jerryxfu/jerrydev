@@ -1,0 +1,91 @@
+.stopwatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 2rem;
+}
+
+.stopwatch_display {
+    font-size: 4rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+
+    @media (max-width: 560px) {
+        font-size: 3rem;
+    }
+}
+
+.stopwatch_controls {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.stopwatch_btn {
+    padding: 0.6rem 1.4rem;
+    border: 1px solid var(--border-c);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s;
+
+    &:hover:not(:disabled) {
+        background: color-mix(in srgb, currentColor 5%, transparent);
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    &.primary {
+        background: var(--time-accent);
+        color: var(--bg-da-c);
+        border-color: transparent;
+    }
+
+    &.danger {
+        color: #e1483a;
+        border-color: #e1483a;
+
+        &:hover {
+            background: rgba(225, 72, 58, 0.1);
+        }
+    }
+}
+
+.stopwatch_laps {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.stopwatch_lap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.25rem;
+    border-bottom: 1px solid var(--border-c);
+    font-size: 0.85rem;
+}
+
+.stopwatch_lap-n {
+    opacity: 0.45;
+}
+
+.stopwatch_lap-split {
+    opacity: 0.7;
+}
+
+.stopwatch_lap-total {
+    font-weight: 500;
+}

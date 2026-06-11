@@ -34,6 +34,7 @@ const experiences: CardProps[] = [
         title: "FIRST Tech Challenge",
         subTitle: "Team 20117 Student",
         image: _ftc,
+        url: "https://www.firstinspires.org/programs/ftc/",
         dateDisplay: formatDate(new Date("2021-09-18T00:00:00")),
         description: "Participated in a FTC regional. Developed some skills in Java programming, engineering design, and teamwork.",
     },
@@ -41,6 +42,7 @@ const experiences: CardProps[] = [
         title: "Robotique Zone01",
         subTitle: "World Robot Olympiad (WRO)",
         image: _zon01,
+        url: "https://www.zone01.ca/",
         dateDisplay: formatDate(new Date("2019-01-01T00:00:00")),
         description: "Applied basic programming and robot construction using LEGO Mindstorms NXT and LEGO Mindstorms EV3.",
     }

@@ -4,7 +4,7 @@ import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 export default function About() {
     return (
         <div className="section about">
-            <SectionTitle text={"About"} />
+            <SectionTitle text={"About Me"} />
             <div className="layout-row">
                 <p className="text-body">
                     Hi, I'm Jerry and I do things. Here are some things I find worth sharing.

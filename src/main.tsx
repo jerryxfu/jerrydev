@@ -16,6 +16,7 @@ const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
 const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
+const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1.0";
 
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
     {
         path: "/rendezvous",
         element: renderLazy(<LazyRendezvous />)
+    },
+    {
+        path: "/time",
+        element: renderLazy(<LazyTime />)
     },
     {
         path: "/supericu",

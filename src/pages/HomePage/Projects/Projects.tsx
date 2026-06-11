@@ -76,25 +76,6 @@ const projects: CardProps[] = [
         footer: "IB EE"
     },
     {
-        title: "BapUtils",
-        subTitle: "A Hypixel Skyblock Minecraft mod",
-        image: _baputils,
-        chipText: "💤 Stalled",
-        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
-        url: "https://github.com/jerryxfu/BapUtils",
-        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities. An update to 1.21+ is planned",
-        footer: "/bap"
-    },
-    {
-        title: "Kahoot! bot",
-        subTitle: "",
-        image: _kahootBot,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
-        url: "https://github.com/jerryxfu/kahoot-bot",
-        description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
-    },
-    {
         title: "Unveil Technologies",
         subTitle: "Building what's next",
         image: _unveil_dark,
@@ -114,10 +95,38 @@ const projects: CardProps[] = [
         footer: "TRL-3"
     },
     {
+        title: "BapUtils",
+        subTitle: "A Hypixel Skyblock Minecraft mod",
+        image: _baputils,
+        chipText: "💤 Stalled",
+        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
+        url: "https://github.com/jerryxfu/BapUtils",
+        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities. An update to 1.21+ is planned",
+        footer: "/bap"
+    },
+    {
+        title: "Kahoot! bot",
+        subTitle: "",
+        image: _kahootBot,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
+        url: "https://github.com/jerryxfu/kahoot-bot",
+        description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
+    },
+    {
+        title: "Time",
+        subTitle: "Date/time tools",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
+        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
+        url: "/time",
+    },
+    {
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
-        chipText: "🎖️ Completed",
+        chipText: "✅ Completed",
         dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
@@ -189,7 +198,7 @@ const projects: CardProps[] = [
         title: "RPI Pico weather station",
         subTitle: "A small indoor weather station",
         image: _weatherStation,
-        chipText: "🎖️ Completed",
+        chipText: "✅ Completed",
         dateDisplay: formatDate(new Date("2025-02-08T00:00:00")),
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
     },
@@ -209,7 +218,7 @@ const projects: CardProps[] = [
         chipText: "📦 Archived",
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18T00:00:00")),
-        description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities of LLMs in generating coherent and relevant arguments.",
+        description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
     },
     {
         title: "Pulse",

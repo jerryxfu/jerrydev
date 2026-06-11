@@ -1,0 +1,94 @@
+.time {
+    min-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1.5rem 3rem;
+
+    // tool-specific tokens (slightly more "utility" than the rest of the site)
+    --time-accent: var(--primary-c);
+    --time-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+}
+
+.time_container {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.time_home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.3;
+    align-self: flex-start;
+    transition: opacity 0.15s;
+
+    &:hover { opacity: 0.6; }
+}
+
+.time_header {
+    h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin: 0;
+    }
+}
+
+.time_sub {
+    margin: 0.3rem 0 0;
+    opacity: 0.5;
+    font-size: 0.9rem;
+}
+
+// Tabs — compact underline style, not big rounded pills
+.time_tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border-c);
+    overflow-x: auto;
+}
+
+.time_tab {
+    padding: 0.55rem 0.85rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    opacity: 0.5;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: opacity 0.15s, border-color 0.15s;
+
+    &:hover { opacity: 0.8; }
+
+    &.active {
+        opacity: 1;
+        border-bottom-color: var(--time-accent);
+        font-weight: 500;
+    }
+}
+
+.time_panel {
+    min-height: 300px;
+}
+
+.time_placeholder {
+    opacity: 0.4;
+    padding: 2rem 0;
+}
+
+// Shared numeric display style — tabular so digits don't jitter
+.time_mono {
+    font-family: var(--time-mono);
+    font-variant-numeric: tabular-nums;
+}
