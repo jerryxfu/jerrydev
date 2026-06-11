@@ -49,15 +49,15 @@
 
             const ov = document.createElement("div");
             ov.id = "boot-overlay";
-            ov.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background:#000;opacity:0.25;";
+            ov.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background:#000;opacity:0.30;";
             document.documentElement.appendChild(ov);
 
             setTimeout(function () {
-                ov.style.transition = "opacity 1s ease-out";
+                ov.style.transition = "opacity 1.5s ease-out";
                 ov.style.opacity = "0";
                 setTimeout(function () {
                     ov.remove();
-                }, 1100);
+                }, 3000);
             }, 250);
         })();
     </script>
