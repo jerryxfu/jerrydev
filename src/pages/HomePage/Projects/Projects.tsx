@@ -22,6 +22,7 @@ import _unveil_light from "../../../assets/projects/unveil/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
 import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
+import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
 import {formatDate} from "../../../utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
@@ -54,6 +55,15 @@ const projects: CardProps[] = [
         description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
         url: "/rendezvous",
         dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
+    },
+    {
+        title: "HiddenGarden",
+        subTitle: "A florist's website",
+        image: _hiddengarden,
+        chipText: "🚧 WIP",
+        description: "HiddenGarden is a flower shop founded by Maria. This is their website built by me, featuring many flower options and online ordering.",
+        url: "https://hiddengarden.pages.dev",
+        dateDisplay: formatDate(new Date("2026-06-12T00:00:00"))
     },
     {
         title: "TechNexus",
