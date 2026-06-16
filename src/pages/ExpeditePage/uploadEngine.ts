@@ -80,7 +80,7 @@ async function finalize(
         signal
     });
     const json = await res.json();
-    if (!res.ok || !json._success) throw new Error(json?.error?.message || "Failed to finalize upload");
+    if (!res.ok) throw new Error(json?.error?.message || "Failed to finalize upload");
     const d = json.data;
     return {
         code: d.code, type: "file",
@@ -120,7 +120,7 @@ export async function uploadFile(
         signal
     });
     const initJson = await initRes.json();
-    if (!initRes.ok || !initJson._success) {
+    if (!initRes.ok) {
         throw new Error(initJson?.error?.message || "Failed to start upload");
     }
     const data = initJson.data;

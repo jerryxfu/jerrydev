@@ -85,12 +85,12 @@ export default function Expedite() {
     // Fetch stats
     useEffect(() => {
         fetch(`${apiBaseUrl}/expedite/stats`)
-            .then(r => r.json())
-            .then(json => {
-                if (json._success) setStats(json.data);
-            })
-            .catch(() => {
-            });
+            .then(async r => {
+                if (!r.ok) return;
+                const json = await r.json();
+                setStats(json.data);
+            }).catch(() => {
+        });
     }, [view]);
 
     const transitionTo = async (nextView: ViewMode) => {
@@ -135,8 +135,10 @@ export default function Expedite() {
                         ttlMs: settings.ttlMs,
                     })
                 });
+
                 const json = await res.json();
-                if (!json._success) {
+
+                if (!res.ok) {
                     setError(json.error?.message || "Upload failed");
                     setLoading(false);
                     return;
@@ -187,7 +189,8 @@ export default function Expedite() {
         try {
             const res = await fetch(`${apiBaseUrl}/expedite/drop/${targetCode}`);
             const json = await res.json();
-            if (!json._success) {
+
+            if (!res.ok) {
                 setError(json.error?.message || "Not found");
                 setLoading(false);
                 return;

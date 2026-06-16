@@ -60,12 +60,12 @@ export default function Rendezvous() {
     // Fetch stats
     useEffect(() => {
         fetch(`${apiBaseUrl}/rendezvous/stats`)
-            .then(r => r.json())
-            .then(json => {
-                if (json._success) setStats(json.data);
-            })
-            .catch(() => {
-            });
+            .then(async r => {
+                if (!r.ok) return;
+                const json = await r.json();
+                setStats(json.data);
+            }).catch(() => {
+        });
     }, [view]);
 
     const transitionTo = async (nextView: ViewMode) => {
@@ -110,7 +110,8 @@ export default function Rendezvous() {
                 }),
             });
             const json = await res.json();
-            if (!json._success) {
+
+            if (!res.ok) {
                 setError(json.error?.message || "Failed to create event");
                 setLoading(false);
                 return;
@@ -133,7 +134,8 @@ export default function Rendezvous() {
         try {
             const res = await fetch(`${apiBaseUrl}/rendezvous/event/${targetCode}`);
             const json = await res.json();
-            if (!json._success) {
+
+            if (!res.ok) {
                 setError(json.error?.message || "Event not found");
                 setLoading(false);
                 return;
@@ -172,7 +174,8 @@ export default function Rendezvous() {
                 }),
             });
             const json = await res.json();
-            if (!json._success) {
+
+            if (!res.ok) {
                 setError(json.error?.message || "Failed to submit");
                 setLoading(false);
                 return;
@@ -180,7 +183,7 @@ export default function Rendezvous() {
             // Refetch event to get updated responses
             const updated = await fetch(`${apiBaseUrl}/rendezvous/event/${event.code}`);
             const updatedJson = await updated.json();
-            if (updatedJson._success) {
+            if (updated.ok) {
                 setEvent(updatedJson.data as EventMeta);
             }
             await transitionTo("result");
@@ -217,7 +220,7 @@ export default function Rendezvous() {
         try {
             const res = await fetch(`${apiBaseUrl}/rendezvous/event/${event.code}`);
             const json = await res.json();
-            if (json._success) setEvent(json.data as EventMeta);
+            if (res.ok) setEvent(json.data as EventMeta);
         } catch { /* use existing data */
         }
         await transitionTo("result");
