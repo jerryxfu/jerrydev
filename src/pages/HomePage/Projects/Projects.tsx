@@ -22,6 +22,8 @@ import _unveil_light from "../../../assets/projects/unveil/unveil_light.png";
 import _homeisland from "../../../assets/projects/home-island.jpeg";
 import _technexus from "../../../assets/projects/technexus.png";
 import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
+import _tools_light from "../../../assets/projects/tools_light.jpeg";
+import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
 import {formatDate} from "../../../utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
@@ -187,6 +189,15 @@ const projects: CardProps[] = [
         footer: "RSEQ Montreal & CRA"
     },
     {
+        title: "Tools",
+        subTitle: "A repo with random utility scripts",
+        image: _tools_light,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-06-15T00:00:00")),
+        url: "https://github.com/jerryxfu/tools",
+        description: "A repository with random utility scripts that I use here and there.",
+    },
+    {
         title: "Conditioner",
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
@@ -280,12 +291,13 @@ export default function Projects() {
     const {currentTheme} = useTheme();
 
     const themedProjects = useMemo(() => projects.map((project) => {
-        if (project.title !== "Unveil Technologies") return project;
-
-        return {
-            ...project,
-            image: currentTheme === "night" ? _unveil_light : _unveil_dark
-        };
+        if (project.title === "Unveil Technologies") {
+            return {...project, image: currentTheme === "night" ? _unveil_light : _unveil_dark};
+        }
+        if (project.title === "Tools") {
+            return {...project, image: currentTheme === "night" ? _tools_dark : _tools_light};
+        }
+        return project;
     }), [currentTheme]);
 
     return (
