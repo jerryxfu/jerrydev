@@ -5,7 +5,7 @@ import Card, {type CardProps} from "../../../components/Card/Card.tsx";
 import _llmvsllm from "../../../assets/projects/llmvsllm.jpeg";
 import _baputils from "../../../assets/projects/baputils.jpeg";
 import _expedite from "../../../assets/projects/expedite.jpeg";
-import _jerrybot from "../../../assets/projects/jerrybot.png";
+import _jerrybot from "../../../assets/projects/jerrybot.jpeg";
 import _jerryxf from "../../../assets/projects/jerryxf.jpeg";
 import _conditioner from "../../../assets/projects/conditioner.jpeg";
 import _kahootBot from "../../../assets/projects/kahootbot.mp4";
@@ -126,13 +126,13 @@ const projects: CardProps[] = [
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
     },
     {
-        title: "Time",
-        subTitle: "Date/time tools",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
-        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
-        url: "/time",
+        title: "JerryBot",
+        subTitle: "A comprehensive discord bot",
+        image: _jerrybot,
+        chipText: "🟢 Stable",
+        url: "https://github.com/jerryxfu/jerrybot-discord",
+        dateDisplay: formatDate(new Date("2021-09-01T00:00:00")),
+        description: "JerryBot is a comprehensive all purpose Discord bot that provides various utilities and fun features.",
     },
     {
         title: "SuperICU",
@@ -170,15 +170,6 @@ const projects: CardProps[] = [
         footer: "For Dodo Wheels"
     },
     {
-        title: "Cyclic",
-        subTitle: "Sleep cycle calculator and periods tracker",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
-        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-        footer: "iOS 17.7+ & Android 13+"
-    },
-    {
         title: "FRC Scorekeeper interface",
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
@@ -187,6 +178,15 @@ const projects: CardProps[] = [
         url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
         description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
         footer: "RSEQ Montreal & CRA"
+    },
+    {
+        title: "Time",
+        subTitle: "Date/time tools",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
+        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
+        url: "/time",
     },
     {
         title: "Tools",
@@ -205,15 +205,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-07-24T00:00:00")),
         url: "/#:~:text=MEDIVE",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE."
-    },
-    {
-        title: "JerryBot",
-        subTitle: "A comprehensive discord bot",
-        image: _jerrybot,
-        chipText: "📦 Archived",
-        url: "https://github.com/jerryxfu/JerryBot",
-        dateDisplay: formatDate(new Date("2021-09-01T00:00:00")),
-        description: "JerryBot was a comprehensive all purpose Discord bot that provided various features and utilities.",
     },
     {
         title: "RPI Pico weather station",
@@ -240,6 +231,15 @@ const projects: CardProps[] = [
         url: "https://github.com/jerryxfu/llmvsllm",
         dateDisplay: formatDate(new Date("2024-05-18T00:00:00")),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
+    },
+    {
+        title: "Cyclic",
+        subTitle: "Sleep cycle calculator and periods tracker",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
+        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
+        footer: "iOS 17.7+ & Android 13+"
     },
     {
         title: "Pulse",

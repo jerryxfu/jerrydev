@@ -2,7 +2,7 @@
     "name": "jerryxf",
     "version": "1.0.0",
     "type": "module",
-    "packageManager": "pnpm@11.5.1",
+    "packageManager": "pnpm@11.7.0",
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "vite --host",
