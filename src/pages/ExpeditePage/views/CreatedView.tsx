@@ -13,17 +13,17 @@ interface CreatedViewProps {
 export default function CreatedView({code, copiedField, onCopy, onDone}: CreatedViewProps) {
     return (
         <div className="expedite_created">
-            <p className="smaller-caption-text">Your drop code</p>
+            <p className="text-small">Your drop code</p>
             <button className="expedite_code-display" onClick={(e) => onCopy(code, "code", e)}>
                 <span className="expedite_code-text">{code}</span>
                 {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
             </button>
-            <p className="smaller-caption-text">
+            <p className="text-small">
                 {copiedField === "code" ? "Copied!" : "Tap to copy code"}
             </p>
             <div className="expedite_link-box">
                 <input
-                    className="expedite_link-input small-text"
+                    className="expedite_link-input text-small"
                     type="text"
                     value={getDropUrl(code)}
                     readOnly
@@ -37,9 +37,11 @@ export default function CreatedView({code, copiedField, onCopy, onDone}: Created
                 </button>
             </div>
 
-            <button className="expedite_btn-secondary expedite_btn-full" onClick={onDone}>
+            <button className="expedite_btn-primary expedite_btn-full" onClick={onDone}>
                 Done
             </button>
+
+            <p className="text-caption period-line-break">{"Make sure to copy the code now. \nYou won't be able to see it again."}</p>
         </div>
     );
 }

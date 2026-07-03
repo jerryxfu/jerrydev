@@ -17,6 +17,10 @@ interface ResultViewProps {
 export default function ResultView({event, copiedField, onCopy, onAddAvailability}: ResultViewProps) {
     const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
 
+    // detect devices that don't have hovering (mobile) for onHover and onClick
+    const isTouch = typeof window !== "undefined" &&
+        window.matchMedia("(hover: none)").matches;
+
     const timeSlots = generateTimeSlots(event.timeStart, event.timeEnd, event.granularity);
     const dateRange = getDateRange(event.dates);
     const isDay = event.granularity === "day";
@@ -41,8 +45,8 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             {/* Event info */}
             <div className="rv_result-header">
                 <div>
-                    <h2 className="rv_event-title">Event: {event.title}</h2>
-                    <p className="rv_result-meta smaller-caption-text">
+                    <h2 className="rv_event-title">{event.title}</h2>
+                    <p className="rv_result-meta text-small">
                         {event.code} · expires {timeUntil(event.expiresAt)}
                     </p>
                 </div>
@@ -52,12 +56,12 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             <div className="rv_respondents">
                 <div className="rv_respondents-header">
                     <Users size={14} />
-                    <span className="small-text">{totalResponses} respondent{totalResponses !== 1 ? "s" : ""}</span>
+                    <span className="text-small">{totalResponses} respondent{totalResponses !== 1 ? "s" : ""}</span>
                 </div>
                 {totalResponses > 0 && (
                     <div className="rv_respondent-list">
                         {event.responses.map(r => (
-                            <span key={r.name} className="rv_respondent-chip smaller-caption-text">{r.name}</span>
+                            <span key={r.name} className="rv_respondent-chip text-small">{r.name}</span>
                         ))}
                     </div>
                 )}
@@ -66,9 +70,9 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             {/* Heatmap legend */}
             {totalResponses > 0 && (
                 <div className="rv_legend">
-                    <span className="rv_legend-label smaller-caption-text">Fewer</span>
+                    <span className="rv_legend-label text-small">Fewer</span>
                     <div className="rv_legend-gradient" />
-                    <span className="rv_legend-label smaller-caption-text">All ({totalResponses})</span>
+                    <span className="rv_legend-label text-small">All ({totalResponses})</span>
                 </div>
             )}
 
@@ -99,8 +103,8 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                                     hoveredSlot === key && "rv_week-cell--hovered",
                                 ].filter(Boolean).join(" ")}
                                 style={count > 0 ? {"--heat": ratio} as React.CSSProperties : undefined}
-                                onMouseEnter={() => setHoveredSlot(key)}
-                                onMouseLeave={() => setHoveredSlot(null)}
+                                onMouseEnter={!isTouch ? () => setHoveredSlot(key) : undefined}
+                                onMouseLeave={!isTouch ? () => setHoveredSlot(null) : undefined}
                                 onClick={() => setHoveredSlot(hoveredSlot === key ? null : key)}
                             >
                                 <span className="rv_week-cell-num">{info.date}</span>
@@ -149,7 +153,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
             {/* Hover tooltip */}
             {hoveredSlot && hoveredNames.length > 0 && hoveredInfo && (
                 <div className="rv_tooltip">
-                    <span className="rv_tooltip-time smaller-caption-text">
+                    <span className="rv_tooltip-time text-small">
                         {isDay
                             ? <>{hoveredInfo.day}, {hoveredInfo.month} {hoveredInfo.date}</>
                             : <>{formatTime12h(hoveredSlot.split("T")[1])} · {hoveredInfo.day} {hoveredInfo.date}</>

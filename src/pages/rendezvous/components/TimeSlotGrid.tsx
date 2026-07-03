@@ -22,7 +22,7 @@ export default function TimeSlotGrid({timeSlots, dateRange, renderDateHeader, re
                 <div className="rv_grid-time-col">
                     <div className="rv_grid-corner" />
                     {timeSlots.map(t => (
-                        <div key={t} className="rv_grid-time-label smaller-caption-text">
+                        <div key={t} className="rv_grid-time-label text-small">
                             {formatTime12h(t)}
                         </div>
                     ))}
@@ -35,7 +35,7 @@ export default function TimeSlotGrid({timeSlots, dateRange, renderDateHeader, re
                     if (!isSelected) {
                         return (
                             <div key={date} className="rv_grid-col rv_grid-col--gap">
-                                <div className="rv_grid-date-header rv_grid-date-header--gap smaller-caption-text">
+                                <div className="rv_grid-date-header rv_grid-date-header--gap text-small">
                                     <span>{info.day}</span>
                                     <span>{info.date}</span>
                                 </div>

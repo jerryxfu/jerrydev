@@ -234,6 +234,12 @@ p {
     width: 100%;
 }
 
+.period-line-break {
+    @media screen and (max-width: 768px) {
+        white-space: pre-line;
+    }
+}
+
 .text-body {
     font-size: var(--text-md);
     line-height: 1.5;

@@ -213,8 +213,10 @@ export default function Expedite() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!result) return;
+
+        // Text: build blob locally
         if (result.type === "text" && result.text) {
             const blob = new Blob([result.text], {type: "text/plain"});
             const url = URL.createObjectURL(blob);
@@ -225,7 +227,23 @@ export default function Expedite() {
             URL.revokeObjectURL(url);
             return;
         }
-        if (result.fileUrl) window.open(result.fileUrl, "_blank");
+
+        if (!result.fileUrl) return;
+
+        // File: Fetch and force a download via blob
+        try {
+            const res = await fetch(result.fileUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = result.fileName ?? `expedite-${result.code}`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            // Fallback: open in new tab if fetch fails (e.g. CORS)
+            window.open(result.fileUrl, "_blank");
+        }
     };
 
     const handleDelete = async () => {

@@ -25,7 +25,7 @@ export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
         <div className="rv_week-grid">
             <div className="rv_week-header">
                 {WEEKDAY_HEADERS.map(d => (
-                    <div key={d} className="rv_week-header-cell smaller-caption-text">{d}</div>
+                    <div key={d} className="rv_week-header-cell text-small">{d}</div>
                 ))}
             </div>
 
@@ -35,7 +35,7 @@ export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
                 </div>
             ))}
 
-            <p className="rv_week-month-label smaller-caption-text">
+            <p className="rv_week-month-label text-small">
                 {firstInfo.month} {firstYear}
                 {spansMultipleMonths && <> – {lastInfo.month} {lastYear}</>}
             </p>

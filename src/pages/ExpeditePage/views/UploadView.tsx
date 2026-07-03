@@ -47,14 +47,14 @@ export default function UploadView(
         <div className="expedite_upload">
             <div className="expedite_type-toggle">
                 <button
-                    className={`small-text expedite_type-btn ${dropType === "text" ? "active" : ""}`}
+                    className={`text-small expedite_type-btn ${dropType === "text" ? "active" : ""}`}
                     onClick={() => setDropType("text")}
                     disabled={loading}
                 >
                     <FileText size={14} /> Text
                 </button>
                 <button
-                    className={`small-text expedite_type-btn ${dropType === "file" ? "active" : ""}`}
+                    className={`text-small expedite_type-btn ${dropType === "file" ? "active" : ""}`}
                     onClick={() => setDropType("file")}
                     disabled={loading}
                 >
@@ -64,7 +64,7 @@ export default function UploadView(
 
             {dropType === "text" ? (
                 <textarea
-                    className="expedite_textarea small-text"
+                    className="expedite_textarea text-small"
                     placeholder="Paste or type your text here..."
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
@@ -129,7 +129,7 @@ export default function UploadView(
                 <p className="expedite_settings-title caption-text">Settings</p>
 
                 <div className="expedite_setting-row">
-                    <label className="smaller-caption-text">Deletable by recipient</label>
+                    <label className="text-small">Deletable by recipient</label>
                     <button
                         className={`expedite_toggle ${settings.deletable ? "active" : ""}`}
                         onClick={() => setSettings(s => ({...s, deletable: !s.deletable}))}
@@ -139,7 +139,7 @@ export default function UploadView(
                 </div>
 
                 <div className="expedite_setting-row">
-                    <label className="smaller-caption-text">Max views</label>
+                    <label className="text-small">Max views</label>
                     <div className="expedite_setting-input-group">
                         <input
                             className="expedite_setting-input"
@@ -166,7 +166,7 @@ export default function UploadView(
                 </div>
 
                 <div className="expedite_setting-row">
-                    <label className="smaller-caption-text">Expires after</label>
+                    <label className="text-small">Expires after</label>
                     <div className="expedite_ttl-presets">
                         {TTL_PRESETS.map((p) => (
                             <button

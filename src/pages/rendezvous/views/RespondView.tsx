@@ -44,7 +44,7 @@ export default function RespondView(
             {/* Event header */}
             <div className="rv_event-header">
                 <h2 className="rv_event-title">{event.title}</h2>
-                <span className="rv_event-code smaller-caption-text">{event.code}</span>
+                <span className="rv_event-code text-small">{event.code}</span>
             </div>
 
             {/* Name input */}
@@ -59,7 +59,7 @@ export default function RespondView(
 
             {/* Participant count */}
             {event.responses.length > 0 && (
-                <p className="rv_respondent-count smaller-caption-text">
+                <p className="rv_respondent-count text-small">
                     {event.responses.length} response{event.responses.length !== 1 ? "s" : ""} so far
                     {" · "}
                     <button className="rv_inline-link" onClick={onViewResults}>
@@ -124,7 +124,7 @@ export default function RespondView(
                 />
             )}
 
-            <p className="rv_slot-count smaller-caption-text">
+            <p className="rv_slot-count text-small">
                 {selectedSlots.size} {isDay ? "day" : "slot"}{selectedSlots.size !== 1 ? "s" : ""} selected
             </p>
 

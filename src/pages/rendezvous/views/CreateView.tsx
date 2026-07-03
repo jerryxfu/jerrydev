@@ -70,7 +70,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                     <button className="rv_calendar-nav-btn" onClick={prevMonth}>
                         <ChevronLeft size={16} />
                     </button>
-                    <span className="rv_calendar-month small-text">{monthLabel}</span>
+                    <span className="rv_calendar-month text-small">{monthLabel}</span>
                     <button className="rv_calendar-nav-btn" onClick={nextMonth}>
                         <ChevronRight size={16} />
                     </button>
@@ -78,7 +78,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
 
                 <div className="rv_calendar-grid">
                     {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
-                        <div key={d} className="rv_calendar-weekday smaller-caption-text">{d}</div>
+                        <div key={d} className="rv_calendar-weekday text-small">{d}</div>
                     ))}
 
                     {weeks.flat().map((date, i) => {
@@ -107,7 +107,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                 </div>
 
                 {settings.dates.length > 0 && (
-                    <p className="rv_calendar-selection smaller-caption-text">
+                    <p className="rv_calendar-selection text-small">
                         {settings.dates.length} date{settings.dates.length !== 1 ? "s" : ""} selected
                     </p>
                 )}
@@ -118,7 +118,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                 <p className="rv_settings-title caption-text">Settings</p>
 
                 <div className="rv_setting-row">
-                    <label className="smaller-caption-text">Slot size</label>
+                    <label className="text-small">Slot size</label>
                     <div className="rv_pill-row">
                         {GRANULARITY_OPTIONS.map(g => (
                             <button
@@ -134,7 +134,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
 
                 {settings.granularity !== "day" && settings.granularity !== "half" && (
                     <div className="rv_setting-row">
-                        <label className="smaller-caption-text">Time range</label>
+                        <label className="text-small">Time range</label>
                         <div className="rv_time-range">
                             <select
                                 className="rv_time-select"
@@ -156,7 +156,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                 )}
 
                 <div className="rv_setting-row">
-                    <label className="smaller-caption-text">Expires after</label>
+                    <label className="text-small">Expires after</label>
                     <div className="rv_pill-row">
                         {TTL_PRESETS.map(p => (
                             <button

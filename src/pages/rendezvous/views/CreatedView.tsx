@@ -14,17 +14,17 @@ interface CreatedViewProps {
 export default function CreatedView({code, copiedField, onCopy, onDone, onOpen}: CreatedViewProps) {
     return (
         <div className="rv_created">
-            <p className="smaller-caption-text">Your event code</p>
+            <p className="text-small">Your event code</p>
             <button className="rv_code-display" onClick={(e) => onCopy(code, "code", e)}>
                 <span className="rv_code-text">{code}</span>
                 {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
             </button>
-            <p className="smaller-caption-text">
+            <p className="text-small">
                 {copiedField === "code" ? "Copied!" : "Tap to copy code"}
             </p>
             <div className="rv_link-box">
                 <input
-                    className="rv_link-input small-text"
+                    className="rv_link-input text-small"
                     type="text"
                     value={getEventUrl(code)}
                     readOnly
@@ -42,6 +42,8 @@ export default function CreatedView({code, copiedField, onCopy, onDone, onOpen}:
             <button className="rv_btn-secondary rv_btn-full" onClick={onDone}>
                 Done
             </button>
+
+            <p className="text-caption period-line-break">{"Make sure to copy the code now. \nYou won't be able to see it again."}</p>
         </div>
     );
 }
