@@ -25,6 +25,7 @@ import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import _tools_light from "../../../assets/projects/tools_light.jpeg";
 import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
+import _stats from "../../../assets/projects/stats.jpeg";
 import {formatDate} from "../../../utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
@@ -50,19 +51,19 @@ const projects: CardProps[] = [
         footer: "Same-day shipping!"
     },
     {
-        title: "Rendezvous",
-        subTitle: "A tool to help schedule group events",
-        image: _rendezvous,
+        title: "stats.jerryxf",
+        subTitle: "Cool live data feeds",
+        image: _stats,
         chipText: "🟢 Stable",
-        description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
-        url: "/rendezvous",
-        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
+        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
+        url: "https://stats.jerryxf.net",
+        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
     },
     {
         title: "HiddenGarden",
         subTitle: "A florist's website",
         image: _hiddengarden,
-        chipText: "🚧 WIP",
+        chipText: "🟢 Stable",
         description: "HiddenGarden is a flower shop founded by Maria. This is their website built by me, featuring many flower options and online ordering.",
         url: "https://hiddengarden.pages.dev",
         dateDisplay: formatDate(new Date("2026-06-12T00:00:00"))
@@ -78,6 +79,25 @@ const projects: CardProps[] = [
         footer: "iOS 16.7+ & Android 13+"
     },
     {
+        title: "BapUtils",
+        subTitle: "A Hypixel Skyblock Minecraft mod",
+        image: _baputils,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
+        url: "https://github.com/jerryxfu/BapUtils",
+        description: "BapUtils is a lightweight Minecraft Fabric mod for Hypixel Skyblock that provides various quality of life utilities. The update to Minecraft version 26.2 is underway",
+        footer: "/bap"
+    },
+    {
+        title: "Rendezvous",
+        subTitle: "A tool to help schedule group events",
+        image: _rendezvous,
+        chipText: "🟢 Stable",
+        description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
+        url: "/rendezvous",
+        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
+    },
+    {
         title: "MEDIVE",
         subTitle: "Research project",
         image: _medive,
@@ -87,15 +107,15 @@ const projects: CardProps[] = [
         description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
         footer: "IB EE"
     },
-    {
-        title: "Unveil Technologies",
-        subTitle: "Building what's next",
-        image: _unveil_dark,
-        chipText: "Founder",
-        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-        url: "https://unveiltechnologies.com",
-        description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
-    },
+    // {
+    //     title: "Unveil Technologies",
+    //     subTitle: "Building what's next",
+    //     image: _unveil_dark,
+    //     chipText: "Founder",
+    //     dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
+    //     url: "https://unveiltechnologies.com",
+    //     description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
+    // },
     {
         title: "ORCA",
         subTitle: "Uncover the unseen",
@@ -105,16 +125,6 @@ const projects: CardProps[] = [
         url: "https://unveiltechnologies.com",
         description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
         footer: "TRL-3"
-    },
-    {
-        title: "BapUtils",
-        subTitle: "A Hypixel Skyblock Minecraft mod",
-        image: _baputils,
-        chipText: "💤 Stalled",
-        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
-        url: "https://github.com/jerryxfu/BapUtils",
-        description: "BapUtils is a lightweight Minecraft Forge mod for Hypixel Skyblock that provides various quality of life utilities. An update to 1.21+ is planned",
-        footer: "/bap"
     },
     {
         title: "Kahoot! bot",
