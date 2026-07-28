@@ -82,18 +82,14 @@ export function resolveHref(href: string, pathname: string): string {
     return href === "#" ? "/" : `/${href}`;
 }
 
-// Client-side routing applies to internal paths only. Hash anchors are excluded
-// because wouter navigates with history.pushState, which does not trigger the
-// browser's native scroll-to-id — a routed "#projects" would go nowhere. The
-// "/#projects" form resolveHref produces off the homepage is the same case, and
-// needs the full reload to land the scroll. External links leave the app.
+// Which hrefs wouter is allowed to handle client-side.
+// An absolute URL or a hash anchor must stay a plain <a>.
+// wouter's <Link> intercepts the click and calls history.pushState, which for a cross-origin URL silently does nothing.
+// For a hash, skip the browser's native scroll-to-id.
 export function isRouted(item: NavLink): boolean {
     if (item.external) return false;
     if (item.href.startsWith("#")) return false;
-    // Absolute URLs leave the app whether or not `external: true` was set. Without
-    // this, wouter would intercept the click and pushState a cross-origin href,
-    // which silently does nothing at all — the link just appears dead. Matches any
-    // scheme ("https:", "mailto:", "tel:") and protocol-relative "//host".
+    // Match any scheme ("https:", "mailto:", "tel:") and protocol-relative "//host".
     if (item.href.startsWith("//") || /^[a-z][a-z0-9+.-]*:/i.test(item.href)) return false;
     return true;
 }
