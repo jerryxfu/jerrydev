@@ -8,12 +8,12 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks(id: string) {
-                    if (!id.includes("node_modules")) return;
+                manualChunks(id: string): string | undefined {
+                    if (!id.includes("node_modules")) return undefined;
                     if (
                         id.includes("/react/") ||
                         id.includes("/react-dom/") ||
-                        id.includes("/react-router") ||
+                        id.includes("/wouter/") ||
                         id.includes("/scheduler/")
                     ) {
                         return "react-vendor";
@@ -26,6 +26,8 @@ export default defineConfig({
                     ) {
                         return "gsap-vendor";
                     }
+
+                    return undefined;
                 },
             },
         },

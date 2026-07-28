@@ -373,7 +373,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     text-decoration: none;
 
     font-family: inherit;
-    font-size: var(--text-lg);
+    font-size: var(--fs-lg);
     font-weight: 450;
     color: var(--text-2);
 
@@ -407,7 +407,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     cursor: pointer;
 
     font-family: inherit;
-    font-size: var(--text-sm);
+    font-size: var(--fs-sm);
     color: var(--text-3);
     padding: 0.4rem 0.65rem 0.4rem 0.35rem;
     margin-bottom: 0.35rem;
@@ -426,7 +426,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .navdrawer_subtitle {
-    font-size: var(--text-xl);
+    font-size: var(--fs-xl);
     font-weight: 500;
     color: var(--text-strong);
     margin: 0 0 0.9rem;

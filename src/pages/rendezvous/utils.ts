@@ -9,8 +9,8 @@ export function generateTimeSlots(start: string, end: string, granularity: Granu
     if (granularity === "half") return ["00:00", "12:00"];
 
     const slots: string[] = [];
-    const [startH, startM] = start.split(":").map(Number);
-    const [endH, endM] = end.split(":").map(Number);
+    const [startH = 0, startM = 0] = start.split(":").map(Number);
+    const [endH = 0, endM = 0] = end.split(":").map(Number);
     const startMin = startH * 60 + startM;
     const endMin = endH * 60 + endM;
 
@@ -43,7 +43,7 @@ export function getDateRange(selectedDates: string[]): { date: string; isSelecte
     const result: { date: string; isSelected: boolean }[] = [];
 
     for (let d = new Date(min); d <= max; d.setDate(d.getDate() + 1)) {
-        const iso = d.toISOString().split("T")[0];
+        const iso = d.toISOString().slice(0, 10);
         result.push({date: iso, isSelected: selectedSet.has(iso)});
     }
 
@@ -58,9 +58,9 @@ export function formatDateShort(dateStr: string): { day: string; date: number; m
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return {
-        day: days[d.getDay()],
+        day: days[d.getDay()] ?? "",
         date: d.getDate(),
-        month: months[d.getMonth()],
+        month: months[d.getMonth()] ?? "",
     };
 }
 
@@ -68,7 +68,7 @@ export function formatDateShort(dateStr: string): { day: string; date: number; m
  * Format time "14:00" to "2 PM" or "14:30" to "2:30 PM"
  */
 export function formatTime12h(time: string): string {
-    const [h, m] = time.split(":").map(Number);
+    const [h = 0, m = 0] = time.split(":").map(Number);
     const period = h >= 12 ? "PM" : "AM";
     const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
     return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;

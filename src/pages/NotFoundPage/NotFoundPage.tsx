@@ -2,6 +2,7 @@ import React from "react";
 import {Helmet} from "react-helmet-async";
 import "./NotFoundPage.scss";
 import Footer from "../../components/Footer/Footer.tsx";
+import Navbar from "../../components/Navbar/Navbar.tsx";
 
 export default function NotFoundPage() {
     return (
@@ -12,6 +13,8 @@ export default function NotFoundPage() {
                       content="How did we end up here?" />
                 <meta name="robots" content="noindex" />
             </Helmet>
+
+            <Navbar />
 
             <div className="notfound_content">
                 <h1>HTTP status code 404 — Page not found; it's probably your fault.</h1>

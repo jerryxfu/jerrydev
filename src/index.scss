@@ -44,17 +44,17 @@ body.homeisland-body {
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
 
-    --text-xs: 0.75rem; // 12px - fine print, labels
-    --text-smm: 0.8125rem; // 13px - small captions, emphasized secondary
-    --text-sm: 0.875rem; // 14px - captions, secondary
-    --text-base: 1rem; // 16px - body text
-    --text-md: 1.125rem; // 18px - slightly emphasized body
-    --text-mdd: 1.1875rem; // 19px - emphasized body
-    --text-lg: 1.25rem; // 20px - subheadings
-    --text-lgg: 1.375rem; // 22px - emphasized subheadings
-    --text-xl: 1.5rem; // 24px - section titles
-    --text-2xl: 2rem; // 32px - page titles
-    --text-3xl: 2.5rem; // 40px - hero
+    --fs-xs: 0.75rem; // 12px - fine print, labels
+    --fs-smm: 0.8125rem; // 13px - small captions, emphasized secondary
+    --fs-sm: 0.875rem; // 14px - captions, secondary
+    --fs-base: 1rem; // 16px - body text
+    --fs-md: 1.125rem; // 18px - slightly emphasized body
+    --fs-mdd: 1.1875rem; // 19px - emphasized body
+    --fs-lg: 1.25rem; // 20px - subheadings
+    --fs-lgg: 1.375rem; // 22px - emphasized subheadings
+    --fs-xl: 1.5rem; // 24px - section titles
+    --fs-2xl: 2rem; // 32px - page titles
+    --fs-3xl: 2.5rem; // 40px - hero
 
     // Color constants that don't change between themes
     --pink: #ff64f9;
@@ -150,6 +150,7 @@ body {
     --surface-lt: rgba(255, 255, 255, 0.02);
     --surface: rgba(255, 255, 255, 0.04);
     --surface-da: rgba(255, 255, 255, 0.06);
+    --surface-daa: rgba(0, 0, 0, 0.35);
 
     --text-strong: rgba(250, 249, 248, 1);
     --text: rgba(251, 250, 249, 1);
@@ -282,7 +283,7 @@ p {
 }
 
 .text-body {
-    font-size: var(--text-md);
+    font-size: var(--fs-md);
     line-height: 1.5;
     margin: 0;
     font-weight: 400;
@@ -292,19 +293,19 @@ p {
 }
 
 .text-small {
-    font-size: var(--text-base);
+    font-size: var(--fs-base);
     line-height: 1.35;
     color: var(--text-2);
 }
 
 .text-caption {
-    font-size: var(--text-sm);
+    font-size: var(--fs-sm);
     line-height: 1.25;
     color: color-mix(in srgb, var(--text-2) 55%, transparent);
 }
 
 .text-label {
-    font-size: var(--text-xs);
+    font-size: var(--fs-xs);
     line-height: 1.25;
     font-weight: 600;
     letter-spacing: 0.04em;

@@ -143,15 +143,16 @@ export async function uploadFile(
 
     try {
         if (data.mode === "single") {
-            parts.push({partNumber: 1, state: "uploading", loaded: 0, total: file.size});
+            const only: PartProgress = {partNumber: 1, state: "uploading", loaded: 0, total: file.size};
+            parts.push(only);
             emit(true);
             await putWithProgress(data.uploadUrl, file, contentType,
                 (loaded) => {
-                    parts[0].loaded = loaded;
+                    only.loaded = loaded;
                     emit();
                 }, signal);
-            parts[0].loaded = file.size;
-            parts[0].state = "done";
+            only.loaded = file.size;
+            only.state = "done";
             emit(true);
             return await finalize(apiBaseUrl, code, [], settings, signal);
         }
@@ -170,6 +171,7 @@ export async function uploadFile(
 
         const uploadOne = async (pu: { partNumber: number; url: string }) => {
             const p = parts[pu.partNumber - 1];
+            if (!p) throw new Error(`No progress slot for part ${pu.partNumber}`);
             const start = (pu.partNumber - 1) * partSize;
             const end = Math.min(start + partSize, file.size);
             const blob = file.slice(start, end);
@@ -211,9 +213,9 @@ export async function uploadFile(
         const worker = async () => {
             while (true) {
                 if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-                const i = nextIdx++;
-                if (i >= partUrls.length) return;
-                await uploadOne(partUrls[i]);
+                const pu = partUrls[nextIdx++];
+                if (!pu) return;
+                await uploadOne(pu);
             }
         };
         await Promise.all(

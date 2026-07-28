@@ -1,6 +1,6 @@
-import {lazy, type ReactNode, StrictMode, Suspense} from "react";
+import {lazy, type ReactNode, StrictMode, Suspense, useEffect} from "react";
 import {createRoot} from "react-dom/client";
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {Route, Switch, useLocation} from "wouter";
 import {HelmetProvider} from "react-helmet-async";
 
 import "@fontsource-variable/outfit/index.css";
@@ -18,16 +18,19 @@ const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 
-const LOCAL_STORAGE_VERSION = "v1.0";
-
-if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
+// local storage version control
+const LOCAL_STORAGE_VERSION = "v1";
+if (localStorage.getItem("version") !== LOCAL_STORAGE_VERSION) {
     localStorage.clear();
-    localStorage.setItem("app-version", LOCAL_STORAGE_VERSION);
+    localStorage.setItem("version", LOCAL_STORAGE_VERSION);
 }
 
 export const isDev = import.meta.env.DEV || import.meta.env.MODE === "development";
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
-    (isDev ? "https://api.jerryxf.net" : "https://api.jerryxf.net");
+    (isDev ?
+            "https://api.jerryxf.net" // dev
+            : "https://api.jerryxf.net" // prod
+    );
 
 // region this passes build, and does absolutely nothing.
 type Rev<S extends string> = S extends `${infer H}${infer R}` ? `${Rev<R>}${H}` : "";
@@ -47,12 +50,12 @@ try {
     void (null as unknown as { z(): never })!.z();
 } catch {
     label:
-        //noinspection LoopStatementThatDoesntLoopJS, prevent WebStorm from crashing out
+        //noinspection LoopStatementThatDoesntLoopJS
         for (
             // @ts-expect-error TS2873: This kind of expression is always falsy
             let i = +!void 0; i > 0; i--
         ) {
-            // noinspection UnnecessaryLabelOnBreakStatementJS, prevent WebStorm from crashing out
+            // noinspection UnnecessaryLabelOnBreakStatementJS
             break label;
         }
 }
@@ -64,44 +67,20 @@ const renderLazy = (element: ReactNode) => (
     </Suspense>
 );
 
-const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <HomePage />
-    },
-    {
-        path: "/expedite",
-        element: renderLazy(<LazyExpedite />)
-    },
-    {
-        path: "/scheduler",
-        element: renderLazy(<LazyScheduler />)
-    },
-    {
-        path: "/rendezvous",
-        element: renderLazy(<LazyRendezvous />)
-    },
-    {
-        path: "/time",
-        element: renderLazy(<LazyTime />)
-    },
-    {
-        path: "/supericu",
-        element: renderLazy(<LazySuperIcu />)
-    },
-    {
-        path: "/elements",
-        element: renderLazy(<LazyElementsPage />)
-    },
-    {
-        path: "/cheatsheet/waveform",
-        element: renderLazy(<LazyWaveform />)
-    },
-    {
-        path: "*",
-        element: <NotFoundPage />
-    }
-]);
+// Client-side navigation preserves scroll position, so a route change would
+// otherwise land you partway down the new page. Skipped when the URL carries a
+// hash, since that navigation is a full reload whose whole point is to scroll
+// somewhere other than the top.
+function ScrollToTop() {
+    const [pathname] = useLocation();
+
+    useEffect(() => {
+        if (window.location.hash) return;
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    return null;
+}
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -114,7 +93,18 @@ root.render(
         <ErrorBoundary>
             <HelmetProvider>
                 <ThemeProvider>
-                    <RouterProvider router={router} />
+                    <ScrollToTop />
+                    <Switch>
+                        <Route path="/"><HomePage /></Route>
+                        <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
+                        <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
+                        <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>
+                        <Route path="/time">{renderLazy(<LazyTime />)}</Route>
+                        <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
+                        <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
+                        <Route path="/cheatsheet/waveform">{renderLazy(<LazyWaveform />)}</Route>
+                        <Route><NotFoundPage /></Route>
+                    </Switch>
                 </ThemeProvider>
             </HelmetProvider>
         </ErrorBoundary>

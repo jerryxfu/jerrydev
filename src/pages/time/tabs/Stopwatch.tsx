@@ -57,7 +57,7 @@ export default function Stopwatch() {
     const lap = () => {
         const total = running ? accumRef.current + (performance.now() - startRef.current) : elapsed;
         setLaps((prev) => {
-            const prevTotal = prev.length ? prev[prev.length - 1].total : 0;
+            const prevTotal = prev.at(-1)?.total ?? 0;
             return [...prev, {index: prev.length + 1, total, split: total - prevTotal}];
         });
     };

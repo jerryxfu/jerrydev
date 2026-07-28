@@ -12,9 +12,12 @@ interface WeekGridProps {
 export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
     if (weekRows.length === 0) return null;
 
-    // Month label spanning the range
-    const firstDate = weekRows[0][0].date;
-    const lastDate = weekRows[weekRows.length - 1][6].date;
+    // Month label spanning the range. Rows are expected to be full weeks, but
+    // indexing is unchecked, so a short first/last row falls through the same
+    // "nothing to show" exit as an empty grid rather than throwing.
+    const firstDate = weekRows[0]?.[0]?.date;
+    const lastDate = weekRows[weekRows.length - 1]?.[6]?.date;
+    if (firstDate === undefined || lastDate === undefined) return null;
     const firstInfo = formatDateShort(firstDate);
     const lastInfo = formatDateShort(lastDate);
     const firstYear = new Date(firstDate + "T00:00:00").getFullYear();

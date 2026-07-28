@@ -5,8 +5,8 @@ import {useGSAP} from "@gsap/react";
 import {Menu} from "lucide-react";
 import NavDrawer from "./NavDrawer.tsx";
 import ThemeToggle from "./ThemeToggle/ThemeToggle.tsx";
-import {useLocation} from "react-router-dom";
-import {linksLeft, linksRight, LOGO_ALT, resolveHref} from "./nav.config.ts";
+import {Link, useLocation} from "wouter";
+import {isRouted, linksLeft, linksRight, LOGO_ALT, resolveHref} from "./nav.config.ts";
 import "./Navbar.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -26,7 +26,7 @@ type Props = {
 
 export default function Navbar({isHero = false, isShrunk = false}: Props) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const {pathname} = useLocation();
+    const [pathname] = useLocation();
 
     const navRef = useRef<HTMLElement>(null);
     const logoRef = useRef<HTMLAnchorElement>(null);
@@ -97,13 +97,19 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
                     linkRefs.current[offset + i] = el;
                 }}
             >
-                <a
-                    href={resolveHref(item.href, pathname)}
-                    className="text-body text-underline"
-                    {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
-                >
-                    {item.label}
-                </a>
+                {isRouted(item) ? (
+                    <Link href={item.href} className="text-body text-underline">
+                        {item.label}
+                    </Link>
+                ) : (
+                    <a
+                        href={resolveHref(item.href, pathname)}
+                        className="text-body text-underline"
+                        {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
+                    >
+                        {item.label}
+                    </a>
+                )}
             </li>
         ));
 
@@ -118,9 +124,9 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
                 ref={navRef}
             >
                 <div className="navbar_bar">
-                    <a className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
+                    <Link className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
                         <img src="/favicon.jpeg" alt={LOGO_ALT} />
-                    </a>
+                    </Link>
 
                     <ul className="navbar_inline navbar_inline-left">
                         {renderInline(linksLeft, 0)}

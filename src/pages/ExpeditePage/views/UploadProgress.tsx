@@ -20,8 +20,10 @@ const STATE_LETTER: Record<PartState, string> = {
 function speedFrom(samples: Sample[], now: number): number {
     const cut = now - SPEED_WINDOW_MS;
     const win = samples.filter((s) => s.t >= cut);
-    if (win.length < 2) return 0;
-    const first = win[0], last = win[win.length - 1];
+    const first = win[0];
+    const last = win.at(-1);
+    // Two samples minimum; the index guards also narrow both away from undefined.
+    if (win.length < 2 || !first || !last) return 0;
     const dt = (last.t - first.t) / 1000;
     if (dt <= 0) return 0;
     return Math.max(0, (last.loaded - first.loaded) / dt);

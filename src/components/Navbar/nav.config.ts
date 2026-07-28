@@ -4,10 +4,11 @@
 // A branch's children are themselves NavItems, so the tree nests to any depth
 // with no component changes — add data, get depth.
 //
-// Every link renders as a plain anchor. Three kinds of href are supported:
+// Three kinds of href are supported, and they render differently:
 //   "#projects"                 section anchor on the homepage (see resolveHref)
-//   "/expedite"                 internal route
+//   "/expedite"                 internal route, rendered as a wouter <Link>
 //   "https://github.com/..."    external, needs `external: true` for the new tab
+// Only the middle kind is client-side routed — see isRouted.
 
 export type NavLink = {
     type: "link";
@@ -42,6 +43,7 @@ export const linksLeft: NavLink[] = [
 
 export const linksRight: NavLink[] = [
     {type: "link", label: "Expedite 📦", href: "/expedite"},
+     {type: "link", label: "404", href: "/404"},
     {type: "link", label: "stats.jerryxf", href: "https://stats.jerryxf.net"},
 ];
 
@@ -79,4 +81,12 @@ export function resolveHref(href: string, pathname: string): string {
     if (!href.startsWith("#")) return href;
     if (pathname === "/") return href;
     return href === "#" ? "/" : `/${href}`;
+}
+// Client-side routing applies to internal paths only. Hash anchors are excluded
+// because wouter navigates with history.pushState, which does not trigger the
+// browser's native scroll-to-id — a routed "#projects" would go nowhere. The
+// "/#projects" form resolveHref produces off the homepage is the same case, and
+// needs the full reload to land the scroll. External links leave the app.
+export function isRouted(item: NavLink): boolean {
+    return !item.external && !item.href.startsWith("#");
 }

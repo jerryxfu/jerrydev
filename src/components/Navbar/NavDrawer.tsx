@@ -2,8 +2,8 @@ import {useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 import {ChevronLeft, ChevronRight, X} from "lucide-react";
-import {useLocation} from "react-router-dom";
-import {menuGroups, type NavBranch, type NavItem, resolveHref} from "./nav.config.ts";
+import {Link, useLocation} from "wouter";
+import {isRouted, menuGroups, type NavBranch, type NavItem, resolveHref} from "./nav.config.ts";
 import "./Navbar.scss";
 
 type Props = {
@@ -27,7 +27,7 @@ export default function NavDrawer({isOpen, onClose}: Props) {
     // The panel we're animating away from during a transition (null when idle).
     const [outgoing, setOutgoing] = useState<{ level: Level; direction: "forward" | "back" } | null>(null);
 
-    const {pathname} = useLocation();
+    const [pathname] = useLocation();
     const trackRef = useRef<HTMLDivElement>(null);
     const current = stack[stack.length - 1]!;
 
@@ -89,14 +89,20 @@ export default function NavDrawer({isOpen, onClose}: Props) {
                 {group.map((item) =>
                     item.type === "link" ? (
                         <li key={item.href}>
-                            <a
-                                href={resolveHref(item.href, pathname)}
-                                className="navdrawer_link"
-                                onClick={closeSoon}
-                                {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
-                            >
-                                {item.label}
-                            </a>
+                            {isRouted(item) ? (
+                                <Link href={item.href} className="navdrawer_link" onClick={closeSoon}>
+                                    {item.label}
+                                </Link>
+                            ) : (
+                                <a
+                                    href={resolveHref(item.href, pathname)}
+                                    className="navdrawer_link"
+                                    onClick={closeSoon}
+                                    {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
+                                >
+                                    {item.label}
+                                </a>
+                            )}
                         </li>
                     ) : (
                         <li key={item.key}>

@@ -38,7 +38,10 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
 
     const maxAvail = Math.max(0, ...Array.from(slotAvailability.values()).map(v => v.length));
     const hoveredNames = hoveredSlot ? slotAvailability.get(hoveredSlot) || [] : [];
-    const hoveredInfo = hoveredSlot ? formatDateShort(hoveredSlot.split("T")[0]) : null;
+    // A slot key is "YYYY-MM-DDTHH:MM". Split once here so both halves are typed
+    // as strings rather than re-splitting and re-checking at each use.
+    const [hoveredDate = "", hoveredTime = ""] = hoveredSlot ? hoveredSlot.split("T") : [];
+    const hoveredInfo = hoveredSlot ? formatDateShort(hoveredDate) : null;
 
     return (
         <div className="rv_result">
@@ -156,7 +159,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                     <span className="rv_tooltip-time text-small">
                         {isDay
                             ? <>{hoveredInfo.day}, {hoveredInfo.month} {hoveredInfo.date}</>
-                            : <>{formatTime12h(hoveredSlot.split("T")[1])} · {hoveredInfo.day} {hoveredInfo.date}</>
+                            : <>{formatTime12h(hoveredTime)} · {hoveredInfo.day} {hoveredInfo.date}</>
                         }
                     </span>
                     <div className="rv_tooltip-names">

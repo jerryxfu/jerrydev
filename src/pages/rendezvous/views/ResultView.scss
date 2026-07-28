@@ -19,7 +19,7 @@
 
 // --- Respondents ---
 .rv_respondents {
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0.75rem 0.95rem;
     display: flex;
@@ -65,11 +65,11 @@
     border-radius: 3px;
     background: linear-gradient(
         to right,
-        color-mix(in srgb, var(--primary-c) 10%, transparent),
-        color-mix(in srgb, var(--primary-c) 55%, transparent),
-        color-mix(in srgb, var(--primary-c) 90%, transparent)
+        color-mix(in srgb, var(--primary) 10%, transparent),
+        color-mix(in srgb, var(--primary) 55%, transparent),
+        color-mix(in srgb, var(--primary) 90%, transparent)
     );
-    border: 1px solid color-mix(in srgb, var(--primary-c) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 // --- Tooltip ---
@@ -78,9 +78,9 @@
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.65rem 0.85rem;
-    border: 1px solid var(--border-da-c);
+    border: 1px solid var(--border-da);
     border-radius: 8px;
-    background: var(--surface-c);
+    background: var(--surface);
 }
 
 .rv_tooltip-time {
@@ -98,5 +98,5 @@
     font-size: 0.82rem;
     padding: 0.15rem 0.45rem;
     border-radius: 4px;
-    background: color-mix(in srgb, var(--primary-c) 12%, transparent);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
 }
