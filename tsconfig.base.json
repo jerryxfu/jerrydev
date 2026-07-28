@@ -10,9 +10,14 @@
         "moduleDetection": "force",
         "noEmit": true,
         /* Linting */
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
         "noUnusedLocals": false,
         "noUnusedParameters": true,
         "erasableSyntaxOnly": true,
-        "noFallthroughCasesInSwitch": true
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noImplicitOverride": true,
+        "resolveJsonModule": true
     }
 }

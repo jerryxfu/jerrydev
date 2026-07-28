@@ -19,9 +19,12 @@ type Props = {
     // When true the bar sits transparent over a hero at the top of the page and
     // turns frosted once scrolled. When false it's solid from the start.
     isHero?: boolean;
+    // Locks the bar in its compact state. The scroll trigger is never created,
+    // so the bar never expands regardless of scroll position.
+    isShrunk?: boolean;
 };
 
-export default function Navbar({isHero = false}: Props) {
+export default function Navbar({isHero = false, isShrunk = false}: Props) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const {pathname} = useLocation();
 
@@ -59,6 +62,9 @@ export default function Navbar({isHero = false}: Props) {
             ease: "power2.out",
             clearProps: "opacity,transform",
         });
+
+        // Locked compact: the class is already on the element from render, so there's nothing to toggle and no trigger worth creating.
+        if (isShrunk) return;
 
         // The compact state is a class toggled at a threshold. The shape change is ruled by CSS.
         const setScrolled = (on: boolean) => nav.classList.toggle("is-scrolled", on);
@@ -103,7 +109,14 @@ export default function Navbar({isHero = false}: Props) {
 
     return (
         <>
-            <nav className={"navbar " + (isHero ? "navbar--hero" : "navbar--solid")} ref={navRef}>
+            <nav
+                className={
+                    "navbar " +
+                    (isHero ? "navbar--hero" : "navbar--solid") +
+                    (isShrunk ? " is-scrolled" : "")
+                }
+                ref={navRef}
+            >
                 <div className="navbar_bar">
                     <a className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
                         <img src="/favicon.jpeg" alt={LOGO_ALT} />
