@@ -14,7 +14,7 @@ export default function NotFoundPage() {
                 <meta name="robots" content="noindex" />
             </Helmet>
 
-            <Navbar />
+            <Navbar isShrunk={true} />
 
             <div className="notfound_content">
                 <h1>HTTP status code 404 — Page not found; it's probably your fault.</h1>

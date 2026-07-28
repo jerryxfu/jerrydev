@@ -43,7 +43,6 @@ export const linksLeft: NavLink[] = [
 
 export const linksRight: NavLink[] = [
     {type: "link", label: "Expedite 📦", href: "/expedite"},
-     {type: "link", label: "404", href: "/404"},
     {type: "link", label: "stats.jerryxf", href: "https://stats.jerryxf.net"},
 ];
 
@@ -82,6 +81,7 @@ export function resolveHref(href: string, pathname: string): string {
     if (pathname === "/") return href;
     return href === "#" ? "/" : `/${href}`;
 }
+
 // Client-side routing applies to internal paths only. Hash anchors are excluded
 // because wouter navigates with history.pushState, which does not trigger the
 // browser's native scroll-to-id — a routed "#projects" would go nowhere. The
