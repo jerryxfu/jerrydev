@@ -5,7 +5,7 @@
 }
 
 .expedite_meta {
-    border: 1px solid var(--border-da-c);
+    border: 1px solid var(--border-da);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -15,8 +15,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.65rem 0.95rem;
-    border-bottom: 1px solid var(--border-c);
-    background: var(--surface-lt-c);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-lt);
 }
 
 .expedite_meta-type {
@@ -47,10 +47,10 @@
     flex-direction: column;
     gap: 0.1rem;
     padding: 0.6rem 0.95rem;
-    border-bottom: 1px solid var(--border-lt-c);
+    border-bottom: 1px solid var(--border-lt);
 
     &:nth-child(odd) {
-        border-right: 1px solid var(--border-lt-c);
+        border-right: 1px solid var(--border-lt);
     }
 
     &:last-child:nth-child(odd) {
@@ -86,8 +86,8 @@
 .expedite_text-preview {
     max-height: 320px;
     overflow-y: auto;
-    border: 1px solid var(--border-da-c);
-    color: var(--text-c);
+    border: 1px solid var(--border-da);
+    color: var(--text);
     border-radius: 10px;
     padding: 0.85rem;
 
@@ -104,10 +104,10 @@
 // File preview
 .expedite_file-preview {
     margin: 0.75rem 0;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-    background: var(--surface-c);
+    background: var(--surface);
 }
 
 .expedite_preview-img {

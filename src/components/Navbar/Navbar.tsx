@@ -36,7 +36,7 @@ export default function Navbar({isHero = false}: Props) {
 
         // Entry: the bar drops in, then its contents stagger down behind it.
         // clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
-        gsap.from(nav, {
+        void gsap.from(nav, {
             yPercent: -100,
             duration: 1.5,
             delay: ENTRY_DELAY,
@@ -50,7 +50,7 @@ export default function Navbar({isHero = false}: Props) {
             ...(actionsRef.current?.children ?? []),
         ].filter(Boolean);
 
-        gsap.from(items, {
+        void gsap.from(items, {
             opacity: 0,
             y: "-125%",
             duration: 0.75,

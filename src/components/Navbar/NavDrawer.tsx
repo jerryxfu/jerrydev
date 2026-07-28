@@ -56,10 +56,10 @@ export default function NavDrawer({isOpen, onClose}: Props) {
         const fromX = outgoing.direction === "forward" ? 100 : -100;
         const leaveX = outgoing.direction === "forward" ? -100 : 100;
 
-        gsap.fromTo(incoming, {xPercent: fromX}, {xPercent: 0, duration: 0.4, ease: "power3.out"});
+        void gsap.fromTo(incoming, {xPercent: fromX}, {xPercent: 0, duration: 0.4, ease: "power3.out"});
 
         if (leaving) {
-            gsap.to(leaving, {
+            void gsap.to(leaving, {
                 xPercent: leaveX,
                 duration: 0.4,
                 ease: "power3.out",

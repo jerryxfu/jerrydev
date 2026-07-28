@@ -11,7 +11,7 @@
     gap: 1rem;
     flex-wrap: wrap;
     padding: 1rem 1.25rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 10px;
 }
 
@@ -37,7 +37,7 @@
 
     button {
         padding: 0.3rem 0.7rem;
-        border: 1px solid var(--border-c);
+        border: 1px solid var(--border);
         border-radius: 6px;
         background: transparent;
         color: inherit;
@@ -70,7 +70,7 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1.1rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 10px;
 }
 
@@ -84,7 +84,7 @@
     width: 100%;
     box-sizing: border-box;
     padding: 0.55rem 0.7rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 7px;
     background: transparent;
     color: inherit;
@@ -94,7 +94,7 @@
     transition: border-color 0.15s;
 
     &:focus {
-        border-color: var(--border-da-c);
+        border-color: var(--border-da);
     }
 }
 

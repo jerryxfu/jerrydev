@@ -22,6 +22,8 @@ export default defineConfig([
             "@typescript-eslint/no-explicit-any": "warn",
             "react-refresh/only-export-components": "off",
             "@typescript-eslint/no-unused-vars": "warn",
+            "@typescript-eslint/no-unused-private-class-members": "warn",
+            'no-unused-private-class-members': 'warn',
         },
     },
 ]);

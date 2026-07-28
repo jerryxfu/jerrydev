@@ -6,7 +6,7 @@
     padding: 1.5rem 1.5rem 3rem;
 
     // tool-specific tokens (slightly more "utility" than the rest of the site)
-    --time-accent: var(--primary-c);
+    --time-accent: var(--primary);
     --time-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", monospace;
 }
 
@@ -29,7 +29,9 @@
     align-self: flex-start;
     transition: opacity 0.15s;
 
-    &:hover { opacity: 0.6; }
+    &:hover {
+        opacity: 0.6;
+    }
 }
 
 .time_header {
@@ -51,7 +53,7 @@
 .time_tabs {
     display: flex;
     gap: 0.25rem;
-    border-bottom: 1px solid var(--border-c);
+    border-bottom: 1px solid var(--border);
     overflow-x: auto;
 }
 
@@ -69,7 +71,9 @@
     white-space: nowrap;
     transition: opacity 0.15s, border-color 0.15s;
 
-    &:hover { opacity: 0.8; }
+    &:hover {
+        opacity: 0.8;
+    }
 
     &.active {
         opacity: 1;

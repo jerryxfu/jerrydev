@@ -4,8 +4,8 @@
     left: 2px;
     right: 2px;
     padding: 7px 10px;
-    box-shadow: 0 1px 2px var(--shadow-da-c);
-    border: 1px solid var(--border-c);
+    box-shadow: 0 1px 2px var(--shadow-da);
+    border: 1px solid var(--border);
     cursor: pointer;
     overflow: hidden;
     box-sizing: border-box;
@@ -56,7 +56,7 @@
     font-size: var(--text-base);
     line-height: 1.1;
     margin-bottom: 2px;
-    text-shadow: 0 1px 2px var(--shadow-da-c);
+    text-shadow: 0 1px 2px var(--shadow-da);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

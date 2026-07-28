@@ -1,5 +1,5 @@
 .footer {
-    background-color: var(--bg-da-c);
+    background-color: var(--bg-da);
     padding-top: 0.5rem;
     padding-bottom: calc(32px + env(safe-area-inset-bottom));
     position: relative;
@@ -11,8 +11,8 @@
 
 .footer_divider {
     width: 95%;
-    color: var(--shadow-da-c);
-    background-color: var(--shadow-da-c);
+    color: var(--shadow-da);
+    background-color: var(--shadow-da);
 }
 
 .footer_links {
@@ -34,7 +34,7 @@
 }
 
 .footer_link {
-    color: var(--text-lt-c);
+    color: var(--text-2);
 }
 
 .footer_link-decorator {
@@ -72,7 +72,7 @@
     background: transparent;
     border: none;
     font-family: inherit;
-    color: var(--text-lt-c);
+    color: var(--text-2);
     cursor: pointer;
     transition: opacity 0.2s;
 

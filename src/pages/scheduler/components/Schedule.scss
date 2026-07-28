@@ -4,17 +4,17 @@
     flex-direction: column;
     flex: 1;
     min-width: 0;
-    background: var(--bg-c);
+    background: var(--bg);
     max-height: 100vh;
 }
 
 .schedule_header {
     padding: 4px 6px;
-    border-bottom: 1px solid var(--border-c);
+    border-bottom: 1px solid var(--border);
 }
 
 .schedule_title {
-    color: var(--text-c);
+    color: var(--text);
 }
 
 .schedule_container {
@@ -28,14 +28,14 @@
     flex-direction: column;
     width: 48px;
     min-width: 48px;
-    background: var(--bg-c);
-    border-right: 1px solid var(--border-c);
+    background: var(--bg);
+    border-right: 1px solid var(--border);
 }
 
 .schedule_grid {
     position: relative;
     flex: 1;
-    background: var(--bg-c);
+    background: var(--bg);
 }
 
 .schedule_hour-line {
@@ -43,7 +43,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--border-c);
+    background: var(--border);
     z-index: 1;
 }
 
@@ -83,7 +83,7 @@
 
 .schedule-break_time {
     font-size: var(--text-xs);
-    color: var(--text-ltt-c);
+    color: var(--text-3);
     font-weight: 500;
 }
 

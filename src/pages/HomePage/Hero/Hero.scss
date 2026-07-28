@@ -38,7 +38,7 @@
     display: flex;
     justify-content: center;
     overflow: hidden;
-    color: var(--text-da-c);
+    color: var(--text-strong);
 
     @media screen and (max-width: 768px) {
         font-size: 3.5rem;
@@ -59,7 +59,7 @@
     font-size: 2.25rem;
     margin-left: 0.55rem;
     margin-top: -8px;
-    color: var(--text-c);
+    color: var(--text);
 
     overflow: hidden;
 
@@ -93,10 +93,10 @@
     margin: 0.75rem 0;
     width: 0;
     opacity: 0;
-    box-shadow: inset 0 0 8px 8px var(--hero-glow-c),
-    0 0 8px 8px var(--hero-glow-c),
-    inset 0 0 0 3px var(--hero-glow-c),
-    0 0 0 3px var(--hero-glow-c);
+    box-shadow: inset 0 0 8px 8px var(--hero-glow),
+    0 0 8px 8px var(--hero-glow),
+    inset 0 0 0 3px var(--hero-glow),
+    0 0 0 3px var(--hero-glow);
 
     @media screen and (max-width: 480px) {
         margin: 0.50rem 0;
@@ -113,7 +113,7 @@
 }
 
 .hero_line {
-    color: var(--text-lt-c);
+    color: var(--text-2);
     font-size: 1.3rem;
     line-height: 2;
 
@@ -127,7 +127,7 @@
 .hero_typing-text {
     height: 2rem;
     margin-top: 1.75rem;
-    color: color-mix(in srgb, var(--text-lt-c) 90%, transparent);
+    color: color-mix(in srgb, var(--text-2) 90%, transparent);
 
     @media screen and (max-width: 1024px) {
         font-size: 96%;

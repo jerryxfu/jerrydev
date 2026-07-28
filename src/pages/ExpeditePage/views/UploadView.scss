@@ -39,8 +39,8 @@
 .expedite_textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border-c);
-    color: var(--text-c);
+    border: 1px solid var(--border);
+    color: var(--text);
     border-radius: 10px;
     background: transparent;
     font-family: inherit;
@@ -55,7 +55,7 @@
     }
 
     &:focus {
-        border-color: var(--border-da-c);
+        border-color: var(--border-da);
     }
 }
 
@@ -66,7 +66,7 @@
     justify-content: center;
     gap: 0.6rem;
     padding: 1rem;
-    border: 1.5px dashed var(--border-da-c);
+    border: 1.5px dashed var(--border-da);
     border-radius: 10px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
@@ -80,8 +80,8 @@
     }
 
     &:hover {
-        background: var(--surface-c);
-        border-color: var(--border-c);
+        background: var(--surface);
+        border-color: var(--border);
     }
 }
 
@@ -127,10 +127,10 @@
 
 .expedite_file-preview {
     margin: 0.75rem 0;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-    background: var(--surface-c);
+    background: var(--surface);
 }
 
 .expedite_preview-img {
@@ -184,8 +184,8 @@
     transition: background 0.2s, border-color 0.2s;
 
     &.active {
-        background: color-mix(in srgb, var(--primary-c) 50%, transparent);
-        border-color: color-mix(in srgb, var(--primary-c) 40%, transparent);
+        background: color-mix(in srgb, var(--primary) 50%, transparent);
+        border-color: color-mix(in srgb, var(--primary) 40%, transparent);
 
         .expedite_toggle-knob {
             transform: translateX(16px);
@@ -215,7 +215,7 @@
 .expedite_setting-input {
     width: 60px;
     padding: 0.3rem 0.5rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 5px;
     background: transparent;
     color: inherit;
@@ -225,7 +225,7 @@
     outline: none;
 
     &:focus {
-        border-color: var(--border-da-c);
+        border-color: var(--border-da);
     }
 
     &::placeholder {
@@ -250,7 +250,7 @@
 
 .expedite_setting-pill {
     padding: 0.25rem 0.55rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 5px;
     background: transparent;
     color: inherit;
@@ -262,8 +262,8 @@
 
     &.active {
         opacity: 1;
-        background: color-mix(in srgb, var(--primary-c) 15%, transparent);
-        border-color: color-mix(in srgb, var(--primary-c) 40%, transparent);
+        background: color-mix(in srgb, var(--primary) 15%, transparent);
+        border-color: color-mix(in srgb, var(--primary) 40%, transparent);
     }
 
     &:hover {

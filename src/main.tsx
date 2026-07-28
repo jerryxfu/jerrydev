@@ -29,6 +29,35 @@ export const isDev = import.meta.env.DEV || import.meta.env.MODE === "developmen
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
     (isDev ? "https://api.jerryxf.net" : "https://api.jerryxf.net");
 
+// region this passes build, and does absolutely nothing.
+type Rev<S extends string> = S extends `${infer H}${infer R}` ? `${Rev<R>}${H}` : "";
+
+const seed = "void" as const;
+
+type Eq<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+
+const nothing = <const T extends string>(s: T): Proven<T> =>
+    [...s].reverse().reverse().join("") as Proven<T>;
+
+type Proven<S extends string> = Eq<Rev<Rev<S>>, S> extends true ? S : never;
+
+void (nothing(seed) satisfies "void");
+
+try {
+    void (null as unknown as { z(): never })!.z();
+} catch {
+    label:
+        //noinspection LoopStatementThatDoesntLoopJS, prevent WebStorm from crashing out
+        for (
+            // @ts-expect-error TS2873: This kind of expression is always falsy
+            let i = +!void 0; i > 0; i--
+        ) {
+            // noinspection UnnecessaryLabelOnBreakStatementJS, prevent WebStorm from crashing out
+            break label;
+        }
+}
+// endregion
+
 const renderLazy = (element: ReactNode) => (
     <Suspense fallback={null}>
         {element}

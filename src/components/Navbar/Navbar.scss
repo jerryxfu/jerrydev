@@ -44,7 +44,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: 3px;
         border-radius: 4px;
     }
@@ -97,19 +97,19 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     border: none;
     border-radius: 6px;
     background: transparent;
-    color: var(--text-lt-c);
+    color: var(--text-2);
     cursor: pointer;
     opacity: 0.7;
     transition: background-color 0.2s, color 0.2s, opacity 0.2s;
 
     &:hover {
         opacity: 1;
-        color: var(--text-c);
-        background-color: color-mix(in srgb, var(--primary-lt-c) 25%, transparent);
+        color: var(--text);
+        background-color: color-mix(in srgb, var(--primary-lt) 25%, transparent);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: 2px;
     }
 }
@@ -120,7 +120,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 .navbar--hero {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 0 10px 0 var(--shadow-daa-c);
+    box-shadow: 0 0 10px 0 var(--shadow-daa);
     padding: calc(0.5rem + env(safe-area-inset-top)) 0.25rem 0.5rem;
 
     transition: scale $dur $ease,
@@ -166,7 +166,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .navbar--hero .navbar_inline {
     li {
-        margin-right: 6%;
+        margin-right: 32px;
     }
 
     @media screen and (max-width: 768px) {
@@ -186,9 +186,9 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 //  Solid mode
 // ------
 .navbar--solid {
-    background-color: var(--bg-lt-c);
+    background-color: var(--bg-lt);
     backdrop-filter: blur(0);
-    box-shadow: 0 1px 20px 0 var(--shadow-c);
+    box-shadow: 0 1px 20px 0 var(--shadow);
     padding: calc(1rem + env(safe-area-inset-top)) 0.25rem 1rem;
 
     transition: background-color $dur ease,
@@ -198,10 +198,10 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .navbar--solid.is-scrolled {
-    background-color: color-mix(in srgb, var(--bg-c) 70%, transparent);
+    background-color: color-mix(in srgb, var(--bg) 70%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 1px 20px 0 var(--shadow-c);
+    box-shadow: 0 1px 20px 0 var(--shadow);
     padding: calc(0.45rem + env(safe-area-inset-top)) 0.25rem 0.45rem;
 }
 
@@ -277,8 +277,8 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     overflow: hidden; // clips the sliding panels
 
     visibility: hidden;
-    background-color: var(--bg-lt-c);
-    box-shadow: -8px 0 40px var(--shadow-daa-c);
+    background-color: var(--bg-lt);
+    box-shadow: -8px 0 40px var(--shadow-daa);
 
     display: flex;
     flex-direction: column;
@@ -305,17 +305,17 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: var(--text-lt-c);
+    color: var(--text-2);
     cursor: pointer;
     transition: background-color 0.25s, color 0.25s;
 
     &:hover {
-        color: var(--text-c);
-        background-color: color-mix(in srgb, var(--primary-lt-c) 30%, transparent);
+        color: var(--text);
+        background-color: color-mix(in srgb, var(--primary-lt) 30%, transparent);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: 2px;
     }
 }
@@ -335,7 +335,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     inset: 0;
     overflow-y: auto;
     padding: 0.5rem 1.5rem 2rem;
-    background-color: var(--bg-lt-c); // opaque, so overlapping panels don't bleed
+    background-color: var(--bg-lt); // opaque, so overlapping panels don't bleed
 }
 
 .navdrawer_nav {
@@ -354,7 +354,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     & + & {
         margin-top: 1.1rem;
         padding-top: 1.1rem;
-        border-top: 1px solid var(--border-c);
+        border-top: 1px solid var(--border);
     }
 }
 
@@ -375,19 +375,19 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     font-family: inherit;
     font-size: var(--text-lg);
     font-weight: 450;
-    color: var(--text-lt-c);
+    color: var(--text-2);
 
     padding: 0.5rem 0.65rem;
     border-radius: 8px;
     transition: color 0.2s, background-color 0.2s;
 
     &:hover {
-        color: var(--text-da-c);
-        background-color: color-mix(in srgb, var(--primary-lt-c) 28%, transparent);
+        color: var(--text-strong);
+        background-color: color-mix(in srgb, var(--primary-lt) 28%, transparent);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: -2px;
     }
 
@@ -408,19 +408,19 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
     font-family: inherit;
     font-size: var(--text-sm);
-    color: var(--text-ltt-c);
+    color: var(--text-3);
     padding: 0.4rem 0.65rem 0.4rem 0.35rem;
     margin-bottom: 0.35rem;
     border-radius: 8px;
     transition: color 0.2s, background-color 0.2s;
 
     &:hover {
-        color: var(--text-c);
-        background-color: color-mix(in srgb, var(--primary-lt-c) 28%, transparent);
+        color: var(--text);
+        background-color: color-mix(in srgb, var(--primary-lt) 28%, transparent);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: -2px;
     }
 }
@@ -428,10 +428,10 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 .navdrawer_subtitle {
     font-size: var(--text-xl);
     font-weight: 500;
-    color: var(--text-da-c);
+    color: var(--text-strong);
     margin: 0 0 0.9rem;
     padding: 0 0.65rem 0.6rem;
-    border-bottom: 2px solid var(--primary-da-c);
+    border-bottom: 2px solid var(--primary-da);
 }
 
 // ---- Reduced motion ----

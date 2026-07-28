@@ -19,7 +19,7 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: var(--surface-daa-c);
+    background: var(--surface-daa);
     backdrop-filter: blur(4px);
     display: flex;
     flex-direction: column;
@@ -148,8 +148,8 @@
     padding: 0.65rem 1.1rem;
     border: none;
     border-radius: 8px;
-    background: var(--primary-c);
-    color: var(--bg-da-c);
+    background: var(--primary);
+    color: var(--bg-da);
     font-family: inherit;
     font-size: 0.88rem;
     font-weight: 500;
@@ -198,7 +198,7 @@
     align-items: center;
     justify-content: center;
     padding: 0.65rem;
-    border: 1px solid var(--border-lt-c);
+    border: 1px solid var(--border-lt);
     border-radius: 8px;
     background: transparent;
     color: inherit;

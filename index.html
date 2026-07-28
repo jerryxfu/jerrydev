@@ -39,7 +39,7 @@
 
             document.documentElement.setAttribute("data-theme", theme);
             // Firefox paints before external CSS resolves custom properties, so cover the gap inline.
-            // These must match --bg-c for each theme in index.scss.
+            // These must match --bg for each theme in index.scss.
             const boot = {light: "#fbfaf9", night: "#101010", pink: "#fff7fb"};
             document.documentElement.style.background = boot[theme];
         })();

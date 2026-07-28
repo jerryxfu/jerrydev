@@ -4,7 +4,7 @@ html {
     width: 100%;
     height: 100%;
     scroll-behavior: smooth;
-    background-color: var(--bg-c);
+    background-color: var(--bg);
 }
 
 /* Home Island iframe mode - fully transparent */
@@ -17,8 +17,8 @@ body {
     padding: 0;
     width: 100%;
     min-height: 100vh;
-    background-color: var(--bg-c);
-    color: var(--text-c);
+    background-color: var(--bg);
+    color: var(--text);
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -68,7 +68,6 @@ body.homeisland-body {
     --gray: rgba(110, 110, 110, 1);
     --gray-da: rgba(80, 80, 80, 1);
     --gray-lt: rgba(150, 150, 150, 1);
-    --shadow: rgba(128, 128, 128, 0.1);
     --success: rgba(76, 192, 134, 1);
     --warning: rgb(255, 234, 97, 1);
     --danger: rgb(255, 105, 97, 1);
@@ -78,135 +77,135 @@ body.homeisland-body {
 // Light theme (formerly "default")
 :root,
 [data-theme="light"] {
-    --primary-c: rgba(171, 205, 239, 1); // #abcdef
-    --primary-lt-c: rgba(182, 212, 2415, 1); // 83% HSL
-    --primary-ltx-c: rgba(195, 220, 244, 1); // 96% HSL
-    --primary-da-c: rgba(156, 196, 236, 1); // 77% HSL
+    --primary: rgba(171, 205, 239, 1); // #abcdef
+    --primary-lt: rgba(182, 212, 241, 1); // 83% HSL
+    --primary-ltx: rgba(195, 220, 244, 1); // 96% HSL
+    --primary-da: rgba(156, 196, 236, 1); // 77% HSL
 
-    --secondary-c: rgba(213, 173, 215, 1);
-    --secondary-lt-c: rgba(218, 183, 220, 1);
-    --secondary-da-c: rgba(207, 163, 210, 1);
+    --secondary: rgba(213, 173, 215, 1);
+    --secondary-lt: rgba(218, 183, 220, 1);
+    --secondary-da: rgba(207, 163, 210, 1);
 
-    --accent-c: rgba(225, 204, 173, 1);
-    --accent-lt-c: rgba(241, 227, 208, 1);
-    --accent-da-c: rgba(219, 195, 158, 1);
+    --accent: rgba(225, 204, 173, 1);
+    --accent-lt: rgba(241, 227, 208, 1);
+    --accent-da: rgba(219, 195, 158, 1);
 
-    --bg-c: rgba(251, 250, 249, 1);
-    --bg-lt-c: rgba(254, 254, 254, 1);
-    --bg-da-c: rgba(248, 247, 246, 1);
+    --bg: rgba(251, 250, 249, 1);
+    --bg-lt: rgba(254, 254, 254, 1);
+    --bg-da: rgba(248, 247, 246, 1);
 
-    --border-lt-c: rgba(238, 238, 238, 1);
-    --border-c: rgba(224, 224, 224, 1);
-    --border-da-c: rgba(220, 220, 220, 1);
+    --border-lt: rgba(238, 238, 238, 1);
+    --border: rgba(224, 224, 224, 1);
+    --border-da: rgba(220, 220, 220, 1);
 
-    --surface-lt-c: rgba(0, 0, 0, 0.01);
-    --surface-c: rgba(0, 0, 0, 0.02);
-    --surface-da-c: rgba(0, 0, 0, 0.03);
-    --surface-daa-c: rgba(0, 0, 0, 0.3);
+    --surface-lt: rgba(0, 0, 0, 0.01);
+    --surface: rgba(0, 0, 0, 0.02);
+    --surface-da: rgba(0, 0, 0, 0.03);
+    --surface-daa: rgba(0, 0, 0, 0.3);
 
-    --text-da-c: rgba(26, 26, 26, 1);
-    --text-c: rgba(28, 28, 28, 1);
-    --text-lt-c: rgba(52, 52, 52, 1);
-    --text-ltt-c: rgba(86, 86, 86, 1);
-    --text-lttt-c: rgba(100, 100, 100, 1);
-    --text-ltttt-c: rgba(138, 138, 138, 1);
+    --text-strong: rgba(26, 26, 26, 1);
+    --text: rgba(28, 28, 28, 1);
+    --text-2: rgba(52, 52, 52, 1);
+    --text-3: rgba(86, 86, 86, 1);
+    --text-4: rgba(100, 100, 100, 1);
+    --text-5: rgba(138, 138, 138, 1);
 
-    --shadow-daa-c: rgba(138, 138, 138, 0.5);
-    --shadow-da-c: rgba(150, 150, 150, 0.20);
-    --shadow-c: rgba(160, 160, 160, 0.10);
-    --shadow-lt-c: rgba(160, 160, 160, 0.08);
+    --shadow-daa: rgba(138, 138, 138, 0.5);
+    --shadow-da: rgba(150, 150, 150, 0.20);
+    --shadow: rgba(160, 160, 160, 0.10);
+    --shadow-lt: rgba(160, 160, 160, 0.08);
 
-    --hero-glow-c: rgba(238, 248, 252, 0.40);
+    --hero-glow: rgba(238, 248, 252, 0.40);
 }
 
 // Apply theme colors to body for proper inheritance
 body {
-    background-color: var(--bg-c);
-    color: var(--text-c);
+    background-color: var(--bg);
+    color: var(--text);
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 [data-theme="night"] {
-    --primary-c: rgba(16, 64, 128, 1);
-    --primary-lt-c: rgba(17, 69, 136, 1);
-    --primary-ltx-c: rgba(18, 74, 144, 1);
-    --primary-da-c: rgba(15, 60, 118, 1);
+    --primary: rgba(16, 64, 128, 1);
+    --primary-lt: rgba(17, 69, 136, 1);
+    --primary-ltx: rgba(18, 74, 144, 1);
+    --primary-da: rgba(15, 60, 118, 1);
 
-    --secondary-c: rgba(215, 174, 226, 1);
-    --secondary-lt-c: rgba(219, 184, 229, 1);
-    --secondary-da-c: rgba(208, 161, 221, 1);
+    --secondary: rgba(215, 174, 226, 1);
+    --secondary-lt: rgba(219, 184, 229, 1);
+    --secondary-da: rgba(208, 161, 221, 1);
 
-    --accent-c: rgba(225, 204, 173, 1);
-    --accent-lt-c: rgba(245, 228, 204, 1);
-    --accent-da-c: rgba(219, 195, 158, 1);
+    --accent: rgba(225, 204, 173, 1);
+    --accent-lt: rgba(245, 228, 204, 1);
+    --accent-da: rgba(219, 195, 158, 1);
 
-    --bg-c: rgba(16, 16, 16, 1);
-    --bg-lt-c: rgba(24, 24, 24, 1);
-    --bg-da-c: rgba(8, 8, 8, 1);
+    --bg: rgba(16, 16, 16, 1);
+    --bg-lt: rgba(24, 24, 24, 1);
+    --bg-da: rgba(8, 8, 8, 1);
 
-    --border-lt-c: rgba(48, 48, 48, 1);
-    --border-c: rgba(56, 56, 56, 1);
-    --border-da-c: rgba(64, 64, 64, 1);
+    --border-lt: rgba(48, 48, 48, 1);
+    --border: rgba(56, 56, 56, 1);
+    --border-da: rgba(64, 64, 64, 1);
 
-    --surface-lt-c: rgba(255, 255, 255, 0.02);
-    --surface-c: rgba(255, 255, 255, 0.04);
-    --surface-da-c: rgba(255, 255, 255, 0.06);
+    --surface-lt: rgba(255, 255, 255, 0.02);
+    --surface: rgba(255, 255, 255, 0.04);
+    --surface-da: rgba(255, 255, 255, 0.06);
 
-    --text-da-c: rgba(250, 249, 248, 1);
-    --text-c: rgba(251, 250, 249, 1);
-    --text-lt-c: rgba(200, 200, 200, 1);
-    --text-ltt-c: rgba(160, 160, 160, 1);
-    --text-lttt-c: rgba(130, 130, 130, 1);
-    --text-ltttt-c: rgba(100, 100, 100, 1);
+    --text-strong: rgba(250, 249, 248, 1);
+    --text: rgba(251, 250, 249, 1);
+    --text-2: rgba(200, 200, 200, 1);
+    --text-3: rgba(160, 160, 160, 1);
+    --text-4: rgba(130, 130, 130, 1);
+    --text-5: rgba(100, 100, 100, 1);
 
-    --shadow-daa-c: rgba(0, 0, 0, 0.6);
-    --shadow-da-c: rgba(0, 0, 0, 0.30);
-    --shadow-c: rgba(0, 0, 0, 0.20);
-    --shadow-lt-c: rgba(0, 0, 0, 0.12);
+    --shadow-daa: rgba(0, 0, 0, 0.6);
+    --shadow-da: rgba(0, 0, 0, 0.30);
+    --shadow: rgba(0, 0, 0, 0.20);
+    --shadow-lt: rgba(0, 0, 0, 0.12);
 
-    --hero-glow-c: rgba(238, 248, 252, 0.40);
+    --hero-glow: rgba(238, 248, 252, 0.40);
 }
 
 [data-theme="pink"] {
-    --primary-c: rgba(247, 184, 216, 1);
-    --primary-lt-c: rgba(251, 207, 228, 1);
-    --primary-ltx-c: rgba(253, 227, 239, 1);
-    --primary-da-c: rgba(226, 110, 170, 1);
+    --primary: rgba(247, 184, 216, 1);
+    --primary-lt: rgba(251, 207, 228, 1);
+    --primary-ltx: rgba(253, 227, 239, 1);
+    --primary-da: rgba(226, 110, 170, 1);
 
-    --secondary-c: rgba(217, 194, 240, 1);
-    --secondary-lt-c: rgba(228, 211, 245, 1);
-    --secondary-da-c: rgba(201, 171, 233, 1);
+    --secondary: rgba(217, 194, 240, 1);
+    --secondary-lt: rgba(228, 211, 245, 1);
+    --secondary-da: rgba(201, 171, 233, 1);
 
-    --accent-c: rgba(255, 214, 194, 1);
-    --accent-lt-c: rgba(255, 230, 218, 1);
-    --accent-da-c: rgba(255, 192, 163, 1);
+    --accent: rgba(255, 214, 194, 1);
+    --accent-lt: rgba(255, 230, 218, 1);
+    --accent-da: rgba(255, 192, 163, 1);
 
-    --bg-c: rgba(255, 247, 251, 1);
-    --bg-lt-c: rgba(255, 253, 254, 1);
-    --bg-da-c: rgba(253, 239, 247, 1);
+    --bg: rgba(255, 247, 251, 1);
+    --bg-lt: rgba(255, 253, 254, 1);
+    --bg-da: rgba(253, 239, 247, 1);
 
-    --border-lt-c: rgba(249, 230, 240, 1);
-    --border-c: rgba(242, 213, 230, 1);
-    --border-da-c: rgba(233, 195, 218, 1);
+    --border-lt: rgba(249, 230, 240, 1);
+    --border: rgba(242, 213, 230, 1);
+    --border-da: rgba(233, 195, 218, 1);
 
-    --surface-lt-c: rgba(88, 32, 64, 0.015);
-    --surface-c: rgba(88, 32, 64, 0.03);
-    --surface-da-c: rgba(88, 32, 64, 0.05);
-    --surface-daa-c: rgba(88, 32, 64, 0.28);
+    --surface-lt: rgba(88, 32, 64, 0.015);
+    --surface: rgba(88, 32, 64, 0.03);
+    --surface-da: rgba(88, 32, 64, 0.05);
+    --surface-daa: rgba(88, 32, 64, 0.28);
 
-    --text-da-c: rgba(53, 23, 42, 1);
-    --text-c: rgba(63, 29, 50, 1);
-    --text-lt-c: rgba(90, 48, 73, 1);
-    --text-ltt-c: rgba(122, 74, 102, 1);
-    --text-lttt-c: rgba(154, 106, 134, 1);
-    --text-ltttt-c: rgba(186, 142, 166, 1);
+    --text-strong: rgba(53, 23, 42, 1);
+    --text: rgba(63, 29, 50, 1);
+    --text-2: rgba(90, 48, 73, 1);
+    --text-3: rgba(122, 74, 102, 1);
+    --text-4: rgba(154, 106, 134, 1);
+    --text-5: rgba(186, 142, 166, 1);
 
-    --shadow-daa-c: rgba(190, 120, 160, 0.50);
-    --shadow-da-c: rgba(200, 140, 175, 0.22);
-    --shadow-c: rgba(205, 150, 180, 0.12);
-    --shadow-lt-c: rgba(205, 150, 180, 0.09);
+    --shadow-daa: rgba(190, 120, 160, 0.50);
+    --shadow-da: rgba(200, 140, 175, 0.22);
+    --shadow: rgba(205, 150, 180, 0.12);
+    --shadow-lt: rgba(205, 150, 180, 0.09);
 
-    --hero-glow-c: rgba(255, 238, 247, 0.40);
+    --hero-glow: rgba(255, 238, 247, 0.40);
 }
 
 
@@ -222,7 +221,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
-    color: var(--text-da-c);
+    color: var(--text-strong);
 
     transition: color 450ms;
 }
@@ -247,7 +246,7 @@ h4 {
 
 p {
     margin: 0;
-    color: var(--text-c);
+    color: var(--text);
     transition: color 450ms;
     line-height: 1.38;
 }
@@ -288,20 +287,20 @@ p {
     margin: 0;
     font-weight: 400;
 
-    color: var(--text-c);
+    color: var(--text);
     transition: color 450ms;
 }
 
 .text-small {
     font-size: var(--text-base);
     line-height: 1.35;
-    color: var(--text-lt-c);
+    color: var(--text-2);
 }
 
 .text-caption {
     font-size: var(--text-sm);
     line-height: 1.25;
-    color: color-mix(in srgb, var(--text-lt-c) 55%, transparent);
+    color: color-mix(in srgb, var(--text-2) 55%, transparent);
 }
 
 .text-label {
@@ -310,7 +309,7 @@ p {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--text-lt-c) 40%, transparent);
+    color: color-mix(in srgb, var(--text-2) 40%, transparent);
 }
 
 .text-underline {
@@ -321,7 +320,7 @@ p {
         height: 3px;
         top: 90%; /* distance from the bottom */
         left: 0;
-        background: var(--secondary-c);
+        background: var(--secondary);
         transform: scaleX(0);
         transform-origin: right;
         transition: transform 0.30s;

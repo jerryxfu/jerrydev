@@ -1,8 +1,7 @@
 import React from "react";
 
-
 export default function SelectableButton(
-    {value, selected, onClick, color = "#ccc", selectedColor = "#1976d2", selectedTextColor = "var(--text-i-c)", className = ""}:
+    {value, selected, onClick, color = "#ccc", selectedColor = "#1976d2", selectedTextColor = "var(--text-i)", className = ""}:
     {
         value: number | string; selected: boolean; onClick: () => void;
         color?: string;
@@ -19,7 +18,7 @@ export default function SelectableButton(
         borderRadius: 0,
         cursor: "pointer",
         backgroundColor: selected ? selectedColor : color,
-        color: selected ? selectedTextColor : "var(--text-c)",
+        color: selected ? selectedTextColor : "var(--text)",
         transition: "all 0.15s ease",
     };
 

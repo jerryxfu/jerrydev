@@ -11,7 +11,7 @@ import _instagram from "../../../assets/socials/instagram_mark.png";
 import _github_lt from "../../../assets/socials/github.svg";
 import _github_da from "../../../assets/socials/github_white.svg";
 import _steam from "../../../assets/socials/steam.svg";
-import {useTheme} from "../../../context/ThemeContext.tsx";
+import {isDarkTheme, useTheme} from "../../../context/ThemeContext.tsx";
 
 const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
@@ -51,7 +51,7 @@ export default function Contact() {
 
         return {
             ...media,
-            image: currentTheme === "night" ? _github_da : _github_lt
+            image: isDarkTheme(currentTheme) ? _github_da : _github_lt
         };
     }), [currentTheme]);
 

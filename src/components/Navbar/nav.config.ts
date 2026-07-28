@@ -42,7 +42,7 @@ export const linksLeft: NavLink[] = [
 
 export const linksRight: NavLink[] = [
     {type: "link", label: "Expedite 📦", href: "/expedite"},
-    {type: "link", label: "Rendezvous 🗓️", href: "/rendezvous"},
+    {type: "link", label: "stats.jerryxf", href: "https://stats.jerryxf.net"},
 ];
 
 // The drawer's grouped menu. The root is an array of groups, rendered with a
@@ -64,7 +64,6 @@ export const menuGroups: NavItem[][] = [
             children: [
                 {type: "link", label: "Expedite 📦", href: "/expedite"},
                 {type: "link", label: "Rendezvous 🗓️", href: "/rendezvous"},
-                {type: "link", label: "Time ⏱️", href: "/time"}
             ],
         },
     ],

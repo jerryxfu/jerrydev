@@ -27,7 +27,7 @@ import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
 import _stats from "../../../assets/projects/stats.jpeg";
 import {formatDate} from "../../../utils.ts";
-import {useTheme} from "../../../context/ThemeContext.tsx";
+import {isDarkTheme, useTheme} from "../../../context/ThemeContext.tsx";
 
 const projects: CardProps[] = [
     {
@@ -302,10 +302,10 @@ export default function Projects() {
 
     const themedProjects = useMemo(() => projects.map((project) => {
         if (project.title === "Unveil Technologies") {
-            return {...project, image: currentTheme === "night" ? _unveil_light : _unveil_dark};
+            return {...project, image: isDarkTheme(currentTheme) ? _unveil_light : _unveil_dark};
         }
         if (project.title === "Tools") {
-            return {...project, image: currentTheme === "night" ? _tools_dark : _tools_light};
+            return {...project, image: isDarkTheme(currentTheme) ? _tools_dark : _tools_light};
         }
         return project;
     }), [currentTheme]);

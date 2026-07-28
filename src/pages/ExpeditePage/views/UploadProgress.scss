@@ -4,8 +4,8 @@
     flex-direction: column;
     gap: 0.75rem;
 
-    --up-c: #2e9b51;
-    --down-c: #e1483a;
+    --up: #2e9b51;
+    --down: #e1483a;
 }
 
 .expedite_progress-head {
@@ -24,8 +24,8 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.3rem 0.6rem;
-    border: 1px solid var(--down-c);
-    color: var(--down-c);
+    border: 1px solid var(--down);
+    color: var(--down);
     background: transparent;
     border-radius: 6px;
     cursor: pointer;
@@ -39,13 +39,13 @@
 .expedite_progress-bar {
     height: 8px;
     border-radius: 4px;
-    background: var(--surface-c);
+    background: var(--surface);
     overflow: hidden;
 }
 
 .expedite_progress-fill {
     height: 100%;
-    background: var(--up-c);
+    background: var(--up);
     transition: width 0.2s ease-out;
 }
 
@@ -86,7 +86,7 @@
     }
 
     &.state-done {
-        background: var(--up-c);
+        background: var(--up);
     }
 
     &.state-retrying {
@@ -94,7 +94,7 @@
     }
 
     &.state-failed {
-        background: var(--down-c);
+        background: var(--down);
     }
 
     &.flash {
@@ -125,10 +125,10 @@
 }
 
 .expedite_progress-card {
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 0.55rem 0.7rem;
-    background: var(--surface-c);
+    background: var(--surface);
 
     &.flash {
         animation: cardFlash 0.6s ease-out;
@@ -140,7 +140,7 @@
         background: rgba(21, 101, 192, 0.25);
     }
     100% {
-        background: var(--surface-c);
+        background: var(--surface);
     }
 }
 
@@ -168,11 +168,11 @@
     font-variant-numeric: tabular-nums;
 
     .arrow-up {
-        color: var(--up-c);
+        color: var(--up);
     }
 
     .arrow-down {
-        color: var(--down-c);
+        color: var(--down);
     }
 
     &.tick-up {
@@ -186,26 +186,26 @@
 
 @keyframes tickUp {
     0% {
-        color: var(--up-c);
+        color: var(--up);
     }
     100% {
-        color: var(--text-c);
+        color: var(--text);
     }
 }
 
 @keyframes tickDown {
     0% {
-        color: var(--down-c);
+        color: var(--down);
     }
     100% {
-        color: var(--text-c);
+        color: var(--text);
     }
 }
 
 .expedite_card-bar {
     height: 6px;
     border-radius: 3px;
-    background: var(--border-c);
+    background: var(--border);
     overflow: hidden;
 }
 

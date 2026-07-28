@@ -6,18 +6,18 @@
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: var(--text-lt-c);
+    color: var(--text-2);
     font-family: inherit;
     cursor: pointer;
     transition: background-color 0.25s, color 0.25s;
 
     &:hover {
-        color: var(--text-c);
-        background-color: color-mix(in srgb, var(--primary-lt-c) 30%, transparent);
+        color: var(--text);
+        background-color: color-mix(in srgb, var(--primary-lt) 30%, transparent);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da-c);
+        outline: 2px solid var(--primary-da);
         outline-offset: 2px;
     }
 }

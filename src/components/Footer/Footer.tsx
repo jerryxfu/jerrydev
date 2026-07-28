@@ -2,7 +2,7 @@ import React, {useMemo} from "react";
 import "./Footer.scss";
 import Copyright from "../Copyright.tsx";
 import {useDebugMode} from "../../hooks/useDebugMode.ts";
-import {useTheme} from "../../context/ThemeContext.tsx";
+import {isDarkTheme, useTheme} from "../../context/ThemeContext.tsx";
 import _unveil_light from "../../assets/projects/unveil/unveil_icon_light.png";
 import _unveil_dark from "../../assets/projects/unveil/unveil_icon_dark.png";
 import {ExternalLink} from "lucide-react";
@@ -15,7 +15,7 @@ export default function Footer() {
     const {currentTheme} = useTheme();
 
     // Theme-aware icon for the Unveil Technologies footer link.
-    const unveilIcon = useMemo(() => currentTheme === "night" ? _unveil_light : _unveil_dark, [currentTheme]);
+    const unveilIcon = useMemo(() => isDarkTheme(currentTheme) ? _unveil_light : _unveil_dark, [currentTheme]);
 
 
     const links: Array<{

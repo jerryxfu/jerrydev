@@ -1,5 +1,5 @@
 import React from "react";
-import SelectableButton from "../../../components/SelectableButton.tsx";
+import SelectableButton from "./SelectableButton.tsx";
 import "./BpSelector.scss";
 
 export type SystolicRange = typeof systolicLabelsRange[number];

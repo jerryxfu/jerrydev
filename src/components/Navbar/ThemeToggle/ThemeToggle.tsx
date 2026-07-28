@@ -34,7 +34,7 @@ export default function ThemeToggle() {
             return;
         }
         if (!iconRef.current) return;
-        gsap.fromTo(
+        void gsap.fromTo(
             iconRef.current,
             {rotate: -35, scale: 0.6, opacity: 0},
             {rotate: 0, scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)", clearProps: "all"}

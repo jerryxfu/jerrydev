@@ -1,6 +1,6 @@
 import "./Chip.scss";
 
-export default function Chip({ children, size = "sm", className = "" }: {
+export default function Chip({children, size = "sm", className = ""}: {
     children: React.ReactNode;
     size?: "sm" | "md" | "lg";
     className?: string;

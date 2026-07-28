@@ -7,7 +7,7 @@
 .rv_code-input {
     width: 100%;
     padding: 0.65rem;
-    border: 1px solid var(--border-c);
+    border: 1px solid var(--border);
     border-radius: 10px;
     background: transparent;
     color: inherit;
@@ -26,12 +26,12 @@
         font-size: 0.95rem;
         font-weight: 400;
         letter-spacing: 0;
-        color: var(--text-ltt-c);
+        color: var(--text-3);
         opacity: 0.3;
         text-transform: none;
     }
 
     &:focus {
-        border-color: var(--border-da-c);
+        border-color: var(--border-da);
     }
 }

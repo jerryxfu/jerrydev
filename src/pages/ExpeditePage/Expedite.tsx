@@ -18,7 +18,7 @@ import UploadProgress from "./views/UploadProgress.tsx";
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
     if (!el) return;
-    gsap.fromTo(el,
+    void void gsap.fromTo(el,
         {opacity: 0, y: 16},
         {opacity: 1, y: 0, duration: 0.33, delay, ease: "power2.out"}
     );
@@ -27,7 +27,7 @@ function animateIn(el: HTMLElement | null, delay = 0) {
 function animateOut(el: HTMLElement | null): Promise<void> {
     if (!el) return Promise.resolve();
     return new Promise((resolve) => {
-        gsap.to(el, {
+        void gsap.to(el, {
             opacity: 0, y: -12, duration: 0.2, ease: "power2.in",
             onComplete: resolve
         });
