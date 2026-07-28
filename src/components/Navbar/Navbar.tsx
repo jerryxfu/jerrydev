@@ -1,274 +1,138 @@
 import {useEffect, useRef, useState} from "react";
-import {useTheme} from "../../context/ThemeContext.tsx";
-import "./Navbar.scss";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
-import {ChevronUp} from "lucide-react";
+import {Menu} from "lucide-react";
+import NavDrawer from "./NavDrawer.tsx";
+import ThemeToggle from "./ThemeToggle/ThemeToggle.tsx";
+import {useLocation} from "react-router-dom";
+import {linksLeft, linksRight, LOGO_ALT, resolveHref} from "./nav.config.ts";
+import "./Navbar.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const linksLeft: { href: string; label: string }[] = [
-    {href: "#", label: "Home"},
-    {href: "#about-me", label: "About"},
-    {href: "#tools---languages", label: "Skills"},
-    {href: "#contact-me", label: "Contact"},
-    {href: "#projects", label: "Projects"},
-    {href: "#experience---extras", label: "Experience"},
-];
+// Scroll distance before the bar settles into its compact state.
+const SHRINK_AT = 80;
+const ENTRY_DELAY = 0.1;
 
-const linksRight: { label: string; href: string; target?: string }[] = [
-    {label: "Expedite 📦", href: "/expedite"},
-    {label: "Rendezvous 🗓️", href: "/rendezvous"},
-    // {label: "GitHub", href: "https://github.com/jerryxfu"},
-    // {label: "Curriculum Vitae", href: "https://cv.jerryxf.net/"},
-];
+type Props = {
+    // When true the bar sits transparent over a hero at the top of the page and
+    // turns frosted once scrolled. When false it's solid from the start.
+    isHero?: boolean;
+};
 
-const formatThemeName = (theme: string) =>
-    theme.charAt(0).toUpperCase() + theme.slice(1).replace("-", " ");
-
-export default function Navbar() {
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const {currentTheme, themePreference, toggleTheme} = useTheme();
+export default function Navbar({isHero = false}: Props) {
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const {pathname} = useLocation();
 
     const navRef = useRef<HTMLElement>(null);
-    const barRef = useRef<HTMLDivElement>(null);
-    const iconRef = useRef<HTMLImageElement>(null);
+    const logoRef = useRef<HTMLAnchorElement>(null);
     const linkRefs = useRef<(HTMLLIElement | null)[]>([]);
-    const panelRef = useRef<HTMLDivElement>(null);
-    const panelInnerRef = useRef<HTMLDivElement>(null);
-    const chevronRef = useRef<HTMLSpanElement>(null);
-
-    const openingDelay = 0.1;
-    const scrollThreshold = 768;
+    const actionsRef = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        // Entry animations
         const nav = navRef.current;
-        const bar = barRef.current;
-        const icon = iconRef.current;
-        if (!nav || !bar || !icon) return;
+        if (!nav) return;
 
-        // Slide navbar in from top
+        // Entry: the bar drops in, then its contents stagger down behind it.
+        // clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
         gsap.from(nav, {
             yPercent: -100,
-            duration: 1.50,
-            delay: openingDelay,
+            duration: 1.5,
+            delay: ENTRY_DELAY,
             ease: "elastic.out(1,0.95)",
+            clearProps: "transform",
         });
 
-        // Stagger links in
-        const allLinks = linkRefs.current.filter(Boolean);
-        gsap.from(allLinks, {
+        const items = [
+            logoRef.current,
+            ...linkRefs.current,
+            ...(actionsRef.current?.children ?? []),
+        ].filter(Boolean);
+
+        gsap.from(items, {
             opacity: 0,
             y: "-125%",
             duration: 0.75,
-            delay: openingDelay + 0.15,
+            delay: ENTRY_DELAY + 0.15,
             stagger: 0.07,
             ease: "power2.out",
+            clearProps: "opacity,transform",
         });
 
-        // Scroll-driven shrink
-        const shrinkTl = gsap.timeline({paused: true});
-
-        shrinkTl.to(nav, {
-            scale: 0.95,
-            y: 6,
-            padding: "0.50rem 0",
-            borderRadius: "8px",
-            duration: 1,
-        }, 0);
-
-        shrinkTl.to(bar, {
-            height: "50px",
-            duration: 1,
-        }, 0);
-
-        shrinkTl.to(icon, {
-            height: "42px",
-            borderRadius: "4px",
-            duration: 1,
-        }, 0);
+        // The compact state is a class toggled at a threshold. The shape change is ruled by CSS.
+        const setScrolled = (on: boolean) => nav.classList.toggle("is-scrolled", on);
 
         ScrollTrigger.create({
-            start: 0,
-            end: scrollThreshold,
-            scrub: true,
-            animation: shrinkTl,
+            start: SHRINK_AT,
+            end: () => Math.max(ScrollTrigger.maxScroll(window), SHRINK_AT + 1),
+            onToggle: (self) => setScrolled(self.isActive),
         });
+
+        setScrolled(window.scrollY > SHRINK_AT);
     });
 
-    // Chevron rotation
+    // Escape closes the drawer.
     useEffect(() => {
-        if (!chevronRef.current) return;
-        gsap.to(chevronRef.current, {
-            rotation: isPanelOpen ? 180 : 0,
-            duration: 0.4,
-            ease: "power2.out",
-        });
-    }, [isPanelOpen]);
-
-    // Panel open/close
-    useEffect(() => {
-        if (!panelRef.current || !panelInnerRef.current) return;
-
-        if (isPanelOpen) {
-            gsap.set(panelRef.current, {height: "auto", opacity: 1});
-            const fullHeight = panelRef.current.offsetHeight;
-            gsap.fromTo(panelRef.current,
-                {height: 0, opacity: 0},
-                {height: fullHeight, opacity: 1, duration: 0.4, ease: "power2.out"}
-            );
-
-            const panelLinks = panelInnerRef.current.querySelectorAll("li");
-            gsap.fromTo(panelLinks,
-                {opacity: 0, y: -6},
-                {opacity: 1, y: 0, duration: 0.2, stagger: 0.035}
-            );
-        } else {
-            gsap.to(panelRef.current, {
-                height: 0,
-                opacity: 0,
-                duration: 0.3,
-                ease: "power2.in",
-            });
-        }
-    }, [isPanelOpen]);
-
-    // Click outside to dismiss
-    useEffect(() => {
-        if (!isPanelOpen) return;
-
-        const handleClickOutside = (e: MouseEvent) => {
-            if (navRef.current && !navRef.current.contains(e.target as Node)) {
-                setIsPanelOpen(false);
-            }
+        if (!isDrawerOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsDrawerOpen(false);
         };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [isDrawerOpen]);
 
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("touchstart", handleClickOutside as EventListener);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("touchstart", handleClickOutside as EventListener);
-        };
-    }, [isPanelOpen]);
-
-    const handlePanelLinkClick = () => {
-        setTimeout(() => setIsPanelOpen(false), 100);
-    };
+    const renderInline = (items: typeof linksLeft, offset: number) =>
+        items.map((item, i) => (
+            <li
+                key={item.href}
+                className="navbar_inline-item"
+                ref={(el) => {
+                    linkRefs.current[offset + i] = el;
+                }}
+            >
+                <a
+                    href={resolveHref(item.href, pathname)}
+                    className="text-body text-underline"
+                    {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
+                >
+                    {item.label}
+                </a>
+            </li>
+        ));
 
     return (
-        <nav className="navbar" ref={navRef}>
-            <div className="navbar_bar" ref={barRef}>
-                <a className="navbar_icon" href="/" aria-label="Go to homepage">
-                    <img
-                        ref={iconRef}
-                        src="/favicon.jpeg"
-                        alt="jerryxf sunset sky with moon icon"
-                        style={{height: "58px", borderRadius: "0px"}}
-                    />
-                </a>
+        <>
+            <nav className={"navbar " + (isHero ? "navbar--hero" : "navbar--solid")} ref={navRef}>
+                <div className="navbar_bar">
+                    <a className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
+                        <img src="/favicon.jpeg" alt={LOGO_ALT} />
+                    </a>
 
-                <ul className="navbar_links">
-                    {linksLeft.map((link, index) => (
-                        <li
-                            key={index}
-                            className="navbar_link"
-                            ref={(el) => {
-                                linkRefs.current[index] = el;
-                            }}
-                        >
-                            <a href={link.href} className="text-body text-underline">
-                                {link.label}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-
-                <ul className="navbar_links navbar_links-external">
-                    {linksRight.map((link, index) => (
-                        <li
-                            key={index}
-                            className="navbar_link"
-                            ref={(el) => {
-                                linkRefs.current[linksLeft.length + index] = el;
-                            }}
-                        >
-                            <a
-                                href={link.href}
-                                className="text-body text-underline"
-                                {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
-                            >
-                                {link.label}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-
-                <button
-                    className="navbar_theme-button"
-                    onClick={toggleTheme}
-                    aria-label={`Switch to next theme (current: ${currentTheme})`}
-                >
-                    <div className="navbar_theme-circle" />
-                    <p className="text-body" style={{textTransform: "capitalize"}}>
-                        {themePreference === "auto" ? "Auto" : formatThemeName(themePreference)}
-                    </p>
-                </button>
-
-                <div className="navbar_toggle">
-                    <button
-                        className="navbar_toggle-button"
-                        onClick={() => setIsPanelOpen((prev) => !prev)}
-                        aria-label={isPanelOpen ? "Close navigation menu" : "Open navigation menu"}
-                    >
-                        <span
-                            ref={chevronRef}
-                            style={{display: "flex", alignItems: "center"}}
-                        >
-                            <ChevronUp size={20} />
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-            <div
-                className="navbar_panel"
-                ref={panelRef}
-                style={{height: 0, overflow: "hidden"}}
-            >
-                <div className="navbar_panel-inner" ref={panelInnerRef}>
-                    <div className="navbar_panel-divider" />
-                    <ul className="navbar_panel-links">
-                        {linksLeft.map((link, index) => (
-                            <li key={index}>
-                                <a
-                                    href={link.href}
-                                    className="text-body text-underline"
-                                    onClick={handlePanelLinkClick}
-                                >
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
+                    <ul className="navbar_inline navbar_inline-left">
+                        {renderInline(linksLeft, 0)}
                     </ul>
-                    <div className="navbar_panel-divider" />
-                    <ul className="navbar_panel-links">
-                        {linksRight.map((link, index) => (
-                            <li key={index}>
-                                <a
-                                    href={link.href}
-                                    className="text-body text-underline"
-                                    onClick={handlePanelLinkClick}
-                                    {...(link.target && {target: link.target, rel: "noopener noreferrer"})}
-                                >
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
+
+                    <ul className="navbar_inline navbar_inline-right">
+                        {renderInline(linksRight, linksLeft.length)}
                     </ul>
+
+                    <div className="navbar_actions" ref={actionsRef}>
+                        <ThemeToggle />
+
+                        <button
+                            className="navbar_menu"
+                            onClick={() => setIsDrawerOpen(true)}
+                            aria-label="Open navigation menu"
+                            aria-expanded={isDrawerOpen}
+                        >
+                            <Menu size={22} strokeWidth={1.9} />
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+
+            <NavDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+        </>
     );
 }

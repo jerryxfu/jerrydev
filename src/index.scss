@@ -75,11 +75,11 @@ body.homeisland-body {
     --info: rgb(76, 157, 250, 1);
 }
 
-// Default theme
+// Light theme (formerly "default")
 :root,
-[data-theme="default"] {
+[data-theme="light"] {
     --primary-c: rgba(171, 205, 239, 1); // #abcdef
-    --primary-lt-c: rgba(182, 212, 215, 1); // 83% HSL
+    --primary-lt-c: rgba(182, 212, 2415, 1); // 83% HSL
     --primary-ltx-c: rgba(195, 220, 244, 1); // 96% HSL
     --primary-da-c: rgba(156, 196, 236, 1); // 77% HSL
 
@@ -167,11 +167,53 @@ body {
     --hero-glow-c: rgba(238, 248, 252, 0.40);
 }
 
+[data-theme="pink"] {
+    --primary-c: rgba(247, 184, 216, 1);
+    --primary-lt-c: rgba(251, 207, 228, 1);
+    --primary-ltx-c: rgba(253, 227, 239, 1);
+    --primary-da-c: rgba(226, 110, 170, 1);
+
+    --secondary-c: rgba(217, 194, 240, 1);
+    --secondary-lt-c: rgba(228, 211, 245, 1);
+    --secondary-da-c: rgba(201, 171, 233, 1);
+
+    --accent-c: rgba(255, 214, 194, 1);
+    --accent-lt-c: rgba(255, 230, 218, 1);
+    --accent-da-c: rgba(255, 192, 163, 1);
+
+    --bg-c: rgba(255, 247, 251, 1);
+    --bg-lt-c: rgba(255, 253, 254, 1);
+    --bg-da-c: rgba(253, 239, 247, 1);
+
+    --border-lt-c: rgba(249, 230, 240, 1);
+    --border-c: rgba(242, 213, 230, 1);
+    --border-da-c: rgba(233, 195, 218, 1);
+
+    --surface-lt-c: rgba(88, 32, 64, 0.015);
+    --surface-c: rgba(88, 32, 64, 0.03);
+    --surface-da-c: rgba(88, 32, 64, 0.05);
+    --surface-daa-c: rgba(88, 32, 64, 0.28);
+
+    --text-da-c: rgba(53, 23, 42, 1);
+    --text-c: rgba(63, 29, 50, 1);
+    --text-lt-c: rgba(90, 48, 73, 1);
+    --text-ltt-c: rgba(122, 74, 102, 1);
+    --text-lttt-c: rgba(154, 106, 134, 1);
+    --text-ltttt-c: rgba(186, 142, 166, 1);
+
+    --shadow-daa-c: rgba(190, 120, 160, 0.50);
+    --shadow-da-c: rgba(200, 140, 175, 0.22);
+    --shadow-c: rgba(205, 150, 180, 0.12);
+    --shadow-lt-c: rgba(205, 150, 180, 0.09);
+
+    --hero-glow-c: rgba(255, 238, 247, 0.40);
+}
+
 
 .section {
     max-width: 100%;
     padding: 1.25rem 3%;
-    scroll-margin-top: 64px; /* for anchor link scrolling */
+    scroll-margin-top: 80px; /* for anchor link scrolling, clears the scrolled navbar island (64px ish) with extra room */
 
     @media screen and (max-width: 768px) {
         padding: 1.2rem 2%;

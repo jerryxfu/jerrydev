@@ -1,39 +1,55 @@
 import React, {createContext, type ReactNode, useContext, useEffect, useMemo, useState} from "react";
 
-type Theme = "default" | "night";
-type ThemePreference = "auto" | Theme;
+// Adding a theme:
+// 1. add its name to THEMES below
+// 2. add a [data-theme="name"] block in index.scss
+// 3. add an icon for it in ThemeToggle.tsx
+export const THEMES = ["light", "night", "pink"] as const;
+export type Theme = typeof THEMES[number];
+
+// The order the toggle cycles through, with auto at thr end
+export const THEME_PREFERENCES = [...THEMES, "auto"] as const;
+export type ThemePreference = typeof THEME_PREFERENCES[number];
+
+// Themes with a dark background. Used to resolve "auto", and available to components that swap assets based on background lightness.
+const DARK_THEMES: readonly Theme[] = ["night"];
+
+export const isDarkTheme = (theme: Theme): boolean => DARK_THEMES.includes(theme);
+
+const STORAGE_KEY = "themeName";
 
 interface ThemeContextType {
     currentTheme: Theme;              // the resolved theme
     themePreference: ThemePreference; // what the user chose, including "auto"
-    toggleTheme: () => void;
+    toggleTheme: () => void;          // advance one step through THEME_PREFERENCES
     setTheme: (pref: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
-// theme order
-const preferences: readonly ThemePreference[] = ["default", "night", "auto"] as const;
+const isPreference = (value: unknown): value is ThemePreference =>
+    THEME_PREFERENCES.includes(value as ThemePreference);
 
 function resolveTheme(pref: ThemePreference): Theme {
     if (pref !== "auto") return pref;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "light";
 }
 
 function getInitialPreference(): ThemePreference {
     try {
-        const stored = localStorage.getItem("themeName") as ThemePreference;
-        return preferences.includes(stored) ? stored : "default";
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (isPreference(stored)) return stored;
     } catch {
-        return "default";
+        // localStorage unavailable (private mode, etc.), fall through.
     }
+    return "light";
 }
 
-// thing to fix the FOUC (Flash of Unstyled Content) problem
+// Fixes FOUC (Flash of Unstyled Content): the inline script in index.html has
+// already picked a theme before React boots, so trust what it wrote.
 function getInitialAutoTheme(): Theme {
-    // If the inline script in index.html already set data-theme, trust it
-    const applied = document.documentElement.getAttribute("data-theme") as Theme;
-    if (applied === "night" || applied === "default") return applied;
+    const applied = document.documentElement.getAttribute("data-theme");
+    if (applied && THEMES.includes(applied as Theme)) return applied as Theme;
     return resolveTheme(getInitialPreference());
 }
 
@@ -41,9 +57,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
     const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
     const [autoTheme, setAutoTheme] = useState<Theme>(getInitialAutoTheme);
 
-    const currentTheme = useMemo(() =>
-            themePreference === "auto" ? autoTheme : themePreference,
-        [themePreference, autoTheme]);
+    const currentTheme = useMemo(
+        () => (themePreference === "auto" ? autoTheme : themePreference),
+        [themePreference, autoTheme]
+    );
 
     // Apply theme to DOM + persist
     useEffect(() => {
@@ -52,7 +69,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
         // Hand the background back to CSS once styles are loaded (clears the inline boot bg)
         document.documentElement.style.background = "";
         try {
-            localStorage.setItem("themeName", themePreference);
+            localStorage.setItem(STORAGE_KEY, themePreference);
         } catch (error) {
             console.warn("Failed to save theme preference:", error);
         }
@@ -68,12 +85,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
     }, [themePreference]);
 
     const toggleTheme = () => {
-        const currentIndex = preferences.indexOf(themePreference);
-        setThemePreference(preferences[(currentIndex + 1) % preferences.length]!);
+        setThemePreference((prev) => {
+            const index = THEME_PREFERENCES.indexOf(prev);
+            return THEME_PREFERENCES[(index + 1) % THEME_PREFERENCES.length]!;
+        });
     };
 
     const setTheme = (pref: ThemePreference) => {
-        if (preferences.includes(pref)) setThemePreference(pref);
+        if (isPreference(pref)) setThemePreference(pref);
     };
 
     return (

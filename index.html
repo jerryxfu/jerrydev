@@ -28,17 +28,20 @@
                 stored = localStorage.getItem("themeName");
             } catch (e) {
             }
-            const pref = (stored === "default" || stored === "night" || stored === "auto")
-                ? stored : "default";
+            // in sync with THEMES in src/context/ThemeContext.tsx
+            const themes = ["light", "night", "pink"];
 
-            let theme;
-            if (pref === "night") theme = "night";
-            else if (pref === "default") theme = "default";
-            else theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "default"; // auto
+            const pref = (themes.indexOf(stored) !== -1 || stored === "auto") ? stored : "light";
+
+            const theme = pref === "auto"
+                ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "light")
+                : pref;
 
             document.documentElement.setAttribute("data-theme", theme);
-            // Firefox paints before external CSS resolves custom properties, so cover the gap inline
-            document.documentElement.style.background = theme === "night" ? "#101010" : "#fbfaf9";
+            // Firefox paints before external CSS resolves custom properties, so cover the gap inline.
+            // These must match --bg-c for each theme in index.scss.
+            const boot = {light: "#fbfaf9", night: "#101010", pink: "#fff7fb"};
+            document.documentElement.style.background = boot[theme];
         })();
     </script>
     <script>

@@ -21,7 +21,7 @@ export default function HomePage() {
                       content="Hi there, I'm Jerry!" />
                 <link rel="canonical" href="https://jerryxf.net/" />
             </Helmet>
-            <Navbar />
+            <Navbar isHero={true} />
             <Hero />
             <About />
             <Skills />

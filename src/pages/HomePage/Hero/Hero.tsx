@@ -7,9 +7,16 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import SplitType from "split-type";
 import {texts} from "./texts.ts";
-import {useTheme} from "../../../context/ThemeContext.tsx";
+import {type Theme, useTheme} from "../../../context/ThemeContext.tsx";
 
 import("../../../assets/styles/gradient-mesh-default.scss");
+
+// One mesh per theme
+const GRADIENT_MESHES: Record<Theme, string> = {
+    light: "gradient-mesh-default",
+    night: "gradient-mesh-night",
+    pink: "gradient-mesh-pink",
+};
 
 let isGsapConfigured = false;
 
@@ -28,7 +35,7 @@ export default function Hero() {
     configureGsap();
 
     const {currentTheme} = useTheme();
-    const themeGradientClass = currentTheme === "night" ? "gradient-mesh-night" : "gradient-mesh-default";
+    const themeGradientClass = GRADIENT_MESHES[currentTheme];
 
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
@@ -53,6 +60,7 @@ export default function Hero() {
     useEffect(() => {
         // Preload the other styles on mount so the first switch doesn't jump/look buggy
         import("../../../assets/styles/gradient-mesh-night.scss");
+        import("../../../assets/styles/gradient-mesh-pink.scss");
     }, []);
 
     useEffect(() => {

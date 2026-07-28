@@ -1,20 +1,25 @@
+// Navbar + NavDrawer styles.
+// Two bar modes:
+// .navbar - transparent over a hero
+// .navbar--solid - opaque surface from the start
+// Both share the scrolled state (.is-scrolled): frosted + shrunk.
+
+$dur: 0.4s;
+$ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+// ------
+//  Shared structure
+// ------
 .navbar {
+    position: fixed;
+    top: 0;
     width: 100%;
     z-index: 500;
-    top: 0;
-    position: fixed;
-    scale: 1;
-
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 10px 0 var(--shadow-daa-c);
-
-    padding: calc(0.50rem + env(safe-area-inset-top)) 0.25rem 0.50rem;
-
-    @media screen and (max-width: 768px) {
-        padding: 0.25rem 0.50rem;
-    }
+    scale: 1;
+    translate: 0 0;
+    border-radius: 0;
 }
 
 .navbar_bar {
@@ -23,73 +28,145 @@
     align-items: center;
     width: 100%;
     flex-shrink: 0;
-    height: 68px;
 }
 
-.navbar_icon {
-    margin-left: 2%;
+.navbar_logo {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    margin-left: 2%;
     cursor: pointer;
 
     img {
+        display: block;
         width: auto;
+    }
 
-        @media screen and (max-width: 768px) {
-            scale: 0.8;
-        }
+    &:focus-visible {
+        outline: 2px solid var(--primary-da-c);
+        outline-offset: 3px;
+        border-radius: 4px;
     }
 }
 
-// Chevron toggle (mobile)
-.navbar_toggle {
-    display: none;
-
-    @media screen and (max-width: 768px) {
-        display: flex;
-        align-items: center;
-        margin-right: 4%;
-    }
-}
-
-.navbar_toggle-button {
-    background: transparent;
-    border: none;
-    border-radius: 4px;
-    padding: 0.3rem 0.4rem;
-    cursor: pointer;
+.navbar_inline {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-    opacity: 0.7;
-
-    &:hover {
-        opacity: 1;
-        background: var(--shadow);
-    }
-}
-
-// Desktop links
-.navbar_links {
-    display: flex;
-    flex: auto;
-    justify-content: flex-start;
     align-items: center;
     list-style: none;
-    margin-left: 4%;
+    margin: 0;
+    padding: 0;
 
     li {
-        margin-right: 6%;
         display: flex;
         justify-content: center;
         position: relative;
-        cursor: pointer;
+    }
 
-        a {
-            text-decoration: none;
-        }
+    a {
+        text-decoration: none;
+        white-space: nowrap;
+    }
+}
+
+.navbar_inline-left {
+    flex: auto;
+    justify-content: flex-start;
+    margin-left: 4%;
+}
+
+.navbar_inline-right {
+    justify-content: flex-end;
+    // Fixed rather than a percentage: this list isn't flex:auto, so a % here
+    // resolves against its own narrow width and collapses to a few pixels.
+    margin-right: 1.75rem;
+}
+
+.navbar_actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.navbar_menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-lt-c);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+        color: var(--text-c);
+        background-color: color-mix(in srgb, var(--primary-lt-c) 25%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--primary-da-c);
+        outline-offset: 2px;
+    }
+}
+
+// ------
+//  Hero mode
+// ------
+.navbar--hero {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 0 10px 0 var(--shadow-daa-c);
+    padding: calc(0.5rem + env(safe-area-inset-top)) 0.25rem 0.5rem;
+
+    transition: scale $dur $ease,
+    translate $dur $ease,
+    border-radius $dur $ease,
+    padding $dur $ease;
+
+    @media screen and (max-width: 768px) {
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+.navbar--hero.is-scrolled {
+    scale: 0.95;
+    translate: 0 6px;
+    border-radius: 8px;
+    padding: 0.5rem 0;
+}
+
+.navbar--hero .navbar_bar {
+    height: 68px;
+    transition: height $dur $ease;
+}
+
+.navbar--hero.is-scrolled .navbar_bar {
+    height: 50px;
+}
+
+.navbar--hero .navbar_logo img {
+    height: 58px;
+    border-radius: 0;
+    transition: height $dur $ease, border-radius $dur $ease;
+
+    @media screen and (max-width: 768px) {
+        scale: 0.8;
+    }
+}
+
+.navbar--hero.is-scrolled .navbar_logo img {
+    height: 42px;
+    border-radius: 4px;
+}
+
+.navbar--hero .navbar_inline {
+    li {
+        margin-right: 6%;
     }
 
     @media screen and (max-width: 768px) {
@@ -97,93 +174,274 @@
     }
 }
 
-.navbar_links-external {
-    justify-content: flex-end;
-}
-
-// Panel lives inside the navbar
-.navbar_panel {
-    display: none;
-
-    @media screen and (max-width: 768px) {
-        display: block;
-        overflow: hidden;
-    }
-}
-
-.navbar_panel-inner {
-    padding: 0.25rem 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.navbar_panel-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-
-    li {
-        width: 100%;
-        text-align: center;
-
-        a {
-            text-decoration: none;
-            font-size: 0.95rem;
-            padding: 0.35rem 0;
-            display: inline-block;
-        }
-    }
-}
-
-.navbar_panel-divider {
-    width: 50%;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.12;
-    margin: 0.15rem 0;
-}
-
-// Theme button
-.navbar_theme-button {
-    padding: 6px 8px;
+.navbar--hero .navbar_actions {
     margin-right: 2.5rem;
-    border-radius: 5px;
-    gap: 12px;
-    display: flex;
-    align-items: center;
-    font-family: inherit;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    transition: background-color 0.30s;
-
-    &:hover {
-        background-color: color-mix(in srgb, var(--primary-lt-c) 25%, transparent);
-    }
 
     @media screen and (max-width: 768px) {
-        padding: 5px 6px;
-        gap: 5px;
         margin-right: 0.5rem;
     }
 }
 
-.navbar_theme-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: color-mix(in srgb, var(--primary-c) 85%, transparent);
-    border: 2px solid color-mix(in srgb, var(--secondary-c) 85%, transparent);
+// ------
+//  Solid mode
+// ------
+.navbar--solid {
+    background-color: var(--bg-lt-c);
+    backdrop-filter: blur(0);
+    box-shadow: 0 1px 20px 0 var(--shadow-c);
+    padding: calc(1rem + env(safe-area-inset-top)) 0.25rem 1rem;
 
-    @media screen and (max-width: 768px) {
-        width: 24px;
-        height: 24px;
+    transition: background-color $dur ease,
+    backdrop-filter $dur ease,
+    box-shadow $dur ease,
+    padding $dur ease;
+}
+
+.navbar--solid.is-scrolled {
+    background-color: color-mix(in srgb, var(--bg-c) 70%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 20px 0 var(--shadow-c);
+    padding: calc(0.45rem + env(safe-area-inset-top)) 0.25rem 0.45rem;
+}
+
+.navbar--solid .navbar_logo {
+    margin-left: 4%;
+}
+
+.navbar--solid .navbar_bar {
+    height: 56px;
+    transition: height $dur ease;
+}
+
+.navbar--solid.is-scrolled .navbar_bar {
+    height: 44px;
+}
+
+.navbar--solid .navbar_logo img {
+    height: 44px;
+    border-radius: 6px;
+    transition: height $dur ease;
+}
+
+.navbar--solid.is-scrolled .navbar_logo img {
+    height: 34px;
+}
+
+// Type is inherited from the site's own .text-body / .text-underline classes in
+// both modes — only the spacing differs from hero.
+.navbar--solid .navbar_inline {
+    gap: 1.5rem;
+
+    @media screen and (max-width: 640px) {
+        display: none;
+    }
+}
+
+.navbar--solid .navbar_actions {
+    margin-right: 4%;
+    gap: 1rem;
+}
+
+// ------
+//  NavDrawer
+// ------
+.navdrawer_backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    cursor: pointer;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+.navdrawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 700;
+    height: 100dvh;
+    width: min(380px, 85vw);
+    overflow: hidden; // clips the sliding panels
+
+    visibility: hidden;
+    background-color: var(--bg-lt-c);
+    box-shadow: -8px 0 40px var(--shadow-daa-c);
+
+    display: flex;
+    flex-direction: column;
+
+    transform: translateX(100%);
+    transition: transform 0.45s $ease, visibility 0.45s;
+
+    &.is-open {
+        visibility: visible;
+        transform: translateX(0);
+    }
+}
+
+.navdrawer_head {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: calc(0.9rem + env(safe-area-inset-top)) 1.25rem 0.25rem;
+}
+
+.navdrawer_close {
+    display: flex;
+    padding: 0.4rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-lt-c);
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s;
+
+    &:hover {
+        color: var(--text-c);
+        background-color: color-mix(in srgb, var(--primary-lt-c) 30%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--primary-da-c);
+        outline-offset: 2px;
+    }
+}
+
+// ---- Sliding stack ----
+// The track is the positioning context; each level's panel fills it absolutely
+// and GSAP slides panels via xPercent. Panels carry NO base CSS transform, so
+// GSAP's xPercent isn't misread as pixels.
+.navdrawer_track {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.navdrawer_panel {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 0.5rem 1.5rem 2rem;
+    background-color: var(--bg-lt-c); // opaque, so overlapping panels don't bleed
+}
+
+.navdrawer_nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.navdrawer_group {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    & + & {
+        margin-top: 1.1rem;
+        padding-top: 1.1rem;
+        border-top: 1px solid var(--border-c);
+    }
+}
+
+// ---- Links & branch buttons ----
+.navdrawer_link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+
+    background: transparent;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+
+    font-family: inherit;
+    font-size: var(--text-lg);
+    font-weight: 450;
+    color: var(--text-lt-c);
+
+    padding: 0.5rem 0.65rem;
+    border-radius: 8px;
+    transition: color 0.2s, background-color 0.2s;
+
+    &:hover {
+        color: var(--text-da-c);
+        background-color: color-mix(in srgb, var(--primary-lt-c) 28%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--primary-da-c);
+        outline-offset: -2px;
+    }
+
+    svg {
+        flex-shrink: 0;
+        opacity: 0.55;
+    }
+}
+
+// ---- Level header (Back + title), shown on every non-root level ----
+.navdrawer_back {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: var(--text-sm);
+    color: var(--text-ltt-c);
+    padding: 0.4rem 0.65rem 0.4rem 0.35rem;
+    margin-bottom: 0.35rem;
+    border-radius: 8px;
+    transition: color 0.2s, background-color 0.2s;
+
+    &:hover {
+        color: var(--text-c);
+        background-color: color-mix(in srgb, var(--primary-lt-c) 28%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--primary-da-c);
+        outline-offset: -2px;
+    }
+}
+
+.navdrawer_subtitle {
+    font-size: var(--text-xl);
+    font-weight: 500;
+    color: var(--text-da-c);
+    margin: 0 0 0.9rem;
+    padding: 0 0.65rem 0.6rem;
+    border-bottom: 2px solid var(--primary-da-c);
+}
+
+// ---- Reduced motion ----
+@media (prefers-reduced-motion: reduce) {
+    .navbar,
+    .navbar_bar,
+    .navbar_logo img,
+    .navbar_inline a,
+    .navdrawer,
+    .navdrawer_backdrop {
+        transition-duration: 0.01ms;
     }
 }
