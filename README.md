@@ -7,6 +7,40 @@ This is the repository for my personal website, [jerryxf.net](https://jerryxf.ne
 - Color palette generator: [https://mycolor.space/](https://mycolor.space/)
 - Mesh gradient generator: [https://csshero.org/mesherv2/](https://csshero.org/mesherv2/)
 
+### Progressive web app
+
+Configured in `vite.config.ts` via `vite-plugin-pwa`, in `generateSW` mode.
+
+Precached: JS, CSS, HTML, fonts, every route chunk, both vendor chunks and the three gradient-mesh stylesheets. Not precached: the project images and the video.
+Those are picked up by a `CacheFirst` runtime rule the first time they're actually viewed, capped at 80 entries and 30 days.
+
+Nothing matches `api.jerryxf.net`, so API calls always go to the network. Expedite and Rendezvous therefore load offline but can't do anything, which is what
+`OfflineToast` warns about.
+
+`registerType: "autoUpdate"` means a new deployment's service worker takes over on the next page load with no prompt.
+
+Service workers don't register under `pnpm dev` unless `devOptions.enabled` is set. To test, run `pnpm build && pnpm preview` and use DevTools -> Network ->
+Offline.
+
+#### Removing it
+
+Uninstall the plugin, delete the `VitePWA({ ... })` block and its import from `vite.config.ts`, delete `src/components/OfflineToast/` along with its import and
+`<OfflineToast />` in `src/main.tsx`, and drop `dev-dist` from `.gitignore`.
+
+**Do the unregister release first.** Removing the plugin does not remove the service worker from browsers that already have one. A registered worker keeps
+serving its cached `index.html`, and once the build stops shipping a `sw.js` there is nothing to replace it with — those visitors can be pinned to the old
+version indefinitely, with no way to reach them afterwards. So ship one release with:
+
+```ts
+VitePWA({
+    selfDestroying: true,
+    // leave the rest of the config as-is
+})
+```
+
+which builds a worker whose only job is to unregister itself and delete its caches. Leave it deployed long enough for returning visitors to pick it up, then
+remove the plugin.
+
 <br>
 
 # React + TypeScript + Vite
@@ -39,5 +73,5 @@ export default {
 
 - Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to
-  the `extends` list
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the
+  `extends` list

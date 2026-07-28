@@ -125,7 +125,7 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
             >
                 <div className="navbar_bar">
                     <Link className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
-                        <img src="/favicon.jpeg" alt={LOGO_ALT} />
+                        <img src="/favicon64.png" alt={LOGO_ALT} />
                     </Link>
 
                     <ul className="navbar_inline navbar_inline-left">

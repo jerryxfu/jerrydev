@@ -1,0 +1,68 @@
+// Pinned to the bottom so it can never collide with the navbar, which owns the
+// top of the viewport on the homepage and is absent everywhere else.
+.offline-toast {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    z-index: 2000;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-lt);
+    box-shadow: 0 4px 20px var(--shadow-da);
+    color: var(--text-2);
+
+    // translateX centres it; the keyframes below have to repeat it, because a
+    // transform in an animation replaces this one rather than composing with it.
+    transform: translateX(-50%);
+    animation: offline-toast-in 0.3s ease-out;
+
+    // Purely informational, so it should never swallow a click meant for the page.
+    pointer-events: none;
+    user-select: none;
+
+    svg {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        justify-content: center;
+        animation-name: offline-toast-in-wide;
+    }
+}
+
+@keyframes offline-toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(0.75rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes offline-toast-in-wide {
+    from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .offline-toast {
+        animation: none;
+    }
+}

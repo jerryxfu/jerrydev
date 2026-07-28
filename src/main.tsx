@@ -9,6 +9,7 @@ import HomePage from "./pages/HomePage/HomePage.tsx";
 import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
+import OfflineToast from "./components/OfflineToast/OfflineToast.tsx";
 
 const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
 const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
@@ -18,11 +19,11 @@ const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 
-// local storage version control
 const LOCAL_STORAGE_VERSION = "v1";
-if (localStorage.getItem("version") !== LOCAL_STORAGE_VERSION) {
+
+if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
     localStorage.clear();
-    localStorage.setItem("version", LOCAL_STORAGE_VERSION);
+    localStorage.setItem("app-version", LOCAL_STORAGE_VERSION);
 }
 
 export const isDev = import.meta.env.DEV || import.meta.env.MODE === "development";
@@ -94,6 +95,7 @@ root.render(
             <HelmetProvider>
                 <ThemeProvider>
                     <ScrollToTop />
+                    <OfflineToast />
                     <Switch>
                         <Route path="/"><HomePage /></Route>
                         <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
