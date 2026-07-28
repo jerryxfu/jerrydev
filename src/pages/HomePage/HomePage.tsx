@@ -1,6 +1,6 @@
 import "./HomePage.scss";
 import {Helmet} from "react-helmet-async";
-import Navbar from "../../components/Navbar/Navbar.tsx";
+import Navbar from "@/components/Nav/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
 import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";

@@ -88,5 +88,12 @@ export function resolveHref(href: string, pathname: string): string {
 // "/#projects" form resolveHref produces off the homepage is the same case, and
 // needs the full reload to land the scroll. External links leave the app.
 export function isRouted(item: NavLink): boolean {
-    return !item.external && !item.href.startsWith("#");
+    if (item.external) return false;
+    if (item.href.startsWith("#")) return false;
+    // Absolute URLs leave the app whether or not `external: true` was set. Without
+    // this, wouter would intercept the click and pushState a cross-origin href,
+    // which silently does nothing at all — the link just appears dead. Matches any
+    // scheme ("https:", "mailto:", "tel:") and protocol-relative "//host".
+    if (item.href.startsWith("//") || /^[a-z][a-z0-9+.-]*:/i.test(item.href)) return false;
+    return true;
 }

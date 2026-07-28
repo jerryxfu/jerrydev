@@ -2,7 +2,7 @@ import React from "react";
 import {Helmet} from "react-helmet-async";
 import "./NotFoundPage.scss";
 import Footer from "../../components/Footer/Footer.tsx";
-import Navbar from "../../components/Navbar/Navbar.tsx";
+import Navbar from "@/components/Nav/Navbar.tsx";
 
 export default function NotFoundPage() {
     return (

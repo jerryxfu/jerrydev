@@ -14,6 +14,10 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     position: fixed;
     top: 0;
     width: 100%;
+    // The site has no global border-box reset, and both modes add horizontal
+    // padding to this width:100% box. Without this the bar is wider than the
+    // viewport, which mobile browsers expose as horizontal panning.
+    box-sizing: border-box;
     z-index: 500;
     display: flex;
     flex-direction: column;
@@ -218,7 +222,6 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .navbar--solid .navbar_logo img {
     height: 44px;
-    border-radius: 6px;
     transition: height $dur ease;
 }
 
