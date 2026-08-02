@@ -37,31 +37,36 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
         const nav = navRef.current;
         if (!nav) return;
 
-        // Entry: the bar drops in, then its contents stagger down behind it.
-        // clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
-        void gsap.from(nav, {
-            yPercent: -100,
-            duration: 1.5,
-            delay: ENTRY_DELAY,
-            ease: "elastic.out(1,0.95)",
-            clearProps: "transform",
-        });
+        // Skip entry animation if reduce motion is on
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        const items = [
-            logoRef.current,
-            ...linkRefs.current,
-            ...(actionsRef.current?.children ?? []),
-        ].filter(Boolean);
+        if (!reduceMotion) {
+            // Entry: the bar drops in, then its contents stagger down behind it.
+            // clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
+            void gsap.from(nav, {
+                yPercent: -100,
+                duration: 1.5,
+                delay: ENTRY_DELAY,
+                ease: "elastic.out(1,0.95)",
+                clearProps: "transform",
+            });
 
-        void gsap.from(items, {
-            opacity: 0,
-            y: "-125%",
-            duration: 0.75,
-            delay: ENTRY_DELAY + 0.15,
-            stagger: 0.07,
-            ease: "power2.out",
-            clearProps: "opacity,transform",
-        });
+            const items = [
+                logoRef.current,
+                ...linkRefs.current,
+                ...(actionsRef.current?.children ?? []),
+            ].filter(Boolean);
+
+            void gsap.from(items, {
+                opacity: 0,
+                y: "-125%",
+                duration: 0.75,
+                delay: ENTRY_DELAY + 0.15,
+                stagger: 0.07,
+                ease: "power2.out",
+                clearProps: "opacity,transform",
+            });
+        }
 
         // Locked compact: the class is already on the element from render, so there's nothing to toggle and no trigger worth creating.
         if (isShrunk) return;
@@ -115,6 +120,9 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
 
     return (
         <>
+            {/* First focusable thing on the page */}
+            <a className="navbar_skip" href="#main">Skip to content</a>
+
             <nav
                 className={
                     "navbar " +
@@ -125,7 +133,7 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
             >
                 <div className="navbar_bar">
                     <Link className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
-                        <img src="/favicon64.png" alt={LOGO_ALT} />
+                        <img src="/favicon64.png" alt={LOGO_ALT} width={64} height={64} />
                     </Link>
 
                     <ul className="navbar_inline navbar_inline-left">

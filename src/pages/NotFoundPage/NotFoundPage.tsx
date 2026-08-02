@@ -16,10 +16,10 @@ export default function NotFoundPage() {
 
             <Navbar isShrunk={true} />
 
-            <div className="notfound_content">
+            <main id="main" className="notfound_content">
                 <h1>HTTP status code 404 — Page not found; it's probably your fault.</h1>
                 <a href="/">&rsaquo; Return to main page</a>
-            </div>
+            </main>
             <div className="notfound_footer">
                 <Footer />
             </div>

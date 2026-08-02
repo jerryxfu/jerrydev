@@ -68,6 +68,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
         document.body.setAttribute("data-theme", currentTheme);
         // Hand the background back to CSS once styles are loaded (clears the inline boot bg)
         document.documentElement.style.background = "";
+
+        // Browser chrome follows the chosen theme rather than the OS
+        const themeColor = document.querySelector("meta[name=\"theme-color\"]");
+        if (themeColor) {
+            const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+            if (bg) themeColor.setAttribute("content", bg);
+        }
+
         try {
             localStorage.setItem(STORAGE_KEY, themePreference);
         } catch (error) {

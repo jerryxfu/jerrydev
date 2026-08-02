@@ -11,9 +11,8 @@
     <title>jerryxf</title>
     <meta name="description" content="Hi there, I'm Jerry." />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="theme-color" content="#fbfaf9" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#101010" media="(prefers-color-scheme: dark)" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <!-- Kept in sync with the resolved theme -->
+    <meta name="theme-color" content="#fbfaf9" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -45,6 +44,10 @@
             // These must match --bg for each theme in index.scss.
             const boot = {light: "#fbfaf9", night: "#101010", pink: "#fff7fb"};
             document.documentElement.style.background = boot[theme];
+
+            // Apply same value to prevent FOUC from OS theme.
+            const themeColor = document.querySelector('meta[name="theme-color"]');
+            if (themeColor) themeColor.setAttribute("content", boot[theme]);
         })();
     </script>
     <script>

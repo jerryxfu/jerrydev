@@ -8,6 +8,35 @@ $dur: 0.4s;
 $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 // ------
+//  Skip link
+// ------
+// Parked off-screen rather than display:none
+.navbar_skip {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    translate: -50% -150%;
+    z-index: 600;
+    padding: 0.6rem 1.1rem;
+    border-radius: 0 0 8px 8px;
+    background-color: var(--bg-lt);
+    color: var(--text-strong);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px var(--shadow-da);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: translate $dur $ease;
+
+    &:focus-visible {
+        translate: -50% 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition-duration: 0.01ms;
+    }
+}
+
+// ------
 //  Shared structure
 // ------
 .navbar {

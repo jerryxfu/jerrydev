@@ -22,12 +22,14 @@ export default function HomePage() {
                 <link rel="canonical" href="https://jerryxf.net/" />
             </Helmet>
             <Navbar isHero={true} />
-            <Hero />
-            <About />
-            <Skills />
-            <Contact />
-            <Projects />
-            <Experience />
+            <main id="main">
+                <Hero />
+                <About />
+                <Skills />
+                <Contact />
+                <Projects />
+                <Experience />
+            </main>
             <Footer />
         </div>
     );
