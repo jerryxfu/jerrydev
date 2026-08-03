@@ -51,10 +51,11 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
                 clearProps: "transform",
             });
 
+            // The menu button is deliberately absent (animate with the navbar)
             const items = [
                 logoRef.current,
                 ...linkRefs.current,
-                ...(actionsRef.current?.children ?? []),
+                ...(actionsRef.current?.querySelectorAll(":scope > *:not(.navbar_menu)") ?? []),
             ].filter(Boolean);
 
             void gsap.from(items, {
