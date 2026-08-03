@@ -38,11 +38,13 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                // Code, styles, markup and fonts only — roughly 180 kB gzipped for the
-                // whole app. Project images and the video are deliberately absent; they
-                // are ~1 MB and are picked up by runtimeCaching once actually viewed.
-                globPatterns: ["**/*.{js,css,html,woff2}"],
+                // Only the shell and fonts. Hashed JS and CSS moved to runtimeCaching below, where cacheWillUpdate can reject a host's HTML fallback.
+                // The precache has no such hook: it accepts any 200 and, since PrecacheStrategy checks the cache before fetching, a bad entry is never re-fetched and survives every later deploy.
+                globPatterns: ["**/*.{html,woff2}"],
                 cleanupOutdatedCaches: true,
+                // Gives every precache entry a revision, which switches its install fetch to cache: "reload".
+                // Hashed entries otherwise install with cache: "default" and can be answered from a browser HTTP cache still holding an HTML fallback from an earlier miss.
+                dontCacheBustURLsMatching: /^$/,
                 // Both nulls exist to get navigations out of the precache, which is what
                 // made returning visitors boot the previous build's HTML. directoryIndex
                 // stops "/" resolving to the precached index.html, and navigateFallback
@@ -63,6 +65,24 @@ export default defineConfig({
                             networkTimeoutSeconds: 3,
                             cacheableResponse: {statuses: [200]},
                             precacheFallback: {fallbackURL: "/index.html"}
+                        }
+                    },
+                    {
+                        // Hashed filenames are immutable, so cache-first is safe.
+                        // When a host answers a missing asset with its SPA fallback (200 text/html), this refuses to store it, and the reload in main.tsx recovers the page.
+                        urlPattern: ({request, sameOrigin}) =>
+                            sameOrigin && (request.destination === "script" || request.destination === "style"),
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "assets",
+                            expiration: {maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30},
+                            cacheableResponse: {statuses: [200]},
+                            plugins: [{
+                                // These are served from the cache above.
+                                requestWillFetch: async ({request}) => new Request(request, {cache: "reload"}),
+                                cacheWillUpdate: async ({response}) =>
+                                    response.headers.get("content-type")?.startsWith("text/html") ? null : response
+                            }]
                         }
                     },
                     {
