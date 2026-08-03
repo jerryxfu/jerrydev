@@ -1,0 +1,151 @@
+.expedite_landing {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.expedite_landing-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.expedite_landing-label {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-4);
+}
+
+.expedite_landing-hint {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+// Horizontal on mobile, vertical once the sections sit side by side.
+.expedite_landing-divider {
+    align-self: stretch;
+    background: var(--border);
+    height: 1px;
+    width: auto;
+}
+
+.expedite_tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+}
+
+.expedite_tile {
+    aspect-ratio: 1 / 1;
+    // Keeps the squares sane once the container gets wide.
+    max-height: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.85rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+
+    &:hover {
+        background: var(--surface);
+        border-color: var(--border-da);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+.expedite_tile-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+.expedite_tile-note {
+    font-size: 0.76rem;
+    line-height: 1.2;
+    color: var(--text-4);
+}
+
+@media (min-width: 820px) {
+    .expedite_landing {
+        flex-direction: row;
+        // Each column takes the height it needs; they don't have to match.
+        align-items: flex-start;
+        gap: 2.25rem;
+    }
+
+    .expedite_landing-divider {
+        width: 1px;
+        // align-self: stretch would collapse to nothing now that the row is
+        // flex-start, so the divider spans the taller column explicitly.
+        align-self: stretch;
+        flex: 0 0 1px;
+    }
+}
+
+// The code input is shared with the retrieve flow; kept here now that
+// RetrieveView is gone.
+.expedite_code-input {
+    width: 100%;
+    // Fixed height, no vertical padding: a single-line input centres its own text
+    // box, so whatever font-size is active lands on the middle axis.
+    height: 4.4rem;
+    padding: 0 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-family: "Outfit Variable", monospace;
+    font-size: 2.2rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-align: center;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+
+    // Shrinking only ::placeholder doesn't work: the line box is sized by the
+    // input's own font-size, so smaller placeholder text shares the tall font's
+    // baseline and sits low. Shrinking the whole field while it's empty moves
+    // the line box itself, and the fixed height keeps it from jumping.
+    &:placeholder-shown {
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    &::placeholder {
+        color: var(--text-5);
+    }
+
+    &:focus {
+        border-color: var(--border-da);
+    }
+}
+
+// .expedite_btn-primary carries flex: 1 for the horizontal button rows. This
+// section is a flex column, where that reads as flex-grow and stretches the
+// button to fill the leftover height. Padding is left at the shared default so
+// the button matches every other primary button on the page.
+.expedite_landing-section .expedite_btn-primary {
+    flex: 0 0 auto;
+}

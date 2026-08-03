@@ -5,15 +5,29 @@ import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Expedite.scss";
 
-import {DEFAULT_SETTINGS, type DropMeta, type DropSettings, type DropType, type UploadSnapshot, type ViewMode} from "./types.ts";
+import {
+    DEFAULT_SETTINGS,
+    type DropMeta,
+    type DropSettings,
+    type DropType,
+    EMPTY_P2P_STATUS,
+    isP2PReceiveSupported,
+    type P2PSnapshot,
+    type P2PStatus,
+    type UploadSnapshot,
+    type ViewMode
+} from "./types.ts";
 import {formatBytes} from "./utils.ts";
-import IdleView from "./views/IdleView.tsx";
+import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
 import CreatedView from "./views/CreatedView.tsx";
-import RetrieveView from "./views/RetrieveView.tsx";
 import ResultView from "./views/ResultView.tsx";
+import P2PSendView from "./views/P2PSendView.tsx";
+import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
+import {closeSession, sendP2P} from "./p2p/sender.ts";
+import {receiveP2P} from "./p2p/receiver.ts";
 
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
@@ -34,10 +48,13 @@ function animateOut(el: HTMLElement | null): Promise<void> {
     });
 }
 
+const freshStatus = (): P2PStatus => ({
+    ...EMPTY_P2P_STATUS,
+    candidates: {...EMPTY_P2P_STATUS.candidates},
+});
+
 export default function Expedite() {
-    const [view, setView] = useState<ViewMode>(() =>
-        new URLSearchParams(window.location.search).get("code") ? "retrieving" : "idle"
-    );
+    const [view, setView] = useState<ViewMode>("landing");
     const [retrieveCode, setRetrieveCode] = useState(() =>
         new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? ""
     );
@@ -55,9 +72,22 @@ export default function Expedite() {
 
     const [uploadSnapshot, setUploadSnapshot] = useState<UploadSnapshot | null>(null);
     const uploadAbortRef = useRef<AbortController | null>(null);
+
+    // --- Direct P2P ---
+    const [useTurn, setUseTurn] = useState(false);
+    const [p2pStatus, setP2pStatus] = useState<P2PStatus>(freshStatus);
+    const [p2pSnapshot, setP2pSnapshot] = useState<P2PSnapshot | null>(null);
+    const [p2pCode, setP2pCode] = useState<string | null>(null);
+    const [p2pExpiresAt, setP2pExpiresAt] = useState<string | null>(null);
+    const [p2pRunning, setP2pRunning] = useState(false);
+    const p2pAbortRef = useRef<AbortController | null>(null);
+    const p2pCodeRef = useRef<string | null>(null);
+    const p2pSupported = isP2PReceiveSupported();
+
     const [stats, setStats] = useState<{
         activeDrops: number;
         totalViews: number;
+        liveSessions?: number;
         usedBytes?: number;
         maxBytes?: number;
     } | null>(null);
@@ -93,6 +123,17 @@ export default function Expedite() {
         });
     }, [view]);
 
+    // A live session left dangling would keep handing out an offer nobody is
+    // listening for until its TTL runs out. keepalive lets the request outlive
+    // the page; sendBeacon can't be used because it only issues POSTs.
+    useEffect(() => {
+        const onUnload = (): void => {
+            if (p2pCodeRef.current) closeSession(apiBaseUrl, p2pCodeRef.current);
+        };
+        window.addEventListener("beforeunload", onUnload);
+        return () => window.removeEventListener("beforeunload", onUnload);
+    }, []);
+
     const transitionTo = async (nextView: ViewMode) => {
         await animateOut(viewRef.current);
         setView(nextView);
@@ -102,6 +143,17 @@ export default function Expedite() {
         uploadAbortRef.current?.abort();
         uploadAbortRef.current = null;
         setUploadSnapshot(null);
+
+        p2pAbortRef.current?.abort();
+        p2pAbortRef.current = null;
+        if (p2pCodeRef.current) closeSession(apiBaseUrl, p2pCodeRef.current);
+        p2pCodeRef.current = null;
+        setP2pCode(null);
+        setP2pExpiresAt(null);
+        setP2pRunning(false);
+        setP2pSnapshot(null);
+        setP2pStatus(freshStatus());
+
         await animateOut(viewRef.current);
         setDropType("text");
         setTextContent("");
@@ -115,7 +167,14 @@ export default function Expedite() {
         setSettings({...DEFAULT_SETTINGS});
         setMaxViewsInput("");
         window.history.replaceState({}, "", "/expedite");
-        setView("idle");
+        setView("landing");
+    };
+
+    // --- Landing tile selection ---
+    const handleSelect = async (type: DropType) => {
+        setError(null);
+        setDropType(type);
+        await transitionTo(type === "p2p" ? "p2p-send" : "composing");
     };
 
     const handleUpload = async () => {
@@ -195,8 +254,12 @@ export default function Expedite() {
                 setLoading(false);
                 return;
             }
-            setResult(json.data as DropMeta);
-            await transitionTo("result");
+
+            const meta = json.data as DropMeta;
+            setResult(meta);
+            // The type isn't known until the lookup resolves, which is also when
+            // it appears in the heading.
+            await transitionTo(meta.type === "p2p" ? "p2p-receive" : "result");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Retrieval failed");
         } finally {
@@ -212,6 +275,95 @@ export default function Expedite() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // --- Direct P2P: send ---
+    const startP2PSend = async () => {
+        if (!selectedFile) return;
+        setError(null);
+        setP2pSnapshot(null);
+        setP2pStatus(freshStatus());
+        setP2pRunning(true);
+
+        const controller = new AbortController();
+        p2pAbortRef.current = controller;
+
+        try {
+            await sendP2P({
+                file: selectedFile,
+                apiBaseUrl,
+                useTurn,
+                signal: controller.signal,
+                onStatus: setP2pStatus,
+                onSnapshot: setP2pSnapshot,
+                onCode: (code, expiresAt) => {
+                    // Ref mirrors state so the unload handler can read it without
+                    // re-subscribing on every rotation.
+                    p2pCodeRef.current = code;
+                    setP2pCode(code);
+                    setP2pExpiresAt(expiresAt);
+                },
+            });
+        } catch (err: unknown) {
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "Transfer failed");
+            }
+        } finally {
+            p2pAbortRef.current = null;
+            if (p2pCodeRef.current) {
+                closeSession(apiBaseUrl, p2pCodeRef.current);
+                p2pCodeRef.current = null;
+            }
+        }
+    };
+
+    // --- Direct P2P: receive ---
+    const acceptP2PReceive = async () => {
+        if (!result?.offer || !window.showSaveFilePicker) return;
+        setError(null);
+
+        // showSaveFilePicker must be the first await in this handler — it needs
+        // the user gesture, and any prior await would spend it.
+        let handle: FileSystemFileHandle;
+        try {
+            handle = await window.showSaveFilePicker({
+                suggestedName: result.fileName ?? `expedite-${result.code}`,
+            });
+        } catch (err: unknown) {
+            // Dismissing the picker isn't an error worth reporting.
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "Could not open save location");
+            }
+            return;
+        }
+
+        setP2pSnapshot(null);
+        setP2pStatus(freshStatus());
+        setP2pRunning(true);
+
+        const controller = new AbortController();
+        p2pAbortRef.current = controller;
+
+        try {
+            await receiveP2P({
+                code: result.code,
+                offer: result.offer,
+                fileName: result.fileName ?? `expedite-${result.code}`,
+                fileSize: result.size,
+                handle,
+                apiBaseUrl,
+                useTurn,
+                signal: controller.signal,
+                onStatus: setP2pStatus,
+                onSnapshot: setP2pSnapshot,
+            });
+        } catch (err: unknown) {
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "Transfer failed");
+            }
+        } finally {
+            p2pAbortRef.current = null;
+        }
+    };
 
     const handleDownload = async () => {
         if (!result) return;
@@ -281,7 +433,7 @@ export default function Expedite() {
         if (file) {
             setSelectedFile(file);
             setDropType("file");
-            setView("uploading");
+            setView("composing");
         }
     }, []);
 
@@ -291,6 +443,10 @@ export default function Expedite() {
     }, []);
 
     const handleDragLeave = useCallback(() => setIsDragging(false), []);
+
+    // The resolved drop type is appended to the heading, so it only appears
+    // once a lookup has returned.
+    const resolvedType = result?.type ?? null;
 
     return (
         <div className="expedite" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
@@ -307,38 +463,49 @@ export default function Expedite() {
                 <p>Drop file to upload</p>
             </div>
 
-            <div className={`expedite_container ${view === "uploading" && uploadSnapshot ? "expedite_container--wide" : ""}`}>
+            <div
+                className={[
+                    "expedite_container",
+                    view === "composing" && uploadSnapshot ? "expedite_container--wide" : "",
+                    view === "landing" ? "expedite_container--landing" : "",
+                    view === "p2p-send" || view === "p2p-receive" ? "expedite_container--p2p" : "",
+                ].filter(Boolean).join(" ")}
+            >
                 <a href="/" className="expedite_home-link">
                     <ExternalLink size={13} />
                     <span>jerryxf.net</span>
                 </a>
                 <header className="expedite_header">
-                    {view !== "idle" && (
+                    {view !== "landing" && (
                         <button className="expedite_back" onClick={reset}>
                             <ArrowLeft size={16} />
                             <span>Back</span>
                         </button>
                     )}
-                    <h1>Expedite 📦</h1>
-                    {view === "idle" && (
+                    <h1>Expedite 📦{resolvedType ? ` (${resolvedType})` : ""}</h1>
+                    {view === "landing" && (
                         <p className="caption-text">Share files and text snippets with instantaneous same-day shipping (guaranteed)!</p>
                     )}
                 </header>
 
                 {/* Views */}
                 <div ref={viewRef}>
-                    {view === "idle" && (
-                        <IdleView
-                            onNewDrop={() => transitionTo("uploading")}
-                            onRetrieve={() => transitionTo("retrieving")}
+                    {view === "landing" && (
+                        <LandingView
+                            onSelect={handleSelect}
+                            code={retrieveCode}
+                            setCode={setRetrieveCode}
+                            error={error}
+                            loading={loading}
+                            onRetrieve={() => retrieveDrop()}
+                            p2pSupported={p2pSupported}
                         />
                     )}
 
-                    {view === "uploading" && (
+                    {view === "composing" && (
                         <div className={`expedite_upload-layout ${uploadSnapshot ? "is-uploading" : ""}`}>
                             <UploadView
                                 dropType={dropType}
-                                setDropType={setDropType}
                                 textContent={textContent}
                                 setTextContent={setTextContent}
                                 selectedFile={selectedFile}
@@ -365,13 +532,36 @@ export default function Expedite() {
                         />
                     )}
 
-                    {view === "retrieving" && !result && (
-                        <RetrieveView
-                            code={retrieveCode}
-                            setCode={setRetrieveCode}
+                    {view === "p2p-send" && (
+                        <P2PSendView
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                            useTurn={useTurn}
+                            setUseTurn={setUseTurn}
+                            code={p2pCode}
+                            expiresAt={p2pExpiresAt}
+                            status={p2pStatus}
+                            snapshot={p2pSnapshot}
+                            running={p2pRunning}
                             error={error}
-                            loading={loading}
-                            onRetrieve={() => retrieveDrop()}
+                            copiedField={copiedField}
+                            onCopy={copyToClipboard}
+                            onStart={startP2PSend}
+                            onCancel={reset}
+                        />
+                    )}
+
+                    {view === "p2p-receive" && result && (
+                        <P2PReceiveView
+                            meta={result}
+                            supported={p2pSupported}
+                            useTurn={useTurn}
+                            setUseTurn={setUseTurn}
+                            status={p2pStatus}
+                            snapshot={p2pSnapshot}
+                            running={p2pRunning}
+                            error={error}
+                            onAccept={acceptP2PReceive}
                             onCancel={reset}
                         />
                     )}
@@ -394,6 +584,12 @@ export default function Expedite() {
                     <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
                     <span>·</span>
                     <span>{stats.totalViews} view{stats.totalViews !== 1 ? "s" : ""}</span>
+                    {stats.liveSessions != null && stats.liveSessions > 0 && (
+                        <>
+                            <span>·</span>
+                            <span>{stats.liveSessions} live session{stats.liveSessions !== 1 ? "s" : ""}</span>
+                        </>
+                    )}
                     {stats.maxBytes != null && (
                         <>
                             <span>·</span>

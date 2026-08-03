@@ -81,9 +81,14 @@ export default function ResultView({result, copiedField, onCopy, onDownload, onD
             {result.type === "text" && result.text && (
                 <>
                     <p className="expedite_content-label">Content</p>
-                    <div className="expedite_text-preview">
-                        <pre>{result.text}</pre>
-                    </div>
+                    {/* A textarea rather than <pre> so the caret can be placed inside it and ranges selected */}
+                    <textarea
+                        className="expedite_text-preview"
+                        value={result.text}
+                        readOnly
+                        spellCheck={false}
+                        onFocus={(e) => e.target.select()}
+                    />
                 </>
             )}
 

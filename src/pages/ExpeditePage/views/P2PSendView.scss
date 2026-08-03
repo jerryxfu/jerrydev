@@ -1,0 +1,86 @@
+.expedite_p2p-send {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+.expedite_p2p-code-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+
+    > .text-small {
+        margin: 0;
+        color: var(--text-4);
+    }
+}
+
+.expedite_p2p-countdown {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+
+    &.is-low {
+        color: var(--warning);
+        font-weight: 600;
+    }
+}
+
+.expedite_p2p-file {
+    margin: 0;
+    text-align: center;
+    font-size: 0.86rem;
+    color: var(--text-3);
+    word-break: break-word;
+}
+
+.expedite_p2p-standby {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--text-3);
+    text-align: center;
+    line-height: 1.55;
+}
+
+/* Notes block */
+.expedite_p2p-notes {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+
+    ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    li {
+        font-size: 0.85rem;
+        color: var(--text-3);
+        line-height: 1.55;
+    }
+}
+
+.expedite_p2p-notes-title {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-4);
+}
+
+/* Sub-label under a setting row label */
+.expedite_setting-sub {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-4);
+    line-height: 1.5;
+    margin-top: 0.2rem;
+    max-width: 70ch;
+}

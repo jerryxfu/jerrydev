@@ -1,0 +1,94 @@
+.expedite_p2p-receive {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+/* Unsupported-browser gate */
+.expedite_p2p-blocked {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--warning) 50%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--warning) 8%, transparent);
+}
+
+.expedite_p2p-blocked-title {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.expedite_p2p-blocked-body {
+    margin: 0;
+    font-size: var(--fs-base);
+    color: var(--text-2);
+    line-height: 1.6;
+
+    code {
+        font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+        font-size: 0.83rem;
+        padding: 0.08rem 0.3rem;
+        border-radius: 4px;
+        background: color-mix(in srgb, currentColor 10%, transparent);
+    }
+}
+
+.expedite_p2p-blocked-list {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    li {
+        font-size: var(--fs-sm);
+        color: var(--text-3);
+        line-height: 1.55;
+    }
+}
+
+.expedite_p2p-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    color: var(--text-4);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Offer card */
+.expedite_p2p-offer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.expedite_p2p-offer-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.expedite_p2p-offer-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+}
+
+.expedite_p2p-offer-meta {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-3);
+}

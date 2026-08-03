@@ -1,12 +1,11 @@
 import React, {useEffect, useMemo, useRef} from "react";
-import {File, FileText, Upload, X} from "lucide-react";
+import {File, Upload, X} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
 import "./UploadView.scss";
 
 interface UploadViewProps {
     dropType: DropType;
-    setDropType: (type: DropType) => void;
     textContent: string;
     setTextContent: (text: string) => void;
     selectedFile: globalThis.File | null;
@@ -23,7 +22,7 @@ interface UploadViewProps {
 
 export default function UploadView(
     {
-        dropType, setDropType, textContent, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
+        dropType, textContent, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
         maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel,
     }: UploadViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,23 +44,6 @@ export default function UploadView(
 
     return (
         <div className="expedite_upload">
-            <div className="expedite_type-toggle">
-                <button
-                    className={`text-small expedite_type-btn ${dropType === "text" ? "active" : ""}`}
-                    onClick={() => setDropType("text")}
-                    disabled={loading}
-                >
-                    <FileText size={14} /> Text
-                </button>
-                <button
-                    className={`text-small expedite_type-btn ${dropType === "file" ? "active" : ""}`}
-                    onClick={() => setDropType("file")}
-                    disabled={loading}
-                >
-                    <File size={14} /> File
-                </button>
-            </div>
-
             {dropType === "text" ? (
                 <textarea
                     className="expedite_textarea text-small"
@@ -106,7 +88,7 @@ export default function UploadView(
                         ) : (
                             <>
                                 <Upload size={28} strokeWidth={1} />
-                                <p>Click to choose a file or drag & drop</p>
+                                <p>Click to choose a file or drag &amp; drop</p>
                                 <p className="expedite_file-limit">Max 16 GB</p>
                             </>
                         )}
