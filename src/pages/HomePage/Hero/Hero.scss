@@ -68,7 +68,7 @@
     }
 
     @media screen and (max-width: 480px) {
-        font-size: 1.5rem;
+        font-size: var(--fs-xl);
     }
 }
 
@@ -114,7 +114,7 @@
 
 .hero_line {
     color: var(--text-2);
-    font-size: 1.3rem;
+    font-size: var(--fs-lgg);
     line-height: 2;
 
     @media screen and (max-width: 480px) {

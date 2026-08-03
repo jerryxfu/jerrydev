@@ -12,7 +12,7 @@
     border-radius: 10px;
     background: transparent;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: var(--fs-base);
     box-sizing: border-box;
     outline: none;
     transition: border-color 0.15s;
@@ -89,7 +89,7 @@
     background: transparent;
     color: inherit;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
 
@@ -160,7 +160,7 @@
 
 .rv_time-separator {
     opacity: 0.3;
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
 }
 
 .rv_time-select {
@@ -170,7 +170,7 @@
     background: transparent;
     color: inherit;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     outline: none;
     cursor: pointer;
 
@@ -193,7 +193,7 @@
     background: transparent;
     color: inherit;
     font-family: inherit;
-    font-size: 0.75rem;
+    font-size: var(--fs-xs);
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s, background 0.15s;

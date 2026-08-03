@@ -29,7 +29,7 @@
     background: transparent;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--fs-smm);
 
     &:hover {
         background: rgba(225, 72, 58, 0.1);
@@ -52,7 +52,7 @@
 .expedite_progress-meta {
     display: flex;
     gap: 0.9rem;
-    font-size: 0.78rem;
+    font-size: var(--fs-smm);
     opacity: 0.85;
     margin-top: 0.4rem;
     flex-wrap: wrap;
@@ -112,7 +112,7 @@
 }
 
 .expedite_progress-legend {
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     opacity: 0.6;
     margin: 0;
 }
@@ -148,7 +148,7 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-smm);
     margin-bottom: 0.4rem;
 }
 

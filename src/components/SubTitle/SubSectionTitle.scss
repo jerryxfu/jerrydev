@@ -1,9 +1,9 @@
 .subtitle-text {
-    font-size: 2rem;
+    font-size: var(--fs-2xl);
     color: var(--text);
     transition: color 450ms;
 
     @media screen and (max-width: 480px) {
-        font-size: 1.5rem;
+        font-size: var(--fs-xl);
     }
 }

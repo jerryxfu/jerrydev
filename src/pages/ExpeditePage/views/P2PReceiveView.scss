@@ -31,7 +31,7 @@
 
     code {
         font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-        font-size: 0.83rem;
+        font-size: var(--fs-smm);
         padding: 0.08rem 0.3rem;
         border-radius: 4px;
         background: color-mix(in srgb, currentColor 10%, transparent);
@@ -56,7 +56,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem 1.1rem;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     color: var(--text-4);
     font-variant-numeric: tabular-nums;
 }
@@ -81,7 +81,7 @@
 
 .expedite_p2p-offer-name {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--fs-base);
     font-weight: 500;
     color: var(--text);
     word-break: break-word;
@@ -89,6 +89,6 @@
 
 .expedite_p2p-offer-meta {
     margin: 0;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     color: var(--text-3);
 }

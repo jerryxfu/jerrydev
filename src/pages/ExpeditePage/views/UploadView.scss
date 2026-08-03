@@ -75,7 +75,7 @@
 
     p {
         margin: 0;
-        font-size: 0.88rem;
+        font-size: var(--fs-sm);
         opacity: 0.5;
     }
 
@@ -99,13 +99,13 @@
 }
 
 .expedite_file-size {
-    font-size: 0.8rem;
+    font-size: var(--fs-smm);
     opacity: 0.4;
     margin: 0;
 }
 
 .expedite_file-limit {
-    font-size: 0.75rem !important;
+    font-size: var(--fs-xs) !important;
     opacity: 0.25 !important;
 }
 
@@ -220,7 +220,7 @@
     background: transparent;
     color: inherit;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     text-align: center;
     outline: none;
 
@@ -255,7 +255,7 @@
     background: transparent;
     color: inherit;
     font-family: inherit;
-    font-size: 0.75rem;
+    font-size: var(--fs-xs);
     cursor: pointer;
     opacity: 0.45;
     transition: opacity 0.15s, background 0.15s;

@@ -18,7 +18,7 @@
 
 .expedite_p2p-countdown {
     margin: 0;
-    font-size: 0.84rem;
+    font-size: var(--fs-smm);
     color: var(--text-3);
     font-variant-numeric: tabular-nums;
 
@@ -31,14 +31,14 @@
 .expedite_p2p-file {
     margin: 0;
     text-align: center;
-    font-size: 0.86rem;
+    font-size: var(--fs-sm);
     color: var(--text-3);
     word-break: break-word;
 }
 
 .expedite_p2p-standby {
     margin: 0;
-    font-size: 0.84rem;
+    font-size: var(--fs-smm);
     color: var(--text-3);
     text-align: center;
     line-height: 1.55;
@@ -60,7 +60,7 @@
     }
 
     li {
-        font-size: 0.85rem;
+        font-size: var(--fs-sm);
         color: var(--text-3);
         line-height: 1.55;
     }
@@ -70,7 +70,7 @@
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     color: var(--text-4);
 }
@@ -78,7 +78,7 @@
 /* Sub-label under a setting row label */
 .expedite_setting-sub {
     display: block;
-    font-size: 0.78rem;
+    font-size: var(--fs-smm);
     color: var(--text-4);
     line-height: 1.5;
     margin-top: 0.2rem;

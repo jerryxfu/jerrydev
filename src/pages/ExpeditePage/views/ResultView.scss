@@ -23,7 +23,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.75rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -31,7 +31,7 @@
 }
 
 .expedite_meta-code {
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     font-weight: 600;
     letter-spacing: 0.18em;
     opacity: 0.35;
@@ -60,7 +60,7 @@
 }
 
 .expedite_meta-label {
-    font-size: 0.65rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -68,13 +68,13 @@
 }
 
 .expedite_meta-value {
-    font-size: 0.88rem;
+    font-size: var(--fs-sm);
     word-break: break-all;
 }
 
 // Content label
 .expedite_content-label {
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -97,7 +97,7 @@
     border-radius: 10px;
     padding: 0.85rem;
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
     font-family: "Outfit Variable", monospace;
     line-height: 1.55;
     outline: none;

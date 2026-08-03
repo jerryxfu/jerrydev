@@ -71,7 +71,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                                     padding: "1rem",
                                     borderRadius: "4px",
                                     overflow: "auto",
-                                    fontSize: "0.8rem"
+                                    fontSize: "var(--fs-smm)"
                                 }}>
                                     {this.state.error.stack}
                                 </pre>

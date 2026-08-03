@@ -16,15 +16,66 @@
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    font-size: 0.78rem;
+    font-size: var(--fs-smm);
     font-weight: 600;
     color: var(--text-4);
 }
 
 .expedite_landing-hint {
     margin: 0;
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     line-height: 1.6;
+    color: var(--text-3);
+}
+
+.expedite_landing-modes {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+// Each term/description pair is its own flex column so the gap between a term
+// and its own description stays tighter than the gap between modes.
+.expedite_mode {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.expedite_mode-term {
+    font-size: var(--fs-smm);
+    font-weight: 600;
+    color: var(--text-3);
+}
+
+.expedite_mode-desc {
+    margin: 0;
+    font-size: var(--fs-smm);
+    line-height: 1.6;
+    color: var(--text-4);
+}
+
+// Same warning recipe as .expedite_p2p-blocked in P2PReceiveView, on one line.
+.expedite_landing-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--warning) 50%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--warning) 8%, transparent);
+
+    // Stops the icon collapsing once the text wraps to a second line.
+    svg {
+        flex: 0 0 auto;
+    }
+}
+
+.expedite_landing-notice-text {
+    margin: 0;
+    font-size: var(--fs-smm);
+    line-height: 1.5;
     color: var(--text-3);
 }
 
@@ -72,13 +123,13 @@
 }
 
 .expedite_tile-label {
-    font-size: 0.95rem;
+    font-size: var(--fs-base);
     font-weight: 500;
     line-height: 1.15;
 }
 
 .expedite_tile-note {
-    font-size: 0.76rem;
+    font-size: var(--fs-xs);
     line-height: 1.2;
     color: var(--text-4);
 }
@@ -127,7 +178,7 @@
     // baseline and sits low. Shrinking the whole field while it's empty moves
     // the line box itself, and the fixed height keeps it from jumping.
     &:placeholder-shown {
-        font-size: 1rem;
+        font-size: var(--fs-base);
         font-weight: 400;
         letter-spacing: 0;
         text-transform: none;

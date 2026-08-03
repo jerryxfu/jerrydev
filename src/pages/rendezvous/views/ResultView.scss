@@ -95,7 +95,7 @@
 }
 
 .rv_tooltip-name {
-    font-size: 0.82rem;
+    font-size: var(--fs-smm);
     padding: 0.15rem 0.45rem;
     border-radius: 4px;
     background: color-mix(in srgb, var(--primary) 12%, transparent);

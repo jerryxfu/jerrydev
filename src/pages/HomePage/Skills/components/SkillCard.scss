@@ -45,7 +45,7 @@
 
 .skillcard_title {
     @media screen and (max-width: 768px) {
-        font-size: 1rem;
+        font-size: var(--fs-base);
     }
 }
 

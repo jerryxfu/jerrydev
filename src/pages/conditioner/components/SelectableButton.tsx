@@ -13,7 +13,7 @@ export default function SelectableButton(
     const style: React.CSSProperties = {
         padding: "0.5rem 0.85rem",
         border: `1px solid ${selected ? color : selectedColor}`,
-        fontSize: "0.865rem",
+        fontSize: "var(--fs-sm)",
         fontWeight: 400,
         borderRadius: 0,
         cursor: "pointer",

@@ -91,7 +91,7 @@
 }
 
 .lead-label {
-    font-size: 1.25rem;
+    font-size: var(--fs-lg);
     font-weight: 600;
     color: inherit;
     display: flex;
@@ -120,7 +120,7 @@
     display: block;
 
     .label {
-        font-size: 1rem;
+        font-size: var(--fs-base);
     }
 
     .value {
