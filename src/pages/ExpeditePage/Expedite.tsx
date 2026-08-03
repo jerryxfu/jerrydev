@@ -484,7 +484,7 @@ export default function Expedite() {
                     )}
                     <h1>Expedite 📦{resolvedType ? ` (${resolvedType})` : ""}</h1>
                     {view === "landing" && (
-                        <p className="caption-text">Share files and text snippets with instantaneously!</p>
+                        <p className="caption-text">Share files and TESTESTSESETSETTES text snippets with instantaneously!</p>
                     )}
                 </header>
 
