@@ -176,6 +176,11 @@
     position: relative;
     width: 36px;
     height: 20px;
+    // The knob is absolutely positioned, so this button has no content to set a
+    // min-content floor. Without this, a narrow .expedite_setting-row shrinks the
+    // track toward zero once the label beside it has hit its own floor, and the
+    // knob keeps its fixed offsets and ends up outside the pill.
+    flex-shrink: 0;
     border-radius: 10px;
     border: 1.5px solid color-mix(in srgb, currentColor 15%, transparent);
     background: color-mix(in srgb, currentColor 6%, transparent);

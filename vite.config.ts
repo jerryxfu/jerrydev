@@ -14,9 +14,10 @@ export default defineConfig({
     plugins: [
         react(),
         VitePWA({
-            // The new service worker takes over on the next load, no prompt. Paired
-            // with cleanupOutdatedCaches so old precaches don't accumulate.
-            registerType: "autoUpdate",
+            // Not "autoUpdate": that sets skipWaiting + clientsClaim, so a new worker activates under a page still running the previous build,
+            // and Workbox then drops every precached asset missing from the new manifest (the live page's lazy chunks 404 mid-session).
+            // Waiting keeps each page consistent with the build it loaded with.
+            registerType: "prompt",
             injectRegister: "auto",
             // Served from public/, so not fingerprinted and not caught by globPatterns.
             includeAssets: ["favicon.ico", "favicon.jpeg", "favicon16.png", "favicon32.png", "apple-touch-icon.png"],

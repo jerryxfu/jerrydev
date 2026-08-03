@@ -11,6 +11,19 @@ import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import OfflineToast from "./components/OfflineToast/OfflineToast.tsx";
 
+// A deploy replaces every hashed filename, so a tab opened against an older build can ask for a chunk that no longer exists.
+// Vite fires this instead of throwing, and a reload lands on the current build.
+// Timestamped so a deploy that is actually broken surfaces the error instead of reloading forever.
+const PRELOAD_RELOAD_KEY = "preload-reloaded-at";
+
+window.addEventListener("vite:preloadError", (event) => {
+    if (Date.now() - Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY) ?? 0) < 10_000) return;
+
+    sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(Date.now()));
+    event.preventDefault();
+    window.location.reload();
+});
+
 const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
 const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
 const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
