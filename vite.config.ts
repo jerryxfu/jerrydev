@@ -43,11 +43,28 @@ export default defineConfig({
                 // are ~1 MB and are picked up by runtimeCaching once actually viewed.
                 globPatterns: ["**/*.{js,css,html,woff2}"],
                 cleanupOutdatedCaches: true,
-                // Offline deep links land on the shell, which then routes client-side.
-                // Online this never fires: Cloudflare Pages already serves index.html
-                // for unmatched paths.
-                navigateFallback: "/index.html",
+                // Both nulls exist to get navigations out of the precache, which is what
+                // made returning visitors boot the previous build's HTML. directoryIndex
+                // stops "/" resolving to the precached index.html, and navigateFallback
+                // suppresses the NavigationRoute the plugin emits by default — that route
+                // is registered ahead of runtimeCaching and would win every navigation.
+                // index.html stays precached; precacheFallback below serves it offline.
+                directoryIndex: null,
+                navigateFallback: null,
                 runtimeCaching: [
+                    {
+                        // HTML from the network so the shell always matches the deployment
+                        // it references. Falls back to the precached shell when offline or
+                        // when the network is slower than the timeout.
+                        urlPattern: ({request}) => request.mode === "navigate",
+                        handler: "NetworkFirst",
+                        options: {
+                            cacheName: "html",
+                            networkTimeoutSeconds: 3,
+                            cacheableResponse: {statuses: [200]},
+                            precacheFallback: {fallbackURL: "/index.html"}
+                        }
+                    },
                     {
                         urlPattern: ({request}) => request.destination === "image" || request.destination === "video",
                         handler: "CacheFirst",
@@ -56,7 +73,16 @@ export default defineConfig({
                             expiration: {maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30},
                             // 0 keeps opaque cross-origin responses cacheable.
                             cacheableResponse: {statuses: [0, 200]},
-                            rangeRequests: true
+                            rangeRequests: true,
+                            // A missing asset gets Cloudflare's SPA fallback: index.html
+                            // with status 200. That passes the status filter above, so
+                            // without this an HTML body would be stored as the image and
+                            // pinned for 30 days. Opaque responses carry no headers, so
+                            // they fall through and stay cacheable.
+                            plugins: [{
+                                cacheWillUpdate: async ({response}) =>
+                                    response.headers.get("content-type")?.startsWith("text/html") ? null : response
+                            }]
                         }
                     }
                 ]
