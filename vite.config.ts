@@ -75,11 +75,13 @@ export default defineConfig({
                         handler: "CacheFirst",
                         options: {
                             cacheName: "assets",
+                            // Bypasses the browser HTTP cache on every miss, so an HTML fallback
+                            // cached earlier can never be fed back to the worker. Native strategy
+                            // option, passed straight to fetch() for non-navigation requests.
+                            fetchOptions: {cache: "reload"},
                             expiration: {maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30},
                             cacheableResponse: {statuses: [200]},
                             plugins: [{
-                                // These are served from the cache above.
-                                requestWillFetch: async ({request}) => new Request(request, {cache: "reload"}),
                                 cacheWillUpdate: async ({response}) =>
                                     response.headers.get("content-type")?.startsWith("text/html") ? null : response
                             }]

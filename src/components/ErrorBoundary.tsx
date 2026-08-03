@@ -61,6 +61,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                         <p style={{margin: "0 0 1rem 0"}}>
                             The application encountered an unexpected error. This has been logged and will be investigated.
                         </p>
+                        <p style={{margin: "0 0 1rem 0"}}>
+                            If this appeared right after an update was deployed, a stale file may have been served
+                            mid-rollout. Retrying in about 15 minutes usually clears it.
+                        </p>
                         {import.meta.env.MODE === "development" && this.state.error && (
                             <details style={{marginTop: "1rem", textAlign: "left"}}>
                                 <summary style={{cursor: "pointer", marginBottom: "0.5rem"}}>
