@@ -8,7 +8,15 @@ import type {CandidateType, P2PStatus} from "../types.ts";
  * messages rather than a candidate stream. Costs 1-3s up front and buys a much simpler server.
  */
 
-export const STUN_URLS = ["stun:stun.cloudflare.com:3478"];
+/**
+ * Two operators on unrelated domains. STUN is a single point of failure for
+ * srflx, and DNS filtering (Pi-hole and friends resolve blocklisted names to
+ * 0.0.0.0) can silently kill one hostname; the second still answers.
+ */
+export const STUN_URLS = [
+    "stun:stun.cloudflare.com:3478",
+    "stun:stun.l.google.com:19302",
+];
 
 /**
  * Control messages exchanged as strings alongside the binary chunks. The leading
@@ -67,9 +75,13 @@ export function createRateMeter(windowMs = 5000) {
 }
 
 export class P2PError extends Error {
-    constructor(message: string) {
+    /** True for ICE/connectivity failures — the class of error a relay retry can fix. */
+    readonly ice: boolean;
+
+    constructor(message: string, ice = false) {
         super(message);
         this.name = "P2PError";
+        this.ice = ice;
     }
 }
 
@@ -116,7 +128,8 @@ export function createPeer(servers: RTCIceServer[]): RTCPeerConnection {
  * Resolve once ICE gathering finishes, or after the timeout.
  *
  * The timeout matters: a blocked STUN server leaves gathering in "gathering"
- * indefinitely, and host candidates alone are enough for a same-LAN transfer.
+ * indefinitely. Host candidates alone can carry a same-LAN transfer, but only
+ * when the peer manages to resolve their mDNS (.local) obfuscation — not a given.
  */
 export function waitForGathering(pc: RTCPeerConnection, timeoutMs = GATHER_TIMEOUT_MS): Promise<void> {
     if (pc.iceGatheringState === "complete") return Promise.resolve();
@@ -147,6 +160,10 @@ export function countCandidates(sdp: string): Record<CandidateType, number> {
         if (match) counts[match[1] as CandidateType] += 1;
     }
     return counts;
+}
+
+export function totalCandidates(counts: Record<CandidateType, number>): number {
+    return counts.host + counts.srflx + counts.prflx + counts.relay;
 }
 
 export function describeCandidates(counts: Record<CandidateType, number>): string {
@@ -240,13 +257,18 @@ export function waitForDrain(dc: RTCDataChannel, signal?: AbortSignal): Promise<
 
 /** Human-readable ICE failure text. */
 export function describeIceFailure(pc: RTCPeerConnection, status: P2PStatus): string {
-    const {candidates, relayed} = status;
-    const total = candidates.host + candidates.srflx + candidates.prflx + candidates.relay;
-    if (total === 0) {
+    const {candidates, remoteCandidates, relayed} = status;
+    const local = totalCandidates(candidates);
+    if (local === 0) {
         return "ICE failed — no local candidates gathered (network blocked or offline)";
     }
+    // The empty checklist case: our candidates are irrelevant if the peer sent none.
+    if (remoteCandidates && totalCandidates(remoteCandidates) === 0) {
+        return "ICE failed — peer sent no network routes (their VPN, firewall, or browser permissions)";
+    }
     if (candidates.relay === 0 && !relayed) {
-        return `ICE failed — no viable candidate pair from ${total} candidates, 0 relay (TURN off)`;
+        const remote = remoteCandidates ? `, ${totalCandidates(remoteCandidates)} remote` : "";
+        return `ICE failed — no viable pair from ${local} local${remote} candidates, 0 relay (TURN off)`;
     }
     return `ICE failed — connection state ${pc.iceConnectionState}, no pair nominated`;
 }

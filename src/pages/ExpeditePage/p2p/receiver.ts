@@ -13,6 +13,7 @@ import {
     P2PError,
     readSelectedPair,
     SNAPSHOT_INTERVAL_MS,
+    totalCandidates,
     waitForGathering,
 } from "./peer.ts";
 
@@ -48,6 +49,11 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
     const status: P2PStatus = {...EMPTY_P2P_STATUS, candidates: {...EMPTY_P2P_STATUS.candidates}};
     const emit = (patch: Partial<P2PStatus>): void => {
+        // Record where a failure happened before the phase is overwritten, so
+        // the UI can mark the ladder chip the transfer died on.
+        if (patch.phase === "failed" && status.phase !== "failed" && status.failedAt == null) {
+            patch.failedAt = status.phase;
+        }
         Object.assign(status, patch);
         onStatus({...status, candidates: {...status.candidates}});
     };
@@ -82,6 +88,14 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
     };
 
     try {
+        // A candidate-less offer can never connect, so refuse it before minting
+        // TURN credentials or gathering anything of our own.
+        const remoteCandidates = countCandidates(offer);
+        emit({remoteCandidates});
+        if (totalCandidates(remoteCandidates) === 0) {
+            throw new P2PError("Sender's offer contains no network routes — ask them to retry (their browser gathered zero ICE candidates)");
+        }
+
         emit({phase: "gathering", detail: "resolving ICE servers"});
 
         const {servers, turnError} = await buildIceServers(apiBaseUrl, useTurn, signal);
@@ -91,7 +105,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
         // Channel arrives from the sender; capture it before the answer goes out
         // so there is no window where it could fire unobserved.
-        const channelPromise = waitForRemoteChannel(pc, signal);
+        const channelPromise = waitForRemoteChannel(pc, status, signal);
 
         await pc.setRemoteDescription({type: "offer", sdp: offer});
 
@@ -109,6 +123,13 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
         const candidates = countCandidates(localSdp);
         emit({candidates, detail: describeCandidates(candidates)});
+
+        // Claiming the session is first-answer-wins and consumes the code, so
+        // an unusable answer must never be posted: abort before the claim and
+        // the sender's code stays live for a receiver that can actually connect.
+        if (totalCandidates(candidates) === 0) {
+            throw new P2PError("No network routes gathered — check VPN, firewall, or this browser's Local Network permission");
+        }
 
         // --- Publish the answer ---
         emit({phase: "signalling", detail: `POST /p2p/${code}/answer`});
@@ -201,12 +222,21 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
 // --- Channel handling ---
 
-function waitForRemoteChannel(pc: RTCPeerConnection, signal: AbortSignal): Promise<RTCDataChannel> {
+function waitForRemoteChannel(pc: RTCPeerConnection, status: P2PStatus, signal: AbortSignal): Promise<RTCDataChannel> {
     return new Promise((resolve, reject) => {
         const cleanup = (): void => {
             pc.removeEventListener("datachannel", onChannel);
+            pc.removeEventListener("iceconnectionstatechange", onIce);
             signal.removeEventListener("abort", onAbort);
             window.clearTimeout(timer);
+        };
+        // ICE failure is definitive: reject now rather than sitting out the
+        // 30s channel timeout on a connection that can no longer produce one.
+        const onIce = (): void => {
+            if (pc.iceConnectionState === "failed") {
+                cleanup();
+                reject(new P2PError(describeIceFailure(pc, status), true));
+            }
         };
         const onChannel = (ev: RTCDataChannelEvent): void => {
             const channel = ev.channel;
@@ -227,10 +257,11 @@ function waitForRemoteChannel(pc: RTCPeerConnection, signal: AbortSignal): Promi
         };
         const timer = window.setTimeout(() => {
             cleanup();
-            reject(new P2PError(`No data channel after ${CHANNEL_TIMEOUT_MS / 1000}s — sender unreachable`));
+            reject(new P2PError(`No data channel after ${CHANNEL_TIMEOUT_MS / 1000}s — sender unreachable`, true));
         }, CHANNEL_TIMEOUT_MS);
 
         pc.addEventListener("datachannel", onChannel);
+        pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);
     });
 }
@@ -318,7 +349,10 @@ function watchIce(
             const message = describeIceFailure(pc, status);
             emit({phase: "failed", error: message, detail: message});
         } else if (state === "disconnected") {
-            emit({detail: "ICE disconnected · peer unreachable"});
+            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
+        } else if (state === "connected" || state === "completed") {
+            // Disconnections can heal (a transient network blip); un-flag.
+            if (status.degraded) emit({degraded: false, detail: "ICE reconnected"});
         }
     });
 }

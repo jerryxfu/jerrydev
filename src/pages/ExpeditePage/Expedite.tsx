@@ -26,6 +26,7 @@ import P2PSendView from "./views/P2PSendView.tsx";
 import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
+import {P2PError} from "./p2p/peer.ts";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
 import {receiveP2P} from "./p2p/receiver.ts";
 
@@ -47,6 +48,28 @@ function animateOut(el: HTMLElement | null): Promise<void> {
         });
     });
 }
+
+// Receiver-side auto-recovery: how often to look for the sender's relay
+// republish, and how many times before giving up (30 x 3s = 90s).
+const RECOVERY_POLL_MS = 3_000;
+const RECOVERY_MAX_POLLS = 30;
+
+const sleep = (ms: number, signal: AbortSignal): Promise<void> =>
+    new Promise((resolve, reject) => {
+        const cleanup = (): void => {
+            window.clearTimeout(timer);
+            signal.removeEventListener("abort", onAbort);
+        };
+        const onAbort = (): void => {
+            cleanup();
+            reject(new DOMException("Cancelled", "AbortError"));
+        };
+        const timer = window.setTimeout(() => {
+            cleanup();
+            resolve();
+        }, ms);
+        signal.addEventListener("abort", onAbort);
+    });
 
 const freshStatus = (): P2PStatus => ({
     ...EMPTY_P2P_STATUS,
@@ -80,6 +103,11 @@ export default function Expedite() {
     const [p2pCode, setP2pCode] = useState<string | null>(null);
     const [p2pExpiresAt, setP2pExpiresAt] = useState<string | null>(null);
     const [p2pRunning, setP2pRunning] = useState(false);
+    // Set when a transfer died of an ICE/connectivity failure that a relay
+    // could route around; drives the "Retry with relay" affordances.
+    const [p2pIceFailed, setP2pIceFailed] = useState(false);
+    // Automatic receiver reconnects used for the current accepted transfer.
+    const p2pRecoveredRef = useRef(0);
     const p2pAbortRef = useRef<AbortController | null>(null);
     const p2pCodeRef = useRef<string | null>(null);
     const p2pSupported = isP2PReceiveSupported();
@@ -277,21 +305,36 @@ export default function Expedite() {
     }, []);
 
     // --- Direct P2P: send ---
-    const startP2PSend = async () => {
+    const startP2PSend = async (retryWithTurn = false) => {
         if (!selectedFile) return;
+
+        // The ref first: the auto-retry calls this from inside the previous
+        // invocation, whose closure still holds the pre-transfer p2pCode state.
+        // The state fallback covers the manual retry button, which runs after
+        // the ref was cleared but from a render where the state is current.
+        const reuseCode = retryWithTurn ? (p2pCodeRef.current ?? p2pCode ?? undefined) : undefined;
+
+        if (retryWithTurn) setUseTurn(true);
         setError(null);
+        setP2pIceFailed(false);
         setP2pSnapshot(null);
-        setP2pStatus(freshStatus());
+        setP2pStatus(retryWithTurn
+            ? {...freshStatus(), detail: "direct route failed · retrying through a relay"}
+            : freshStatus());
         setP2pRunning(true);
 
         const controller = new AbortController();
         p2pAbortRef.current = controller;
 
+        // Set when this attempt dies of an ICE failure a relay could fix.
+        let autoRetry = false;
+
         try {
             await sendP2P({
                 file: selectedFile,
                 apiBaseUrl,
-                useTurn,
+                useTurn: retryWithTurn || useTurn,
+                reuseCode,
                 signal: controller.signal,
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
@@ -305,21 +348,117 @@ export default function Expedite() {
             });
         } catch (err: unknown) {
             if ((err as Error).name !== "AbortError") {
-                setError(err instanceof Error ? err.message : "Transfer failed");
+                const iceFailure = err instanceof P2PError && err.ice;
+                if (iceFailure && !(retryWithTurn || useTurn)) {
+                    // Direct attempt died on connectivity — retry once through a
+                    // relay automatically rather than surfacing a dead end.
+                    autoRetry = true;
+                } else {
+                    setError(err instanceof Error ? err.message : "Transfer failed");
+                    // The relay attempt itself failed: leave a manual retry as
+                    // the last resort (covers transient TURN-mint hiccups).
+                    if (iceFailure) setP2pIceFailed(true);
+                }
             }
         } finally {
             p2pAbortRef.current = null;
-            if (p2pCodeRef.current) {
+            // On auto-retry the same code is republished immediately — closing
+            // the session here would race the re-init and delete the new one.
+            if (p2pCodeRef.current && !autoRetry) {
                 closeSession(apiBaseUrl, p2pCodeRef.current);
                 p2pCodeRef.current = null;
             }
         }
+
+        if (autoRetry) return startP2PSend(true);
     };
 
     // --- Direct P2P: receive ---
+    const runP2PReceive = async (meta: DropMeta, handle: FileSystemFileHandle): Promise<void> => {
+        setP2pSnapshot(null);
+        setP2pStatus(freshStatus());
+        setP2pRunning(true);
+
+        const controller = new AbortController();
+        p2pAbortRef.current = controller;
+
+        let recover = false;
+
+        try {
+            await receiveP2P({
+                code: meta.code,
+                offer: meta.offer!,
+                fileName: meta.fileName ?? `expedite-${meta.code}`,
+                fileSize: meta.size,
+                handle,
+                apiBaseUrl,
+                useTurn,
+                signal: controller.signal,
+                onStatus: setP2pStatus,
+                onSnapshot: setP2pSnapshot,
+            });
+        } catch (err: unknown) {
+            if ((err as Error).name !== "AbortError") {
+                // One automatic reconnect per accepted transfer: a connectivity
+                // failure means the sender is auto-republishing with a relay.
+                if (err instanceof P2PError && err.ice && p2pRecoveredRef.current === 0) {
+                    recover = true;
+                } else {
+                    setError(err instanceof Error ? err.message : "Transfer failed");
+                    if (err instanceof P2PError && err.ice) setP2pIceFailed(true);
+                }
+            }
+        } finally {
+            p2pAbortRef.current = null;
+        }
+
+        if (recover) await recoverP2PReceive(meta.code, handle);
+    };
+
+    // After a connectivity failure the sender republishes the same code with a
+    // relay. Poll for that fresh session and reconnect with the handle the user
+    // already granted — no clicks, no re-entered code, no second save picker.
+    const recoverP2PReceive = async (code: string, handle: FileSystemFileHandle): Promise<void> => {
+        p2pRecoveredRef.current += 1;
+        setP2pStatus({
+            ...freshStatus(),
+            phase: "signalling",
+            detail: "direct route failed · waiting for the sender's relay retry",
+        });
+
+        const controller = new AbortController();
+        p2pAbortRef.current = controller;
+
+        try {
+            for (let poll = 0; poll < RECOVERY_MAX_POLLS; poll++) {
+                await sleep(RECOVERY_POLL_MS, controller.signal);
+                const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal: controller.signal});
+                if (!res.ok) continue; // not republished yet (404) or a stale claim (409)
+                const json = await res.json();
+                const meta = json.data as DropMeta;
+                if (meta.type !== "p2p" || !meta.offer) continue;
+
+                setResult(meta);
+                p2pAbortRef.current = null;
+                return runP2PReceive(meta, handle);
+            }
+            setP2pStatus((prev) => ({...prev, phase: "failed"}));
+            setError("The sender didn't republish the session — ask them to start the transfer again");
+            setP2pIceFailed(true);
+        } catch (err: unknown) {
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "Recovery failed");
+            }
+        } finally {
+            if (p2pAbortRef.current === controller) p2pAbortRef.current = null;
+        }
+    };
+
     const acceptP2PReceive = async () => {
         if (!result?.offer || !window.showSaveFilePicker) return;
         setError(null);
+        setP2pIceFailed(false);
+        p2pRecoveredRef.current = 0;
 
         // showSaveFilePicker must be the first await in this handler — it needs
         // the user gesture, and any prior await would spend it.
@@ -336,33 +475,20 @@ export default function Expedite() {
             return;
         }
 
+        await runP2PReceive(result, handle);
+    };
+
+    // Manual fallback for when auto-recovery gave up: re-fetch the same code.
+    // Back on the pre-transfer screen, Receive is a fresh click and therefore a
+    // fresh user gesture for showSaveFilePicker.
+    const retryP2PReceive = async () => {
+        if (!result) return;
+        setP2pIceFailed(false);
+        p2pRecoveredRef.current = 0;
+        setP2pRunning(false);
         setP2pSnapshot(null);
         setP2pStatus(freshStatus());
-        setP2pRunning(true);
-
-        const controller = new AbortController();
-        p2pAbortRef.current = controller;
-
-        try {
-            await receiveP2P({
-                code: result.code,
-                offer: result.offer,
-                fileName: result.fileName ?? `expedite-${result.code}`,
-                fileSize: result.size,
-                handle,
-                apiBaseUrl,
-                useTurn,
-                signal: controller.signal,
-                onStatus: setP2pStatus,
-                onSnapshot: setP2pSnapshot,
-            });
-        } catch (err: unknown) {
-            if ((err as Error).name !== "AbortError") {
-                setError(err instanceof Error ? err.message : "Transfer failed");
-            }
-        } finally {
-            p2pAbortRef.current = null;
-        }
+        await retrieveDrop(result.code);
     };
 
     const handleDownload = async () => {
@@ -546,7 +672,9 @@ export default function Expedite() {
                             error={error}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
-                            onStart={startP2PSend}
+                            retryable={p2pIceFailed}
+                            onStart={() => void startP2PSend()}
+                            onRetry={() => void startP2PSend(true)}
                             onCancel={reset}
                         />
                     )}
@@ -561,7 +689,9 @@ export default function Expedite() {
                             snapshot={p2pSnapshot}
                             running={p2pRunning}
                             error={error}
+                            retryable={p2pIceFailed}
                             onAccept={acceptP2PReceive}
+                            onRetry={() => void retryP2PReceive()}
                             onCancel={reset}
                         />
                     )}

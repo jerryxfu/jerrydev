@@ -5,6 +5,23 @@
 
     --up: #2e9b51;
     --down: #e1483a;
+    --wait: #d99a2b;
+}
+
+/* Phase colour temperature: sets the accent the current chip draws from.
+   Text stays var(--text) for readability — only border and tint take the tone. */
+.expedite_p2p-step.state-current {
+    &.tone-ok {
+        --tone: var(--up);
+    }
+
+    &.tone-warn {
+        --tone: var(--wait);
+    }
+
+    &.tone-err {
+        --tone: var(--down);
+    }
 }
 
 /* Phase ladder */
@@ -34,8 +51,15 @@
 
     &.state-current {
         color: var(--text);
-        border-color: var(--up);
-        background: color-mix(in srgb, var(--up) 14%, transparent);
+        border-color: var(--tone, var(--up));
+        background: color-mix(in srgb, var(--tone, var(--up)) 14%, transparent);
+        font-weight: 600;
+    }
+
+    &.state-failed {
+        color: var(--text);
+        border-color: var(--down);
+        background: color-mix(in srgb, var(--down) 14%, transparent);
         font-weight: 600;
     }
 }
@@ -51,14 +75,14 @@
 }
 
 .expedite_p2p-phase {
-    font-size: var(--fs-base);
+    font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
 }
 
 .expedite_p2p-detail {
-    font-size: var(--fs-smm);
+    font-size: var(--fs-sm);
     line-height: 1.45;
     color: var(--text-3);
     word-break: break-word;
@@ -68,6 +92,13 @@
 .expedite_p2p-transfer {
     display: flex;
     flex-direction: column;
+
+    // ICE reports the peer unreachable: the bar (sweeping or filling) goes red.
+    // The second selector outranks the is-indeterminate amber rule below.
+    &.is-degraded .expedite_progress-fill,
+    &.is-degraded .expedite_progress-bar.is-indeterminate .expedite_progress-fill {
+        background: var(--down);
+    }
 
     .expedite_progress-bar {
         height: 10px;
@@ -81,6 +112,21 @@
         background: var(--up);
         // No transition. Progress emits every real time, and a 0.2s width animation
         // restarts before it can land, so the bar trails the real figure instead of tracking it.
+    }
+
+    // Waiting phases have no byte count, so a fixed-width segment sweeps the
+    // track instead — motion as "still alive", amber to match the phase tone.
+    .expedite_progress-bar.is-indeterminate .expedite_progress-fill {
+        width: 32%;
+        background: var(--wait);
+        border-radius: inherit;
+        animation: expedite-p2p-sweep 1.5s ease-in-out infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+            width: 100%;
+            opacity: 0.35;
+        }
     }
 
     .expedite_progress-meta {
@@ -139,4 +185,14 @@
     font-size: var(--fs-xs);
     line-height: 1.35;
     color: var(--text-5);
+}
+
+@keyframes expedite-p2p-sweep {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    100% {
+        transform: translateX(330%);
+    }
 }

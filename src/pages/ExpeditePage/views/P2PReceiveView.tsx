@@ -13,12 +13,15 @@ interface P2PReceiveViewProps {
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
+    /** ICE failed — the sender may republish with a relay; offer a re-check. */
+    retryable: boolean;
     onAccept: () => void;
+    onRetry: () => void;
     onCancel: () => void;
 }
 
 export default function P2PReceiveView(
-    {meta, supported, useTurn, setUseTurn, status, snapshot, running, error, onAccept, onCancel}: P2PReceiveViewProps
+    {meta, supported, useTurn, setUseTurn, status, snapshot, running, error, retryable, onAccept, onRetry, onCancel}: P2PReceiveViewProps
 ) {
     // --- Unsupported: no save picker means no streaming sink ---
     if (!supported) {
@@ -119,7 +122,20 @@ export default function P2PReceiveView(
 
                     {error && <p className="expedite_error">{error}</p>}
 
+                    {retryable && status.phase === "failed" && (
+                        <p className="expedite_p2p-standby">
+                            A direct route could not be found and the automatic relay
+                            retry didn't go through. Ask the sender to restart the
+                            transfer, then try again with the same code.
+                        </p>
+                    )}
+
                     <div className="expedite_btn-row">
+                        {retryable && status.phase === "failed" && (
+                            <button className="expedite_btn-primary" onClick={onRetry}>
+                                Try again
+                            </button>
+                        )}
                         <button
                             className={status.phase === "done"
                                 ? "expedite_btn-primary expedite_btn-full"

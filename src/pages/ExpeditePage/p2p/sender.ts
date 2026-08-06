@@ -16,14 +16,24 @@ import {
     readSelectedPair,
     resolveChunkSize,
     SNAPSHOT_INTERVAL_MS,
+    totalCandidates,
     waitForDrain,
     waitForGathering,
 } from "./peer.ts";
+
+/** How long to wait for the data channel after the answer arrives. */
+const CHANNEL_TIMEOUT_MS = 30_000;
 
 export interface SendOptions {
     file: globalThis.File;
     apiBaseUrl: string;
     useTurn: boolean;
+    /**
+     * Re-create the session under this code instead of minting a new one.
+     * Used by the relay retry so the receiver's code stays valid; also keeps
+     * the code stable across expiry rotations within a retried session.
+     */
+    reuseCode?: string;
     onStatus: (status: P2PStatus) => void;
     onCode: (code: string, expiresAt: string) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
@@ -65,10 +75,15 @@ export async function sendP2P(opts: SendOptions): Promise<void> {
 }
 
 async function runSession(opts: SendOptions): Promise<SessionOutcome> {
-    const {file, apiBaseUrl, useTurn, onStatus, onCode, onSnapshot, signal} = opts;
+    const {file, apiBaseUrl, useTurn, reuseCode, onStatus, onCode, onSnapshot, signal} = opts;
 
     const status: P2PStatus = {...EMPTY_P2P_STATUS, candidates: {...EMPTY_P2P_STATUS.candidates}};
     const emit = (patch: Partial<P2PStatus>): void => {
+        // Record where a failure happened before the phase is overwritten, so
+        // the UI can mark the ladder chip the transfer died on.
+        if (patch.phase === "failed" && status.phase !== "failed" && status.failedAt == null) {
+            patch.failedAt = status.phase;
+        }
         Object.assign(status, patch);
         onStatus({...status, candidates: {...status.candidates}});
     };
@@ -116,6 +131,13 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         const candidates = countCandidates(localSdp);
         emit({candidates, detail: describeCandidates(candidates)});
 
+        // A candidate-less offer can never connect; publishing it would burn a
+        // code and leave the receiver staring at a 30s channel timeout. Fail
+        // here, where the reason is still knowable.
+        if (totalCandidates(candidates) === 0) {
+            throw new P2PError("No network routes gathered — check VPN, firewall, or this browser's Local Network permission");
+        }
+
         // --- Publish the offer ---
         emit({phase: "signalling", detail: `POST /p2p/init · ${formatSdpSize(localSdp)} SDP`});
 
@@ -127,6 +149,7 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
                 fileName: file.name,
                 fileSize: file.size,
                 mimeType: file.type || "application/octet-stream",
+                ...(reuseCode ? {reuseCode} : {}),
             }),
             signal,
         });
@@ -157,6 +180,16 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         }
 
         emit({phase: "negotiating", detail: "answer received · applying remote description"});
+
+        // The session is already consumed server-side, so if the answer carries
+        // no candidates there is nothing to negotiate: fail now with the real
+        // reason instead of grinding ICE to a timeout against an empty checklist.
+        const remoteCandidates = countCandidates(result.answer);
+        emit({remoteCandidates});
+        if (totalCandidates(remoteCandidates) === 0) {
+            throw new P2PError("Receiver sent no network routes — their browser gathered zero ICE candidates (VPN, firewall, or browser permissions on their side)");
+        }
+
         await pc.setRemoteDescription({type: "answer", sdp: result.answer});
 
         watchIce(pc, status, emit);
@@ -265,7 +298,10 @@ function watchIce(
         } else if (state === "failed") {
             emit({phase: "failed", error: describeIceFailure(pc, status), detail: describeIceFailure(pc, status)});
         } else if (state === "disconnected") {
-            emit({detail: "ICE disconnected · peer unreachable"});
+            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
+        } else if (state === "connected" || state === "completed") {
+            // Disconnections can heal (a transient network blip); un-flag.
+            if (status.degraded) emit({degraded: false, detail: "ICE reconnected"});
         }
     });
 }
@@ -292,6 +328,7 @@ function waitForChannelOpen(
             channel.removeEventListener("open", onOpen);
             pc.removeEventListener("iceconnectionstatechange", onIce);
             signal.removeEventListener("abort", onAbort);
+            window.clearTimeout(timer);
         };
         const onOpen = (): void => {
             cleanup();
@@ -300,13 +337,20 @@ function waitForChannelOpen(
         const onIce = (): void => {
             if (pc.iceConnectionState === "failed") {
                 cleanup();
-                reject(new P2PError(describeIceFailure(pc, status)));
+                reject(new P2PError(describeIceFailure(pc, status), true));
             }
         };
         const onAbort = (): void => {
             cleanup();
             reject(new DOMException("Cancelled", "AbortError"));
         };
+        // ICE state alone is not a reliable exit: browsers can sit in
+        // "disconnected" indefinitely without ever reaching "failed" —
+        // especially when the peer has already torn down its side.
+        const timer = window.setTimeout(() => {
+            cleanup();
+            reject(new P2PError(describeIceFailure(pc, status), true));
+        }, CHANNEL_TIMEOUT_MS);
         channel.addEventListener("open", onOpen);
         pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);

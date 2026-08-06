@@ -81,6 +81,12 @@ export interface P2PStatus {
     detail: string;
     /** Local candidates gathered, by type. */
     candidates: Record<CandidateType, number>;
+    /** Candidates in the peer's SDP, by type. Null until their SDP arrives. */
+    remoteCandidates: Record<CandidateType, number> | null;
+    /** The ladder phase the transfer was in when it failed. Null while healthy. */
+    failedAt: P2PPhase | null;
+    /** ICE reports the peer unreachable — not failed yet, but likely dying. */
+    degraded: boolean;
     /** e.g. "srflx <-> srflx" once a pair is nominated. */
     pair: string | null;
     /** True when the nominated pair goes through a TURN relay. */
@@ -109,6 +115,9 @@ export const EMPTY_P2P_STATUS: P2PStatus = {
     phase: "idle",
     detail: "",
     candidates: {host: 0, srflx: 0, prflx: 0, relay: 0},
+    remoteCandidates: null,
+    failedAt: null,
+    degraded: false,
     pair: null,
     relayed: false,
     rttMs: null,

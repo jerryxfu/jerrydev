@@ -1,4 +1,5 @@
 import {type P2PPhase, type P2PSnapshot, type P2PStatus} from "../types.ts";
+import {totalCandidates} from "../p2p/peer.ts";
 import {formatBytes, formatEta, formatSpeed} from "../utils.ts";
 import "./P2PProgress.scss";
 
@@ -10,17 +11,35 @@ interface Props {
 }
 
 const PHASE_LABEL: Record<P2PPhase, string> = {
-    idle: "idle",
-    gathering: "gathering",
-    signalling: "signalling",
-    "awaiting-peer": "awaiting peer",
-    negotiating: "negotiating",
-    connected: "connected",
-    transferring: "transferring",
-    done: "done",
-    failed: "failed",
-    expired: "expired",
+    idle: "Idle",
+    gathering: "Gathering",
+    signalling: "Signalling",
+    "awaiting-peer": "Awaiting peer",
+    negotiating: "Negotiating",
+    connected: "Connected",
+    transferring: "Transferring",
+    done: "Done",
+    failed: "Failed",
+    expired: "Expired",
 };
+
+// Colour temperature of each phase: green for a working/finished connection,
+// amber for anything still in flight or waiting, red for a dead one.
+const PHASE_TONE: Record<P2PPhase, "idle" | "ok" | "warn" | "err"> = {
+    idle: "idle",
+    gathering: "warn",
+    signalling: "warn",
+    "awaiting-peer": "warn",
+    negotiating: "warn",
+    connected: "ok",
+    transferring: "ok",
+    done: "ok",
+    failed: "err",
+    expired: "warn",
+};
+
+/** Phases with no determinate progress to show — the bar idles in motion instead. */
+const WAITING: P2PPhase[] = ["gathering", "signalling", "awaiting-peer", "negotiating"];
 
 /** Phases that represent forward progress, in order. */
 const LADDER: P2PPhase[] = [
@@ -39,17 +58,32 @@ export default function P2PProgress({status, snapshot, role}: Props) {
 
     const ladderIndex = LADDER.indexOf(status.phase);
     const isError = status.phase === "failed" || status.phase === "expired";
+    // "Disconnected" is the connection announcing it is probably dying —
+    // paint everything red without waiting for the formal failure.
+    const tone = status.degraded && !isError ? "err" : PHASE_TONE[status.phase];
+    const waiting = WAITING.includes(status.phase);
+
+    // Where the transfer died, recorded by the engines; a retry resets it.
+    const failIdx = status.failedAt ? LADDER.indexOf(status.failedAt) : -1;
 
     return (
         <div className="expedite_p2p-progress">
             {/* Phase ladder */}
             <div className="expedite_p2p-ladder">
                 {LADDER.map((phase, i) => {
-                    const state = isError
-                        ? (i < ladderIndex ? "past" : "idle")
-                        : i < ladderIndex ? "past" : i === ladderIndex ? "current" : "idle";
+                    // On failure: the chip where it died turns red, everything
+                    // else resets to gray. A retry walks the ladder again and
+                    // overwrites the red with normal progression.
+                    const state = status.phase === "failed"
+                        ? (i === failIdx ? "failed" : "idle")
+                        : isError
+                            ? "idle"
+                            : i < ladderIndex ? "past" : i === ladderIndex ? "current" : "idle";
                     return (
-                        <span key={phase} className={`expedite_p2p-step state-${state}`}>
+                        <span
+                            key={phase}
+                            className={`expedite_p2p-step state-${state}${state === "current" ? ` tone-${tone}` : ""}`}
+                        >
                             {PHASE_LABEL[phase]}
                         </span>
                     );
@@ -61,9 +95,18 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                 {status.detail && <span className="expedite_p2p-detail">{status.detail}</span>}
             </div>
 
+            {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}
+            {!snapshot && waiting && (
+                <div className={`expedite_p2p-transfer${status.degraded ? " is-degraded" : ""}`}>
+                    <div className="expedite_progress-bar is-indeterminate">
+                        <div className="expedite_progress-fill" />
+                    </div>
+                </div>
+            )}
+
             {/* Transfer bar */}
             {snapshot && (
-                <div className="expedite_p2p-transfer">
+                <div className={`expedite_p2p-transfer${status.degraded ? " is-degraded" : ""}`}>
                     <div className="expedite_progress-bar">
                         <div className="expedite_progress-fill" style={{width: `${pct}%`}} />
                     </div>
@@ -81,10 +124,11 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                 <div className="expedite_p2p-stat">
                     <dt>
                         <span className="expedite_p2p-stat-name">Candidates</span>
-                        <span className="expedite_p2p-stat-desc">The local routes ICE gathered</span>
+                        <span className="expedite_p2p-stat-desc">The routes ICE gathered, ours and theirs</span>
                     </dt>
                     <dd>
                         {status.candidates.host} host · {status.candidates.srflx} srflx · {status.candidates.relay} relay
+                        {status.remoteCandidates && <> · peer {totalCandidates(status.remoteCandidates)}</>}
                     </dd>
                 </div>
 

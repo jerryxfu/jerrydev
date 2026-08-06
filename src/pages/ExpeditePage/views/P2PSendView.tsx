@@ -16,9 +16,12 @@ interface P2PSendViewProps {
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
+    /** ICE failed without a relay in play — offer the relay retry. */
+    retryable: boolean;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onStart: () => void;
+    onRetry: () => void;
     onCancel: () => void;
 }
 
@@ -50,7 +53,7 @@ function mmss(secs: number): string {
 export default function P2PSendView(
     {
         selectedFile, setSelectedFile, useTurn, setUseTurn, code, expiresAt,
-        status, snapshot, running, error, copiedField, onCopy, onStart, onCancel,
+        status, snapshot, running, error, retryable, copiedField, onCopy, onStart, onRetry, onCancel,
     }: P2PSendViewProps
 ) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,7 +192,20 @@ export default function P2PSendView(
 
                     {error && <p className="expedite_error">{error}</p>}
 
+                    {retryable && status.phase === "failed" && (
+                        <p className="expedite_p2p-standby">
+                            No direct route was found, and the automatic relay retry
+                            failed too. Retrying attempts the relay again — if this keeps
+                            failing, both ends may be offline or blocked.
+                        </p>
+                    )}
+
                     <div className="expedite_btn-row">
+                        {retryable && status.phase === "failed" && (
+                            <button className="expedite_btn-primary" onClick={onRetry}>
+                                Retry with relay
+                            </button>
+                        )}
                         <button
                             className={status.phase === "done"
                                 ? "expedite_btn-primary expedite_btn-full"
