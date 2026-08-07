@@ -16,8 +16,10 @@ interface P2PSendViewProps {
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
-    /** ICE failed without a relay in play — offer the relay retry. */
+    /** ICE failed without a relay in play -> offer the relay retry. */
     retryable: boolean;
+    /** Monthly relay quota spent, the TURN toggle is off-limits. */
+    relayDisabled: boolean;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onStart: () => void;
@@ -53,7 +55,7 @@ function mmss(secs: number): string {
 export default function P2PSendView(
     {
         selectedFile, setSelectedFile, useTurn, setUseTurn, code, expiresAt,
-        status, snapshot, running, error, retryable, copiedField, onCopy, onStart, onRetry, onCancel,
+        status, snapshot, running, error, retryable, relayDisabled, copiedField, onCopy, onStart, onRetry, onCancel,
     }: P2PSendViewProps
 ) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,12 +116,18 @@ export default function P2PSendView(
                                 </span>
                             </label>
                             <button
-                                className={`expedite_toggle ${useTurn ? "active" : ""}`}
+                                className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
                                 onClick={() => setUseTurn(!useTurn)}
+                                disabled={relayDisabled}
                             >
                                 <span className="expedite_toggle-knob" />
                             </button>
                         </div>
+                        {relayDisabled && (
+                            <p className="expedite_p2p-standby">
+                                This month's relay quota is used up, so transfers are direct-only until it resets.
+                            </p>
+                        )}
                     </div>
 
                     <div className="expedite_p2p-notes">

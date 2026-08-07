@@ -115,10 +115,17 @@ export default function Expedite() {
     const [stats, setStats] = useState<{
         activeDrops: number;
         totalViews: number;
-        liveSessions?: number;
         usedBytes?: number;
         maxBytes?: number;
+        turnUsage?: { egressBytes: number; capBytes: number } | null;
     } | null>(null);
+
+    // Frontend-only relay guard: once the month's Cloudflare TURN free tier is
+    // spent, everything that would mint relay credentials is switched off —
+    // the toggles, the sender's auto relay retry, and the receiver's recovery
+    // poll (which only ever waits on that retry). Direct transfers still work.
+    const relayBlocked = stats?.turnUsage != null
+        && stats.turnUsage.egressBytes >= stats.turnUsage.capBytes;
 
     const viewRef = useRef<HTMLDivElement>(null);
     const dragOverlayRef = useRef<HTMLDivElement>(null);
@@ -333,7 +340,7 @@ export default function Expedite() {
             await sendP2P({
                 file: selectedFile,
                 apiBaseUrl,
-                useTurn: retryWithTurn || useTurn,
+                useTurn: !relayBlocked && (retryWithTurn || useTurn),
                 reuseCode,
                 signal: controller.signal,
                 onStatus: setP2pStatus,
@@ -349,7 +356,7 @@ export default function Expedite() {
         } catch (err: unknown) {
             if ((err as Error).name !== "AbortError") {
                 const iceFailure = err instanceof P2PError && err.ice;
-                if (iceFailure && !(retryWithTurn || useTurn)) {
+                if (iceFailure && !(retryWithTurn || useTurn) && !relayBlocked) {
                     // Direct attempt died on connectivity — retry once through a
                     // relay automatically rather than surfacing a dead end.
                     autoRetry = true;
@@ -401,7 +408,7 @@ export default function Expedite() {
             if ((err as Error).name !== "AbortError") {
                 // One automatic reconnect per accepted transfer: a connectivity
                 // failure means the sender is auto-republishing with a relay.
-                if (err instanceof P2PError && err.ice && p2pRecoveredRef.current === 0) {
+                if (err instanceof P2PError && err.ice && p2pRecoveredRef.current === 0 && !relayBlocked) {
                     recover = true;
                 } else {
                     setError(err instanceof Error ? err.message : "Transfer failed");
@@ -433,7 +440,7 @@ export default function Expedite() {
             for (let poll = 0; poll < RECOVERY_MAX_POLLS; poll++) {
                 await sleep(RECOVERY_POLL_MS, controller.signal);
                 // Recovery exists to outlive a broken network moment, so a poll
-                // that can't reach the API is just "not yet", only an abort exits.
+                // that can't reach the API is just "not yet" — only an abort exits.
                 let meta: DropMeta;
                 try {
                     const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal: controller.signal});
@@ -680,7 +687,8 @@ export default function Expedite() {
                             error={error}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
-                            retryable={p2pIceFailed}
+                            retryable={p2pIceFailed && !relayBlocked}
+                            relayDisabled={relayBlocked}
                             onStart={() => void startP2PSend()}
                             onRetry={() => void startP2PSend(true)}
                             onCancel={reset}
@@ -698,6 +706,7 @@ export default function Expedite() {
                             running={p2pRunning}
                             error={error}
                             retryable={p2pIceFailed}
+                            relayDisabled={relayBlocked}
                             onAccept={acceptP2PReceive}
                             onRetry={() => void retryP2PReceive()}
                             onCancel={reset}
@@ -722,16 +731,19 @@ export default function Expedite() {
                     <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
                     <span>·</span>
                     <span>{stats.totalViews} view{stats.totalViews !== 1 ? "s" : ""}</span>
-                    {stats.liveSessions != null && stats.liveSessions > 0 && (
-                        <>
-                            <span>·</span>
-                            <span>{stats.liveSessions} live session{stats.liveSessions !== 1 ? "s" : ""}</span>
-                        </>
-                    )}
                     {stats.maxBytes != null && (
                         <>
                             <span>·</span>
-                            <span>{formatBytes(stats.usedBytes ?? 0)} / {formatBytes(stats.maxBytes)} used</span>
+                            <span>{formatBytes(stats.usedBytes ?? 0)}&#8239;/&#8239;{formatBytes(stats.maxBytes)} used</span>
+                        </>
+                    )}
+                    {stats.turnUsage != null && (
+                        <>
+                            <span>·</span>
+                            {/* Decimal GB, matching how Cloudflare meters the free tier */}
+                            <span>
+                                {(stats.turnUsage.egressBytes / 1e9).toFixed(1)}&#8239;/&#8239;{(stats.turnUsage.capBytes / 1e9).toFixed(0)}&#8239;GB relayed
+                            </span>
                         </>
                     )}
                 </div>

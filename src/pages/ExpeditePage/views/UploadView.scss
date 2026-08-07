@@ -196,6 +196,11 @@
             transform: translateX(16px);
         }
     }
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
 }
 
 .expedite_toggle-knob {

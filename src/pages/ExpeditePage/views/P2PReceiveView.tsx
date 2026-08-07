@@ -13,15 +13,31 @@ interface P2PReceiveViewProps {
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
-    /** ICE failed — the sender may republish with a relay; offer a re-check. */
+    /** ICE failed -> the sender may republish with a relay; offer a re-check. */
     retryable: boolean;
+    /** Monthly relay quota spent, the TURN toggle is off-limits. */
+    relayDisabled: boolean;
     onAccept: () => void;
     onRetry: () => void;
     onCancel: () => void;
 }
 
 export default function P2PReceiveView(
-    {meta, supported, useTurn, setUseTurn, status, snapshot, running, error, retryable, onAccept, onRetry, onCancel}: P2PReceiveViewProps
+    {
+        meta,
+        supported,
+        useTurn,
+        setUseTurn,
+        status,
+        snapshot,
+        running,
+        error,
+        retryable,
+        relayDisabled,
+        onAccept,
+        onRetry,
+        onCancel
+    }: P2PReceiveViewProps
 ) {
     // --- Unsupported: no save picker means no streaming sink ---
     if (!supported) {
@@ -83,12 +99,18 @@ export default function P2PReceiveView(
                                 </span>
                             </label>
                             <button
-                                className={`expedite_toggle ${useTurn ? "active" : ""}`}
+                                className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
                                 onClick={() => setUseTurn(!useTurn)}
+                                disabled={relayDisabled}
                             >
                                 <span className="expedite_toggle-knob" />
                             </button>
                         </div>
+                        {relayDisabled && (
+                            <p className="expedite_p2p-standby">
+                                This month's relay quota is used up, so transfers are direct-only until it resets.
+                            </p>
+                        )}
                     </div>
 
                     <div className="expedite_p2p-notes">
