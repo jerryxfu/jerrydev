@@ -374,6 +374,7 @@ async function pumpFile(
     let chunks = 0;
     const meter = createRateMeter();
     let lastEmit = 0;
+    const startedAt = Date.now();
 
     const snapshot = (force = false): void => {
         const at = Date.now();
@@ -391,6 +392,7 @@ async function pumpFile(
             chunkSize,
             bufferedAmount: buffered,
             speedBps: meter.bps,
+            elapsedMs: at - startedAt,
         });
     };
 
@@ -442,6 +444,9 @@ async function pumpFile(
             chunkSize,
             bufferedAmount: 0,
             speedBps: 0,
+            // Measured to the receiver's ack, so this is true end-to-end delivery
+            // time rather than "time spent handing bytes to SCTP".
+            elapsedMs: Date.now() - startedAt,
         });
     } finally {
         window.clearInterval(statsTimer);

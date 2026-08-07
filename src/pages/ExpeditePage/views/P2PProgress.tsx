@@ -56,6 +56,11 @@ export default function P2PProgress({status, snapshot, role}: Props) {
     const remaining = snapshot ? snapshot.totalBytes - snapshot.transferredBytes : 0;
     const eta = speed > 0 ? remaining / speed : Infinity;
 
+    // Once it's over, report the whole-transfer average and how long it actually took instead.
+    const finished = status.phase === "done";
+    const elapsedSecs = (snapshot?.elapsedMs ?? 0) / 1000;
+    const avgSpeed = snapshot && elapsedSecs > 0 ? snapshot.transferredBytes / elapsedSecs : 0;
+
     const ladderIndex = LADDER.indexOf(status.phase);
     const isError = status.phase === "failed" || status.phase === "expired";
     // "Disconnected" is the connection announcing it is probably dying —
@@ -113,8 +118,8 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                     <div className="expedite_progress-meta">
                         <span>{pct.toFixed(1)}%</span>
                         <span>{formatBytes(snapshot.transferredBytes)} / {formatBytes(snapshot.totalBytes)}</span>
-                        <span>{formatSpeed(speed)}</span>
-                        <span>ETA {formatEta(eta)}</span>
+                        <span>{finished ? `${formatSpeed(avgSpeed)} avg` : formatSpeed(speed)}</span>
+                        <span>{finished ? `took ${formatEta(elapsedSecs)}` : `ETA ${formatEta(eta)}`}</span>
                     </div>
                 </div>
             )}

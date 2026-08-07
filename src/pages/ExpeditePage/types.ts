@@ -109,6 +109,8 @@ export interface P2PSnapshot {
     bufferedAmount: number;
     /** Throughput measured inside the transfer engine. */
     speedBps: number;
+    /** Wall clock since the first byte moved, ms. Used to calculate average speed */
+    elapsedMs: number;
 }
 
 export const EMPTY_P2P_STATUS: P2PStatus = {

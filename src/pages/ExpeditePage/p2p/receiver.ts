@@ -68,6 +68,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
     const meter = createRateMeter();
     let lastEmit = 0;
+    let startedAt = 0;
 
     const snapshot = (force = false): void => {
         const at = Date.now();
@@ -84,6 +85,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
             // Receiving writes straight through to disk; nothing is held back.
             bufferedAmount: 0,
             speedBps: meter.bps,
+            elapsedMs: startedAt ? at - startedAt : 0,
         });
     };
 
@@ -163,6 +165,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
         writable = await handle.createWritable();
 
         emit({phase: "transferring", detail: `receiving ${fileName}`});
+        startedAt = Date.now();
         snapshot(true);
 
         statsTimer = window.setInterval(() => {
