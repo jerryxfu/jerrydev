@@ -231,16 +231,28 @@ export function resolveChunkSize(pc: RTCPeerConnection): number {
     return Math.max(16 * 1024, Math.min(DEFAULT_CHUNK_SIZE, Math.floor(max * 0.75)));
 }
 
-/** Resolve when the data channel drains below its low-water mark. */
+/**
+ * Resolve when the data channel drains below its low-water mark.
+ *
+ * Also rejects if the channel dies while waiting: a dead connection never
+ * fires bufferedamountlow, and a full buffer is exactly when a failing link
+ * gets stuck, so without these exits the sender hangs until a manual cancel.
+ */
 export function waitForDrain(dc: RTCDataChannel, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
         const cleanup = (): void => {
             dc.removeEventListener("bufferedamountlow", onLow);
+            dc.removeEventListener("close", onDead);
+            dc.removeEventListener("error", onDead);
             signal?.removeEventListener("abort", onAbort);
         };
         const onLow = (): void => {
             cleanup();
             resolve();
+        };
+        const onDead = (): void => {
+            cleanup();
+            reject(new P2PError(`Data channel closed mid-transfer (state ${dc.readyState})`));
         };
         const onAbort = (): void => {
             cleanup();
@@ -251,6 +263,8 @@ export function waitForDrain(dc: RTCDataChannel, signal?: AbortSignal): Promise<
             return;
         }
         dc.addEventListener("bufferedamountlow", onLow);
+        dc.addEventListener("close", onDead);
+        dc.addEventListener("error", onDead);
         signal?.addEventListener("abort", onAbort);
     });
 }

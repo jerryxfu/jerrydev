@@ -209,7 +209,7 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         // --- Transfer ---
         await pumpFile(file, channel, chunkSize, onSnapshot, signal, pc, emit);
 
-        emit({phase: "done", detail: `${file.name} delivered · ${formatBytesShort(file.size)}`});
+        emit({phase: "done", degraded: false, detail: `${file.name} delivered · ${formatBytesShort(file.size)}`});
         teardown();
         return "done";
     } catch (err: unknown) {

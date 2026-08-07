@@ -74,7 +74,8 @@ export default function P2PReceiveView(
                         <p className="expedite_settings-title">Transport</p>
                         <div className="expedite_setting-row">
                             <label className="text-small">
-                               <span className="expedite_setting-sub">
+                                Allow TURN relay
+                                <span className="expedite_setting-sub">
                                     ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK)
                                     <br /><br />
                                     Allows Traversal Using Relays around NAT (TURN) when no direct path exists.

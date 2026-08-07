@@ -192,7 +192,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
         if (channel.readyState === "open") channel.send(CTRL_DONE);
 
-        emit({phase: "done", detail: `${fileName} written · ${received} B`});
+        emit({phase: "done", degraded: false, detail: `${fileName} written · ${received} B`});
     } catch (err: unknown) {
         // Abort the sink so a partial file is discarded rather than left behind
         // looking like a complete download.

@@ -432,10 +432,18 @@ export default function Expedite() {
         try {
             for (let poll = 0; poll < RECOVERY_MAX_POLLS; poll++) {
                 await sleep(RECOVERY_POLL_MS, controller.signal);
-                const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal: controller.signal});
-                if (!res.ok) continue; // not republished yet (404) or a stale claim (409)
-                const json = await res.json();
-                const meta = json.data as DropMeta;
+                // Recovery exists to outlive a broken network moment, so a poll
+                // that can't reach the API is just "not yet", only an abort exits.
+                let meta: DropMeta;
+                try {
+                    const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal: controller.signal});
+                    if (!res.ok) continue; // not republished yet (404) or a stale claim (409)
+                    const json = await res.json();
+                    meta = json.data as DropMeta;
+                } catch (err: unknown) {
+                    if ((err as Error).name === "AbortError") throw err;
+                    continue;
+                }
                 if (meta.type !== "p2p" || !meta.offer) continue;
 
                 setResult(meta);
