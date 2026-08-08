@@ -44,9 +44,60 @@
 }
 
 .expedite_mode-term {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
     font-size: var(--fs-smm);
     font-weight: 600;
     color: var(--text-3);
+}
+
+// Question mark beside a mode name. The padding is the touch target (~28px);
+// the negative margin pulls it back out of the layout so the icon still sits
+// tight against the label and the row keeps its original height.
+.expedite_help-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    margin: -0.4rem -0.4rem -0.4rem -0.15rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-5);
+    cursor: pointer;
+    transition: color 0.15s;
+
+    &:hover,
+    &[aria-expanded="true"] {
+        color: var(--text-2);
+    }
+}
+
+.expedite_help-panel {
+    margin-top: 0.55rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    // Accent edge instead of a caret: --surface is translucent, so a rotated
+    // square would let the panel's own border show through it.
+    border-left: 2px solid color-mix(in srgb, var(--primary) 60%, transparent);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-3);
+
+    p {
+        margin: 0;
+        line-height: 1.6;
+
+        + p {
+            margin-top: 0.55rem;
+        }
+    }
+
+    strong {
+        color: var(--text-2);
+        font-weight: 600;
+    }
 }
 
 .expedite_mode-desc {
