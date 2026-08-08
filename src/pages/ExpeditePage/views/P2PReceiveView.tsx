@@ -95,7 +95,7 @@ export default function P2PReceiveView(
                                     ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK)
                                     <br /><br />
                                     Allows Traversal Using Relays around NAT (TURN) when no direct path exists.
-                                    Data passes will pass through Cloudflare TURN instead of going peer to peer.
+                                    Data will pass through Cloudflare TURN instead of going peer to peer.
                                 </span>
                             </label>
                             <button
@@ -116,9 +116,9 @@ export default function P2PReceiveView(
                     <div className="expedite_p2p-notes">
                         <p className="expedite_p2p-notes-title">How does this work?</p>
                         <ul>
-                            <li>You'll pick a save location first. The file is written there as it arrives, not after.</li>
+                            <li>You'll pick a save location first. The file is written there as it arrives.</li>
                             <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
-                            <li>The sender's tab must stay open too; the data come from their machine (it isn't stored in the cloud).</li>
+                            <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).</li>
                             <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
                         </ul>
                     </div>

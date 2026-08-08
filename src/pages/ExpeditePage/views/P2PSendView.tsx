@@ -109,10 +109,10 @@ export default function P2PSendView(
                             <label className="text-small">
                                 Allow TURN relay
                                 <span className="expedite_setting-sub">
-                                    ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK)
+                                    ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK).
                                     <br /><br />
                                     Allows Traversal Using Relays around NAT (TURN) when no direct path exists.
-                                    Data passes will pass through Cloudflare TURN instead of going peer to peer.
+                                    Data will pass through Cloudflare TURN instead of going peer to peer.
                                 </span>
                             </label>
                             <button
@@ -134,9 +134,8 @@ export default function P2PSendView(
                         <p className="expedite_p2p-notes-title">Before you start</p>
                         <ul>
                             <li>Keep this tab open and awake for the whole transfer. Closing it kills the connection.</li>
-                            <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on computer.</li>
-                            <li>The code rotates every 10 minutes until someone connects. Old codes stop working.</li>
-                            <li>Nothing is stored in the cloud during transfer because it's a peer-to-peer transfer.</li>
+                            <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer.</li>
+                            <li>Nothing is stored in the cloud during transfer because it's a one-time peer-to-peer transfer.</li>
                         </ul>
                     </div>
 

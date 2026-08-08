@@ -23,7 +23,7 @@ const TILES: { type: DropType; label: string; note: string; desc: string; icon: 
     },
     {
         type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio,
-        desc: "Faster. Best when you're both online at the same time, especially in person, or for a single large transfer. Sends data directly from one device to the other over WebRTC. Nothing is stored online and there is no size limit.",
+        desc: "Faster. Sends the file directly from one device to the other. Best when you're both online at the same time, in person, or for transfers between your own devices. Nothing is stored online and there is no size limit.",
     },
 ];
 
