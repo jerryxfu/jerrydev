@@ -95,7 +95,7 @@ export default function P2PReceiveView(
                             <label className="text-small">
                                 Force TURN relay
                                 <span className="expedite_setting-sub">
-                                    <strong>Enable if you are behind a firewall (e.g. school or corporate network).</strong>
+                                    <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
                                     This happens automatically on failure. Forces Traversal Using Relays around NAT
                                     (TURN) via Cloudflare on the first attempt. Leave off by default.
                                 </span>

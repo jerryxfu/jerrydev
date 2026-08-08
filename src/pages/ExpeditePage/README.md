@@ -96,20 +96,137 @@ sections defeated the speed calculation and made the two screens disagree.
 ### TURN
 
 Off by default, toggled per side. **Only one side needs it on** — a relay candidate is a public reachable address, so the peer without TURN can pair against it
-using an ordinary srflx candidate.
+using an ordinary srflx candidate. Verified on real traffic: a 128 MB transfer completed `relay ↔ srflx` with the receiver reporting `0 relay` locally.
 
 Credentials are minted server-side (`config/turn.ts`), cached in-process, and **URLs on port 53 are stripped**: Cloudflare returns alternate ports, browsers
 block 53, and with non-trickle gathering a hanging URL delays the whole SDP and can cost the relay candidates entirely.
 
 `getStats()` reports the nominated pair, so the UI says whether the transfer is actually direct or relayed rather than leaving the toggle a mystery.
 
-### Reading the status panel
+The **auto relay fallback** is the primary mechanism; the toggle is a shortcut, not a permission. On an ICE failure the sender republishes under the *same code*
+with TURN forced and the receiver polls for the new session, reusing the already-granted file handle. `p2pRelayRetry` in `Expedite.tsx` drives a
+"retrying using TURN…" note on the progress readout — it is a **separate prop, not a field on `P2PStatus`**, because the engines overwrite `status.detail` on
+every phase change and would wipe it within milliseconds.
 
-- `candidates` — **local** candidates only. `0 relay` on one side while the other shows relay is normal and fine; see the one-side-is-enough note above.
-- `pair` — `(direct)` vs `(relayed)`. Toggling TURN on and still seeing `(direct)`
-  means a direct path was found and preferred. Working as intended.
-- `rtt` — `—` means not reported. Firefox often omits it on the offering side.
-- `buffer` — should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
+`setUseTurn(true)` is deliberately **not** called on a relay retry. `retryWithTurn` is passed as a parameter and short-circuits both the engine call and the
+auto-retry guard, so flipping the state only had the effect of leaving the toggle stuck on for the rest of the tab session — which silently masked repeat direct
+failures by sending every subsequent transfer straight to relay.
+
+---
+
+## Same-LAN direct requires mDNS — read this before debugging a failed direct connection
+
+**This is the most likely reason a direct transfer isn't going direct, and it is almost never the code.**
+
+Both browsers replace host candidates with a random mDNS hostname by default, so the SDP carries `62dd1680-f778-4851-9e81-d27918aac088.local` instead of
+`192.168.2.x`. Two peers on the same LAN can only pair `host ↔ host`, which requires each side to resolve the other's `.local` name by multicasting a query to
+`224.0.0.251:5353` and getting an answer. **If anything on the network drops or fails to answer that multicast, direct is impossible** — the only surviving pair
+is srflx ↔ srflx, which is both peers' *own* public IP, and that needs router hairpinning that consumer gear generally won't do.
+
+### The signature
+
+From a real failing run (2026-08-08, Mac Firefox -> Windows Chrome, same /24):
+
+```
+remote (Firefox):  a=candidate:0 1 UDP ... cf6f2b90-…-8e04e5df63e2.local 56985 typ host
+                   a=candidate:2 1 TCP ... cf6f2b90-…-8e04e5df63e2.local 9     typ host tcptype active
+                   a=candidate:1 1 UDP ... 174.89.164.103                56985 typ srflx
+local  (Chrome):   candidate:3281275733 1 udp ... d72e1d10-…-dbce425c5ca6.local 61010 typ host
+
+oniceconnectionstatechange  "checking" -> "disconnected"
+onconnectionstatechange     "connecting" -> "failed"
+```
+
+Both sides published `.local`, neither resolved the other's, one unusable pair, dead.
+
+**The proof it's mDNS and nothing else:** setting Firefox's
+`media.peerconnection.ice.obfuscate_host_addresses` to `false` made the same pair connect immediately as `host ↔ prflx (direct)` at 9.5 MB/s. Firefox published
+raw IPs, Chrome sent checks straight at them, and Chrome's own (still unresolvable) address arrived at Firefox as **peer-reflexive**, discovered from the
+inbound packet rather than the SDP. One side publishing raw IPs is sufficient.
+
+### There is no client-side fix
+
+The private IP is never exposed to JavaScript. `RTCIceCandidate.relatedAddress` is **null for host candidates** by spec, so the real address cannot be recovered
+and re-published. This is the deliberate design of the mDNS privacy feature and every browser implements it.
+
+What exists, and why none of it is shippable:
+
+| Approach                                                 | Verdict                                                                                                           |
+|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `WebRtcLocalIpsAllowedUrls` Chrome enterprise policy     | Real and persistent, but managed devices only. **Use it for the test bench** (below), never a user-facing answer. |
+| `getUserMedia` permission suppresses obfuscation         | Requesting camera access for a file transfer tool is an unacceptable trade.                                       |
+| `chrome://flags/#enable-webrtc-hide-local-ips-with-mdns` | **Removed in M91.** Does not exist any more.                                                                      |
+| `--disable-features=WebRtcHideLocalIpsWithMdns`          | Works, but does not survive a normal relaunch — silently reverts and looks like a regression.                     |
+| Provision TURN and fall back                             | What Expedite already does. What everyone does.                                                                   |
+
+### Does this affect every user?
+
+No, and the shape of it matters:
+
+- **Cross-network transfers never touch mDNS.** Two peers on different networks pair `srflx ↔ srflx` via ordinary UDP hole punching. This is the common real
+  case ("send this to my friend") and it is unaffected.
+- **Same-LAN transfers depend entirely on mDNS resolution.** This is the case that breaks, and it's the "send to my own laptop" case.
+- Industry baseline is roughly **20% of WebRTC connections relaying** overall (measured 17.7% in one large published dataset), rising to 60–85% on corporate
+  networks with managed firewalls. Expedite falling back to relay on some fraction of transfers is normal, not a defect.
+- Snapdrop, PairDrop and ShareDrop all have the identical failure documented in their issue trackers. Mozilla closed the ShareDrop report as WONTFIX / site
+  issue. PairDrop's official answer is "deploy a TURN server". **Expedite's architecture is already the industry-standard answer to this problem.**
+
+The one real product consequence: same-LAN transfers relaying more often than intuition suggests makes the Cloudflare TURN egress quota more load-bearing than
+it looks. The quota stat and the relay guard exist for that reason.
+
+---
+
+## Diagnosing a failed direct connection
+
+Work top to bottom. Most of these are environmental and none of them are in the repo.
+
+**1. Capture a usable webrtc-internals dump.** It records nothing retroactively and drops the PeerConnection when the creating tab closes.
+
+```
+open chrome://webrtc-internals in a SECOND tab
+start the transfer in the Expedite tab
+while it's still running, WITHOUT closing the Expedite tab -> Create Dump -> Download
+```
+
+`"PeerConnections": {}` means it was captured too late. Take three: during negotiation, at the failure, after the relay retry.
+
+**2. Read the remote description.** `.local` in the remote host candidates plus
+`checking -> disconnected -> failed` is the mDNS diagnosis above, confirmed.
+
+**3. Check candidate reconciliation.** The UI's `peer N` should equal what the other side published. If they match, signalling and the API are provably healthy
+and the problem is purely ICE connectivity — do not go looking in `p2p.ts`.
+
+**4. Test L2 reachability with ARP, not ping.**
+
+```bash
+arp -a | grep <peer-ip>     # a MAC address = fine; (incomplete) = client isolation
+```
+
+**Windows Defender Firewall blocks inbound ICMP echo by default, on Private profile too**, so a failed ping to a Windows box proves nothing.
+
+**5. A/B the obfuscation.** Set Firefox `media.peerconnection.ice.obfuscate_host_addresses` to `false` and retest. Direct now works -> mDNS resolution was the
+only thing missing. Still relays -> packets are being dropped, different investigation. **Set it back to `true` afterwards or every subsequent test lies.**
+
+---
+
+## Environment gotchas (not code)
+
+These have each cost a debugging session. They look exactly like regressions.
+
+- **macOS Local Network permission.** On macOS 15+, WebRTC's mDNS use is gated by Privacy & Security -> Local Network. Chrome can be **absent from the list
+  entirely with no prompt ever shown**, which silently kills mDNS registration and resolution. It is not TCC-managed, so `tccutil reset` cannot clear it;
+  Apple's own answer is a fresh user account or a VM snapshot. There is also a known bug where the permission stops functioning after a Mac restart while still
+  displaying as enabled — toggle it off and on.
+- **Chrome mDNS flag.** `chrome://flags/#enable-webrtc-hide-local-ips-with-mdns` was removed in **M91**. The CLI equivalent does not persist across a normal
+  relaunch, so a workaround applied on Monday is gone on Tuesday with nothing in git to explain it. For a persistent bench, use the
+  `WebRtcLocalIpsAllowedUrls` policy instead.
+- **Firefox `obfuscate_host_addresses` persists.** Unlike the Chrome side it survives restarts, so a half-reverted workaround leaves one browser at defaults and
+  one not — which produces results that look contradictory.
+- **IPv6 STUN 701 errors are benign.** `onicecandidateerror` with
+  `"STUN host lookup received error"` against both Cloudflare and Google STUN on an IPv6 interface, while the IPv4 srflx gathers fine, is normal on a
+  v4-only-reachable network. It costs gathering time, not connectivity.
+- **`showSaveFilePicker` needs a secure context.** Testing dev builds cross-device over `http://<lan-ip>` from `vite --host` makes it disappear and the receiver
+  hits the unsupported screen before WebRTC is involved. Test against prod, or give dev a local cert.
 
 ---
 
@@ -138,6 +255,21 @@ generic pending check.
 
 ---
 
+## Reading the status panel
+
+- `candidates` — **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
+  the one-side-is-enough note. `peer N` matching the other side's published total means signalling is healthy.
+- `pair` — `(direct)` vs `(relayed)`. Toggling TURN on and still seeing `(direct)`
+  means a direct path was found and preferred. Working as intended.
+    - `host ↔ host` — both sides resolved each other's mDNS, or both published raw IPs.
+    - `host ↔ prflx` — **direct, via peer-reflexive discovery.** One side's address was learned from an inbound connectivity check rather than the SDP. Expected
+      when only one side publishes raw IPs.
+    - `srflx ↔ relay` / `relay ↔ srflx` — relayed, one-sided TURN. Correct and expected.
+- `rtt` — `—` means not reported. Firefox often omits it on the offering side.
+- `buffer` — should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
+
+---
+
 ## Gotchas
 
 - **`config/origins.ts` is the single source for the allowlist**, shared by CORS in `server.ts` and `originGuard.ts`. These were separate lists once and had
@@ -147,6 +279,9 @@ generic pending check.
 - **morgan logs on response finish**, so an open SSE stream produces no log line until the client disconnects. Looks like a dropped request. It isn't.
 - **`.expedite_btn-primary` has `flex: 1`** for horizontal button rows. Inside a flex column that reads as `flex-grow` and stretches the button vertically.
 - **Progress bars shouldn't have CSS width transitions** when updates arrive every ~100ms; the animation restarts before it lands and the bar trails.
+- **Don't hand-write `-webkit-` prefixes.** The production CSS minifier keeps the last vendor-prefixed property, so writing `-webkit-backdrop-filter` next to
+  `backdrop-filter` strips the unprefixed form in the build. Let autoprefixing do it.
+- **A `<div>` inside a `<dl>` may only group a `<dt>` with its `<dd>`.** The mode help panel therefore renders inside the `<dd>`, not as a sibling.
 - `npx` fails in this repo — `devEngines.packageManager` pins pnpm. Use
   `pnpm exec`.
 
@@ -160,5 +295,16 @@ pnpm exec eslint . --report-unused-disable-directives
 pnpm exec vite build
 ```
 
-For P2P specifically, same-machine cross-browser is the *worst* case, not the easiest: mDNS obfuscation hides host candidates from the other browser and
-srflx↔srflx needs router hairpinning. Enable TURN, or test across genuinely different networks (phone on cellular -> laptop).
+For P2P, the test topologies are not equally informative and the easy-sounding ones are the hardest:
+
+| Topology                        | Exercises           | Notes                                                                                                                               |
+|---------------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| Two browsers, one machine       | mDNS only           | **Worst case, not easiest.** No network involved at all, so a failure here is always local (permissions, mDNS responders fighting). |
+| Two devices, same LAN           | mDNS + L2           | Fails wholesale if multicast is filtered. Good relay-fallback bench precisely *because* it fails.                                   |
+| Two devices, different networks | srflx hole punching | **The actual common case, and the least tested.** Never touches mDNS. Phone on cellular -> laptop is the cheapest way to run it.    |
+
+Verified end to end as of 2026-08-08: 5 GB Firefox -> Chrome; 1 GB Firefox -> Chrome; 128 MB relayed `relay ↔ srflx` cross-device at 8.5–9.5 MB/s with exact
+candidate reconciliation both directions; 128 MB direct `host ↔ prflx` at 9.5 MB/s; iOS Safari -> desktop Chrome; automatic relay recovery reusing the granted
+file handle without user action.
+
+Still untested: mobile hotspot topology, and a genuinely cross-network transfer between two different physical sites.
