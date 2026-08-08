@@ -75,17 +75,26 @@
 }
 
 .expedite_p2p-phase {
-    font-size: var(--fs-lg);
+    font-size: var(--fs-lgg);
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
 }
 
+/* The detail line carries the live state (code, poll counter, retry note), so
+   it reads as a subtitle rather than fine print. */
 .expedite_p2p-detail {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-md);
     line-height: 1.45;
-    color: var(--text-3);
+    color: var(--text-2);
     word-break: break-word;
+}
+
+/* Amber, matching the "in flight" phase tone — the point is that this is a
+   wait, not a failure. */
+.expedite_p2p-detail-retry {
+    color: var(--wait);
+    font-weight: 600;
 }
 
 /* Transfer bar (mirrors UploadProgress) */

@@ -14,16 +14,16 @@ interface LandingViewProps {
 
 const TILES: { type: DropType; label: string; note: string; desc: string; icon: typeof File }[] = [
     {
-        type: "text", label: "Text", note: "snippet or paste", icon: FileText,
+        type: "text", label: "Text", note: "freeform text", icon: FileText,
         desc: "Stored in the cloud, up to 500 KB. Expires between 1 minute and 24 hours.",
     },
     {
         type: "file", label: "File", note: "up to 16 GB", icon: File,
-        desc: "Uploaded to object storage in the cloud. Expires between 1 minute and 24 hours.",
+        desc: "Uploaded to the cloud, up to 16 GB. Expires between 1 minute and 24 hours.",
     },
     {
         type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio,
-        desc: "Faster. Sends the file directly from one device to the other. Best when you're both online at the same time, in person, or for transfers between your own devices. Nothing is stored online and there is no size limit.",
+        desc: "Sends the file directly from one device to the other. Best when you're both online at the same time, in person, or for transfers between your own devices. Nothing is stored online and there is no size limit. Faster.",
     },
 ];
 
@@ -83,7 +83,7 @@ export default function LandingView(
                     onClick={onRetrieve}
                     disabled={loading || code.trim().length < 5}
                 >
-                    {loading ? "Resolving…" : "Retrieve"}
+                    {loading ? "Resolving..." : "Retrieve"}
                 </button>
 
                 <p className="expedite_landing-hint">

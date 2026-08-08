@@ -8,6 +8,13 @@ interface Props {
     snapshot: P2PSnapshot | null;
     /** "send" shows outbound wording, "receive" inbound. */
     role: "send" | "receive";
+    /**
+     * The current attempt is the automatic relay fallback. Tacks a note onto the
+     * headline so a red flash followed by a long amber wait reads as "working on
+     * it" rather than "dead, abort now". Lives outside P2PStatus because the
+     * engines overwrite `detail` on every phase change and would wipe it.
+     */
+    relayRetry?: boolean;
 }
 
 const PHASE_LABEL: Record<P2PPhase, string> = {
@@ -46,7 +53,7 @@ const LADDER: P2PPhase[] = [
     "gathering", "signalling", "awaiting-peer", "negotiating", "connected", "transferring", "done",
 ];
 
-export default function P2PProgress({status, snapshot, role}: Props) {
+export default function P2PProgress({status, snapshot, role, relayRetry = false}: Props) {
     // Throughput is measured in the transfer engine and arrives on the snapshot.
     const speed = snapshot?.speedBps ?? 0;
 
@@ -97,7 +104,19 @@ export default function P2PProgress({status, snapshot, role}: Props) {
 
             <div className={`expedite_p2p-headline${isError ? " is-error" : ""}`}>
                 <span className="expedite_p2p-phase">{PHASE_LABEL[status.phase]}</span>
-                {status.detail && <span className="expedite_p2p-detail">{status.detail}</span>}
+                {/* The note rides along only while the connection is still being
+                    built. Once it's up (or genuinely dead) it drops off on its
+                    own, so nothing upstream has to remember to clear the flag. */}
+                {(status.detail || (relayRetry && waiting)) && (
+                    <span className="expedite_p2p-detail">
+                        {status.detail}
+                        {relayRetry && waiting && (
+                            <span className="expedite_p2p-detail-retry">
+                                {status.detail ? " · " : ""}retrying using TURN...
+                            </span>
+                        )}
+                    </span>
+                )}
             </div>
 
             {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}
@@ -129,7 +148,7 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                 <div className="expedite_p2p-stat">
                     <dt>
                         <span className="expedite_p2p-stat-name">Candidates</span>
-                        <span className="expedite_p2p-stat-desc">The routes ICE gathered, ours and theirs</span>
+                        <span className="expedite_p2p-stat-desc">The routes ICE gathered</span>
                     </dt>
                     <dd>
                         {status.candidates.host} host · {status.candidates.srflx} srflx · {status.candidates.relay} relay
@@ -143,9 +162,7 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                         <span className="expedite_p2p-stat-desc">The route the data is taking</span>
                     </dt>
                     <dd>
-                        {status.pair
-                            ? `${status.pair} ${status.relayed ? "(relayed)" : "(direct)"}`
-                            : "—"}
+                        {status.pair ? `${status.pair} ${status.relayed ? "(relayed)" : "(direct)"}` : "—"}
                     </dd>
                 </div>
 

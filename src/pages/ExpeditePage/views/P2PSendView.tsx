@@ -20,6 +20,8 @@ interface P2PSendViewProps {
     retryable: boolean;
     /** Monthly relay quota spent, the TURN toggle is off-limits. */
     relayDisabled: boolean;
+    /** This attempt is the automatic relay fallback — annotates the progress readout. */
+    relayRetry: boolean;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onStart: () => void;
@@ -55,7 +57,8 @@ function mmss(secs: number): string {
 export default function P2PSendView(
     {
         selectedFile, setSelectedFile, useTurn, setUseTurn, code, expiresAt,
-        status, snapshot, running, error, retryable, relayDisabled, copiedField, onCopy, onStart, onRetry, onCancel,
+        status, snapshot, running, error, retryable, relayDisabled, relayRetry,
+        copiedField, onCopy, onStart, onRetry, onCancel,
     }: P2PSendViewProps
 ) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,12 +110,11 @@ export default function P2PSendView(
                         <p className="expedite_settings-title">Transport</p>
                         <div className="expedite_setting-row">
                             <label className="text-small">
-                                Allow TURN relay
+                                Force TURN relay
                                 <span className="expedite_setting-sub">
-                                    ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK).
-                                    <br /><br />
-                                    Allows Traversal Using Relays around NAT (TURN) when no direct path exists.
-                                    Data will pass through Cloudflare TURN instead of going peer to peer.
+                                    <strong>Enable if you are behind a firewall (e.g. school or corporate network).</strong>
+                                    This happens automatically on failure. Forces Traversal Using Relays around NAT
+                                    (TURN) via Cloudflare on the first attempt. Leave off by default.
                                 </span>
                             </label>
                             <button
@@ -195,7 +197,7 @@ export default function P2PSendView(
                         </p>
                     )}
 
-                    <P2PProgress status={status} snapshot={snapshot} role="send" />
+                    <P2PProgress status={status} snapshot={snapshot} role="send" relayRetry={relayRetry} />
 
                     {error && <p className="expedite_error">{error}</p>}
 

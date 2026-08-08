@@ -106,7 +106,7 @@ export default function UploadProgress({snapshot}: Props) {
     return (
         <div className="expedite_progress">
             <div className="expedite_progress-head">
-                <p className="expedite_progress-title">Uploading your file…</p>
+                <p className="expedite_progress-title">Uploading your file...</p>
             </div>
 
             {/* Global progress */}
@@ -155,7 +155,7 @@ export default function UploadProgress({snapshot}: Props) {
                             <div className="expedite_card-row">
                                 <span className="expedite_card-name">Part {p.partNumber}</span>
                                 <span className="expedite_card-status">
-                                    {p.state === "retrying" ? "retrying…" : "uploading"}
+                                    {p.state === "retrying" ? "retrying..." : "uploading"}
                                 </span>
                                 <span
                                     key={`${p.partNumber}-${stats.tick}`}

@@ -17,6 +17,8 @@ interface P2PReceiveViewProps {
     retryable: boolean;
     /** Monthly relay quota spent, the TURN toggle is off-limits. */
     relayDisabled: boolean;
+    /** This attempt is the automatic relay fallback — annotates the progress readout. */
+    relayRetry: boolean;
     onAccept: () => void;
     onRetry: () => void;
     onCancel: () => void;
@@ -34,6 +36,7 @@ export default function P2PReceiveView(
         error,
         retryable,
         relayDisabled,
+        relayRetry,
         onAccept,
         onRetry,
         onCancel
@@ -90,12 +93,11 @@ export default function P2PReceiveView(
                         <p className="expedite_settings-title">Transport</p>
                         <div className="expedite_setting-row">
                             <label className="text-small">
-                                Allow TURN relay
+                                Force TURN relay
                                 <span className="expedite_setting-sub">
-                                    ENABLE THIS IF YOU ARE BEHIND A FIREWALL (E.G. SCHOOL OR CORPORATE NETWORK)
-                                    <br /><br />
-                                    Allows Traversal Using Relays around NAT (TURN) when no direct path exists.
-                                    Data will pass through Cloudflare TURN instead of going peer to peer.
+                                    <strong>Enable if you are behind a firewall (e.g. school or corporate network).</strong>
+                                    This happens automatically on failure. Forces Traversal Using Relays around NAT
+                                    (TURN) via Cloudflare on the first attempt. Leave off by default.
                                 </span>
                             </label>
                             <button
@@ -141,7 +143,7 @@ export default function P2PReceiveView(
                         {meta.fileName ?? "unnamed"} · {formatBytes(meta.size)}
                     </p>
 
-                    <P2PProgress status={status} snapshot={snapshot} role="receive" />
+                    <P2PProgress status={status} snapshot={snapshot} role="receive" relayRetry={relayRetry} />
 
                     {error && <p className="expedite_error">{error}</p>}
 

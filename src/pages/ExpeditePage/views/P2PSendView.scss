@@ -83,4 +83,13 @@
     line-height: 1.5;
     margin-top: 0.2rem;
     max-width: 70ch;
+
+    // The one line that tells someone whether the switch is for them. Own line,
+    // brighter than the explanation above it.
+    strong {
+        display: block;
+        margin-top: 0.35rem;
+        color: var(--text-2);
+        font-weight: 600;
+    }
 }

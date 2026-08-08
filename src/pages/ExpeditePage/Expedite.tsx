@@ -106,6 +106,10 @@ export default function Expedite() {
     // Set when a transfer died of an ICE/connectivity failure that a relay
     // could route around; drives the "Retry with relay" affordances.
     const [p2pIceFailed, setP2pIceFailed] = useState(false);
+    // The attempt currently on screen is the automatic relay fallback. Purely a
+    // label for the progress readout: without it the handover reads as a red
+    // failure followed by an unexplained wait, and people abort.
+    const [p2pRelayRetry, setP2pRelayRetry] = useState(false);
     // Automatic receiver reconnects used for the current accepted transfer.
     const p2pRecoveredRef = useRef(0);
     const p2pAbortRef = useRef<AbortController | null>(null);
@@ -187,6 +191,7 @@ export default function Expedite() {
         setP2pExpiresAt(null);
         setP2pRunning(false);
         setP2pSnapshot(null);
+        setP2pRelayRetry(false);
         setP2pStatus(freshStatus());
 
         await animateOut(viewRef.current);
@@ -321,13 +326,13 @@ export default function Expedite() {
         // the ref was cleared but from a render where the state is current.
         const reuseCode = retryWithTurn ? (p2pCodeRef.current ?? p2pCode ?? undefined) : undefined;
 
-        if (retryWithTurn) setUseTurn(true);
         setError(null);
         setP2pIceFailed(false);
+        setP2pRelayRetry(retryWithTurn);
         setP2pSnapshot(null);
-        setP2pStatus(retryWithTurn
-            ? {...freshStatus(), detail: "direct route failed · retrying through a relay"}
-            : freshStatus());
+        // No detail seeded for the retry: the engine emits its own within
+        // milliseconds. The retry note is a separate flag for exactly that reason.
+        setP2pStatus(freshStatus());
         setP2pRunning(true);
 
         const controller = new AbortController();
@@ -424,23 +429,38 @@ export default function Expedite() {
 
     // After a connectivity failure the sender republishes the same code with a
     // relay. Poll for that fresh session and reconnect with the handle the user
-    // already granted — no clicks, no re-entered code, no second save picker.
+    // already granted. no clicks, no re-entered code, no second save picker.
     const recoverP2PReceive = async (code: string, handle: FileSystemFileHandle): Promise<void> => {
         p2pRecoveredRef.current += 1;
+        setP2pRelayRetry(true);
         setP2pStatus({
             ...freshStatus(),
             phase: "signalling",
-            detail: "direct route failed · waiting for the sender's relay retry",
+            detail: "direct route failed · waiting for the sender to republish",
         });
 
         const controller = new AbortController();
         p2pAbortRef.current = controller;
 
         try {
-            for (let poll = 0; poll < RECOVERY_MAX_POLLS; poll++) {
-                await sleep(RECOVERY_POLL_MS, controller.signal);
+            for (let poll = 1; poll <= RECOVERY_MAX_POLLS; poll++) {
+                // Tick the gap down a second at a time. A number that moves is
+                // the difference between "still working" and "hung"; a 90s wait
+                // behind a single static line is what makes people hit abort.
+                for (let left = Math.round(RECOVERY_POLL_MS / 1000); left > 0; left--) {
+                    setP2pStatus((prev) => ({
+                        ...prev,
+                        detail: `waiting for the sender to republish · attempt ${poll}/${RECOVERY_MAX_POLLS},`
+                            + ` next check in ${left}s`,
+                    }));
+                    await sleep(1_000, controller.signal);
+                }
+                setP2pStatus((prev) => ({
+                    ...prev,
+                    detail: `checking for the sender's new session · attempt ${poll}/${RECOVERY_MAX_POLLS}`,
+                }));
                 // Recovery exists to outlive a broken network moment, so a poll
-                // that can't reach the API is just "not yet" — only an abort exits.
+                // that can't reach the API is just "not yet". Only an abort will exit.
                 let meta: DropMeta;
                 try {
                     const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal: controller.signal});
@@ -473,10 +493,10 @@ export default function Expedite() {
         if (!result?.offer || !window.showSaveFilePicker) return;
         setError(null);
         setP2pIceFailed(false);
+        setP2pRelayRetry(false);
         p2pRecoveredRef.current = 0;
 
-        // showSaveFilePicker must be the first await in this handler — it needs
-        // the user gesture, and any prior await would spend it.
+        // showSaveFilePicker must be the first await in this handler for the user gesture, and any prior await would spend it.
         let handle: FileSystemFileHandle;
         try {
             handle = await window.showSaveFilePicker({
@@ -499,6 +519,7 @@ export default function Expedite() {
     const retryP2PReceive = async () => {
         if (!result) return;
         setP2pIceFailed(false);
+        setP2pRelayRetry(false);
         p2pRecoveredRef.current = 0;
         setP2pRunning(false);
         setP2pSnapshot(null);
@@ -585,8 +606,7 @@ export default function Expedite() {
 
     const handleDragLeave = useCallback(() => setIsDragging(false), []);
 
-    // The resolved drop type is appended to the heading, so it only appears
-    // once a lookup has returned.
+    // The resolved drop type is appended to the heading, so it only appears once a lookup has returned.
     const resolvedType = result?.type ?? null;
 
     return (
@@ -689,6 +709,7 @@ export default function Expedite() {
                             onCopy={copyToClipboard}
                             retryable={p2pIceFailed && !relayBlocked}
                             relayDisabled={relayBlocked}
+                            relayRetry={p2pRelayRetry}
                             onStart={() => void startP2PSend()}
                             onRetry={() => void startP2PSend(true)}
                             onCancel={reset}
@@ -707,6 +728,7 @@ export default function Expedite() {
                             error={error}
                             retryable={p2pIceFailed}
                             relayDisabled={relayBlocked}
+                            relayRetry={p2pRelayRetry}
                             onAccept={acceptP2PReceive}
                             onRetry={() => void retryP2PReceive()}
                             onCancel={reset}
