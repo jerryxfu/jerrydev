@@ -51,13 +51,14 @@ const projects: CardProps[] = [
         footer: "Same-day shipping!"
     },
     {
-        title: "stats.jerryxf",
-        subTitle: "Cool live data feeds",
-        image: _stats,
+        title: "TechNexus",
+        subTitle: "A companion app for FRC",
+        image: _technexus,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
-        url: "https://stats.jerryxf.net",
-        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
+        dateDisplay: formatDate(new Date("2026-04-08T00:00:00")),
+        url: "https://github.com/jerryxfu/matchtimer",
+        description: "A mobile app that provides dynamic schedule updates and useful tools & information for FIRST Robotics competition team members.",
+        footer: "iOS & Android"
     },
     {
         title: "HiddenGarden",
@@ -69,14 +70,13 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-06-12T00:00:00"))
     },
     {
-        title: "TechNexus",
-        subTitle: "A companion app for FRC",
-        image: _technexus,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2026-04-08T00:00:00")),
-        url: "https://github.com/jerryxfu/matchtimer",
-        description: "A mobile app that provides dynamic schedule updates and useful tools & information for our team members during FIRST Robotics competitions.",
-        footer: "iOS 16.7+ & Android 13+"
+        title: "stats.jerryxf",
+        subTitle: "Cool live data feeds",
+        image: _stats,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
+        url: "https://stats.jerryxf.net",
+        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
     },
     {
         title: "BapUtils",
@@ -249,7 +249,7 @@ const projects: CardProps[] = [
         chipText: "🧩 MVP",
         dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
         description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-        footer: "iOS 17.7+ & Android 13+"
+        footer: "iOS & Android"
     },
     {
         title: "Pulse",
@@ -259,7 +259,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-04-20T00:00:00")),
         url: "",
         description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
-        footer: "iOS 17+ & Android 13+"
+        footer: "iOS & Android"
     },
     {
         title: "Cheatsheet",
