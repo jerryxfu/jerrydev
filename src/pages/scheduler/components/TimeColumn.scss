@@ -1,27 +1,27 @@
 /* Time column */
 .time_column {
-    display: flex;
-    flex-direction: column;
+    position: relative;
     width: 100%;
     min-width: 100%;
+    /* Height is set inline from the shared geometry and must not be
+       negotiated by a flex parent, or the labels drift off the events. */
+    flex: none;
     background: var(--bg);
     border-right: 0;
-    position: relative;
 }
 
 .time_slot {
+    position: absolute;
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
     padding: 2px 6px;
-    border-bottom: 1px solid var(--border);
     box-sizing: border-box;
     background: inherit;
-}
-
-.time_slot-gap {
-    background: transparent;
+    overflow: hidden;
 }
 
 .time_label {
@@ -54,14 +54,15 @@
 
 .homeisland-mode .time_slot {
     background: transparent;
-    border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-.homeisland-mode .time_label {
-    color: rgba(160, 160, 160, 1);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
+/* --gray-lt is one of the theme-independent colour constants, which is what
+   this needs: the labels sit over the extension's gradient, not the site
+   background, so var(--text-3) would invert with the site theme. Both label
+   variants were already the same grey here, so they share one rule now. */
+.homeisland-mode .time_label,
 .homeisland-mode .time_label-end {
-    color: rgba(160, 160, 160, 1);
+    color: var(--gray-lt);
+    /* one-off lift so the grey stays legible over a bright morning gradient */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

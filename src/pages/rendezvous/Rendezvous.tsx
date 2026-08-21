@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {ArrowLeft, ExternalLink} from "lucide-react";
+import {ArrowLeft} from "lucide-react";
 import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
@@ -12,6 +12,7 @@ import CreatedView from "./views/CreatedView.tsx";
 import JoinView from "./views/JoinView.tsx";
 import RespondView from "./views/RespondView.tsx";
 import ResultView from "./views/ResultView.tsx";
+import Navbar from "@/components/Nav/Navbar.tsx";
 
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
@@ -235,11 +236,10 @@ export default function Rendezvous() {
                 <link rel="canonical" href="https://jerryxf.net/rendezvous" />
             </Helmet>
 
+            <Navbar isShrunk={true} />
+            <div className="nav-spacer" />
+
             <div className="rv_container">
-                <a href="/" className="rv_home-link">
-                    <ExternalLink size={13} />
-                    <span>jerryxf.net</span>
-                </a>
                 <header className="rv_header">
                     {view !== "idle" && (
                         <button className="rv_back" onClick={reset}>

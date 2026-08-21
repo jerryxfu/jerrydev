@@ -1,14 +1,26 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {Helmet} from "react-helmet-async";
 import Schedule from "./components/Schedule";
+import WeekSchedule from "./components/WeekSchedule";
 import {type Schedule as ScheduleType} from "../../types/schedule";
-import {findCommonBreaksInRange, minutesToTime, timeToMinutes} from "./timeUtils.ts";
+import {
+    DEFAULT_END_TIME,
+    DEFAULT_START_TIME,
+    findCommonBreaksInRange,
+    getNowMinutes,
+    minutesToTime,
+    resolveDisplayRange,
+    timeToMinutes,
+} from "./timeUtils.ts";
 import scheduleConfig from "./scheduleConfig.ts";
 import "./Scheduler.scss";
 
-const HIDE_WEEKENDS = true;
+interface DayOption {
+    key: string;
+    label: string;
+}
 
-const ALL_DAYS = [
+const ALL_DAYS: DayOption[] = [
     {key: "monday", label: "Monday"},
     {key: "tuesday", label: "Tuesday"},
     {key: "wednesday", label: "Wednesday"},
@@ -16,33 +28,51 @@ const ALL_DAYS = [
     {key: "friday", label: "Friday"},
     {key: "saturday", label: "Saturday"},
     {key: "sunday", label: "Sunday"},
-] as const;
+];
 
-const DAYS_OF_WEEK = HIDE_WEEKENDS
-    ? ALL_DAYS.filter(d => d.key !== "saturday" && d.key !== "sunday")
-    : [...ALL_DAYS];
+const WEEKEND_KEYS = ["saturday", "sunday"];
+const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 const STORAGE_KEY = "scheduler-last-selected-person";
-const DEFAULT_START = "08:00";
-const DEFAULT_END = "18:00";
 
 // Helpers
 const findSchedule = (id: string) => scheduleConfig.find(s => s.id === id);
 
-const getTodayKey = (): string => {
-    const now = new Date();
-    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    let idx = now.getDay();
-    if (now.getHours() >= 18) idx = (idx + 1) % 7;
-    const day = dayNames[idx]!;
-    if (HIDE_WEEKENDS && (day === "saturday" || day === "sunday")) return "monday";
-    return day;
+/**
+ * Weekends are shown only when the selected schedule actually uses them, and
+ * both days appear together so the week never ends on a lone Saturday. This
+ * replaces the old HIDE_WEEKENDS constant, which hid them unconditionally.
+ */
+const getVisibleDays = (schedules: ScheduleType[]): DayOption[] => {
+    const usesWeekend = schedules.some(s =>
+        s.events.some(e => e.day !== undefined && WEEKEND_KEYS.includes(e.day)),
+    );
+    return usesWeekend ? ALL_DAYS : ALL_DAYS.filter(d => !WEEKEND_KEYS.includes(d.key));
 };
 
+/** The real weekday, used to decide what counts as "today". */
+const getActualTodayKey = (): string => DAY_NAMES[new Date().getDay()]!;
+
+/** Which day to open on: today, or tomorrow once the evening is over. */
+const getPreferredDayKey = (visibleKeys: string[]): string => {
+    const now = new Date();
+    let index = now.getDay();
+    if (now.getHours() >= 18) index = (index + 1) % 7;
+    const day = DAY_NAMES[index]!;
+    return visibleKeys.includes(day) ? day : (visibleKeys[0] ?? "monday");
+};
+
+/**
+ * Narrow a schedule to one day, keeping the *whole* schedule's time range so
+ * the grid does not rescale as you click between days.
+ */
 const filterByDay = (schedule: ScheduleType, day: string): ScheduleType => ({
     ...schedule,
+    ...resolveDisplayRange(schedule),
     events: schedule.events.filter(e => e.day === day),
 });
+
+const msUntilNextMinute = () => 60_000 - (Date.now() % 60_000);
 
 // URL params hook
 function useHomeIslandParams() {
@@ -72,9 +102,38 @@ const Scheduler: React.FC = () => {
         return scheduleConfig.slice(0, 1);
     }, [isHomeIsland, homeIslandId]);
 
-    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(getInitialSchedules);
+    const initialSchedules = useMemo(() => getInitialSchedules(), [getInitialSchedules]);
+
+    const [selectedSchedules, setSelectedSchedules] = useState<ScheduleType[]>(initialSchedules);
     const [comparisonMode, setComparisonMode] = useState(false);
-    const [selectedDay, setSelectedDay] = useState(getTodayKey);
+    // Home Island embeds the day view only, so week mode is never reachable there.
+    const [isWeekView, setIsWeekView] = useState(false);
+    const [selectedDay, setSelectedDay] = useState(
+        () => getPreferredDayKey(getVisibleDays(initialSchedules).map(d => d.key)),
+    );
+
+    // One clock for the whole page, aligned to the wall-clock minute so the now
+    // line moves when the minute actually changes rather than 60s after mount.
+    const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+    useEffect(() => {
+        let timeoutId = 0;
+        const tick = () => {
+            setNowMinutes(getNowMinutes());
+            timeoutId = window.setTimeout(tick, msUntilNextMinute());
+        };
+        timeoutId = window.setTimeout(tick, msUntilNextMinute());
+        return () => window.clearTimeout(timeoutId);
+    }, []);
+
+    const visibleDays = useMemo(() => getVisibleDays(selectedSchedules), [selectedSchedules]);
+    const visibleDayKeys = useMemo(() => visibleDays.map(d => d.key), [visibleDays]);
+
+    // Switching to a schedule without weekend events can strip the selected day.
+    // Resolved during render rather than corrected in an effect, so there is no
+    // pass where the UI shows a day the current schedule does not have.
+    const activeDay = visibleDayKeys.includes(selectedDay)
+        ? selectedDay
+        : getPreferredDayKey(visibleDayKeys);
 
     // Persist selection
     useEffect(() => {
@@ -98,8 +157,8 @@ const Scheduler: React.FC = () => {
 
     // Filter events for selected day
     const filteredSchedules = useMemo(
-        () => selectedSchedules.map(s => filterByDay(s, selectedDay)),
-        [selectedSchedules, selectedDay],
+        () => selectedSchedules.map(s => filterByDay(s, activeDay)),
+        [selectedSchedules, activeDay],
     );
 
     // Common breaks (comparison mode only)
@@ -108,10 +167,10 @@ const Scheduler: React.FC = () => {
         const [a, b] = filteredSchedules;
         if (!a || !b) return [];
 
-        const aStart = timeToMinutes(a.startTime ?? DEFAULT_START);
-        const bStart = timeToMinutes(b.startTime ?? DEFAULT_START);
-        const aEnd = timeToMinutes(a.endTime ?? DEFAULT_END);
-        const bEnd = timeToMinutes(b.endTime ?? DEFAULT_END);
+        const aStart = timeToMinutes(a.startTime ?? DEFAULT_START_TIME);
+        const bStart = timeToMinutes(b.startTime ?? DEFAULT_START_TIME);
+        const aEnd = timeToMinutes(a.endTime ?? DEFAULT_END_TIME);
+        const bEnd = timeToMinutes(b.endTime ?? DEFAULT_END_TIME);
 
         const start = Math.max(aStart, bStart);
         const end = Math.min(aEnd, bEnd);
@@ -120,11 +179,11 @@ const Scheduler: React.FC = () => {
         return findCommonBreaksInRange(a.events, b.events, minutesToTime(start), minutesToTime(end), 15);
     }, [comparisonMode, filteredSchedules]);
 
-    // Whether the selected day is actually today (for time-aware event status)
-    const isToday = useMemo(() => {
-        const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        return selectedDay === dayNames[new Date().getDay()];
-    }, [selectedDay]);
+    // Read on every render rather than memoised: the minute tick above already
+    // re-renders, which is what carries this across midnight.
+    const todayKey = getActualTodayKey();
+    const isToday = activeDay === todayKey;
+    const weekTodayKey = visibleDayKeys.includes(todayKey) ? todayKey : null;
 
     // Handlers
     const toggleComparison = useCallback(() => {
@@ -138,6 +197,20 @@ const Scheduler: React.FC = () => {
             setComparisonMode(true);
         }
     }, [comparisonMode]);
+
+    /** Week view drops comparison and keeps the first schedule. */
+    const showWeekView = useCallback(() => {
+        setComparisonMode(prev => {
+            if (prev) setSelectedSchedules(current => current.slice(0, 1));
+            return false;
+        });
+        setIsWeekView(true);
+    }, []);
+
+    const showDayView = useCallback((day: string) => {
+        setSelectedDay(day);
+        setIsWeekView(false);
+    }, []);
 
     const handleSelect = useCallback((index: number, id: string) => {
         const s = findSchedule(id);
@@ -154,8 +227,9 @@ const Scheduler: React.FC = () => {
         if (s) setSelectedSchedules([s]);
     }, []);
 
-
     if (isHomeIsland && !isHomeIslandValid) return null;
+
+    const weekSchedule = selectedSchedules[0];
 
     return (
         <div className={`scheduler ${isHomeIsland ? "homeisland-mode" : ""}`}>
@@ -166,16 +240,12 @@ const Scheduler: React.FC = () => {
                 <link rel="canonical" href="https://jerryxf.net/scheduler" />
             </Helmet>
 
-            <div className="scheduler-overlay-disabled">
-                <h2>Disabled during summer ☀️🏝️</h2>
-            </div>
-
             <div className="scheduler-header">
                 {!isHomeIsland && <h1 className="scheduler-title">Schedule viewer</h1>}
 
                 <div className="scheduler-controls">
                     <div className="scheduler-controls-left">
-                        {!isHomeIsland && (
+                        {!isHomeIsland && !isWeekView && (
                             <button
                                 className={`scheduler-toggle ${comparisonMode ? "scheduler-toggle-active" : ""}`}
                                 onClick={toggleComparison}
@@ -218,22 +288,34 @@ const Scheduler: React.FC = () => {
                         )}
 
                         {!isHomeIsland && (
-                            <div className="scheduler-day-buttons">
-                                {DAYS_OF_WEEK.map(day => (
-                                    <button
-                                        key={day.key}
-                                        className={`scheduler-day-btn ${selectedDay === day.key ? "scheduler-day-btn-active" : ""}`}
-                                        onClick={() => setSelectedDay(day.key)}
-                                    >
-                                        {day.label}
-                                    </button>
-                                ))}
-                            </div>
+                            <>
+                                <span className="scheduler-divider" aria-hidden="true" />
+
+                                <button
+                                    className={`scheduler-day-btn ${isWeekView ? "scheduler-day-btn-active" : ""}`}
+                                    onClick={showWeekView}
+                                    aria-pressed={isWeekView}
+                                >
+                                    Week
+                                </button>
+
+                                <div className="scheduler-day-buttons">
+                                    {visibleDays.map(day => (
+                                        <button
+                                            key={day.key}
+                                            className={`scheduler-day-btn ${!isWeekView && activeDay === day.key ? "scheduler-day-btn-active" : ""}`}
+                                            onClick={() => showDayView(day.key)}
+                                        >
+                                            {day.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </div>
 
                     <div className="scheduler-controls-right">
-                        {!isHomeIsland && comparisonMode && commonBreaks.length > 0 && (
+                        {!isHomeIsland && !isWeekView && comparisonMode && commonBreaks.length > 0 && (
                             <div className="scheduler-break-info">
                                 <span className="scheduler-break-count">
                                     {commonBreaks.length} common free time{commonBreaks.length !== 1 ? "s" : ""}
@@ -245,17 +327,28 @@ const Scheduler: React.FC = () => {
             </div>
 
             <div className="scheduler-content">
-                <div className="scheduler-schedules">
-                    {filteredSchedules.map((schedule, i) => (
-                        <Schedule
-                            key={`${schedule.id}-${selectedDay}-${i}`}
-                            schedule={schedule}
-                            breakPeriods={commonBreaks}
-                            showBreaks={comparisonMode}
-                            isToday={isToday}
-                        />
-                    ))}
-                </div>
+                {isWeekView && weekSchedule ? (
+                    <WeekSchedule
+                        schedule={weekSchedule}
+                        days={visibleDays}
+                        todayKey={weekTodayKey}
+                        nowMinutes={nowMinutes}
+                    />
+                ) : (
+                    <div className="scheduler-schedules">
+                        {filteredSchedules.map((schedule, i) => (
+                            <Schedule
+                                key={`${schedule.id}-${activeDay}-${i}`}
+                                schedule={schedule}
+                                breakPeriods={commonBreaks}
+                                showBreaks={comparisonMode}
+                                isToday={isToday}
+                                nowMinutes={nowMinutes}
+                                dayKey={activeDay}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

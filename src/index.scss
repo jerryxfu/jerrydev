@@ -207,7 +207,6 @@ body.homeisland-body {
     --hero-glow: rgba(255, 238, 247, 0.40);
 }
 
-
 .section {
     max-width: 100%;
     padding: 1.25rem 3%;
@@ -216,6 +215,10 @@ body.homeisland-body {
     @media screen and (max-width: 768px) {
         padding: 1.2rem 2%;
     }
+}
+
+.nav-spacer {
+    height: calc(56px + 2rem + env(safe-area-inset-top));
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -1,8 +1,27 @@
-/* Schedule event card */
+/* Schedule event card
+
+   Layout is three stacked rows:
+     1. title
+     2. time range (left)  ...  location (right)
+     3. live status ("Ends in 30m")
+
+   Cards are only as tall as their class, and a 50 minute period is 47px, which
+   is not enough for three rows. The container queries below drop rows as the
+   card gets shorter rather than letting them clip. */
 .schedule-event {
     position: absolute;
     left: 2px;
     right: 2px;
+    z-index: 3;
+    /* Backgrounds come from scheduleConfig as fixed pastels, so this cannot use
+       var(--text): in the dark theme that resolved to near-white on pale green.
+       Scoped here so the card owns its own text colour, the same way Expedite's
+       progress views scope --up / --down. The value matches the light theme's
+       --text, but is pinned rather than inherited on purpose. */
+    --event-text: rgba(28, 28, 28, 1);
+    --event-text-muted: color-mix(in srgb, var(--event-text) 72%, transparent);
+
+    color: var(--event-text);
     padding: 7px 10px;
     box-shadow: 0 1px 2px var(--shadow-da);
     border: 1px solid var(--border);
@@ -33,22 +52,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: flex-start;
-
-    @container (max-height: 48px) {
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0 12px;
-    }
-}
-
-.schedule-event__left {
-    display: flex;
-    flex-direction: column;
     min-width: 0;
-    max-width: 100%;
 }
 
 .schedule-event__title {
@@ -60,37 +66,90 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-
-    @container (max-height: 48px) {
-        line-height: 1;
-    }
-
-    @media (max-width: 768px) {
-        font-size: var(--fs-sm);
-    }
 }
 
-.schedule-event__location {
-    font-size: var(--fs-xs);
-    margin-top: auto;
-
-    @container (max-height: 48px) {
-        margin-top: 0;
-    }
-
-    @media (max-width: 768px) {
-        margin-top: 2px;
-    }
+/* Time on the left, location on the right, same size */
+.schedule-event__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    font-size: var(--fs-smm);
+    line-height: 1.2;
 }
 
 .schedule-event__time {
-    display: flex;
-    flex-direction: column;
-    font-size: var(--fs-smm);
-    line-height: 1.2;
+    font-weight: 500;
+    white-space: nowrap;
+    /* never truncate the time: the location gives way instead */
+    flex: none;
+}
 
-    @container (max-height: 48px) {
+.schedule-event__location {
+    font-weight: 400;
+    /* A weight drop alone is close to invisible at 14px, so this also steps the
+       colour back. Alpha over the pastel rather than opacity, so the element
+       does not fade as a whole. */
+    color: var(--event-text-muted);
+    text-align: right;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Second row, sitting under the time */
+.schedule-event__status {
+    font-size: var(--fs-xs);
+    line-height: 1.2;
+    font-weight: 400;
+    color: var(--event-text-muted);
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Thresholds are in content-box pixels (what size container queries measure),
+   so they sit well below the card's outer height: a 47px card has ~31px of
+   content once padding and border are taken out. Real durations land at 47px
+   (50 min) and then 75px or more, so only the 50 minute periods collapse.
+   Both values are chosen to fall in the gap between those two, which keeps
+   the result the same even if a browser measured the border box instead.
+
+   Too short for three rows: drop the status. It is the most disposable line
+   and it is only ever present on today's column anyway. */
+@container (max-height: 56px) {
+    .schedule-event__status {
+        display: none;
+    }
+}
+
+/* Too short for two rows (50 minute periods): title and meta share one line. */
+@container (max-height: 50px) {
+    .schedule-event__content {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .schedule-event__title {
+        flex: 1;
+        min-width: 0;
         margin-bottom: 0;
+    }
+
+    .schedule-event__meta {
+        /* Not flex: none. If the column is very narrow, this lets the location
+           ellipsize (the time is nowrap + flex: none, so it never gives way)
+           instead of squeezing the title down to nothing. */
+        min-width: 0;
+        gap: 6px;
+    }
+
+    .schedule-event__location {
+        text-align: left;
     }
 }
 
@@ -112,34 +171,25 @@
         padding: 6px 8px;
     }
 
-    .schedule-event__content {
-        @container (max-height: 48px) {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
+    .schedule-event__title {
+        font-size: var(--fs-sm);
     }
 
-    .schedule-event__left {
-        @container (max-height: 48px) {
-            flex: 1;
-            min-width: 0;
-        }
+    .schedule-event__meta {
+        font-size: var(--fs-xs);
+        gap: 6px;
     }
 
-    .schedule-event__time {
-        @container (max-height: 48px) {
-            text-align: right;
-            flex-shrink: 0;
-            justify-content: center;
-            align-items: center;
-        }
+    .schedule-event__status {
+        font-size: 11px;
     }
 }
 
 /* Home Island mode */
 .homeisland-mode .schedule-event {
     box-shadow: none;
+    /* One step stronger than --hi-tint-3: these sit on opaque pastel fills
+       rather than the glass panel, so they need more contrast to read. */
     border-color: rgba(255, 255, 255, 0.3);
 
     &--current {

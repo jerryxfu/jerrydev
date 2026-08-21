@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {ArrowLeft, ExternalLink, Upload} from "lucide-react";
+import {ArrowLeft, Upload} from "lucide-react";
 import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
@@ -29,6 +29,7 @@ import UploadProgress from "./views/UploadProgress.tsx";
 import {P2PError} from "./p2p/peer.ts";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
 import {receiveP2P} from "./p2p/receiver.ts";
+import Navbar from "@/components/Nav/Navbar.tsx";
 
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
@@ -613,10 +614,13 @@ export default function Expedite() {
         <div className="expedite" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
             <Helmet>
                 <title>Expedite 📦 | jerryxf</title>
-                <meta name="description" content="Quickly share files and text snippets with other people or across your own devices." />
+                <meta name="description"
+                      content="Quickly share files and text snippets with other people or across your own devices." />
                 <link rel="canonical" href="https://jerryxf.net/expedite" />
             </Helmet>
 
+            <Navbar isShrunk={true} />
+            <div className="nav-spacer" />
 
             {/* Drag overlay */}
             <div ref={dragOverlayRef} className="expedite_drag-overlay" style={{opacity: 0, pointerEvents: "none"}}>
@@ -632,10 +636,6 @@ export default function Expedite() {
                     view === "p2p-send" || view === "p2p-receive" ? "expedite_container--p2p" : "",
                 ].filter(Boolean).join(" ")}
             >
-                <a href="/" className="expedite_home-link">
-                    <ExternalLink size={13} />
-                    <span>jerryxf.net</span>
-                </a>
                 <header className="expedite_header">
                     {view !== "landing" && (
                         <button className="expedite_back" onClick={reset}>

@@ -1,22 +1,30 @@
 import React from "react";
 import {type ScheduleEvent as ScheduleEventType} from "../../../types/schedule";
-import {getEventTimeInfo, timeToMinutes} from "../timeUtils.ts";
+import {getEventTimeInfo, MINUTE_HEIGHT, minutesToTime, timeToMinutes} from "../timeUtils.ts";
 import "./ScheduleEvent.scss";
 
 interface ScheduleEventProps {
     event: ScheduleEventType;
     isNext?: boolean;
     isToday?: boolean;
+    nowMinutes: number;
     baseStartMinutes?: number;
     minuteHeight?: number;
 }
 
-const ScheduleEvent: React.FC<ScheduleEventProps> = ({event, isNext = false, isToday = false, baseStartMinutes = 480, minuteHeight = 0.94}) => {
+const ScheduleEvent: React.FC<ScheduleEventProps> = ({
+                                                         event,
+                                                         isNext = false,
+                                                         isToday = false,
+                                                         nowMinutes,
+                                                         baseStartMinutes = 480,
+                                                         minuteHeight = MINUTE_HEIGHT,
+                                                     }) => {
     const startMinutes = timeToMinutes(event.startTime);
     const endMinutes = timeToMinutes(event.endTime);
     const duration = Math.max(0, endMinutes - startMinutes);
 
-    const {status, statusLabel, durationLabel} = getEventTimeInfo(event, isNext);
+    const {status, statusLabel, durationLabel} = getEventTimeInfo(event, isNext, nowMinutes);
 
     // Only show time-aware statuses (current/next/ended) when viewing today
     const effectiveStatus = isToday ? status : "upcoming";
@@ -24,6 +32,10 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = ({event, isNext = false, isT
 
     const top = Math.max(0, startMinutes - baseStartMinutes) * minuteHeight;
     const height = Math.max(2, duration * minuteHeight);
+
+    // Config writes both "8:30" and "13:30"; round-trip so labels line up.
+    const startLabel = minutesToTime(startMinutes);
+    const endLabel = minutesToTime(endMinutes);
 
     const className = [
         "schedule-event",
@@ -42,18 +54,18 @@ const ScheduleEvent: React.FC<ScheduleEventProps> = ({event, isNext = false, isT
             }}
         >
             <div className="schedule-event__content">
-                <div className="schedule-event__left">
-                    <div className="schedule-event__title" title={event.title}>
-                        {event.title}
-                    </div>
+                <div className="schedule-event__title" title={event.title}>
+                    {event.title}
+                </div>
+
+                <div className="schedule-event__meta">
+                    <span className="schedule-event__time">{startLabel}-{endLabel} ({durationLabel})</span>
                     {event.location && (
-                        <div className="schedule-event__location">{event.location}</div>
+                        <span className="schedule-event__location" title={event.location}>{event.location}</span>
                     )}
                 </div>
-                <div className="schedule-event__time">
-                    <p>{event.startTime}-{event.endTime} ({durationLabel})</p>
-                    {effectiveLabel && <p>{effectiveLabel}</p>}
-                </div>
+
+                {effectiveLabel && <div className="schedule-event__status">{effectiveLabel}</div>}
             </div>
         </div>
     );

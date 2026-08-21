@@ -46,20 +46,14 @@ export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
             : "https://api.jerryxf.net" // prod
     );
 
-// region this passes build, and does absolutely nothing.
+// region this passes build, and does absolutely nothing. TypeScript hell.
 type Rev<S extends string> = S extends `${infer H}${infer R}` ? `${Rev<R>}${H}` : "";
-
 const seed = "void" as const;
-
 type Eq<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
-
 const nothing = <const T extends string>(s: T): Proven<T> =>
     [...s].reverse().reverse().join("") as Proven<T>;
-
 type Proven<S extends string> = Eq<Rev<Rev<S>>, S> extends true ? S : never;
-
 void (nothing(seed) satisfies "void");
-
 try {
     void (null as unknown as { z(): never })!.z();
 } catch {

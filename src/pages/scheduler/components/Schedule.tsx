@@ -1,8 +1,8 @@
 import React from "react";
 import {type BreakPeriod, type Schedule as ScheduleType} from "../../../types/schedule";
-import ScheduleEvent from "./ScheduleEvent";
-import {getNextEvent, minutesToTime, timeToMinutes} from "../timeUtils.ts";
+import {getScheduleGeometry} from "../timeUtils.ts";
 import TimeColumn from "./TimeColumn";
+import DayColumn from "./DayColumn";
 import "./Schedule.scss";
 
 interface ScheduleProps {
@@ -13,41 +13,28 @@ interface ScheduleProps {
     breakPeriods?: BreakPeriod[];
     showBreaks?: boolean;
     isToday?: boolean;
+    nowMinutes: number;
+    /** Selected day key, used to keep React keys unique across days. */
+    dayKey?: string;
 }
 
-const MINUTE_HEIGHT = 0.94;
-
-/** Convert schedule.timeSlots config into the format TimeColumn expects */
-const mapTimeSlots = (schedule: ScheduleType) =>
-    schedule.timeSlots?.map(s => {
-        const startLabel = `${String(s.hour).padStart(2, "0")}:${String(s.minute).padStart(2, "0")}`;
-        const hasEnd = s.endHour != null && s.endMinute != null;
-
-        const slot: { time: string; label?: string; endTime?: string; endLabel?: string } = {
-            time: startLabel,
-            label: s.label ?? startLabel,
-        };
-
-        if (hasEnd) {
-            slot.endTime = minutesToTime(s.endHour! * 60 + s.endMinute!);
-            const computedEndLabel = `${String(s.endHour).padStart(2, "0")}:${String(s.endMinute).padStart(2, "0")}`;
-            slot.endLabel = s.endLabel ?? computedEndLabel;
-        }
-
-        return slot;
+/** Single-day view: one time column, one day of events. */
+const Schedule: React.FC<ScheduleProps> = ({
+                                               schedule,
+                                               startTime,
+                                               endTime,
+                                               slotMinutes,
+                                               breakPeriods = [],
+                                               showBreaks = false,
+                                               isToday = false,
+                                               nowMinutes,
+                                               dayKey = "",
+                                           }) => {
+    const geometry = getScheduleGeometry(schedule, {
+        ...(startTime && {startTime}),
+        ...(endTime && {endTime}),
+        ...(slotMinutes && {slotMinutes}),
     });
-
-const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMinutes, breakPeriods = [], showBreaks = false, isToday = false}) => {
-    const displayStart = startTime ?? schedule.startTime ?? "08:00";
-    const displayEnd = endTime ?? schedule.endTime ?? "18:00";
-    const displaySlotMinutes = slotMinutes ?? schedule.slotMinutes ?? 60;
-    const explicitSlots = mapTimeSlots(schedule);
-
-    const baseStartMinutes = timeToMinutes(displayStart);
-    const baseEndMinutes = timeToMinutes(displayEnd);
-    const containerHeight = Math.max(0, (baseEndMinutes - baseStartMinutes) * MINUTE_HEIGHT);
-
-    const nextEvent = getNextEvent(schedule.events);
 
     return (
         <div className="schedule">
@@ -58,51 +45,26 @@ const Schedule: React.FC<ScheduleProps> = ({schedule, startTime, endTime, slotMi
             <div className="schedule_container">
                 <div className="schedule_time-column">
                     <TimeColumn
-                        startTime={displayStart}
-                        endTime={displayEnd}
-                        slotMinutes={displaySlotMinutes}
-                        minuteHeight={MINUTE_HEIGHT}
-                        {...(explicitSlots && {slots: explicitSlots})}
+                        tiles={geometry.tiles}
+                        startMinutes={geometry.startMinutes}
+                        minuteHeight={geometry.minuteHeight}
+                        height={geometry.height}
                     />
                 </div>
 
-                <div className="schedule_grid" style={{height: `${containerHeight}px`}}>
-                    {/* Break periods (comparison mode) */}
-                    {showBreaks && breakPeriods.map((bp, i) => {
-                        const startMin = timeToMinutes(bp.startTime);
-                        const endMin = timeToMinutes(bp.endTime);
-                        const duration = Math.max(0, endMin - startMin);
-                        const top = Math.max(0, startMin - baseStartMinutes) * MINUTE_HEIGHT;
-                        const height = Math.max(2, duration * MINUTE_HEIGHT);
-
-                        return (
-                            <div
-                                key={`break-${i}`}
-                                className="schedule-break"
-                                style={{top: `${top}px`, height: `${height}px`}}
-                            >
-                                <div className="schedule-break_content">
-                                    <span className="schedule-break_label">Free</span>
-                                    <span className="schedule-break_time">
-                                        {bp.startTime}-{bp.endTime}
-                                    </span>
-                                </div>
-                            </div>
-                        );
-                    })}
-
-                    {/* Events */}
-                    {schedule.events.map(event => (
-                        <ScheduleEvent
-                            key={event.id}
-                            event={event}
-                            isNext={nextEvent?.id === event.id}
-                            isToday={isToday}
-                            baseStartMinutes={baseStartMinutes}
-                            minuteHeight={MINUTE_HEIGHT}
-                        />
-                    ))}
-                </div>
+                <DayColumn
+                    events={schedule.events}
+                    tiles={geometry.tiles}
+                    startMinutes={geometry.startMinutes}
+                    endMinutes={geometry.endMinutes}
+                    minuteHeight={geometry.minuteHeight}
+                    height={geometry.height}
+                    nowMinutes={nowMinutes}
+                    isToday={isToday}
+                    breakPeriods={breakPeriods}
+                    showBreaks={showBreaks}
+                    dayKey={dayKey}
+                />
             </div>
         </div>
     );

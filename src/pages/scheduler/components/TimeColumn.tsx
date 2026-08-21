@@ -1,71 +1,47 @@
 import React from "react";
-import {buildTimeSlots, timeToMinutes} from "../timeUtils.ts";
+import {type TimeTile} from "../timeUtils.ts";
 import "./TimeColumn.scss";
 
 interface TimeColumnProps {
-    startTime?: string;
-    endTime?: string;
-    slotMinutes?: number;
-    slots?: Array<{ time: string; label?: string; endTime?: string; endLabel?: string }>;
-    minuteHeight?: number;
-}
-
-interface Tile {
+    tiles: TimeTile[];
+    /** Minute value at the top of the column. */
     startMinutes: number;
-    endMinutes: number;
-    label?: string;
-    endLabel?: string;
-    isGap?: boolean;
+    minuteHeight: number;
+    /** Must equal the grid height, both come from getScheduleGeometry. */
+    height: number;
 }
 
-const TimeColumn: React.FC<TimeColumnProps> = ({startTime = "08:00", endTime = "18:00", slotMinutes = 60, slots, minuteHeight = 0.94}) => {
-    const intervals = buildTimeSlots({startTime, endTime, slotMinutes, ...(slots && {slots})})
-        .sort((a, b) => a.startMinutes - b.startMinutes);
+/**
+ * The time labels down the left edge.
+ *
+ * Tiles are absolutely positioned off the same (minutes -> pixels) mapping the
+ * events use. They used to be stacked flex children, which meant that whenever
+ * the column was shorter than its content the browser shrank the tiles (flex
+ * items shrink by default) while the absolutely positioned events kept their
+ * size, and the labels silently drifted out of line with the events. In a short
+ * viewport, or the 568px Home Island iframe, that was every single render.
+ */
+const TimeColumn: React.FC<TimeColumnProps> = ({tiles, startMinutes, minuteHeight, height}) => (
+    <div className="time_column" style={{height: `${height}px`}}>
+        {tiles.map((tile, i) => {
+            if (tile.isGap) return null;
 
-    const rangeStart = timeToMinutes(startTime);
-    const rangeEnd = timeToMinutes(endTime);
+            const top = (tile.startMinutes - startMinutes) * minuteHeight;
+            const tileHeight = (tile.endMinutes - tile.startMinutes) * minuteHeight;
+            if (tileHeight <= 0) return null;
 
-    // Build tiles that cover the full range, insert gaps between intervals
-    const tiles: Tile[] = [];
-    let cursor = rangeStart;
-
-    for (const s of intervals) {
-        if (s.startMinutes > cursor) {
-            tiles.push({startMinutes: cursor, endMinutes: s.startMinutes, isGap: true});
-        }
-        const tile: Tile = {startMinutes: s.startMinutes, endMinutes: s.endMinutes};
-        if (s.label !== undefined) tile.label = s.label;
-        if (s.endLabel !== undefined) tile.endLabel = s.endLabel;
-        tiles.push(tile);
-        cursor = s.endMinutes;
-    }
-    if (cursor < rangeEnd) {
-        tiles.push({startMinutes: cursor, endMinutes: rangeEnd, isGap: true});
-    }
-
-    return (
-        <div className="time_column">
-            {tiles.map((tile, i) => {
-                const height = (tile.endMinutes - tile.startMinutes) * minuteHeight;
-                if (height <= 0) return null;
-
-                return (
-                    <div
-                        key={`${tile.startMinutes}-${i}`}
-                        className={`time_slot${tile.isGap ? " time_slot-gap" : ""}`}
-                        style={{height: `${height}px`}}
-                    >
-                        {!tile.isGap && tile.label && (
-                            <span className="time_label time_label-start">{tile.label}</span>
-                        )}
-                        {!tile.isGap && tile.endLabel && (
-                            <span className="time_label time_label-end">{tile.endLabel}</span>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
+            return (
+                <div
+                    key={`${tile.startMinutes}-${i}`}
+                    className="time_slot"
+                    style={{top: `${top}px`, height: `${tileHeight}px`}}
+                >
+                    {tile.label && <span className="time_label time_label-start">{tile.label}</span>}
+                    {tile.endLabel && <span className="time_label time_label-end">{tile.endLabel}</span>}
+                </div>
+            );
+        })}
+    </div>
+);
 
 export default TimeColumn;

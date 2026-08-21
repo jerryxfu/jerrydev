@@ -7,24 +7,6 @@
     overflow-y: auto;
 }
 
-.scheduler-overlay-disabled {
-    position: absolute;
-    height: 100vh;
-    width: 100%;
-    z-index: 999;
-    background: var(--shadow-daa);
-    pointer-events: none;
-
-    h2 {
-        font-size: var(--fs-3xl);
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        pointer-events: auto;
-    }
-}
-
 .scheduler-header {
     padding: 6px 12px;
     border-bottom: 1px solid var(--border);
@@ -113,11 +95,22 @@
     }
 }
 
+/* Vertical rule between the schedule picker and the view buttons */
+.scheduler-divider {
+    width: 1px;
+    align-self: stretch;
+    min-height: 1.6rem;
+    background: var(--border);
+    flex: none;
+}
+
 /* Day buttons */
 .scheduler-day-buttons {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
+    /* extra breathing room after the Week button */
+    margin-left: 4px;
 }
 
 .scheduler-day-btn {
@@ -174,6 +167,12 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    /* Header row and body are both children of .week-schedule, so a min-width
+       here scrolls them together and keeps the day headers over their columns. */
+    .week-schedule {
+        min-width: 560px;
+    }
+
     .scheduler-header {
         padding: 8px 12px;
     }
@@ -188,20 +187,33 @@
     }
 }
 
-/* Home Island mode */
+/* Home Island mode
+
+   The panel floats over the extension's own day/night gradient, which the site
+   theme knows nothing about, so these overlays are deliberately theme
+   independent rather than var(--surface) / var(--border): a night-theme border
+   would vanish against a bright morning background.
+
+   Custom properties inherit, so declaring the ladder here means the four
+   scheduler stylesheets that need it stop each carrying their own rgba
+   literal that has to be kept in agreement. */
 .scheduler.homeisland-mode {
-    background: rgba(255, 255, 255, 0.10);
+    --hi-tint-1: rgba(255, 255, 255, 0.10); // panel fill, faintest rules
+    --hi-tint-2: rgba(255, 255, 255, 0.15); // control fill, hour lines
+    --hi-tint-3: rgba(255, 255, 255, 0.20); // standard borders
+
+    background: var(--hi-tint-1);
     backdrop-filter: blur(12px);
     min-height: 100vh;
 
     .scheduler-header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid var(--hi-tint-1);
         padding: 8px 12px;
     }
 
     .scheduler-select {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: var(--hi-tint-2);
+        border-color: var(--hi-tint-3);
         backdrop-filter: blur(5px);
     }
 
