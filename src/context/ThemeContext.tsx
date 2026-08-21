@@ -1,10 +1,14 @@
 import React, {createContext, type ReactNode, useContext, useEffect, useMemo, useState} from "react";
 
-// Adding a theme:
+// Adding a theme, all six steps:
 // 1. add its name to THEMES below
-// 2. add a [data-theme="name"] block in index.scss
-// 3. add an icon for it in ThemeToggle.tsx
-export const THEMES = ["light", "night", "pink"] as const;
+// 2. add it to DARK_THEMES below if its background is dark
+// 3. add a [data-theme="name"] block in index.scss
+// 4. add an icon and a label for it in ThemeToggle.tsx
+// 5. add a gradient mesh in src/assets/styles/, then map and preload it in Hero.tsx
+// 6. add it to the themes list and the boot colour map in index.html
+// Only 1, 4 and 5 are type checked. The rest fail silently, so work the list.
+export const THEMES = ["light", "night", "blush", "burgundy"] as const;
 export type Theme = typeof THEMES[number];
 
 // The order the toggle cycles through, with auto at thr end
@@ -12,7 +16,7 @@ export const THEME_PREFERENCES = [...THEMES, "auto"] as const;
 export type ThemePreference = typeof THEME_PREFERENCES[number];
 
 // Themes with a dark background. Used to resolve "auto", and available to components that swap assets based on background lightness.
-const DARK_THEMES: readonly Theme[] = ["night"];
+const DARK_THEMES: readonly Theme[] = ["night", "burgundy"];
 
 export const isDarkTheme = (theme: Theme): boolean => DARK_THEMES.includes(theme);
 

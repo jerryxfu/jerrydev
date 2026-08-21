@@ -7,7 +7,7 @@ import {type BreakPeriod, type Schedule as ScheduleType, type ScheduleEvent} fro
  * in Schedule, ScheduleEvent and TimeColumn, which is how the time column and
  * the event grid were able to disagree with each other.
  */
-export const MINUTE_HEIGHT = 0.94;
+export const MINUTE_HEIGHT = 0.96;
 
 export const DEFAULT_START_TIME = "08:00";
 export const DEFAULT_END_TIME = "18:00";
@@ -177,8 +177,7 @@ function buildUniform(rangeStart: number, rangeEnd: number, slotMinutes: number)
 // Geometry
 
 /**
- * One band of the vertical axis. Real slots carry labels, gaps are the dead
- * time between them (e.g. the 10 minutes between periods).
+ * One band of the vertical axis. Real slots carry labels, gaps are the dead time between them (e.g. the 10 minutes between periods).
  */
 export interface TimeTile {
     startMinutes: number;
@@ -191,10 +190,8 @@ export interface TimeTile {
 /**
  * The window to draw, widened so nothing gets clipped.
  *
- * The configured 08:00-18:00 default silently cut off any event running past
- * it (Zoe's Thursday soccer ends at 18:05 and hung out of the bottom of the
- * grid). Taking the union with the actual event bounds means adding a late or
- * early class just grows the view instead of losing it.
+ * The configured 08:00-18:00 default silently cut off any event running past it.
+ * Taking the union with the actual event bounds means adding a late or early class just grows the view instead of losing it.
  */
 export const resolveDisplayRange = (schedule: ScheduleType): { startTime: string; endTime: string } => {
     let start = timeToMinutes(schedule.startTime ?? DEFAULT_START_TIME);

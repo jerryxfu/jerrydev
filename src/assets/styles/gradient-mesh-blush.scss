@@ -1,31 +1,30 @@
-// Blue mesh, centred on #abcdef (hsl 210 68% 80%), which is --primary in the
-// light theme. The base fill is that colour exactly; the blobs sit within a
-// narrow band around it, and the two warm pink blobs in the end frame are held
-// back so they read as a tint rather than a second theme colour.
+// Generated from gradient-mesh-default.scss by compressing its blue/violet
+// hue band (205-340) into pink/magenta (308-352). Saturation, lightness,
+// positions and timing are untouched, so it animates identically.
 
-@keyframes gradient-animation-default {
+@keyframes gradient-animation-blush {
     0% {
-        --c-0: hsla(216, 70%, 76%, 1);
+        --c-0: hsla(316, 70%, 76%, 1);
         --x-0: 55%;
         --y-0: 56%;
         --s-start-0: 10%;
         --s-end-0: 71%;
-        --c-1: hsla(228, 45%, 88%, 1);
+        --c-1: hsla(326, 45%, 88%, 1);
         --x-1: 77%;
         --y-1: 95%;
         --s-start-1: 11%;
         --s-end-1: 54%;
-        --c-2: hsla(218, 78%, 83%, 1);
+        --c-2: hsla(318, 80%, 83%, 1);
         --x-2: 39%;
         --y-2: 37%;
         --s-start-2: 12%;
         --s-end-2: 72%;
-        --c-3: hsla(206, 66%, 75%, 1);
+        --c-3: hsla(308, 65%, 74%, 1);
         --x-3: 29%;
         --y-3: 60%;
         --s-start-3: 0%;
         --s-end-3: 87%;
-        --c-4: hsla(242, 40%, 71%, 1);
+        --c-4: hsla(332, 40%, 70%, 1);
         --x-4: 61%;
         --y-4: 2%;
         --s-start-4: 5%;
@@ -33,27 +32,27 @@
     }
 
     100% {
-        --c-0: hsla(210, 68%, 85%, 1);
+        --c-0: hsla(311, 68%, 85%, 1);
         --x-0: 76%;
         --y-0: 100%;
         --s-start-0: 8%;
         --s-end-0: 74%;
-        --c-1: hsla(338, 56%, 82%, 1);
+        --c-1: hsla(352, 80%, 76%, 1);
         --x-1: 46%;
         --y-1: 38%;
         --s-start-1: 17%;
         --s-end-1: 73%;
-        --c-2: hsla(314, 38%, 82%, 1);
+        --c-2: hsla(344, 52%, 76%, 1);
         --x-2: 2%;
         --y-2: 5%;
         --s-start-2: 9%;
         --s-end-2: 81%;
-        --c-3: hsla(214, 68%, 84%, 1);
+        --c-3: hsla(315, 68%, 84%, 1);
         --x-3: 19%;
         --y-3: 48%;
         --s-start-3: 5%;
         --s-end-3: 79%;
-        --c-4: hsla(212, 52%, 73%, 1);
+        --c-4: hsla(315, 52%, 72%, 1);
         --x-4: 40%;
         --y-4: 91%;
         --s-start-4: 6%;
@@ -64,7 +63,7 @@
 @property --c-0 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(216, 70%, 76%, 1);
+    initial-value: #a3a3ff;
 }
 
 @property --x-0 {
@@ -94,7 +93,7 @@
 @property --c-1 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(228, 45%, 88%, 1);
+    initial-value: #e8d7f0;
 }
 
 @property --x-1 {
@@ -124,7 +123,7 @@
 @property --c-2 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(218, 78%, 83%, 1);
+    initial-value: #c7c9ff;
 }
 
 @property --x-2 {
@@ -154,7 +153,7 @@
 @property --c-3 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(206, 66%, 75%, 1);
+    initial-value: #8eb4e6;
 }
 
 @property --x-3 {
@@ -184,7 +183,7 @@
 @property --c-4 {
     syntax: "<color>";
     inherits: false;
-    initial-value: hsla(242, 40%, 71%, 1);
+    initial-value: #d89dd8;
 }
 
 @property --x-4 {
@@ -211,25 +210,25 @@
     initial-value: 74%;
 }
 
-.gradient-mesh-default {
-    --c-0: hsla(216, 70%, 76%, 1);
+.gradient-mesh-blush {
+    --c-0: hsla(316, 70%, 76%, 1);
     --x-0: 55%;
     --y-0: 56%;
-    --c-1: hsla(228, 45%, 88%, 1);
+    --c-1: hsla(326, 45%, 88%, 1);
     --x-1: 77%;
     --y-1: 95%;
-    --c-2: hsla(218, 78%, 83%, 1);
+    --c-2: hsla(318, 80%, 83%, 1);
     --x-2: 39%;
     --y-2: 37%;
-    --c-3: hsla(206, 66%, 75%, 1);
+    --c-3: hsla(308, 65%, 74%, 1);
     --x-3: 29%;
     --y-3: 60%;
-    --c-4: hsla(242, 40%, 71%, 1);
+    --c-4: hsla(332, 40%, 70%, 1);
     --x-4: 61%;
     --y-4: 2%;
-    background-color: hsla(210, 68%, 80%, 1); // #abcdef, the --primary blue
+    background-color: hsla(326, 55%, 86%, 1);
     background-image: radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)), radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)), radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)), radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3)), radial-gradient(circle at var(--x-4) var(--y-4), var(--c-4) var(--s-start-4), transparent var(--s-end-4));
-    animation: gradient-animation-default 8s linear infinite alternate;
+    animation: gradient-animation-blush 8s linear infinite alternate;
     background-blend-mode: normal, normal, normal, normal, normal;
     position: absolute;
     width: 100%;

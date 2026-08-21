@@ -89,6 +89,14 @@ const projects: CardProps[] = [
         footer: "/bap"
     },
     {
+        title: "Scheduler",
+        subTitle: "A schedule visualizer and comparer",
+        image: _scheduler,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2025-08-27")),
+        description: "A web app to visualize and compare daily/weekly schedules.",
+    },
+    {
         title: "Rendezvous",
         subTitle: "A tool to help schedule group events",
         image: _rendezvous,
@@ -160,14 +168,6 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
         description: "This portfolio website as well as the API that empowers other projects.",
-    },
-    {
-        title: "Scheduler",
-        subTitle: "A schedule visualizer and comparer",
-        image: _scheduler,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-27")),
-        description: "A web app to visualize and compare daily/weekly schedules.",
     },
     {
         title: "Doublestartyre CA",

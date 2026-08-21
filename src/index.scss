@@ -165,7 +165,7 @@ body.homeisland-body {
     --hero-glow: rgba(238, 248, 252, 0.40);
 }
 
-[data-theme="pink"] {
+[data-theme="blush"] {
     --primary: rgba(247, 184, 216, 1);
     --primary-lt: rgba(251, 207, 228, 1);
     --primary-ltx: rgba(253, 227, 239, 1);
@@ -207,6 +207,54 @@ body.homeisland-body {
     --hero-glow: rgba(255, 238, 247, 0.40);
 }
 
+// Burgundy: a dark theme.
+[data-theme="burgundy"] {
+    // Sits at hue 345, the wine side of red rather than scarlet: #9e1e3e is
+    // close to classic burgundy (#800020) but light enough to survive being used
+    // as an accent on a dark background. Secondary is a warm neutral grey.
+    --primary: rgba(158, 30, 62, 1);
+    --primary-lt: rgba(186, 56, 88, 1);
+    --primary-ltx: rgba(210, 104, 132, 1);
+    --primary-da: rgba(122, 20, 46, 1);
+
+    --secondary: rgba(150, 140, 144, 1);
+    --secondary-lt: rgba(180, 170, 174, 1);
+    --secondary-da: rgba(118, 108, 112, 1);
+
+    --accent: rgba(212, 175, 140, 1);
+    --accent-lt: rgba(228, 200, 174, 1);
+    --accent-da: rgba(190, 150, 112, 1);
+
+    --bg: rgba(32, 12, 20, 1);
+    --bg-lt: rgba(46, 18, 30, 1);
+    --bg-da: rgba(21, 8, 13, 1);
+
+    // As in the night theme, -lt is the subtler rule and -da the stronger one.
+    --border-lt: rgba(58, 28, 40, 1);
+    --border: rgba(74, 36, 50, 1);
+    --border-da: rgba(94, 46, 64, 1);
+
+    --surface-lt: rgba(255, 232, 240, 0.02);
+    --surface: rgba(255, 232, 240, 0.04);
+    --surface-da: rgba(255, 232, 240, 0.06);
+    --surface-daa: rgba(0, 0, 0, 0.35);
+
+    --text-strong: rgba(253, 246, 248, 1);
+    --text: rgba(248, 238, 242, 1);
+    --text-2: rgba(216, 194, 202, 1);
+    --text-3: rgba(180, 152, 164, 1);
+    --text-4: rgba(150, 122, 134, 1);
+    --text-5: rgba(118, 92, 104, 1);
+
+    --shadow-daa: rgba(0, 0, 0, 0.6);
+    --shadow-da: rgba(0, 0, 0, 0.32);
+    --shadow: rgba(0, 0, 0, 0.22);
+    --shadow-lt: rgba(0, 0, 0, 0.14);
+
+    --hero-glow: rgba(255, 234, 240, 0.35);
+}
+
+
 .section {
     max-width: 100%;
     padding: 1.25rem 3%;
@@ -215,10 +263,6 @@ body.homeisland-body {
     @media screen and (max-width: 768px) {
         padding: 1.2rem 2%;
     }
-}
-
-.nav-spacer {
-    height: calc(56px + 2rem + env(safe-area-inset-top));
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -15,7 +15,8 @@ import("../../../assets/styles/gradient-mesh-default.scss");
 const GRADIENT_MESHES: Record<Theme, string> = {
     light: "gradient-mesh-default",
     night: "gradient-mesh-night",
-    pink: "gradient-mesh-pink",
+    blush: "gradient-mesh-blush",
+    burgundy: "gradient-mesh-burgundy",
 };
 
 let isGsapConfigured = false;
@@ -60,7 +61,8 @@ export default function Hero() {
     useEffect(() => {
         // Preload the other styles on mount so the first switch doesn't jump/look buggy
         import("../../../assets/styles/gradient-mesh-night.scss");
-        import("../../../assets/styles/gradient-mesh-pink.scss");
+        import("../../../assets/styles/gradient-mesh-blush.scss");
+        import("../../../assets/styles/gradient-mesh-burgundy.scss");
     }, []);
 
     useEffect(() => {

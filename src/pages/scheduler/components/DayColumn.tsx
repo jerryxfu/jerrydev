@@ -25,19 +25,20 @@ interface DayColumnProps {
  * and the current-time line. Shared by the single-day and week views so both
  * render a day identically.
  */
-const DayColumn: React.FC<DayColumnProps> = ({
-                                                 events,
-                                                 tiles,
-                                                 startMinutes,
-                                                 endMinutes,
-                                                 minuteHeight,
-                                                 height,
-                                                 nowMinutes,
-                                                 isToday = false,
-                                                 breakPeriods = [],
-                                                 showBreaks = false,
-                                                 dayKey = "",
-                                             }) => {
+const DayColumn: React.FC<DayColumnProps> = (
+    {
+        events,
+        tiles,
+        startMinutes,
+        endMinutes,
+        minuteHeight,
+        height,
+        nowMinutes,
+        isToday = false,
+        breakPeriods = [],
+        showBreaks = false,
+        dayKey = "",
+    }) => {
     const nextEvent = getNextEvent(events, nowMinutes);
     const showNowLine = isToday && nowMinutes >= startMinutes && nowMinutes <= endMinutes;
 

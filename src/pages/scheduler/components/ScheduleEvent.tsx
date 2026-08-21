@@ -12,14 +12,15 @@ interface ScheduleEventProps {
     minuteHeight?: number;
 }
 
-const ScheduleEvent: React.FC<ScheduleEventProps> = ({
-                                                         event,
-                                                         isNext = false,
-                                                         isToday = false,
-                                                         nowMinutes,
-                                                         baseStartMinutes = 480,
-                                                         minuteHeight = MINUTE_HEIGHT,
-                                                     }) => {
+const ScheduleEvent: React.FC<ScheduleEventProps> = (
+    {
+        event,
+        isNext = false,
+        isToday = false,
+        nowMinutes,
+        baseStartMinutes = 480,
+        minuteHeight = MINUTE_HEIGHT,
+    }) => {
     const startMinutes = timeToMinutes(event.startTime);
     const endMinutes = timeToMinutes(event.endTime);
     const duration = Math.max(0, endMinutes - startMinutes);

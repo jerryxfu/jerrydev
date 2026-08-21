@@ -31,7 +31,7 @@
             } catch (e) {
             }
             // in sync with THEMES in src/context/ThemeContext.tsx
-            const themes = ["light", "night", "pink"];
+            const themes = ["light", "night", "blush", "burgundy"];
 
             const pref = (themes.indexOf(stored) !== -1 || stored === "auto") ? stored : "light";
 
@@ -42,7 +42,7 @@
             document.documentElement.setAttribute("data-theme", theme);
             // Firefox paints before external CSS resolves custom properties, so cover the gap inline.
             // These must match --bg for each theme in index.scss.
-            const boot = {light: "#fbfaf9", night: "#101010", pink: "#fff7fb"};
+            const boot = {light: "#fbfaf9", night: "#101010", blush: "#fff7fb", burgundy: "#200c14"};
             document.documentElement.style.background = boot[theme];
 
             // Apply same value to prevent FOUC from OS theme.

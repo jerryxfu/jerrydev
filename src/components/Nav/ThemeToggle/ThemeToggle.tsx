@@ -1,6 +1,6 @@
 import {useEffect, useRef} from "react";
 import {gsap} from "gsap";
-import {Flower2, Moon, Sun, SunMoon} from "lucide-react";
+import {Flower2, Moon, Sun, SunMoon, Wine} from "lucide-react";
 import {type ThemePreference, useTheme} from "../../../context/ThemeContext.tsx";
 import "./ThemeToggle.scss";
 
@@ -11,14 +11,16 @@ import "./ThemeToggle.scss";
 const ICONS: Record<ThemePreference, typeof Sun> = {
     light: Sun,
     night: Moon,
-    pink: Flower2,
+    blush: Flower2,
+    burgundy: Wine,
     auto: SunMoon,
 };
 
 const LABELS: Record<ThemePreference, string> = {
     light: "Light",
     night: "Night",
-    pink: "Pink",
+    blush: "Blush",
+    burgundy: "Burgundy",
     auto: "Auto",
 };
 

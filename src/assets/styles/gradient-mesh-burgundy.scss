@@ -1,30 +1,34 @@
-// Generated from gradient-mesh-default.scss by compressing its blue/violet
-// hue band (205-340) into pink/magenta (308-352). Saturation, lightness,
-// positions and timing are untouched, so it animates identically.
+// Burgundy mesh. Positions, sizes and timing come from the other meshes, so it
+// animates identically, but the colours follow the night mesh's approach rather
+// than blush's: a genuinely dark base with translucent blobs over it.
+//
+// The first pass put 22-28% blobs on a 28% base, which is why it read as one
+// flat colour. Blobs now span 18-32% lightness with per-blob alpha, over a 7%
+// base, so each one is actually distinguishable.
 
-@keyframes gradient-animation-pink {
+@keyframes gradient-animation-burgundy {
     0% {
-        --c-0: hsla(316, 70%, 76%, 1);
+        --c-0: hsla(345, 60%, 30%, 0.60);
         --x-0: 55%;
         --y-0: 56%;
         --s-start-0: 10%;
         --s-end-0: 71%;
-        --c-1: hsla(326, 45%, 88%, 1);
+        --c-1: hsla(332, 50%, 22%, 0.45);
         --x-1: 77%;
         --y-1: 95%;
         --s-start-1: 11%;
         --s-end-1: 54%;
-        --c-2: hsla(318, 80%, 83%, 1);
+        --c-2: hsla(350, 65%, 27%, 0.55);
         --x-2: 39%;
         --y-2: 37%;
         --s-start-2: 12%;
         --s-end-2: 72%;
-        --c-3: hsla(308, 65%, 74%, 1);
+        --c-3: hsla(340, 55%, 19%, 0.42);
         --x-3: 29%;
         --y-3: 60%;
         --s-start-3: 0%;
         --s-end-3: 87%;
-        --c-4: hsla(332, 40%, 70%, 1);
+        --c-4: hsla(358, 45%, 24%, 0.50);
         --x-4: 61%;
         --y-4: 2%;
         --s-start-4: 5%;
@@ -32,27 +36,27 @@
     }
 
     100% {
-        --c-0: hsla(311, 68%, 85%, 1);
+        --c-0: hsla(342, 55%, 24%, 0.52);
         --x-0: 76%;
         --y-0: 100%;
         --s-start-0: 8%;
         --s-end-0: 74%;
-        --c-1: hsla(352, 80%, 76%, 1);
+        --c-1: hsla(352, 62%, 32%, 0.58);
         --x-1: 46%;
         --y-1: 38%;
         --s-start-1: 17%;
         --s-end-1: 73%;
-        --c-2: hsla(344, 52%, 76%, 1);
+        --c-2: hsla(336, 48%, 20%, 0.44);
         --x-2: 2%;
         --y-2: 5%;
         --s-start-2: 9%;
         --s-end-2: 81%;
-        --c-3: hsla(315, 68%, 84%, 1);
+        --c-3: hsla(348, 58%, 28%, 0.55);
         --x-3: 19%;
         --y-3: 48%;
         --s-start-3: 5%;
         --s-end-3: 79%;
-        --c-4: hsla(315, 52%, 72%, 1);
+        --c-4: hsla(330, 50%, 18%, 0.42);
         --x-4: 40%;
         --y-4: 91%;
         --s-start-4: 6%;
@@ -63,7 +67,7 @@
 @property --c-0 {
     syntax: "<color>";
     inherits: false;
-    initial-value: #a3a3ff;
+    initial-value: hsla(345, 60%, 30%, 0.60);
 }
 
 @property --x-0 {
@@ -93,7 +97,7 @@
 @property --c-1 {
     syntax: "<color>";
     inherits: false;
-    initial-value: #e8d7f0;
+    initial-value: hsla(332, 50%, 22%, 0.45);
 }
 
 @property --x-1 {
@@ -123,7 +127,7 @@
 @property --c-2 {
     syntax: "<color>";
     inherits: false;
-    initial-value: #c7c9ff;
+    initial-value: hsla(350, 65%, 27%, 0.55);
 }
 
 @property --x-2 {
@@ -153,7 +157,7 @@
 @property --c-3 {
     syntax: "<color>";
     inherits: false;
-    initial-value: #8eb4e6;
+    initial-value: hsla(340, 55%, 19%, 0.42);
 }
 
 @property --x-3 {
@@ -183,7 +187,7 @@
 @property --c-4 {
     syntax: "<color>";
     inherits: false;
-    initial-value: #d89dd8;
+    initial-value: hsla(358, 45%, 24%, 0.50);
 }
 
 @property --x-4 {
@@ -210,25 +214,25 @@
     initial-value: 74%;
 }
 
-.gradient-mesh-pink {
-    --c-0: hsla(316, 70%, 76%, 1);
+.gradient-mesh-burgundy {
+    --c-0: hsla(345, 60%, 30%, 0.60);
     --x-0: 55%;
     --y-0: 56%;
-    --c-1: hsla(326, 45%, 88%, 1);
+    --c-1: hsla(332, 50%, 22%, 0.45);
     --x-1: 77%;
     --y-1: 95%;
-    --c-2: hsla(318, 80%, 83%, 1);
+    --c-2: hsla(350, 65%, 27%, 0.55);
     --x-2: 39%;
     --y-2: 37%;
-    --c-3: hsla(308, 65%, 74%, 1);
+    --c-3: hsla(340, 55%, 19%, 0.42);
     --x-3: 29%;
     --y-3: 60%;
-    --c-4: hsla(332, 40%, 70%, 1);
+    --c-4: hsla(358, 45%, 24%, 0.50);
     --x-4: 61%;
     --y-4: 2%;
-    background-color: hsla(326, 55%, 86%, 1);
+    background-color: hsla(345, 45%, 7%, 1);
     background-image: radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)), radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)), radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)), radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3)), radial-gradient(circle at var(--x-4) var(--y-4), var(--c-4) var(--s-start-4), transparent var(--s-end-4));
-    animation: gradient-animation-pink 8s linear infinite alternate;
+    animation: gradient-animation-burgundy 8s linear infinite alternate;
     background-blend-mode: normal, normal, normal, normal, normal;
     position: absolute;
     width: 100%;

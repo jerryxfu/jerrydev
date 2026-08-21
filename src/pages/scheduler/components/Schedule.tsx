@@ -19,17 +19,18 @@ interface ScheduleProps {
 }
 
 /** Single-day view: one time column, one day of events. */
-const Schedule: React.FC<ScheduleProps> = ({
-                                               schedule,
-                                               startTime,
-                                               endTime,
-                                               slotMinutes,
-                                               breakPeriods = [],
-                                               showBreaks = false,
-                                               isToday = false,
-                                               nowMinutes,
-                                               dayKey = "",
-                                           }) => {
+const Schedule: React.FC<ScheduleProps> = (
+    {
+        schedule,
+        startTime,
+        endTime,
+        slotMinutes,
+        breakPeriods = [],
+        showBreaks = false,
+        isToday = false,
+        nowMinutes,
+        dayKey = "",
+    }) => {
     const geometry = getScheduleGeometry(schedule, {
         ...(startTime && {startTime}),
         ...(endTime && {endTime}),

@@ -26,8 +26,9 @@ export default function Footer() {
             category: "Links",
             content: [
                 {text: "Status Page", url: "https://status.jerryxf.net", decorator: <></>},
+                {text: "Scheduler", url: "/scheduler", decorator: <p>🗓️</p>},
                 {text: "Curriculum Vitae", url: "https://cv.jerryxf.net", decorator: <> <ExternalLink size={16} /></>},
-                {text: "Unveil Technologies", url: "https://unveiltechnologies.com", decorator: <img src={unveilIcon} alt="Unveil icon" />}
+                // {text: "Unveil Technologies", url: "https://unveiltechnologies.com", decorator: <img src={unveilIcon} alt="Unveil icon" />}
             ]
         },
         {
