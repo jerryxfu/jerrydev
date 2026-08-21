@@ -254,6 +254,9 @@ body.homeisland-body {
     --hero-glow: rgba(255, 234, 240, 0.35);
 }
 
+.nav-spacer {
+    height: calc(56px + 2rem + env(safe-area-inset-top));
+}
 
 .section {
     max-width: 100%;
