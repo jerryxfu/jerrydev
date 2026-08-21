@@ -70,15 +70,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-06-12T00:00:00"))
     },
     {
-        title: "stats.jerryxf",
-        subTitle: "Cool live data feeds",
-        image: _stats,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
-        url: "https://stats.jerryxf.net",
-        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
-    },
-    {
         title: "BapUtils",
         subTitle: "A Hypixel Skyblock Minecraft mod",
         image: _baputils,
@@ -106,6 +97,15 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
     },
     {
+        title: "stats.jerryxf",
+        subTitle: "Cool live data feeds",
+        image: _stats,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
+        url: "https://stats.jerryxf.net",
+        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
+    },
+    {
         title: "MEDIVE",
         subTitle: "Research project",
         image: _medive,
@@ -125,16 +125,6 @@ const projects: CardProps[] = [
     //     description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
     // },
     {
-        title: "ORCA",
-        subTitle: "Uncover the unseen",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-        url: "https://unveiltechnologies.com",
-        description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
-        footer: "TRL-3"
-    },
-    {
         title: "Kahoot! bot",
         subTitle: "",
         image: _kahootBot,
@@ -142,6 +132,14 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
+    },
+    {
+        title: "*.jerryxf.net",
+        subTitle: "This website, right here!",
+        image: _jerryxf,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
+        description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
         title: "JerryBot",
@@ -160,14 +158,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
-    },
-    {
-        title: "*.jerryxf.net",
-        subTitle: "This website, right here!",
-        image: _jerryxf,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
-        description: "This portfolio website as well as the API that empowers other projects.",
     },
     {
         title: "Doublestartyre CA",
@@ -243,10 +233,20 @@ const projects: CardProps[] = [
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
     },
     {
+        title: "ORCA",
+        subTitle: "Uncover the unseen",
+        image: _endPortal,
+        chipText: "🧩 MVP",
+        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
+        url: "https://unveiltechnologies.com",
+        description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
+        footer: "TRL-3"
+    },
+    {
         title: "Cyclic",
         subTitle: "Sleep cycle calculator and periods tracker",
         image: _endPortal,
-        chipText: "🧩 MVP",
+        chipText: "🌀 Concept",
         dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
         description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
         footer: "iOS & Android"
