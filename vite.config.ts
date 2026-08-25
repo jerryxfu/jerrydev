@@ -1,6 +1,8 @@
 import {fileURLToPath, URL} from "node:url";
 import {defineConfig} from "vite";
 import react from "@vitejs/plugin-react";
+import mdx from "@mdx-js/rollup";
+import rehypeShiki from "@shikijs/rehype";
 import {VitePWA} from "vite-plugin-pwa";
 
 // use rollup-plugin-visualizer
@@ -12,6 +14,25 @@ export default defineConfig({
         },
     },
     plugins: [
+        // enforce: "pre" is required, not cosmetic. Without it the React plugin
+        // reaches .mdx first, fails to parse it as JSX, and the build dies with
+        // an error that points nowhere near the real cause.
+        {
+            enforce: "pre",
+            ...mdx({
+                rehypePlugins: [[rehypeShiki, {
+                    // Dual themes: the light one is baked in as inline styles and
+                    // the dark one ships as --shiki-dark custom properties, which
+                    // PostPage.scss swaps in for the dark themes. All of this is
+                    // build time — no highlighter reaches the browser.
+                    themes: {light: "github-light", dark: "github-dark"},
+                    // Explicit list on purpose. Left open, Shiki loads every
+                    // grammar it has and build time balloons. Adding one here is
+                    // free at runtime and costs only the build.
+                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java"],
+                }]],
+            }),
+        },
         react(),
         VitePWA({
             // Not "autoUpdate": that sets skipWaiting + clientsClaim, so a new worker activates under a page still running the previous build,

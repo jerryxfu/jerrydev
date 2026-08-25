@@ -14,17 +14,25 @@ gsap.registerPlugin(ScrollTrigger);
 // Scroll distance before the bar settles into its compact state.
 const SHRINK_AT = 80;
 const ENTRY_DELAY = 0.1;
+// How long after the bar starts dropping before its contents follow it down.
+const ITEM_OFFSET = 0.15;
+const ITEM_STAGGER = 0.07;
 
 type Props = {
     // When true the bar sits transparent over a hero at the top of the page and
     // turns frosted once scrolled. When false it's solid from the start.
     isHero?: boolean;
-    // Locks the bar in its compact state. The scroll trigger is never created,
-    // so the bar never expands regardless of scroll position.
+    // Locks the bar in its compact state. The scroll trigger is never created, so the bar never expands regardless of scroll position.
     isShrunk?: boolean;
+    // The bar itself dropping in from above on mount.
+    animate?: boolean;
+    // The logo, links and actions dropping in one behind another. Independent of
+    // `animate`: either can run without the other, and turning this off leaves
+    // the contents simply present rather than fading them in without movement.
+    stagger?: boolean;
 };
 
-export default function Navbar({isHero = false, isShrunk = false}: Props) {
+export default function Navbar({isHero = false, isShrunk = false, animate = true, stagger = true}: Props) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [pathname] = useLocation();
 
@@ -37,12 +45,13 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
         const nav = navRef.current;
         if (!nav) return;
 
-        // Skip entry animation if reduce motion is on
+        // Reduce motion overrides both props. animate/stagger are a page-level preference; this is the user's, and it wins.
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const runEntry = animate && !reduceMotion;
+        const runStagger = stagger && !reduceMotion;
 
-        if (!reduceMotion) {
-            // Entry: the bar drops in, then its contents stagger down behind it.
-            // clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
+        if (runEntry) {
+            // The bar drops in from above. clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
             void gsap.from(nav, {
                 yPercent: -100,
                 duration: 1.5,
@@ -50,7 +59,9 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
                 ease: "elastic.out(1,0.95)",
                 clearProps: "transform",
             });
+        }
 
+        if (runStagger) {
             // The menu button is deliberately absent (animate with the navbar)
             const items = [
                 logoRef.current,
@@ -62,8 +73,11 @@ export default function Navbar({isHero = false, isShrunk = false}: Props) {
                 opacity: 0,
                 y: "-125%",
                 duration: 0.75,
-                delay: ENTRY_DELAY + 0.15,
-                stagger: 0.07,
+                // The offset exists so the contents trail the bar rather than racing it.
+                // With the bar animation off there is nothing to trail, so it collapses instead of leaving a dead beat where
+                // the links sit still waiting on a drop that never happens.
+                delay: runEntry ? ENTRY_DELAY + ITEM_OFFSET : ENTRY_DELAY,
+                stagger: ITEM_STAGGER,
                 ease: "power2.out",
                 clearProps: "opacity,transform",
             });

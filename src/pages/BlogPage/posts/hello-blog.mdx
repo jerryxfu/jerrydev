@@ -1,0 +1,38 @@
+This page exists because a project card gives me about two sentences, and some
+of these things need more than two sentences. Now the card can link here and the
+description keeps going.
+
+## What this renders
+
+Markdown, mostly. Headings, **bold**, [links](https://jerryxf.net), lists:
+
+- Text is left aligned
+- Images center themselves
+- Code blocks get highlighted at build time
+
+Fenced code goes through Shiki during the build, so nothing ships to the browser
+except the coloured markup itself:
+
+```python
+def attention(q, k, v):
+    scores = q @ k.T / (k.shape[-1] ** 0.5)
+    return softmax(scores) @ v
+```
+
+## And arbitrary JSX
+
+Because this is MDX rather than plain markdown, anything self contained can drop
+straight in — no plugin, no config, no manifest field:
+
+<div style={{
+    padding: "1.5rem",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, var(--primary-ltx), var(--secondary-lt))",
+    color: "var(--text-strong)",
+    textAlign: "center",
+}}>
+    A custom background, defined entirely inside this post.
+</div>
+
+Theme variables work in here too, so anything built this way follows the toggle
+around instead of fighting it.

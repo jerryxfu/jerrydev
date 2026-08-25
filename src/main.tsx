@@ -31,6 +31,8 @@ const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
+const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
+const LazyPost = lazy(() => import("./pages/BlogPage/PostPage.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 
@@ -105,6 +107,8 @@ root.render(
                     <OfflineToast />
                     <Switch>
                         <Route path="/"><HomePage /></Route>
+                        <Route path="/blog">{renderLazy(<LazyBlog />)}</Route>
+                        <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
                         <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
                         <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
                         <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>

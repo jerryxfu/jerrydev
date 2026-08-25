@@ -1,0 +1,149 @@
+.blog {
+    min-height: 100vh;
+    background-color: var(--bg);
+}
+
+.blog_container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 7rem 1.25rem 4rem;
+}
+
+.blog_header {
+    h1 {
+        margin: 0;
+        font-size: var(--fs-3xl);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--text-strong);
+    }
+}
+
+.blog_sub {
+    margin: 0.6rem 0 0;
+    max-width: 62ch;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+.blog_controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin: 2.25rem 0 2rem;
+}
+
+.blog_search {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background-color: var(--bg-lt);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus-within {
+        border-color: var(--primary-da);
+        box-shadow: 0 0 0 3px var(--surface-da);
+    }
+
+    svg {
+        flex-shrink: 0;
+        color: var(--text-5);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: var(--fs-base);
+        color: var(--text);
+
+        &::placeholder {
+            color: var(--text-5);
+        }
+
+        // The stock clear affordance sits badly next to our own button.
+        &::-webkit-search-cancel-button {
+            appearance: none;
+        }
+    }
+}
+
+.blog_search-clear {
+    display: flex;
+    align-items: center;
+    padding: 0.15rem;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-4);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    &:hover {
+        color: var(--text-2);
+        background-color: var(--surface-da);
+    }
+}
+
+.blog_tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.blog_tag {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background-color: var(--bg-lt);
+    font-family: inherit;
+    font-size: var(--fs-smm);
+    color: var(--text-3);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        border-color: var(--border-da);
+        color: var(--text);
+    }
+
+    &.active {
+        border-color: var(--primary-da);
+        background-color: var(--primary-ltx);
+        color: var(--text-strong);
+    }
+}
+
+.blog_tag-clear {
+    border-style: dashed;
+    color: var(--text-4);
+}
+
+.blog_list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.blog_empty {
+    margin: 3rem 0;
+    font-size: var(--fs-md);
+    color: var(--text-4);
+}
+
+@media (max-width: 600px) {
+    .blog_container {
+        padding: 6rem 1rem 3rem;
+    }
+
+    .blog_header h1 {
+        font-size: var(--fs-2xl);
+    }
+}

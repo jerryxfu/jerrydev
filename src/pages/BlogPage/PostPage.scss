@@ -1,0 +1,202 @@
+.post {
+    min-height: 100vh;
+    background-color: var(--bg);
+}
+
+.post_container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 7rem 1.25rem 4rem;
+}
+
+.post_back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--text-2);
+    }
+}
+
+.post_header {
+    margin: 1.75rem 0 2.5rem;
+
+    h1 {
+        margin: 0;
+        font-size: var(--fs-3xl);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text-strong);
+    }
+}
+
+.post_description {
+    margin: 0.7rem 0 0;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+.post_meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.1rem;
+}
+
+.post_date {
+    margin-left: auto;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+}
+
+.post_missing {
+    h1 {
+        margin: 0 0 0.5rem;
+        font-size: var(--fs-2xl);
+        color: var(--text-strong);
+    }
+
+    p {
+        margin: 0 0 1.25rem;
+        color: var(--text-3);
+    }
+}
+
+// Everything below styles MDX output. Prose is left aligned; images center.
+.post_body {
+    font-size: var(--fs-md);
+    line-height: 1.75;
+    color: var(--text-2);
+
+    h2, h3, h4 {
+        margin: 2.25rem 0 0.75rem;
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--text-strong);
+        scroll-margin-top: 6rem;
+    }
+
+    h2 {
+        font-size: var(--fs-xl);
+    }
+
+    h3 {
+        font-size: var(--fs-lgg);
+    }
+
+    h4 {
+        font-size: var(--fs-lg);
+    }
+
+    p {
+        margin: 0 0 1.15rem;
+    }
+
+    a {
+        color: var(--text);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--border-da);
+        transition: text-decoration-color 0.15s ease;
+
+        &:hover {
+            text-decoration-color: var(--text-3);
+        }
+    }
+
+    ul, ol {
+        margin: 0 0 1.15rem;
+        padding-left: 1.35rem;
+    }
+
+    li {
+        margin-bottom: 0.35rem;
+    }
+
+    strong {
+        font-weight: 600;
+        color: var(--text-strong);
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 1.75rem auto;
+        border-radius: 10px;
+    }
+
+    blockquote {
+        margin: 1.5rem 0;
+        padding: 0.15rem 0 0.15rem 1.1rem;
+        border-left: 3px solid var(--border-da);
+        color: var(--text-3);
+    }
+
+    hr {
+        margin: 2.5rem 0;
+        border: none;
+        border-top: 1px solid var(--border);
+    }
+
+    // Inline code. Shiki only touches fenced blocks, so this stands alone.
+    :not(pre) > code {
+        padding: 0.15em 0.4em;
+        border: 1px solid var(--border-lt);
+        border-radius: 5px;
+        background-color: var(--surface-da);
+        font-size: 0.875em;
+        color: var(--text);
+    }
+
+    .shiki {
+        margin: 1.5rem 0;
+        padding: 1rem 1.15rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: var(--fs-smm);
+        line-height: 1.65;
+
+        code {
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+        }
+    }
+
+    // Shiki bakes the light theme in as inline styles and ships the dark one as
+    // custom properties. Inline styles beat any selector, so the swap needs
+    // !important — this is Shiki's own documented dual-theme pattern.
+    // Keyed to the dark themes rather than to theme names, which means DARK_THEMES
+    // in ThemeContext stays the single source of truth and a fifth theme needs
+    // nothing here beyond being listed there.
+    [data-theme="night"] &,
+    [data-theme="burgundy"] & {
+        .shiki,
+        .shiki span {
+            color: var(--shiki-dark) !important;
+            background-color: var(--shiki-dark-bg) !important;
+        }
+    }
+}
+
+@media (max-width: 600px) {
+    .post_container {
+        padding: 6rem 1rem 3rem;
+    }
+
+    .post_header h1 {
+        font-size: var(--fs-2xl);
+    }
+
+    .post_date {
+        margin-left: 0;
+    }
+}

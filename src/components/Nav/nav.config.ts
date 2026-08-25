@@ -42,6 +42,7 @@ export const linksLeft: NavLink[] = [
 ];
 
 export const linksRight: NavLink[] = [
+    {type: "link", label: "Blog 📝", href: "/blog"},
     {type: "link", label: "Expedite 📦", href: "/expedite"},
     {type: "link", label: "Scheduler 🗓️", href: "/scheduler"}
 ];
@@ -58,6 +59,7 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Contact", href: "#contact-me"},
     ],
     [
+        {type: "link", label: "Blog ✍️", href: "/blog"},
         {
             type: "branch",
             label: "Tools",
