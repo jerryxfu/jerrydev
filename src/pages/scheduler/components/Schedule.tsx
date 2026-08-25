@@ -10,6 +10,8 @@ interface ScheduleProps {
     startTime?: string;
     endTime?: string;
     slotMinutes?: number;
+    /** Pin the grid to this exact pixel height instead of scaling by MINUTE_HEIGHT. */
+    height?: number;
     breakPeriods?: BreakPeriod[];
     showBreaks?: boolean;
     isToday?: boolean;
@@ -25,6 +27,7 @@ const Schedule: React.FC<ScheduleProps> = (
         startTime,
         endTime,
         slotMinutes,
+        height,
         breakPeriods = [],
         showBreaks = false,
         isToday = false,
@@ -35,6 +38,7 @@ const Schedule: React.FC<ScheduleProps> = (
         ...(startTime && {startTime}),
         ...(endTime && {endTime}),
         ...(slotMinutes && {slotMinutes}),
+        ...(height !== undefined && {height}),
     });
 
     return (

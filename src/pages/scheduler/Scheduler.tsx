@@ -35,6 +35,11 @@ const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "frid
 
 const STORAGE_KEY = "scheduler-last-selected-person";
 
+// The Home Island panel is a fixed-size iframe, so the grid is pinned to fill it
+// exactly rather than scaled by MINUTE_HEIGHT.
+// This is the body only. The schedule picker bar sits above it (auto scrolls down already).
+const HOMEISLAND_BODY_HEIGHT = 568;
+
 // Helpers
 const findSchedule = (id: string) => scheduleConfig.find(s => s.id === id);
 
@@ -345,6 +350,7 @@ const Scheduler: React.FC = () => {
                                 isToday={isToday}
                                 nowMinutes={nowMinutes}
                                 dayKey={activeDay}
+                                {...(isHomeIsland && {height: HOMEISLAND_BODY_HEIGHT})}
                             />
                         ))}
                     </div>

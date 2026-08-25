@@ -241,16 +241,25 @@ const mapConfiguredSlots = (schedule: ScheduleType): SlotInput[] | undefined =>
  */
 export const getScheduleGeometry = (
     schedule: ScheduleType,
-    overrides: { startTime?: string; endTime?: string; slotMinutes?: number; minuteHeight?: number } = {},
+    overrides: { startTime?: string; endTime?: string; slotMinutes?: number; minuteHeight?: number; height?: number } = {},
 ): ScheduleGeometry => {
     const bounds = resolveDisplayRange(schedule);
     const startTime = overrides.startTime ?? bounds.startTime;
     const endTime = overrides.endTime ?? bounds.endTime;
     const slotMinutes = overrides.slotMinutes ?? schedule.slotMinutes ?? 60;
-    const minuteHeight = overrides.minuteHeight ?? MINUTE_HEIGHT;
 
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
+    const span = endMinutes - startMinutes;
+
+    // `height` pins the grid to an exact pixel height and works out the scale to match,
+    // which is the inverse of the usual direction.
+    // Use it when the grid has to fill a container of known size (the Home Island panel)
+    // rather than when a particular density is wanted. It beats minuteHeight if both are passed.
+    const minuteHeight = overrides.height !== undefined && span > 0
+        ? overrides.height / span
+        : overrides.minuteHeight ?? MINUTE_HEIGHT;
+
     const configured = mapConfiguredSlots(schedule);
 
     const intervals = buildTimeSlots({startTime, endTime, slotMinutes, ...(configured && {slots: configured})})
@@ -277,7 +286,7 @@ export const getScheduleGeometry = (
     return {
         startMinutes,
         endMinutes,
-        height: Math.max(0, (endMinutes - startMinutes) * minuteHeight),
+        height: Math.max(0, span * minuteHeight),
         tiles,
         minuteHeight,
     };
