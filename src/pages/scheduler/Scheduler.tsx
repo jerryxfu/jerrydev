@@ -306,7 +306,7 @@ const Scheduler: React.FC = () => {
                                             className={`scheduler-day-btn ${!isWeekView && activeDay === day.key ? "scheduler-day-btn-active" : ""}`}
                                             onClick={() => showDayView(day.key)}
                                         >
-                                            {day.label}
+                                            {day.label.slice(0, 3)}
                                         </button>
                                     ))}
                                 </div>

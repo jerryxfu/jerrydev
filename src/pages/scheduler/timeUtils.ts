@@ -7,7 +7,7 @@ import {type BreakPeriod, type Schedule as ScheduleType, type ScheduleEvent} fro
  * in Schedule, ScheduleEvent and TimeColumn, which is how the time column and
  * the event grid were able to disagree with each other.
  */
-export const MINUTE_HEIGHT = 0.96;
+export const MINUTE_HEIGHT = 1.0;
 
 export const DEFAULT_START_TIME = "08:00";
 export const DEFAULT_END_TIME = "18:00";
