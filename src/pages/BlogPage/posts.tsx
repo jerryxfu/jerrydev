@@ -1,5 +1,5 @@
-import {type ComponentType, lazy} from "react";
-import _helloBlog from "@/assets/projects/llmvsllm.jpeg";
+import {type ComponentType, lazy, type ReactElement} from "react";
+import {Mdx} from "@/assets/projects/mdx.tsx";
 
 // Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a
 // filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
@@ -14,8 +14,8 @@ export type Post = {
     description: string;   // card copy, and the meta description on the post route
     date: Date;
     tags: Tag[];
-    image?: string;        // omit and the card runs its text full width
-    draft?: boolean;       // hidden in production, visible in dev
+    image?: string | ReactElement;
+    draft?: boolean;       // listed either way, but greyed and unreadable in production (BYPASSED IN DEV)
 };
 
 // Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so
@@ -23,11 +23,11 @@ export type Post = {
 export const posts: Post[] = [
     {
         slug: "hello-blog",
-        title: "Hello, blog",
-        description: "Why this page exists, and a quick tour of what it can render.",
+        title: "How this blog works",
+        description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
         date: new Date("2026-08-25"),
         tags: ["notes", "webdev"],
-        image: _helloBlog,
+        image: <Mdx />,
     },
     {
         slug: "end-portal-finding",
@@ -54,17 +54,17 @@ export const postComponents: Record<string, ComponentType> = Object.fromEntries(
     Object.entries(postBodies).map(([key, loader]) => [slugOf(key), lazy(loader)])
 );
 
-// Newest first. Drafts stay visible while developing and vanish from the build.
-export const publishedPosts: Post[] = posts
-    .filter((post) => !(import.meta.env.PROD && post.draft))
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
+// Newest first. Everything is listed now, drafts included, so the spread matters: sort() mutates in place and posts is exported.
+export const listedPosts: Post[] = [...posts].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+// The single gate for whether a post can be opened. A draft is listed but inert in production. Bypassed in dev
+export const isReadable = (post: Post): boolean => !post.draft || import.meta.env.DEV;
 
 export const formatPostDate = (date: Date): string =>
     date.toLocaleDateString("en-CA", {year: "numeric", month: "long", day: "numeric"});
 
-// The manifest and the folder are joined by slug and nothing enforces that at
-// build time. A missing entry is a post that silently never appears; a missing
-// file is a card that leads to a dead route. Both get named out loud in dev.
+// The manifest and the folder are joined by slug and nothing enforces that at build time.
+// A missing entry is a post that silently never appears; a missing file is a card that leads to a dead route. Both get named out loud in dev.
 if (import.meta.env.DEV) {
     const files = new Set(Object.keys(postComponents));
     const listed = new Set(posts.map((post) => post.slug));

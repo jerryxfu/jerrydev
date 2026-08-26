@@ -98,6 +98,7 @@
 
     p {
         margin: 0 0 1.15rem;
+        line-height: inherit;
     }
 
     a {
@@ -138,7 +139,15 @@
         margin: 1.5rem 0;
         padding: 0.15rem 0 0.15rem 1.1rem;
         border-left: 3px solid var(--border-da);
-        color: var(--text-3);
+        // One step further down the ladder than it was: against body text at --text-2, --text-3 is only ~34 points
+        // apart in the light theme and reads as the same grey. --text-4 is a visible step in all four themes.
+        color: var(--text-4);
+
+        // Blockquote content is wrapped in <p>, which carries a 1.15rem bottom margin from the rule above. That margin
+        // sits inside the quote, so the left rule ran a full line-height past the last line of text.
+        p:last-child {
+            margin-bottom: 0;
+        }
     }
 
     hr {
@@ -157,12 +166,16 @@
         color: var(--text);
     }
 
-    .shiki {
+    // Styled on `pre` rather than on `.shiki`, because a fence with no language or an unregistered one is passed
+    // through untouched — no .shiki wrapper — and would otherwise render as naked monospace with no box at all.
+    // Shiki emits its own background inline, which beats this rule, so highlighted blocks are unaffected.
+    pre {
         margin: 1.5rem 0;
         padding: 1rem 1.15rem;
         border: 1px solid var(--border);
         border-radius: 10px;
         overflow-x: auto;
+        background-color: var(--surface-da);
         font-size: var(--fs-smm);
         line-height: 1.65;
 

@@ -23,6 +23,23 @@
             transform: none;
         }
     }
+
+    // Listed so a draft reads as coming rather than missing, but visibly inert. Nested so the hover reset outranks
+    // .postcard:hover regardless of where this block ends up in the file.
+    &.postcard--draft {
+        opacity: 0.55;
+        border-style: dashed;
+
+        &:hover {
+            border-color: var(--border);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .postcard_image img {
+            filter: grayscale(1);
+        }
+    }
 }
 
 .postcard_image {
@@ -38,6 +55,17 @@
         height: 100%;
         min-height: 104px;
         object-fit: cover;
+    }
+
+    // Unlike a photo, a vector mark should fit rather than crop, so it scales to the slot and letterboxes on its own
+    // via the viewBox. The padding stops it touching the rounded corners.
+    svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 104px;
+        padding: 0.75rem;
+        box-sizing: border-box;
     }
 }
 

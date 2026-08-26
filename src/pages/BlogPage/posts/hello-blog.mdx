@@ -1,17 +1,78 @@
-This page exists because a project card gives me about two sentences, and some
-of these things need more than two sentences. Now the card can link here and the
-description keeps going.
+import {Mdx} from "@/assets/projects/mdx.tsx"; // THE IMPORT IS CRUCIAL;
 
-## What this renders
+This post is for MDX reference.
 
-Markdown, mostly. Headings, **bold**, [links](https://jerryxf.net), lists:
+## Adding a post
 
-- Text is left aligned
-- Images center themselves
-- Code blocks get highlighted at build time
+Two steps: append an entry to `posts` in `posts.tsx`, then create the matching file in `posts/`:
 
-Fenced code goes through Shiki during the build, so nothing ships to the browser
-except the coloured markup itself:
+````ts
+{
+    slug: "why-rag-is-mid",          // must match posts/why-rag-is-mid.mdx
+    title: "Why RAG is mid",
+    description: "Card copy, and the meta description on the post page.",
+    date: new Date("2026-09-01"),
+    tags: ["ai", "notes"],
+    image: _ragDiagram,              // optional
+    draft: true,                     // optional
+}
+````
+
+Miss either half and the dev console names the offender at boot. Nothing enforces this at build time, so that check is the only safety net.
+
+## Headings start at h2
+
+The `title` field renders as the page's `h1`. Starting a post with `#` produces a second `h1` and the page ends up with two competing titles.
+Use `##` for top-level sections; `h2` through `h4` are styled.
+
+## Tags are a closed set
+
+Every tag has to exist in the `TAGS` array in `posts.tsx` before it can be used. That is deliberate so a typo becomes a `tsc` error instead
+of a filter chip that silently matches nothing.
+
+````ts
+export const TAGS = ["devlog", "ai", "webdev", "minecraft", "notes", "random"] as const;
+````
+
+Declaration order is the order the chips render in on the list page. Tags with no posts get no chip at all.
+
+## Drafts
+
+Setting `draft: true` leaves the post in the list but renders the card dimmed, dashed and grayscale, with no link.
+The route refuses the slug too, so typing the URL directly is a dead end.
+
+Bypassed in in dev.
+
+> This is a soft gate, not privacy. The prose is compiled into the bundle and committed to a public repo either way.
+> If something genuinely shouldn't be read yet, don't commit it.
+
+## Images
+
+Card images are static imports in `posts.tsx`, never string paths — that's what keeps them hashed, fingerprinted and in the right cache bucket.
+Omit `image` entirely and the card runs its text the full width.
+
+`image` also accepts a rendered element, which is what the card for this post uses:
+
+````tsx
+import {Mdx} from "@/assets/projects/mdx.tsx";
+
+{
+    slug: "hello-blog",
+    image: <Mdx />,
+}
+````
+
+That is the only reason the manifest is `posts.tsx` and not `posts.ts` — so the element form can be written as JSX
+rather than as `createElement` calls. A raster asset crops to fill the thumbnail; a vector scales to fit it instead.
+
+One consequence: an element cannot be an `og:image`, so a post whose image is a component falls back to the site's
+default card when it's shared. Use an imported asset if the social preview matters.
+
+Images inside the prose are centered automatically. Text stays left aligned.
+
+## Code blocks
+
+Fenced code is highlighted by Shiki at build time, so nothing ships to the browser except the coloured markup:
 
 ```python
 def attention(q, k, v):
@@ -19,10 +80,37 @@ def attention(q, k, v):
     return softmax(scores) @ v
 ```
 
-## And arbitrary JSX
+Registered languages are `ts`, `tsx`, `js`, `jsx`, `python`, `bash`, `json`, `scss` and `java`. Adding one is a
+one-line change in `vite.config.ts` and costs build time only.
 
-Because this is MDX rather than plain markdown, anything self contained can drop
-straight in — no plugin, no config, no manifest field:
+**The gotcha:** an unregistered language does not fail the build. It renders as a plain unhighlighted block, exactly
+like this one, and it is easy not to notice why:
+
+```ruby
+puts "ruby is not registered, so this is not highlighted"
+```
+
+A fence with no language at all does the same thing, which is sometimes what you want:
+
+```
+$ pnpm dev
+```
+
+Inline code uses single backticks and is styled separately.
+
+## Arbitrary JSX
+
+This is MDX, so components and markup drop straight in. Import at the top of the file:
+
+````jsx
+import {Mdx} from "@/assets/projects/mdx.tsx";
+
+<Mdx />
+````
+
+Which renders: <Mdx />
+
+Anything self-contained works inline too, and theme variables resolve normally, so a custom block follows the theme toggle instead of fighting it:
 
 <div style={{
     padding: "1.5rem",
@@ -31,8 +119,46 @@ straight in — no plugin, no config, no manifest field:
     color: "var(--text-strong)",
     textAlign: "center",
 }}>
-    A custom background, defined entirely inside this post.
+    Custom background, defined entirely inside this post.
 </div>
 
-Theme variables work in here too, so anything built this way follows the toggle
-around instead of fighting it.
+Two MDX parsing traps, both from JSX syntax leaking into prose:
+
+- A bare `{` in prose is read as the start of an expression. Wrap it in backticks.
+- So is a bare `<`, which is why `posts/<slug>.mdx` has to be written in backticks or it parses as a JSX tag.
+
+## Everything else that renders
+
+**Bold**, *italic*, [links](https://jerryxf.net), and horizontal rules.
+
+- Unordered lists
+- With several items
+
+1. Ordered lists
+2. Also fine
+
+> Blockquotes get a left rule and muted text.
+
+---
+
+## Linking a project card here
+
+Add `blogSlug` to a project entry in `Projects.tsx` and an "Open article" banner will show at the bottom of the card:
+
+````ts
+{
+    title: "*.jerryxf.net/*",
+    description: "This portfolio website as well as the API that empowers other projects.",
+    blogSlug: "hello-blog",
+}
+````
+
+That is the whole point of the blog per the original issue — the card gives two sentences, this gives the rest.
+
+## Before publishing
+
+````bash
+pnpm exec tsc -b --noEmit   # NOT `tsc --noEmit` — that is a no-op with project references
+pnpm exec eslint .
+pnpm exec vite build
+````

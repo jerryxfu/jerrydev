@@ -97,15 +97,6 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
     },
     {
-        title: "stats.jerryxf",
-        subTitle: "Cool live data feeds",
-        image: _stats,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
-        url: "https://stats.jerryxf.net",
-        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
-    },
-    {
         title: "MEDIVE",
         subTitle: "Research project",
         image: _medive,
@@ -139,7 +130,17 @@ const projects: CardProps[] = [
         image: _jerryxf,
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
-        description: "This portfolio website as well as the API that empowers other projects.",
+        description: "This portfolio website, the blog, as well as the API that empowers other projects.",
+        blogSlug: "hello-blog",
+    },
+    {
+        title: "stats.jerryxf",
+        subTitle: "Cool live data feeds",
+        image: _stats,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
+        url: "https://stats.jerryxf.net",
+        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
     },
     {
         title: "JerryBot",

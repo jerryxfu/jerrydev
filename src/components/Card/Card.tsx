@@ -1,9 +1,12 @@
-import {memo} from "react";
+import {memo, type ReactElement} from "react";
+import {Link} from "wouter";
 import Chip from "../../components/Chip/Chip.tsx";
 import "./Card.scss";
 
 export interface CardProps {
-    image: string;
+    // Either a URL to an image or video asset, or a rendered element for vector marks. An element is passed straight
+    // through untouched: no src, no alt, no format sniffing, since it carries its own <title> for the accessible name.
+    image: string | ReactElement;
     title: string;
     subTitle?: string;
     description: string;
@@ -23,6 +26,10 @@ export interface CardProps {
         | "📦 Archived" // The project is archived and read-only
         | "🔒 Internal" // The project is internal and not publicly available
         | string;
+    // Slug of the post that expands on this project, e.g. "expedite-p2p" for /blog/expedite-p2p. Deliberately a slug
+    // rather than a full path so Card owns the route shape, and deliberately not validated against posts.ts — importing
+    // the manifest here would drag the whole blog index into the home page bundle for a compile-time nicety.
+    blogSlug?: string;
     url?: string | undefined;
     color?: string | undefined;
     footer?: string | undefined;
@@ -30,9 +37,11 @@ export interface CardProps {
 }
 
 const Card = memo(function Card(props: CardProps) {
-    const {image, title, subTitle, description, chipText, url, color, footer, dateDisplay} = props;
+    const {image, title, subTitle, description, chipText, blogSlug, url, color, footer, dateDisplay} = props;
 
-    const isVideo = image.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/);
+    // Guard the string branch before touching string methods — .toLowerCase() on an element throws at render.
+    const isAsset = typeof image === "string";
+    const isVideo = isAsset && /\.(mp4|webm|ogg|mov)$/.test(image.toLowerCase());
     const shouldOpenNewTab = Boolean(url?.startsWith("http"));
 
     return (
@@ -43,7 +52,7 @@ const Card = memo(function Card(props: CardProps) {
                     href={url || undefined}
                     {...(shouldOpenNewTab ? {target: "_blank", rel: "noopener noreferrer"} : {})}
                 >
-                    {isVideo ? (
+                    {!isAsset ? image : isVideo ? (
                         <video src={image} autoPlay loop muted playsInline disablePictureInPicture preload="none" />
                     ) : (
                         <img src={image} alt={`${title} icon`} loading="lazy" decoding="async" fetchPriority="low" />
@@ -72,6 +81,15 @@ const Card = memo(function Card(props: CardProps) {
                     {dateDisplay}
                 </p>
             </div>
+
+            {/* Last child, so it reads as the card's action rather than part of its metadata. card_content carries
+                flex: 1, which pins both this and the footer to the bottom regardless of description length. */}
+            {blogSlug && (
+                <Link href={`/blog/${blogSlug}`} className="card_article">
+                    <span>Open article</span>
+                    <span className="card_article_arrow" aria-hidden="true">→</span>
+                </Link>
+            )}
         </div>
     );
 });

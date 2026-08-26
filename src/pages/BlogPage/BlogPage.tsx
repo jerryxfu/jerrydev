@@ -5,7 +5,7 @@ import {Search, X} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import PostCard from "./components/PostCard.tsx";
-import {isTag, type Post, publishedPosts, type Tag, TAGS} from "./posts.ts";
+import {isTag, listedPosts, type Post, type Tag, TAGS} from "./posts.tsx";
 import "./BlogPage.scss";
 
 // Field weights for ranking. Title beats tags beats description, so searching
@@ -75,13 +75,13 @@ export default function BlogPage() {
 
     // Only tags that something actually uses get a chip, in TAGS order.
     const usedTags = useMemo(
-        () => TAGS.filter((tag) => publishedPosts.some((post) => post.tags.includes(tag))),
+        () => TAGS.filter((tag) => listedPosts.some((post) => post.tags.includes(tag))),
         []
     );
 
     const visible = useMemo(() => {
         const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-        return publishedPosts
+        return listedPosts
             .filter((post) => activeTags.length === 0 || post.tags.some((tag) => activeTags.includes(tag)))
             .map((post) => ({post, score: scorePost(post, terms)}))
             .filter((entry) => entry.score > 0)

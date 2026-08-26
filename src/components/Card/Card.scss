@@ -53,6 +53,13 @@
         object-fit: contain;
     }
 
+    // A vector mark keeps its own intrinsic size rather than filling the frame — object-fit does nothing for inline
+    // SVG. These caps only stop it overflowing on small cards; they don't scale it up.
+    svg {
+        max-width: 70%;
+        max-height: 70%;
+    }
+
     // Shadow overlay at the bottom
     &::after {
         content: "";
@@ -123,6 +130,46 @@
         @media screen and (max-width: 768px) {
             font-size: var(--fs-base);
         }
+    }
+}
+
+// Sits below the footer as the card's last row, so it borders on top like the footer does. Same surface, weight and
+// scale, but it's the only interactive strip on the card, which is what the hover state is carrying.
+.card_article {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.3rem 0.55rem;
+    border-top: 1px solid var(--border-lt);
+    background-color: var(--surface-lt);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-3);
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background-color: var(--surface-da);
+        color: var(--text-strong);
+
+        .card_article_arrow {
+            transform: translateX(3px);
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        padding: 0.4rem 0.55rem;
+    }
+}
+
+.card_article_arrow {
+    transition: transform 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none !important;
     }
 }
 

@@ -5,20 +5,19 @@ import {ArrowLeft} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
-import {formatPostDate, postComponents, publishedPosts} from "./posts.ts";
+import {formatPostDate, isReadable, listedPosts, postComponents} from "./posts.tsx";
 import "./PostPage.scss";
 
 export default function PostPage() {
     const {slug} = useParams<{ slug: string }>();
 
-    const post = publishedPosts.find((entry) => entry.slug === slug);
-    // Already-constructed lazy components, keyed by slug. Nothing has been fetched yet;
-    // rendering one below is what triggers its chunk.
+    const post = listedPosts.find((entry) => entry.slug === slug);
+    // Already-constructed lazy components, keyed by slug. Nothing has been fetched yet; rendering one below is what triggers its chunk.
     const Body = slug ? postComponents[slug] : undefined;
 
-    // Needs both halves: a manifest entry for the metadata and a file for the prose.
-    // In dev the check in posts.ts already named whichever is missing.
-    if (!post || !Body) {
+    // Needs both halves: a manifest entry for the metadata and a file for the prose, plus permission to show it.
+    // In dev the check in posts.ts already named whichever half is missing; isReadable is what turns a typed-in draft URL into a dead end in production.
+    if (!post || !Body || !isReadable(post)) {
         return (
             <div className="post">
                 <Navbar isShrunk />
@@ -41,7 +40,9 @@ export default function PostPage() {
                 <meta property="og:type" content="article" />
                 <meta property="og:title" content={post.title} />
                 <meta property="og:description" content={post.description} />
-                {post.image && <meta property="og:image" content={`https://jerryxf.net${post.image}`} />}
+                {/* Only an asset URL can be an og:image; interpolating an element would emit "[object Object]". */}
+                {typeof post.image === "string" &&
+                    <meta property="og:image" content={`https://jerryxf.net${post.image}`} />}
             </Helmet>
 
             <Navbar isShrunk={true} stagger={false} animate={false} />
