@@ -25,9 +25,10 @@ import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import _tools_light from "../../../assets/projects/tools_light.jpeg";
 import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
+import _guide from "../../../assets/projects/guide.jpeg";
 import _stats from "../../../assets/projects/stats.jpeg";
-import {formatDate} from "../../../utils.ts";
-import {isDarkTheme, useTheme} from "../../../context/ThemeContext.tsx";
+import {formatDate} from "@/utils.ts";
+import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
 
 const projects: CardProps[] = [
     {
@@ -123,6 +124,14 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
+    },
+    {
+        title: "Guide",
+        subTitle: "Guides about various stuff",
+        image: _guide,
+        description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
+        url: "https://guide.jerryxf.net",
+        dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
     },
     {
         title: "*.jerryxf.net",
