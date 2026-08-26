@@ -41,7 +41,7 @@ Declaration order is the order the chips render in on the list page. Tags with n
 Setting `draft: true` leaves the post in the list but renders the card dimmed, dashed and grayscale, with no link.
 The route refuses the slug too, so typing the URL directly is a dead end.
 
-Bypassed in in dev.
+Bypassed in dev.
 
 > This is a soft gate, not privacy. The prose is compiled into the bundle and committed to a public repo either way.
 > If something genuinely shouldn't be read yet, don't commit it.
@@ -110,6 +110,20 @@ import {Mdx} from "@/assets/projects/mdx.tsx";
 
 Which renders: <Mdx />
 
+### The import at the top of this file is load-bearing (crucial)
+
+WebStorm greys it out as unused. It parses the ESM block as TypeScript but does not trace the reference down into the
+markdown body, so the import looks safe to delete. **It is not**. Removing it throws `Expected component Mdx to be defined`
+and points at the *usage* line, never at the line that is missing!
+
+**There is no in-file suppression that works.** `// noinspection ES6UnusedImports` above the import is parsed as
+markdown, so it renders as visible text in the post *and* swallows the import into the same paragraph, breaking it.
+Put it below the import and it stays invisible but suppresses nothing, since `noinspection` applies to what follows it.
+
+Possible fix: in the IDE exclude `*.mdx` from Unused import checks.
+
+### Custom blocks
+
 Anything self-contained works inline too, and theme variables resolve normally, so a custom block follows the theme toggle instead of fighting it:
 
 <div style={{
@@ -122,10 +136,12 @@ Anything self-contained works inline too, and theme variables resolve normally, 
     Custom background, defined entirely inside this post.
 </div>
 
-Two MDX parsing traps, both from JSX syntax leaking into prose:
+Three MDX parsing traps, all from markdown and JSX disagreeing about what a line is:
 
 - A bare `{` in prose is read as the start of an expression. Wrap it in backticks.
 - So is a bare `<`, which is why `posts/<slug>.mdx` has to be written in backticks or it parses as a JSX tag.
+- A markdown comment (`[//]: # (...)`) on the line **directly above** an import absorbs it as a lazy continuation, so
+the import silently becomes prose and every component in the file breaks. Leave a blank line between them.
 
 ## Everything else that renders
 
@@ -147,13 +163,11 @@ Add `blogSlug` to a project entry in `Projects.tsx` and an "Open article" banner
 
 ````ts
 {
-    title: "*.jerryxf.net/*",
-    description: "This portfolio website as well as the API that empowers other projects.",
+    title: "*.jerryxf.net",
+    description: "This portfolio website, the blog, as well as the API that empowers other projects.",
     blogSlug: "hello-blog",
 }
 ````
-
-That is the whole point of the blog per the original issue — the card gives two sentences, this gives the rest.
 
 ## Before publishing
 
