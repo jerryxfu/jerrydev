@@ -59,7 +59,7 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Contact", href: "#contact-me"},
     ],
     [
-        {type: "link", label: "Blog ✍️", href: "/blog"},
+        {type: "link", label: "Blog 📝", href: "/blog"},
         {
             type: "branch",
             label: "Tools",

@@ -8,6 +8,10 @@ export type Tag = typeof TAGS[number];
 
 export const isTag = (value: string): value is Tag => (TAGS as readonly string[]).includes(value);
 
+// `new Date("2026-08-25")` is parsed as UTC midnight, which is the 24th at 20:00 anywhere west of Greenwich, so the
+// card renders the wrong day. The T00:00:00 suffix forces local parsing instead. Wrapped in a helper. Same fix as in ProjectCards
+const postDate = (iso: `${number}-${number}-${number}`): Date => new Date(`${iso}T00:00:00`);
+
 export type Post = {
     slug: string;          // must match the filename in ./posts/<slug>.mdx
     title: string;
@@ -25,7 +29,7 @@ export const posts: Post[] = [
         slug: "hello-blog",
         title: "How this blog works",
         description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
-        date: new Date("2026-08-25"),
+        date: postDate("2026-08-25"),
         tags: ["notes", "webdev"],
         image: <Mdx />,
     },
@@ -55,6 +59,20 @@ export const isReadable = (post: Post): boolean => !post.draft || import.meta.en
 
 export const formatPostDate = (date: Date): string =>
     date.toLocaleDateString("en-CA", {year: "numeric", month: "long", day: "numeric"});
+
+const relative = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
+
+// Both sides are collapsed to local midnight before differencing, so the answer is a whole number of calendar days
+// regardless of the time of day either fell on (that's the same rounding issue that bit the project footer). numeric: "auto"
+// turns 0 and 1 into "today" and "yesterday" instead of "0 days ago".
+export const formatPostAge = (date: Date): string => {
+    const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const days = Math.round((midnight(date) - midnight(new Date())) / 86_400_000);
+
+    if (days > -30) return relative.format(days, "day");
+    if (days > -365) return relative.format(Math.round(days / 30), "month");
+    return relative.format(Math.round(days / 365), "year");
+};
 
 // The manifest and the folder are joined by slug and nothing enforces that at build time.
 // A missing entry is a post that silently never appears; a missing file is a card that leads to a dead route. Both get named out loud in dev.

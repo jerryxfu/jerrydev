@@ -21,7 +21,9 @@
     justify-content: flex-start;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 3rem;
+    // Row gap and column gap split deliberately: the single `gap: 3rem` applied 3rem vertically too, so every wrapped
+    // row opened a gulf. Columns keep their spacing, wrapped lines tighten up.
+    gap: 1rem 3rem;
 
     h3 {
         font-size: var(--fs-mdd);

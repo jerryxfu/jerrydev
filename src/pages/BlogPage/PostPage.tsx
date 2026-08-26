@@ -5,7 +5,7 @@ import {ArrowLeft} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
-import {formatPostDate, isReadable, listedPosts, postComponents} from "./posts.tsx";
+import {formatPostAge, formatPostDate, isReadable, listedPosts, postComponents} from "./posts.tsx";
 import "./PostPage.scss";
 
 export default function PostPage() {
@@ -55,7 +55,7 @@ export default function PostPage() {
                     <p className="post_description">{post.description}</p>
                     <div className="post_meta">
                         {post.tags.map((tag) => <Chip key={tag} size="sm">#{tag}</Chip>)}
-                        <span className="post_date">{formatPostDate(post.date)}</span>
+                        <span className="post_date">{formatPostDate(post.date)} ({formatPostAge(post.date)})</span>
                     </div>
                 </header>
 

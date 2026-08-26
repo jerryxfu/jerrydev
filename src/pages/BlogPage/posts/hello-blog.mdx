@@ -11,7 +11,7 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
     slug: "why-rag-is-mid",          // must match posts/why-rag-is-mid.mdx
     title: "Why RAG is mid",
     description: "Card copy, and the meta description on the post page.",
-    date: new Date("2026-09-01"),
+    date: postDate("2026-09-01"),   // NOT new Date() (see below)
     tags: ["ai", "notes"],
     image: _ragDiagram,              // optional
     draft: true,                     // optional
@@ -19,6 +19,10 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
 ````
 
 Miss either half and the dev console names the offender at boot. Nothing enforces this at build time, so that check is the only safety net.
+
+Use `postDate("YYYY-MM-DD")`, never `new Date("YYYY-MM-DD")`. A bare date string is parsed as **UTC** midnight, which
+is the previous evening anywhere west of Greenwich. The helper appends `T00:00:00` to force local parsing.
+Similar issue to ProjectCards.
 
 ## Headings start at h2
 

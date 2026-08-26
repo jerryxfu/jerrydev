@@ -100,7 +100,7 @@ export default function BlogPage() {
                 <link rel="canonical" href="https://jerryxf.net/blog" />
             </Helmet>
 
-            <Navbar isShrunk={true} stagger={false} />
+            <Navbar isShrunk={true} stagger={true} animate={false} />
 
             <main className="blog_container">
                 <header className="blog_header">
