@@ -107,7 +107,7 @@ export default function BlogPage() {
                     <h1>Blog</h1>
                     <p className="blog_sub">
                         Notes on the things I build, what breaks along the way, and whatever else I have been reading about.
-                        Some of it is machine learning, some of it is Minecraft. No promises about the ratio.
+                        Some of it is machine learning, some of it is less serious stuff. No promises about the ratio.
                     </p>
                 </header>
 

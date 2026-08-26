@@ -90,7 +90,11 @@ export default function Hero() {
         } else {
             const timeout = setTimeout(() => {
                 if (isDeleting) {
-                    setTextIndex(Math.floor(Math.random() * combinedTexts.length));
+                    setTextIndex((prev) => {
+                        if (combinedTexts.length < 2) return prev;
+                        const next = Math.floor(Math.random() * (combinedTexts.length - 1));
+                        return next >= prev ? next + 1 : next;
+                    });
                     setIsDeleting(false);
                     setCharIndex(0);
                 } else {
@@ -119,7 +123,7 @@ export default function Hero() {
             yPercent: 100,
             ease: "elastic.out(1,1.15)",
             duration: 1.8
-        }, 0.20 + opening_delay);
+        }, 0.25 + opening_delay);
 
         const subtitleSplit = subtitleRef.current ? new SplitType(subtitleRef.current, {types: "chars"}) : null;
 
@@ -128,7 +132,7 @@ export default function Hero() {
             ease: "nativeEase",
             stagger: 0.03,
             duration: 0.75
-        }, 0.65 + opening_delay);
+        }, 0.70 + opening_delay);
 
         if (!line1Ref.current || !line2Ref.current) return;
 
