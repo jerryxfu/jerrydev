@@ -29,13 +29,6 @@ export const posts: Post[] = [
         tags: ["notes", "webdev"],
         image: <Mdx />,
     },
-    {
-        slug: "end-portal-finding",
-        title: "Triangulating an end portal properly",
-        description: "The two-throw method, and why your first throw angle matters more than your second.",
-        date: new Date("2026-08-18"),
-        tags: ["minecraft"],
-    },
 ];
 
 // Non-eager on purpose: this is a map of import *functions*, not the modules.
