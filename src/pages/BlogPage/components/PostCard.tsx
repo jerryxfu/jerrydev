@@ -30,6 +30,7 @@ const PostCard = memo(function PostCard({post}: { post: Post }) {
 
                 <div className="postcard_meta">
                     {post.draft && <Chip size="sm">📝 Draft</Chip>}
+                    <span className="postcard_lang">{post.lang}</span>
                     {post.tags.map((tag) => <Chip key={tag} size="sm">#{tag}</Chip>)}
                     <span className="postcard_date">{formatPostDate(post.date)} ({formatPostAge(post.date)})</span>
                 </div>

@@ -6,7 +6,17 @@ import _medive from "@/assets/projects/medive.jpeg";
 
 // Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a
 // filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
-export const TAGS = ["devlog", "ai", "webdev", "med", "gaming", "notes", "random"] as const;
+export const TAGS = [
+    "ai",
+    "devlog",
+    "gaming",
+    "med",
+    "notes",
+    "python",
+    "random",
+    "webdev",
+] as const;
+
 export type Tag = typeof TAGS[number];
 
 export const isTag = (value: string): value is Tag => (TAGS as readonly string[]).includes(value);
@@ -21,6 +31,7 @@ export type Post = {
     description: string;   // card copy, and the meta description on the post route
     date: Date;
     tags: Tag[];
+    lang: "en" | "fr";
     image?: string | ReactElement;
     draft?: boolean;       // listed either way, but greyed and unreadable in production (BYPASSED IN DEV)
 };
@@ -34,6 +45,7 @@ export const posts: Post[] = [
         description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
         date: postDate("2026-08-25"),
         tags: ["notes", "webdev"],
+        lang: "en",
         image: <Mdx />,
     },
     {
@@ -42,6 +54,7 @@ export const posts: Post[] = [
         description: "Where MEDIVE came from, why I threw out the first implementation before it produced a single number, and what the next few months look like.",
         date: postDate("2026-08-28"),
         tags: ["ai", "devlog", "med"],
+        lang: "en",
         image: _medive
     },
     // {

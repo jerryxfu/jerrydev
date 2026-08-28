@@ -108,6 +108,14 @@
     color: var(--text-4);
 }
 
+.postcard_lang {
+    text-transform: uppercase;
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text-5);
+}
+
 @media (max-width: 600px) {
     .postcard {
         flex-direction: column;
