@@ -133,26 +133,35 @@
     }
 }
 
-// Sits below the footer as the card's last row, so it borders on top like the footer does. Same surface, weight and
-// scale, but it's the only interactive strip on the card, which is what the hover state is carrying.
+// Sits over the bottom of the image as a scrim. The colours are hardcoded rather than themed on purpose: this floats
+// over an arbitrary image, so a --surface gradient would be near-white in light mode and unreadable against a pale
+// logo. A dark scrim with white text is legible over anything, in all four themes.
 .card_article {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2; // above card_image::after, which is z-index 1
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
-    padding: 0.3rem 0.55rem;
-    border-top: 1px solid var(--border-lt);
-    background-color: var(--surface-lt);
+    padding: 1.2rem 0.6rem 0.4rem;
+    background: linear-gradient(to top,
+    rgba(120, 120, 120, 0.85) 0%,
+    rgba(120, 120, 120, 0.6) 40%,
+    transparent 100%);
+    color: #fff;
     font-size: var(--fs-xs);
-    font-weight: 500;
-    color: var(--text-3);
+    font-weight: 600;
     text-decoration: none;
     box-sizing: border-box;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: background 0.18s ease;
 
     &:hover {
-        background-color: var(--surface-da);
-        color: var(--text-strong);
+        background: linear-gradient(to top,
+        rgba(120, 120, 120, 0.92) 0%,
+        rgba(120, 120, 120, 0.7) 45%,
+        transparent 100%);
 
         .card_article_arrow {
             transform: translateX(3px);
@@ -160,7 +169,8 @@
     }
 
     @media screen and (max-width: 768px) {
-        padding: 0.4rem 0.55rem;
+        // The image section is only 96px here, so a 1.4rem fade would eat half of it.
+        padding: 0.9rem 0.55rem 0.35rem;
     }
 }
 

@@ -59,6 +59,15 @@ const Card = memo(function Card(props: CardProps) {
                     )}
                 </a>
                 {chipText && <Chip className="card_image_chip" size={"sm"}>{chipText}</Chip>}
+
+                {/* Sibling of card_image, never a child. card_image is itself an <a>, and nesting anchors is invalid and breaks click handling.
+                As siblings, the overlay takes the blog route and the rest of the image keeps the project URL. */}
+                {blogSlug && (
+                    <Link href={`/blog/${blogSlug}`} className="card_article">
+                        <span>Open article</span>
+                        <span className="card_article_arrow" aria-hidden="true">→</span>
+                    </Link>
+                )}
             </div>
 
             <div className="card_header">
@@ -81,15 +90,6 @@ const Card = memo(function Card(props: CardProps) {
                     {dateDisplay}
                 </p>
             </div>
-
-            {/* Last child, so it reads as the card's action rather than part of its metadata. card_content carries
-                flex: 1, which pins both this and the footer to the bottom regardless of description length. */}
-            {blogSlug && (
-                <Link href={`/blog/${blogSlug}`} className="card_article">
-                    <span>Open article</span>
-                    <span className="card_article_arrow" aria-hidden="true">→</span>
-                </Link>
-            )}
         </div>
     );
 });

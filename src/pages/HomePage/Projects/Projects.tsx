@@ -62,6 +62,17 @@ const projects: CardProps[] = [
         footer: "iOS & Android"
     },
     {
+        title: "MEDIVE",
+        subTitle: "Research project",
+        image: _medive,
+        chipText: "🚧 WIP",
+        dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
+        url: "https://github.com/jerryxfu/medive",
+        blogSlug: "medive-devlog0",
+        description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
+        footer: "IB Extended Essay"
+    },
+    {
         title: "HiddenGarden",
         subTitle: "A florist's website",
         image: _hiddengarden,
@@ -96,17 +107,6 @@ const projects: CardProps[] = [
         description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
         url: "/rendezvous",
         dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
-    },
-    {
-        title: "MEDIVE",
-        subTitle: "Research project",
-        image: _medive,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
-        url: "https://github.com/jerryxfu/medive",
-        blogSlug:"medive-devlog0",
-        description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
-        footer: "IB Extended Essay"
     },
     // {
     //     title: "Unveil Technologies",
