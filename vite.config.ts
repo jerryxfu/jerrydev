@@ -3,6 +3,9 @@ import {defineConfig} from "vite";
 import react from "@vitejs/plugin-react";
 import mdx from "@mdx-js/rollup";
 import rehypeShiki from "@shikijs/rehype";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import {VitePWA} from "vite-plugin-pwa";
 
 // use rollup-plugin-visualizer
@@ -20,7 +23,11 @@ export default defineConfig({
         {
             enforce: "pre",
             ...mdx({
-                rehypePlugins: [[rehypeShiki, {
+                // remark-math tokenises $...$ before MDX's expression parser can claim the braces inside \frac{}{},
+                // which is why LaTeX survives in MDX at all. rehype-katex then renders those nodes to markup at build.
+                // MDX is CommonMark only, so tables, strikethrough, footnotes and task lists need remark-gfm.
+                remarkPlugins: [remarkGfm, remarkMath],
+                rehypePlugins: [rehypeKatex, [rehypeShiki, {
                     // Dual themes: the light one is baked in as inline styles and
                     // the dark one ships as --shiki-dark custom properties, which
                     // PostPage.scss swaps in for the dark themes. All of this is
@@ -29,7 +36,7 @@ export default defineConfig({
                     // Explicit list on purpose. Left open, Shiki loads every
                     // grammar it has and build time balloons. Adding one here is
                     // free at runtime and costs only the build.
-                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java"],
+                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex"],
                 }]],
             }),
         },
@@ -62,6 +69,10 @@ export default defineConfig({
                 // Only the shell and fonts. Hashed JS and CSS moved to runtimeCaching below, where cacheWillUpdate can reject a host's HTML fallback.
                 // The precache has no such hook: it accepts any 200 and, since PrecacheStrategy checks the cache before fetching, a bad entry is never re-fetched and survives every later deploy.
                 globPatterns: ["**/*.{html,woff2}"],
+                // KaTeX ships 20 woff2 faces and the glob above would precache every one, so a visitor who only ever
+                // sees the home page still pays ~340KB on service worker install for maths they never read. They are
+                // excluded here and picked up cache-first on demand by the font rule in runtimeCaching instead.
+                globIgnores: ["**/KaTeX_*"],
                 cleanupOutdatedCaches: true,
                 // Gives every precache entry a revision, which switches its install fetch to cache: "reload".
                 // Hashed entries otherwise install with cache: "default" and can be answered from a browser HTTP cache still holding an HTML fallback from an earlier miss.
@@ -86,6 +97,17 @@ export default defineConfig({
                             networkTimeoutSeconds: 3,
                             cacheableResponse: {statuses: [200]},
                             precacheFallback: {fallbackURL: "/index.html"}
+                        }
+                    },
+                    {
+                        // The KaTeX faces dropped from the precache. Hashed and immutable like any other asset, so
+                        // cache-first is right; they just shouldn't be fetched until a post actually renders maths.
+                        urlPattern: ({request, sameOrigin}) => sameOrigin && request.destination === "font",
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "fonts",
+                            expiration: {maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365},
+                            cacheableResponse: {statuses: [200]}
                         }
                     },
                     {

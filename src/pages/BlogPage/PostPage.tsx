@@ -6,6 +6,7 @@ import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
 import {formatPostAge, formatPostDate, isReadable, listedPosts, postComponents} from "./posts.tsx";
+import "katex/dist/katex.min.css";
 import "./PostPage.scss";
 
 export default function PostPage() {

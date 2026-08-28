@@ -184,6 +184,51 @@
         }
     }
 
+    // KaTeX sets no colours of its own, so maths inherits --text-2 and follows the theme toggle with no help.
+    // Display maths is the one thing that can overflow: a long derivation is a single unbreakable box, so it scrolls
+    // sideways rather than forcing the whole page wide. padding-bottom leaves room for the scrollbar.
+    .katex-display {
+        margin: 1.5rem 0;
+        padding: 0.25rem 0 0.6rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    // Tables come from remark-gfm. Wrapped in the same horizontal-scroll treatment, since a wide comparison table
+    // would otherwise stretch the article column past its max-width.
+    table {
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        border-collapse: collapse;
+        font-size: var(--fs-sm);
+    }
+
+    th,
+    td {
+        padding: 0.45rem 0.8rem;
+        border: 1px solid var(--border);
+        text-align: left;
+    }
+
+    th {
+        background-color: var(--surface-lt);
+        font-weight: 600;
+        color: var(--text-strong);
+    }
+
+    del {
+        color: var(--text-4);
+    }
+
+    // Task lists render a real checkbox; markdown owns its state, so it is not interactive.
+    li input[type="checkbox"] {
+        margin-right: 0.4rem;
+        vertical-align: middle;
+    }
+
     // Shiki bakes the light theme in as inline styles and ships the dark one as
     // custom properties. Inline styles beat any selector, so the swap needs
     // !important — this is Shiki's own documented dual-theme pattern.

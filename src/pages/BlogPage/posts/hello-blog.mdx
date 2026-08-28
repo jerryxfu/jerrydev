@@ -35,7 +35,7 @@ Every tag has to exist in the `TAGS` array in `posts.tsx` before it can be used.
 of a filter chip that silently matches nothing.
 
 ````ts
-export const TAGS = ["devlog", "ai", "webdev", "minecraft", "notes", "random"] as const;
+export const TAGS = ["devlog", "ai", "webdev", /*...*/] as const;
 ````
 
 Declaration order is the order the chips render in on the list page. Tags with no posts get no chip at all.
@@ -101,6 +101,99 @@ $ pnpm dev
 ```
 
 Inline code uses single backticks and is styled separately.
+
+## Maths
+
+`remark-math` plus `rehype-katex`, rendered at build time. Inline maths goes between single dollars: the squared error
+$\frac{1}{n}\sum_i (y_i - \hat{y}_i)^2$ sits in the sentence. Display maths goes between double dollars on their own
+lines:
+
+$$
+\frac{\partial L}{\partial w} = -2X^\top(y - Xw)
+$$
+
+Environments work too, so `aligned`, `bmatrix`, `cases` and the rest are all available. Inside them `\\` is a genuine
+line break — one of the few places a double backslash is correct rather than a mistake:
+
+$$
+\begin{aligned}
+z &= Wx + b \\
+\hat{y} &= \sigma(z)
+\end{aligned}
+$$
+
+**The trap:** two dollar amounts in one paragraph get read as maths. Writing "it costs \$5 and then \$10 more"
+without escapes turns *5 and then* into a formula. Escape them as `\$`.
+
+KaTeX sets no colours of its own, so equations inherit the body text and follow the theme. Long display maths scrolls
+sideways instead of widening the page.
+
+### Syntax cheatsheet
+
+Left column is what you type, right column is what it renders as.
+
+| Write | Renders |
+| --- | --- |
+| `$x^2$` | $x^2$ |
+| `$x_i$` | $x_i$ |
+| `$x_i^2$` | $x_i^2$ |
+| `$x^{2n}$` | $x^{2n}$ |
+| `$\frac{a}{b}$` | $\frac{a}{b}$ |
+| `$\sqrt{x}$`, `$\sqrt[3]{x}$` | $\sqrt{x}$, $\sqrt[3]{x}$ |
+| `$\sum_{i=1}^{n} x_i$` | $\sum_{i=1}^{n} x_i$ |
+| `$\prod_{i=1}^{n} p_i$` | $\prod_{i=1}^{n} p_i$ |
+| `$\int_0^1 f(x)\,dx$` | $\int_0^1 f(x)\,dx$ |
+| `$\alpha, \beta, \theta, \sigma, \lambda$` | $\alpha, \beta, \theta, \sigma, \lambda$ |
+| `$\hat{y}, \bar{x}, \tilde{z}, \vec{v}$` | $\hat{y}, \bar{x}, \tilde{z}, \vec{v}$ |
+| `$\mathbf{X}$`, `$\mathbb{E}$`, `$\mathcal{L}$` | $\mathbf{X}$, $\mathbb{E}$, $\mathcal{L}$ |
+| `$X^\top$` | $X^\top$ |
+| `$\partial$`, `$\nabla$` | $\partial$, $\nabla$ |
+| `$\text{loss}$` | $\text{loss}$ |
+| `$\cdot, \times, \approx, \leq, \neq$` | $\cdot, \times, \approx, \leq, \neq$ |
+| `$\to, \implies, \in, \infty$` | $\to, \implies, \in, \infty$ |
+| `$\left\| x \right\|_2$` | $\left\| x \right\|_2$ |
+
+Three things that catch you out:
+
+- **`\,` is a thin space.** LaTeX ignores ordinary spaces in maths, so `\int_0^1 f(x) dx` sets the `dx` flush against
+the function. `\,` is how you get the gap.
+- **A bare `|` inside a table breaks the row.** GFM reads it as a cell divider before maths ever sees it, so the
+equation silently renders as plain text. Norms and absolute values need `\|`, as in the last row above.
+- **`\\` is a line break, not an escape.** It belongs inside `aligned` and nowhere else. `\\frac` is always wrong.
+
+Multi-line derivations use `aligned`, with `&` marking the alignment point:
+
+````latex
+$$
+\begin{aligned}
+\mathcal{L}(w) &= \frac{1}{n} \sum_{i=1}^{n} (y_i - w^\top x_i)^2 \\
+\nabla_w \mathcal{L} &= -\frac{2}{n} \sum_{i=1}^{n} x_i (y_i - w^\top x_i)
+\end{aligned}
+$$
+````
+
+$$
+\begin{aligned}
+\mathcal{L}(w) &= \frac{1}{n} \sum_{i=1}^{n} (y_i - w^\top x_i)^2 \\
+\nabla_w \mathcal{L} &= -\frac{2}{n} \sum_{i=1}^{n} x_i (y_i - w^\top x_i)
+\end{aligned}
+$$
+
+## Tables and other GFM
+
+MDX is CommonMark only, so tables, strikethrough, footnotes and task lists come from `remark-gfm`:
+
+| Model | Accuracy | Notes |
+| --- | --- | --- |
+| Logistic regression | 0.84 | Baseline |
+| Gradient boosting | 0.91 | Best so far |
+
+- [x] Works
+- [ ] Still to write
+
+~~Struck through~~, and footnotes[^1] render at the bottom of the post.
+
+[^1]: Like this one.
 
 ## Arbitrary JSX
 

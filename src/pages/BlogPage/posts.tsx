@@ -40,15 +40,6 @@ export type Post = {
 // the list page can rank and render every card without touching any prose.
 export const posts: Post[] = [
     {
-        slug: "hello-blog",
-        title: "How this blog works",
-        description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
-        date: postDate("2026-08-25"),
-        tags: ["notes", "webdev"],
-        lang: "en",
-        image: <Mdx />,
-    },
-    {
         slug: "medive-devlog0",
         title: "MEDIVE Devlog #0: Starting over",
         description: "Where MEDIVE came from, why I threw out the first implementation before it produced a single number, and what the next few months look like.",
@@ -57,25 +48,15 @@ export const posts: Post[] = [
         lang: "en",
         image: _medive
     },
-    // {
-    //     slug: "medive-devlog2",
-    //     title: "MEDIVE Devlog #2",
-    //     description: "",
-    //     date: postDate("2026-08-25"),
-    //     tags: ["ai", "devlog"],
-    //     draft: true
-    //     // image: <Mdx />,
-    // },
-    // {
-    //     slug: "medive-devlog3",
-    //     title: "MEDIVE Devlog #3",
-    //     description: "",
-    //     date: postDate("2026-08-25"),
-    //     tags: ["ai", "devlog"],
-    //     draft: true
-    //     // image: <Mdx />,
-    // },
-
+    {
+        slug: "hello-blog",
+        title: "How this blog works",
+        description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
+        date: postDate("2026-08-25"),
+        tags: ["notes", "webdev"],
+        lang: "en",
+        image: <Mdx />,
+    },
 ];
 
 // Non-eager on purpose: this is a map of import *functions*, not the modules.
