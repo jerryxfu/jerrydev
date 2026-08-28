@@ -49,7 +49,7 @@ const tech_stack = [
         color: "#ffeda610",
         description: "PyTorch, OpenCV, scripting, MAVSDK",
         iconUrl: _python,
-        chipText: "2/5",
+        chipText: "4/5",
         url: "https://www.python.org/"
     },
     {
@@ -57,7 +57,7 @@ const tech_stack = [
         color: "#ffc1a610",
         description: "iOS, iPadOS, watchOS",
         iconUrl: _swift,
-        chipText: "1/5",
+        chipText: "2/5",
         url: "https://developer.apple.com/swiftui/"
     },
     {

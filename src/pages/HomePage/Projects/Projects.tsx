@@ -104,8 +104,9 @@ const projects: CardProps[] = [
         chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
         url: "https://github.com/jerryxfu/medive",
-        description: "An AI system that generates differential diagnoses and identifies co-occurring symptoms from symptomatic presentations using a hybrid attention-based encoding model.",
-        footer: "IB EE"
+        blogSlug:"medive-devlog0",
+        description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
+        footer: "IB Extended Essay"
     },
     // {
     //     title: "Unveil Technologies",

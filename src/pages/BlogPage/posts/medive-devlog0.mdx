@@ -1,0 +1,56 @@
+This is the first devlog for MEDIVE, and it is out before the first real line of code. Over the past week I reworked the plan for the project from scratch because an earlier approach was very flimsy, and I want a record of what's new, written as a series of blog posts. (it also gives me a reason to use this blog, which is otherwise a bit lonely.)
+
+## What MEDIVE is
+
+MEDIVE stands for Medical Inference via Vector Embeddings. You give it a short description of a patient's symptoms, it gives you back a ranked list of likely conditions: a differential diagnosis, with a score associated to each item.
+
+The idea that I am interested about is *how* effectively can embeddings encode symptom-disease relationships.
+The most basic symptom checker would be matching keywords against a list, but that falls apart the moment someone writes "maux de tête" instead of "céphalée", or "can't catch my breath" instead of "dyspnea".
+MEDIVE uses two representations at once: a text embedding from SapBERT, a language model pretrained on biomedical text, which handles paraphrase and synonymy; and an embedding of the Unified Medical Language System (UMLS) concept codes (CUIs) found in the text, which is the medical ontology's own formal view of the same symptoms.
+The hypothesis is that fuse the two and you should get something that understands the phrasing *and* knows the taxonomy.
+
+That is the hypothesis, anyway. More coming in the next devlogs.
+
+## Where it came from
+
+MEDIVE started as a stray thought (just like most of my other projects). For the past few years, I have been very fascinated and curious about Large Language Models (LLMs),
+including embeddings, and at some point I wondered if they could be used to encode the relationship between symptoms and diseases? At first thought, it felt pretty intuitive
+-- a given combination of symptoms pulls a diagnosis in one direction, and adding or removing even a single symptom can pull it towards another direction entirely.
+And that that's the essence of differential diagnosis, and it really seemed like the kind of thing an embedding space should be good at capturing.
+
+Then later I called my PI at the CHUM Research Center for some feedback. While it is unrelated to his projects, he's an anesthesiologist-intensivist,
+so he sees enough of medicine to know whether an idea is naive or not. I scribbled some notes during the call, and then didn't touch any of it for months.
+
+## The rescope
+
+It stayed a stray thought until IB gave it a deadline. Starting the program meant I'd need a research project the following year, and MEDIVE was already sitting there, unused.
+So I picked it back up because it finally had somewhere to go.
+
+The essay asks one comparative question:
+
+> To what extent does fusing UMLS concept (CUI) embeddings with SapBERT text embeddings improve the relevance and robustness of differential diagnoses generated from free-text symptom presentations, compared with text-only embeddings and keyword-matching baselines?
+
+That question tests if the hybrid, fused representation, is the innovation. The experiment is now about whether it helps, and not necessarily about how good the model is in absolute terms.
+The original ideas of symptom suggestion, the interactive loop, the info line, multimodal data: all of it moves to a later, personal version of the project, outside the IB scope.
+
+The study will involve testing a few models of increasing complexity, from a simple keyword matcher up to the hybrid model which is our goal.
+Each model is tested against the same symptoms, but written in different ways: plain text, in proper medical vocabulary, in the words a patient would actually use, and with typos.
+This is done to see whether some architectures are more resistant than others to variation in the wording.
+
+My guess is that the hybrid model will lead in accuracy on the messier formulations of the list of symptoms, and that on the clean, well-formatted text it will make little difference.
+The reason is that the ontology has nothing to fix on the clean versions because the concept codes are already written out in the text, so the hybrid and the text-only model would be reasoning over the same thing.
+It's when the wording drifts that the two approaches (should) diverge in accuracy. And if it turns out they don't, then that tells me SapBERT (text-only) is already good at this on its own.
+
+## Data, finally
+
+I settled on DDXPlus, from Mila which contains over a million synthetic patients, and, crucially, a ground-truth differential for every patient, not just a single label!
+The paper documents how the patients were generated, which is exactly what a methodology section needs to say.
+The Kaggle dataset I had found earlier could not answer "how was this made", so it is now optional at best. It was a huge table of synthetic list of symptoms and a single label.
+
+No hospital data. I could have chased it through the research center where I work, but an ethics protocol and a data-access agreement would probably take months, and the question does not need it anyway.
+
+## What's next
+
+Nothing has been run yet. The next few weeks are the tedious part: acquiring the dataset, writing all the code that everything else will depend on, and then running some experiments.
+
+The next devlog should have the first real numbers in it, however boring they turn out to be.

@@ -20,7 +20,8 @@ export default function PostPage() {
     if (!post || !Body || !isReadable(post)) {
         return (
             <div className="post">
-                <Navbar isShrunk />
+                <Navbar isShrunk={true} stagger={false} animate={false} />
+
                 <main className="post_container post_missing">
                     <h1>Post not found</h1>
                     <p>That one doesn&apos;t exist, or it hasn&apos;t been published yet.</p>

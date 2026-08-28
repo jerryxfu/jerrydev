@@ -1,9 +1,12 @@
 import {type ComponentType, lazy, type ReactElement} from "react";
+
+// assets
 import {Mdx} from "@/assets/projects/mdx.tsx";
+import _medive from "@/assets/projects/medive.jpeg";
 
 // Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a
 // filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
-export const TAGS = ["devlog", "ai", "webdev", "minecraft", "notes", "random"] as const;
+export const TAGS = ["devlog", "ai", "webdev", "med", "gaming", "notes", "random"] as const;
 export type Tag = typeof TAGS[number];
 
 export const isTag = (value: string): value is Tag => (TAGS as readonly string[]).includes(value);
@@ -33,6 +36,33 @@ export const posts: Post[] = [
         tags: ["notes", "webdev"],
         image: <Mdx />,
     },
+    {
+        slug: "medive-devlog0",
+        title: "MEDIVE Devlog #0: Starting over",
+        description: "Where MEDIVE came from, why I threw out the first implementation before it produced a single number, and what the next few months look like.",
+        date: postDate("2026-08-28"),
+        tags: ["ai", "devlog", "med"],
+        image: _medive
+    },
+    // {
+    //     slug: "medive-devlog2",
+    //     title: "MEDIVE Devlog #2",
+    //     description: "",
+    //     date: postDate("2026-08-25"),
+    //     tags: ["ai", "devlog"],
+    //     draft: true
+    //     // image: <Mdx />,
+    // },
+    // {
+    //     slug: "medive-devlog3",
+    //     title: "MEDIVE Devlog #3",
+    //     description: "",
+    //     date: postDate("2026-08-25"),
+    //     tags: ["ai", "devlog"],
+    //     draft: true
+    //     // image: <Mdx />,
+    // },
+
 ];
 
 // Non-eager on purpose: this is a map of import *functions*, not the modules.
