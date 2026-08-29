@@ -7,27 +7,63 @@
 
 .topic_container {
     flex: 1 0 auto;
-    max-width: 1024px;
+    max-width: 1020px;
     margin: 0 auto;
     padding: 5rem 1.25rem 4rem;
     box-sizing: border-box;
     width: 100%;
 }
 
-// A plain panel now the image is gone, so it can use theme tokens throughout rather than the hardcoded light-on-dark
-// the scrim required. The left rule in --tertiary ties it to the topic links on /blog.
+// A panel rather than the old scrim-over-photo, so it can use theme tokens throughout instead of the hardcoded
+// light-on-dark that a scrim required. The left rule in --tertiary ties it to the topic links on /blog. The optional
+// image sits beside the text rather than behind it, which is what keeps the tokens usable.
 .topic_header {
+    display: flex;
+    // Plain row, not row-reverse. The text comes first in source order so the heading is read out before the art,
+    // and in a normal row that already puts the text left and the image right — reversing would swap them back.
+    align-items: stretch;
     border: 1px solid var(--border);
     border-left: 3px solid var(--tertiary);
     border-radius: 12px;
     background-color: var(--bg-lt);
+    // The image is square-cornered; without this it overflows the panel's rounded corner.
+    overflow: hidden;
 }
 
 .topic_header_inner {
+    // Takes the space the image leaves, and min-width: 0 so a long unbroken word wraps instead of widening the flex item past the panel.
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
     padding: 1.6rem 1.5rem 1.75rem;
+}
+
+// Wider than the 160px on a card, since the header is the full container width rather than half of a two-up grid.
+.topic_header_image {
+    flex-shrink: 0;
+    width: 240px;
+    background-color: var(--surface);
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        // Top-left rather than the default centre. A wide screenshot cropped into this narrow slot from the middle
+        // is an unreadable strip; anchored to the corner it reads as the top of a page.
+        object-position: left top;
+    }
+
+    // A vector mark should fit rather than crop, so it scales to the slot and letterboxes on its own via the viewBox.
+    svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+        box-sizing: border-box;
+    }
 }
 
 .topic_back {
@@ -108,6 +144,20 @@
 @media screen and (max-width: 860px) {
     .topic_list {
         grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 860px) {
+    // Below this the image would squeeze the text into a column narrower than it reads well in. Back to column, and
+    // not reversed, so the art sits above the heading the way a stacked card does.
+    .topic_header {
+        flex-direction: column;
+    }
+
+    .topic_header_image {
+        width: 100%;
+        height: 150px;
+        order: -1;
     }
 }
 

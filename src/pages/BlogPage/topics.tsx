@@ -1,3 +1,6 @@
+import type {ReactElement} from "react";
+import _medive from "@/assets/projects/medive.jpeg";
+
 // A marker inside the syllabus. Only markers are tagged, a post stays a bare slug string, because posts are the common case and shouldn't
 // pay ceremony for the exception. `typeof entry === "string"` discriminates the union, the same way nav.config.ts discriminates NavItem on `type`.
 export type ChapterMarker =
@@ -11,6 +14,9 @@ export type SyllabusEntry = string | ChapterMarker;
 export type Topic = {
     name: string;
     description: string;
+    // Optional header art, right of the text. Same union as Post.image: an imported asset URL, or an element for a
+    // vector mark that should scale rather than crop. Omit it and the header renders exactly as it did before.
+    image?: string | ReactElement;
     // The syllabus, in reading order, optionally broken up by { chapter: "..." } markers. This array is the single source of truth for four things at once:
     // which posts belong to the topic, what order the topic page lists them in, how they group into chapters, and what prev/next resolve to on a post.
     // Reordering the course is moving a line; inserting a lesson or a chapter is adding one. Posts carry no topic field, so the two can never disagree.
@@ -50,6 +56,7 @@ export const TOPICS: Record<TopicId, Topic> = {
     },
     "medive": {
         name: "MEDIVE",
+        image: _medive,
         description: "Medical Inference via Vector Embeddings research project devlogs",
         posts: [
             "medive-devlog0"

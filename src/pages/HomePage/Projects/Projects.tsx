@@ -25,7 +25,7 @@ import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import _tools_light from "../../../assets/projects/tools_light.jpeg";
 import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
-import _guide from "../../../assets/projects/guide.jpeg";
+import _guides from "../../../assets/projects/guides.jpeg";
 import _stats from "../../../assets/projects/stats.jpeg";
 import {formatDate} from "@/utils.ts";
 import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
@@ -129,9 +129,9 @@ const projects: CardProps[] = [
     {
         title: "Guide",
         subTitle: "Guides about various stuff",
-        image: _guide,
+        image: _guides,
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
-        url: "/blog/guides",
+        url: "/blog/topics/guides",
         dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
     },
     {

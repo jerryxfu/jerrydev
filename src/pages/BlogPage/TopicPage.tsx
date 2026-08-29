@@ -37,7 +37,7 @@ export default function TopicPage() {
         );
     }
 
-    const {name, description} = TOPICS[id];
+    const {name, description, image} = TOPICS[id];
 
     // Chapter grouping only survives an unfiltered view. Once there is a search query the order is relevance, not syllabus, so headings would be labelling groups that no longer exist.
     const chapters = filter.isFiltered ? [] : chaptersInTopic(id);
@@ -60,6 +60,17 @@ export default function TopicPage() {
                         <h1>{name}</h1>
                         <p className="topic_description">{description}</p>
                     </div>
+
+                    {/* After the text in source order, not before it as on a card, so the heading is still the first
+                        thing read out; CSS places it on the right. Decorative when it's an asset — the name sits
+                        beside it — while an element carries its own <title> and passes through as-is. */}
+                    {image && (
+                        <div className="topic_header_image">
+                            {typeof image === "string"
+                                ? <img src={image} alt="" loading="lazy" decoding="async" />
+                                : image}
+                        </div>
+                    )}
                 </header>
 
                 {named.length > 0 && (
