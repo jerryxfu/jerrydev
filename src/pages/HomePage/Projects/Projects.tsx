@@ -131,7 +131,7 @@ const projects: CardProps[] = [
         subTitle: "Guides about various stuff",
         image: _guide,
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
-        url: "https://guide.jerryxf.net",
+        url: "/blog/guides",
         dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
     },
     {

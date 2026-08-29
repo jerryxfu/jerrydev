@@ -50,7 +50,7 @@ export default function BlogPage() {
                     </nav>
                 )}
 
-                <PostFilters {...filter} />
+                <PostFilters {...filter} scope="all posts" />
 
                 {filter.visible.length === 0 ? (
                     <p className="blog_empty">

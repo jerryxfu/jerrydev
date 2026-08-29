@@ -21,6 +21,12 @@ export default function PostPage() {
     // Empty for a post in no topic, which is what keeps the topic link and the prev/next control off ordinary posts.
     const {topic, prev, next} = neighbours(slug ?? "");
 
+    // A lesson belongs to its course, so "back" means the topic page rather than the whole blog. Resolved before the early return below so the not-found branch gets it too:
+    // a draft URL in production lands there, and its topic is still the place the reader came from. Falls back to /blog for a post in no topic, or a slug that matches nothing.
+    const back = topic
+        ? {href: `/blog/topics/${topic}`, label: `Back to ${TOPICS[topic].name}`}
+        : {href: "/blog", label: "Back to the blog"};
+
     // Needs both halves: a manifest entry for the metadata and a file for the prose, plus permission to show it.
     // In dev the check in posts.ts already named whichever half is missing; isReadable is what turns a typed-in draft URL into a dead end in production.
     if (!post || !Body || !isReadable(post)) {
@@ -31,7 +37,7 @@ export default function PostPage() {
                 <main className="post_container post_missing">
                     <h1>Post not found</h1>
                     <p>That one doesn&apos;t exist, or it hasn&apos;t been published yet.</p>
-                    <Link href="/blog" className="post_back"><ArrowLeft size={15} /> Back to the blog</Link>
+                    <Link href={back.href} className="post_back"><ArrowLeft size={15} /> {back.label}</Link>
                 </main>
                 <Footer />
             </div>
@@ -78,10 +84,9 @@ export default function PostPage() {
             <Navbar isShrunk={true} stagger={false} animate={false} />
 
             <main className="post_container">
-                <Link href="/blog" className="post_back"><ArrowLeft size={15} /> Back to the blog</Link>
+                <Link href={back.href} className="post_back"><ArrowLeft size={15} /> {back.label}</Link>
 
-                {/* The same pair as at the foot of the post. A div rather than a second <nav>, so the
-                    page does not expose two navigation landmarks sharing one name. */}
+                {/* The same pair as at the foot of the post. A div rather than a second <nav>, so the page does not expose two navigation landmarks sharing one name. */}
                 {navLinks && <div className="post_nav post_nav--compact">{navLinks}</div>}
 
                 <header className="post_header">

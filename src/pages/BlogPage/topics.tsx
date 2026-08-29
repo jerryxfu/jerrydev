@@ -1,7 +1,7 @@
 // A marker inside the syllabus. Only markers are tagged, a post stays a bare slug string, because posts are the common case and shouldn't
 // pay ceremony for the exception. `typeof entry === "string"` discriminates the union, the same way nav.config.ts discriminates NavItem on `type`.
 export type ChapterMarker =
-    // A named chapter heading. `break` decides whether prev/next stops here too. Default false, so chapters flow into each other.
+// A named chapter heading. `break` decides whether prev/next stops here too. Default false, so chapters flow into each other.
     | { chapter: string; break?: boolean }
     // No heading, only a stop for prev/next. For two posts that belong under the same heading but should not chain into one another —
     // the Excel handbook and its Spanish translation are one lesson in two languages, not two consecutive lessons.
@@ -21,7 +21,7 @@ export type Topic = {
 // with `satisfies` alone the values are *inferred*, so a syllabus of nothing but slugs infers string[] and the chapter branch of the union narrows to never.
 // Annotating gives every array the same SyllabusEntry[] type whether or not it happens to contain a marker.
 // Record also makes a missing or misspelt id an error, so the two lists cannot drift.
-export const TOPIC_IDS = ["guides"] as const;
+export const TOPIC_IDS = ["guides", "medive"] as const;
 export type TopicId = typeof TOPIC_IDS[number];
 
 
@@ -48,6 +48,13 @@ export const TOPICS: Record<TopicId, Topic> = {
             "excel-formulas-es",
         ],
     },
+    "medive": {
+        name: "MEDIVE",
+        description: "Medical Inference via Vector Embeddings research project devlogs",
+        posts: [
+            "medive-devlog0"
+        ]
+    }
 };
 
 

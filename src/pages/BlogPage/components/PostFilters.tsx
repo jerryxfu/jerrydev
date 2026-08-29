@@ -2,6 +2,9 @@ import {Search, X} from "lucide-react";
 import type {Tag} from "../posts.tsx";
 
 type Props = {
+    // What the search is scoped to, named the way the reader would say it: "all posts" on /blog, the topic's own name on a topic page.
+    // Required rather than defaulted, so a new page that renders this has to say what it searches instead of silently claiming to search everything.
+    scope: string;
     query: string;
     activeTags: Tag[];
     usedTags: readonly Tag[];
@@ -12,7 +15,7 @@ type Props = {
 
 // Markup shared by /blog and every topic page. Class names stay on the blog_ prefix rather than moving to a neutral
 // one, so the existing BlogPage.scss keeps owning them and there is only one place these are styled.
-export default function PostFilters({query, activeTags, usedTags, setQuery, toggleTag, clearTags}: Props) {
+export default function PostFilters({scope, query, activeTags, usedTags, setQuery, toggleTag, clearTags}: Props) {
     return (
         <div className="blog_controls">
             <div className="blog_search">
@@ -21,8 +24,8 @@ export default function PostFilters({query, activeTags, usedTags, setQuery, togg
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search posts..."
-                    aria-label="Search posts"
+                    placeholder={`Searching in ${scope}...`}
+                    aria-label={`Search in ${scope}`}
                 />
                 {query && (
                     <button className="blog_search-clear" onClick={() => setQuery("")} aria-label="Clear search">

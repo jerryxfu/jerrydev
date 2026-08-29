@@ -8,10 +8,9 @@ import PostFilters from "./components/PostFilters.tsx";
 import {chaptersInTopic, postsInTopic} from "./posts.tsx";
 import {isTopicId, TOPICS} from "./topics.tsx";
 import {usePostFilter} from "./usePostFilter.ts";
-// Not decorative. This page renders blog_topics, blog_list, blog_empty and the whole of PostFilters,
-// all of which BlogPage.scss owns — without this import they are styled only if /blog happened to be
-// visited first in the same session, since each route's CSS ships with its own chunk. Imported ahead
-// of TopicPage.scss so the topic-specific rules still win.
+// Not decorative. This page renders blog_topics, blog_list, blog_empty and the whole of PostFilters, all of which BlogPage.scss owns.
+// Without this import they are styled only if /blog happened to be visited first in the same session, since each route's CSS ships with its own chunk.
+// Imported ahead of TopicPage.scss so the topic-specific rules still win.
 import "./BlogPage.scss";
 import "./TopicPage.scss";
 
@@ -40,8 +39,7 @@ export default function TopicPage() {
 
     const {name, description} = TOPICS[id];
 
-    // Chapter grouping only survives an unfiltered view. Once there is a search query the order is relevance, not
-    // syllabus, so headings would be labelling groups that no longer exist.
+    // Chapter grouping only survives an unfiltered view. Once there is a search query the order is relevance, not syllabus, so headings would be labelling groups that no longer exist.
     const chapters = filter.isFiltered ? [] : chaptersInTopic(id);
     const named = chapters.filter((chapter) => chapter.name);
 
@@ -77,7 +75,7 @@ export default function TopicPage() {
                     </nav>
                 )}
 
-                <PostFilters {...filter} />
+                <PostFilters {...filter} scope={name} />
 
                 {filter.visible.length === 0 ? (
                     <p className="blog_empty">
