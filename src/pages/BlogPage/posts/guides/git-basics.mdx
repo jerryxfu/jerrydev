@@ -1,0 +1,370 @@
+## 1. What Git actually is
+
+Git takes **snapshots** of a folder, on demand, forever. Each snapshot is called a **commit**, and every commit remembers what changed, who changed it, when, and why.
+
+That single idea buys you four things:
+
+**An undo button with no limit.** Broke something three days ago? Go back and look. Restore one file, or all of them.
+
+**A record of why.** `git log` tells you the reasoning behind every change. Six months later this is the only thing standing between you and total confusion.
+
+**Fearless experimentation.** Try the risky refactor on a branch. If it's bad, throw the branch away — the working version was never touched.
+
+**Collaboration without emailing zip files.** Several people edit the same project and Git merges their work, flagging the spots where they genuinely conflict.
+
+Git is a program on your computer. **GitHub is a website that hosts Git repositories.** They're different things, and Git works completely fine without GitHub. Part I never touches the internet.
+
+A **repository** (repo) is just a folder that Git is tracking. Git stores its data in a hidden `.git` subfolder — delete that and you have a plain folder again.
+
+---
+
+## 2. Install and configure
+
+**Install:** [git-scm.com/downloads](https://git-scm.com/downloads). macOS may already have it; Linux has it in your package manager. Verify:
+
+```bash
+git --version
+```
+
+**Configure yourself once.** Every commit is stamped with a name and email, so Git refuses to work until you set them:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Use the same email as your GitHub account so commits link to your profile.
+
+Two more worth setting immediately:
+
+```bash
+git config --global init.defaultBranch main    # "main" not "master"
+git config --global pull.rebase false          # a sane default for pulls
+```
+
+Check anything with `git config --list`.
+
+### Which terminal
+
+macOS/Linux: whatever you have. Windows: **Git Bash** ships with Git and behaves like a normal Unix shell, which means every tutorial you find will work. VS Code has a built-in terminal and a Git panel — the panel is fine once you understand what the commands do, but learn the commands first or the buttons will be meaningless.
+
+---
+
+## 3. Your first repository
+
+```bash
+mkdir my-project
+cd my-project
+git init
+```
+
+`git init` creates the `.git` folder. Nothing else changed. Now make a file:
+
+```bash
+echo "# My Project" > README.md
+git status
+```
+
+`git status` is the command you'll run more than all others combined. It tells you where you are and usually suggests what to do next. Right now it says README.md is *untracked* — Git can see it but isn't watching it.
+
+```bash
+git add README.md
+git commit -m "Add README"
+```
+
+That's a commit. `git status` now says there's nothing to commit. `git log` shows your history:
+
+```bash
+git log
+git log --oneline          # much more readable
+```
+
+The whole cycle is: **edit files → `git add` → `git commit`**. Repeat forever.
+
+Some useful variants:
+
+```bash
+git add file1.py file2.py   # specific files
+git add .                   # everything in this folder and below
+git add -A                  # everything, including deletions
+```
+
+`git add .` is convenient and slightly dangerous — it's how people accidentally commit a 2GB dataset or a password file. Run `git status` first and actually read it.
+
+---
+
+## 4. The three areas
+
+This is the concept that makes Git click, and skipping it is why Git feels arbitrary.
+
+```text
+  working directory  ──git add──▶  staging area  ──git commit──▶  repository
+   (your files)                     (what's next)                  (history)
+```
+
+**Working directory** — your actual files, as they are right now.
+
+**Staging area** (the "index") — a draft of your next commit. `git add` puts things here.
+
+**Repository** — the permanent history. `git commit` moves everything staged into it.
+
+The staging area exists so you can commit *some* of your changes. If you fixed a bug and also renamed a variable in another file, you can stage and commit them separately, giving each a clear message. Small, focused commits are enormously easier to read and to undo later.
+
+You can even stage part of a file:
+
+```bash
+git add -p           # walks through each chunk, y/n
+```
+
+`git status` always shows you which area everything is in.
+
+---
+
+## 5. Writing commits
+
+```bash
+git commit -m "Fix off-by-one error in date parser"
+```
+
+Conventions that are worth following because everyone else does:
+
+- **Imperative mood**: "Add login page", not "Added" or "Adds". Read it as *"applying this commit will… add login page"*.
+- **Short summary line**, roughly 50 characters, capitalised, no full stop.
+- **Explain why in the body** if it isn't obvious. Run `git commit` with no `-m` and your editor opens; first line is the summary, blank line, then as much prose as you want.
+
+```text
+Cache API responses for 5 minutes
+
+The dashboard was hitting the rate limit during demos. Five minutes
+is short enough that stale data isn't visible to users.
+```
+
+**Commit often.** A commit per logical change, not one per day. "Various fixes" covering 40 files is useless when you need to find where something broke.
+
+Committing broken code on your own branch is fine — that's what branches are for. It's committing broken code to a branch other people use that causes problems.
+
+---
+
+## 6. Seeing what changed
+
+```bash
+git status                 # where am I, what's changed
+git diff                   # unstaged changes (working dir vs staging)
+git diff --staged          # staged changes (what the commit will contain)
+git diff HEAD              # everything since the last commit
+```
+
+Reading a diff: `-` lines are removed, `+` lines are added. `@@ -12,7 +12,9 @@` means "this chunk starts at line 12".
+
+History:
+
+```bash
+git log --oneline --graph --all     # visual, shows branches
+git log -5                          # last five
+git log --author="Jerry"
+git log -- path/to/file.py          # history of one file
+git show a1b2c3d                    # the full contents of one commit
+git blame file.py                   # who last touched each line, and in which commit
+```
+
+`git blame` sounds accusatory but is mostly used on your own code to answer "why on earth is this here" — it gives you the commit, and the commit message gives you the reason.
+
+Every commit has a **hash**, a long hex string like `a1b2c3d4e5f6...`. You only ever need the first 7 characters. `HEAD` means "the commit I'm currently on", `HEAD~1` is the one before it, `HEAD~3` three back.
+
+---
+
+## 7. Undoing things
+
+The single most-searched Git topic. Which command depends on *how far along* the mistake is.
+
+### I edited a file and want to throw the changes away
+
+```bash
+git restore file.py          # discard changes to one file
+git restore .                # discard everything uncommitted
+```
+
+**This is irreversible.** Those changes were never committed, so Git can't get them back.
+
+### I staged something I didn't mean to
+
+```bash
+git restore --staged file.py     # unstage, keeping the edits
+```
+
+### I want to fix the commit I just made
+
+```bash
+git commit --amend -m "Better message"
+```
+
+Amend replaces the last commit. Forgot a file? `git add forgotten.py` then `git commit --amend --no-edit`.
+
+**Only amend commits you haven't pushed.** Amending rewrites history, and rewriting history other people already have causes real problems.
+
+### I want to undo the last commit
+
+```bash
+git reset --soft HEAD~1     # undo the commit, keep changes staged
+git reset HEAD~1            # undo the commit, keep changes unstaged
+git reset --hard HEAD~1     # undo the commit and DELETE the changes
+```
+
+`--hard` is the one people regret. It throws away work with no confirmation.
+
+### I need to undo a commit that's already pushed
+
+```bash
+git revert a1b2c3d
+```
+
+`revert` creates a *new* commit that undoes the old one. History stays intact, everyone else's copy stays valid. This is the safe option, and the correct one for anything shared.
+
+### I need to put this aside without committing
+
+```bash
+git stash               # shelve all uncommitted changes
+git stash pop           # bring them back
+git stash list
+```
+
+Perfect for "I'm halfway through something and need to look at a different branch right now".
+
+### I've genuinely lost something
+
+```bash
+git reflog
+```
+
+The reflog records every position `HEAD` has been in, including commits you reset away. Find the hash, `git checkout <hash>`, and it's back. This has saved a lot of people. It doesn't recover changes that were never committed.
+
+**Rule of thumb:** anything that only exists in your working directory can be lost forever. Anything committed is almost always recoverable. Commit early.
+
+---
+
+## 8. Ignoring files
+
+Some things should never be in version control: build artifacts, dependencies, editor settings, and — most importantly — secrets.
+
+Create a file called `.gitignore` in the repo root:
+
+```bash
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets — never commit these
+.env
+*.key
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Data and output
+*.csv
+!sample.csv          # but do keep this one
+data/raw/
+```
+
+Patterns: `*` matches anything, a trailing `/` means directory, a leading `!` un-ignores.
+
+**The catch:** `.gitignore` only affects files Git isn't already tracking. If you committed something and *then* ignored it, it stays tracked. Fix:
+
+```bash
+git rm --cached secrets.env
+```
+
+That removes it from tracking but leaves it on your disk.
+
+GitHub maintains good starter files at [github.com/github/gitignore](https://github.com/github/gitignore) — grab the Python one rather than writing your own.
+
+Commit your `.gitignore`. It's part of the project.
+
+---
+
+## 9. Branches
+
+A branch is a movable pointer to a commit. Making one costs nothing — it's a 40-byte file, not a copy of your project.
+
+The point: work on something without touching the working version.
+
+```bash
+git branch                      # list branches, * marks current
+git switch -c feature-login     # create a branch and move to it
+git switch main                 # move back
+git branch -d feature-login     # delete it (once merged)
+```
+
+(Older tutorials use `git checkout -b` and `git checkout`. Same thing — `switch` is the newer, clearer name.)
+
+When you switch branches, **your files actually change on disk** to match that branch. That's the part that surprises people the first time.
+
+The normal rhythm:
+
+```bash
+git switch -c add-dark-mode
+# ...edit, add, commit, edit, add, commit...
+git switch main
+git merge add-dark-mode
+git branch -d add-dark-mode
+```
+
+Branch names are conventionally lowercase with hyphens, often prefixed: `feature/dark-mode`, `fix/login-crash`.
+
+Why bother when working alone? Because "try something, throw it away cleanly" is worth a lot, and because `main` staying in a working state means you always have something to fall back to.
+
+---
+
+## 10. Merging and conflicts
+
+```bash
+git switch main
+git merge feature-branch
+```
+
+Two outcomes:
+
+**Fast-forward** — if `main` hasn't moved since you branched, Git just slides the pointer forward. No new commit, nothing to think about.
+
+**Merge commit** — if both branches have new commits, Git combines them and creates a commit with two parents. It figures out most of this automatically.
+
+### Conflicts
+
+A conflict happens when **both branches changed the same lines of the same file**. Git can't guess which one you want, so it stops and asks. This is not an error — it's Git correctly refusing to make something up.
+
+The file will contain markers:
+
+```text
+<<<<<<< HEAD
+background = "white"
+=======
+background = "black"
+>>>>>>> feature-dark-mode
+```
+
+Above `=======` is your current branch, below it is the branch being merged in.
+
+To resolve: **open the file, delete the markers, and leave the code you want.** That might be one side, the other, or a combination you write yourself. Then:
+
+```bash
+git add conflicted-file.py
+git commit
+```
+
+`git status` lists every conflicted file, so you don't have to hunt.
+
+To bail out entirely: `git merge --abort` puts everything back the way it was.
+
+Conflicts feel alarming and are genuinely routine. VS Code shows them with clickable "Accept Current / Accept Incoming / Accept Both" buttons, which helps a lot at first — but read what you're accepting.
+
+**How to have fewer of them:** small branches, merged often. A branch that lives for three weeks will conflict with everything.
+
+---

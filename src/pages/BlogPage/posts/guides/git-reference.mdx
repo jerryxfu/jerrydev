@@ -1,0 +1,144 @@
+## Workflows
+
+### Solo project
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin git@github.com:you/project.git
+git push -u origin main
+
+# then, forever:
+# edit → git add . → git commit -m "..." → git push
+```
+
+### Feature branch
+
+```bash
+git switch main
+git pull                          # start from current
+git switch -c feature/thing
+# ...work...
+git add . && git commit -m "Add thing"
+git push -u origin feature/thing
+# open PR, get it merged
+git switch main && git pull
+git branch -d feature/thing
+```
+
+### Daily habit on a team
+
+```bash
+git pull                # start of session
+# ...work, commit as you go...
+git pull                # before pushing
+git push
+```
+
+---
+
+## Fixing mistakes
+
+| Situation | Command |
+|---|---|
+| Discard changes to a file | `git restore file.py` |
+| Unstage a file | `git restore --staged file.py` |
+| Fix the last commit message | `git commit --amend -m "New message"` |
+| Add a forgotten file to the last commit | `git add f.py && git commit --amend --no-edit` |
+| Undo last commit, keep the work | `git reset HEAD~1` |
+| Undo last commit, delete the work | `git reset --hard HEAD~1` |
+| Undo a commit that's already pushed | `git revert <hash>` |
+| Set files aside temporarily | `git stash` / `git stash pop` |
+| Committed to the wrong branch | `git reset HEAD~1`, switch, re-commit |
+| Recover a commit you reset away | `git reflog`, then `git checkout <hash>` |
+| Get one file back from an old commit | `git checkout <hash> -- file.py` |
+| Abandon a messy merge | `git merge --abort` |
+| Stop tracking a committed file | `git rm --cached file` (then add to `.gitignore`) |
+
+---
+
+## Gotchas
+
+1. **Git ≠ GitHub.** Git is the tool; GitHub is a host.
+2. **`git add` doesn't save anything.** It stages. `git commit` saves.
+3. **A commit only captures what was staged.** Edit a file after `git add` and those newer edits aren't in the commit.
+4. **`.gitignore` doesn't untrack already-committed files.** Use `git rm --cached`.
+5. **Committed a password? Rotate it.** Removing it from history is possible but painful, and it's already been public. Assume it's compromised and change it.
+6. **Never `--force` push a shared branch.** Use `--force-with-lease` if you must.
+7. **Never rewrite pushed history** (`amend`, `rebase`, `reset`) on a branch other people use. `revert` instead.
+8. **`git reset --hard` deletes uncommitted work permanently.** No reflog, no recovery.
+9. **Pull before you push**, or your push gets rejected.
+10. **Git tracks files, not folders.** An empty folder won't be committed — put a `.gitkeep` in it if you need it.
+11. **Big binaries bloat the repo forever.** Even if you delete them later, they're in the history. Use Git LFS or keep them out.
+12. **Line endings** cause phantom "whole file changed" diffs across Windows and macOS. Fix with `git config --global core.autocrlf true` on Windows, `input` elsewhere.
+13. **Detached HEAD** just means you're on a commit rather than a branch. `git switch -c new-branch` to keep the work, or `git switch main` to leave.
+14. **Cloning gives you the whole history**, not just the latest files. That's why a big repo takes a while.
+
+---
+
+## Command reference
+
+```bash
+# --- setup ---
+git config --global user.name "Name"
+git config --global user.email "you@example.com"
+git config --list
+
+# --- starting ---
+git init
+git clone <url>
+
+# --- the daily loop ---
+git status
+git add <file> | git add . | git add -p
+git commit -m "message"
+git commit --amend
+git push
+git pull
+
+# --- looking ---
+git diff                 # unstaged
+git diff --staged        # staged
+git log --oneline --graph --all
+git show <hash>
+git blame <file>
+
+# --- undoing ---
+git restore <file>
+git restore --staged <file>
+git reset [--soft|--hard] HEAD~1
+git revert <hash>
+git stash / git stash pop
+git reflog
+
+# --- branches ---
+git branch
+git switch -c <name>
+git switch <name>
+git merge <name>
+git branch -d <name>
+git merge --abort
+
+# --- remotes ---
+git remote -v
+git remote add origin <url>
+git push -u origin <branch>
+git fetch
+git pull
+
+# --- tags ---
+git tag -a v1.0.0 -m "message"
+git push origin v1.0.0
+```
+
+---
+
+## Where to go next
+
+- **[Learn Git Branching](https://learngitbranching.js.org/)** — interactive, visual, genuinely the best way to understand branches and merges. An hour well spent.
+- **[Oh Shit, Git!?!](https://ohshitgit.com/)** — a short list of real mistakes and the exact commands to fix them.
+- **[Pro Git](https://git-scm.com/book/en/v2)** — the free official book. Chapters 2 and 3 cover most of what you'll ever need.
+- **[GitHub Docs](https://docs.github.com/)** — for anything GitHub-specific: Actions, Pages, permissions.
+
+Also: `git help <command>` works offline for every command.

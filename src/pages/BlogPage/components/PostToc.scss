@@ -1,0 +1,184 @@
+// PostPage always renders <Navbar isShrunk>, which pins .navbar--solid.is-scrolled at a constant
+// 0.45rem + 44px + 0.45rem. It never transitions on this page, so the bar below can sit at a fixed
+// offset instead of measuring the navbar at runtime.
+$nav-h: calc(3.65rem + env(safe-area-inset-top));
+
+$rail-w: 210px;
+// Article column is 740px wide and centred, so its left edge is 50vw - 370px. The rail sits a gutter
+// further out again; below the breakpoint that number goes negative and the rail is hidden instead.
+$rail-left: calc(50vw - 370px - 1.75rem - #{$rail-w});
+
+.posttoc_rail {
+    display: none;
+}
+
+@media (min-width: 1280px) {
+    .posttoc_rail {
+        position: fixed;
+        top: calc(#{$nav-h} + 2.5rem);
+        left: $rail-left;
+        z-index: 400;
+        display: block;
+        width: $rail-w;
+        max-height: calc(100vh - #{$nav-h} - 6rem);
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        // Nothing but text out here, so no border or panel: the active marker carries the structure.
+        overscroll-behavior: contain;
+    }
+
+    .posttoc_bar {
+        display: none;
+    }
+}
+
+.posttoc_heading {
+    margin: 0 0 0.7rem;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-5);
+}
+
+.posttoc_links {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+}
+
+.posttoc_link {
+    padding: 0.3rem 0 0.3rem 0.75rem;
+    // Sits on top of the container's 1px rule rather than beside it, so the active marker replaces
+    // that segment instead of doubling it up into a 3px ladder.
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--text-4);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        color: var(--text-2);
+    }
+
+    &.is-active {
+        border-left-color: var(--text-3);
+        color: var(--text-strong);
+    }
+}
+
+.posttoc_link--h3 {
+    padding-left: 1.6rem;
+    font-size: var(--fs-xs);
+}
+
+// ------
+//  Narrow screens: a fixed bar under the navbar
+// ------
+.posttoc_bar {
+    position: fixed;
+    top: $nav-h;
+    left: 0;
+    right: 0;
+    // Under the navbar's 500 so the two never fight, above the article.
+    z-index: 400;
+    background-color: color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    // Separates the panel from the prose scrolling under it, which the 1px border alone does not do
+    // once the sheet is open and covering half the screen.
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.posttoc_trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 1rem;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+    text-align: left;
+    cursor: pointer;
+}
+
+.posttoc_current {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text-strong);
+}
+
+.posttoc_chevron {
+    flex-shrink: 0;
+    transition: rotate 0.2s ease;
+
+    .posttoc_trigger[aria-expanded="true"] & {
+        rotate: 180deg;
+    }
+}
+
+.posttoc_sheet {
+    display: flex;
+    flex-direction: column;
+    max-height: min(60vh, 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.25rem 1rem 0.75rem;
+    border-top: 1px solid var(--border-lt);
+    // Opaque, unlike the collapsed bar above it. The frosted treatment reads fine on a single row,
+    // but behind a full list the article text shows through the blur and the two compete to be read.
+    background-color: var(--bg-lt);
+
+    .posttoc_link {
+        margin-left: 0;
+        border-left: none;
+        padding: 0.45rem 0;
+    }
+
+    .posttoc_link--h3 {
+        padding-left: 0.9rem;
+    }
+
+    .posttoc_link.is-active {
+        color: var(--text-strong);
+        font-weight: 600;
+    }
+}
+
+.posttoc_progress {
+    height: 2px;
+    background-color: var(--text-4);
+    // Scaled rather than sized: a width animation lays out every frame, a transform does not. The
+    // origin has to be set or it grows from the middle outward.
+    transform-origin: 0 50%;
+    scale: 0 1;
+}
+
+// Both of these scroll themselves to follow the active section, and a container that scrolls is a
+// container the platform draws a bar for. Neither is meant to be driven by dragging one.
+.posttoc_rail,
+.posttoc_sheet {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        width: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .posttoc_chevron {
+        transition: none;
+    }
+
+    .posttoc_rail {
+        scroll-behavior: auto;
+    }
+}

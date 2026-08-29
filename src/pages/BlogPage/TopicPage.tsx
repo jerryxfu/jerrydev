@@ -8,6 +8,11 @@ import PostFilters from "./components/PostFilters.tsx";
 import {chaptersInTopic, postsInTopic} from "./posts.tsx";
 import {isTopicId, TOPICS} from "./topics.tsx";
 import {usePostFilter} from "./usePostFilter.ts";
+// Not decorative. This page renders blog_topics, blog_list, blog_empty and the whole of PostFilters,
+// all of which BlogPage.scss owns — without this import they are styled only if /blog happened to be
+// visited first in the same session, since each route's CSS ships with its own chunk. Imported ahead
+// of TopicPage.scss so the topic-specific rules still win.
+import "./BlogPage.scss";
 import "./TopicPage.scss";
 
 export default function TopicPage() {

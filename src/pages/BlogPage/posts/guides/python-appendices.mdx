@@ -1,0 +1,118 @@
+## Gotchas that eat up hours
+
+1. **`=` vs `==`.** Assignment versus comparison.
+2. **`^` is not a power.** It's bitwise XOR — `2 ^ 3` is `1`, not `8`. Use `**`.
+3. **Indices start at 0**, and ranges and slices **exclude the end**. `range(1, 10)` stops at 9.
+4. **Never compare floats with `==`.** Compare with a tolerance.
+5. **`input()` returns a string.** Convert it.
+6. **Lists don't do maths.** `[1, 2] * 2` is `[1, 2, 1, 2]`. Use a NumPy array.
+7. **Assignment doesn't copy.** `b = a` for a list or array means one object with two names.
+8. **Mutable default arguments** are shared between calls. Use `None`.
+9. **Modifying a list while looping over it** skips elements. Loop over a copy.
+10. **Don't name files after packages.** A local `math.py` or `random.py` breaks imports.
+11. **`//` truncates.** `1 // 2` is `0`, and it fails silently.
+12. **Trig functions take radians.**
+13. **In NumPy masks, use `&` and `|`**, not `and`/`or`, and parenthesise each condition.
+14. **`np.argmax` gives an index**, `np.max` gives a value.
+15. **`plt.show()` blocks** until you close the window.
+16. **Writing to a file needs explicit `\n`**, or everything lands on one line.
+17. **A bare `except:`** hides your own bugs. Catch specific exceptions.
+18. **`ModuleNotFoundError` for something you installed** means you're in a different environment than you think.
+
+---
+
+## Cheat sheet
+
+```python
+# ---------- types ----------
+x = 42  # int
+y = 3.14  # float
+s = "text"  # str
+b = True  # bool
+lst = [1, 2, 3]  # list
+tup = (1, 2)  # tuple
+dct = {"k": "v"}  # dict
+st = {1, 2, 3}  # set
+
+# ---------- operators ----------
++ - * / // % **
+== != < <= > >=
+and or not
+in, not in
+
+# ---------- conditionals ----------
+if cond:
+    ...
+elif other:
+    ...
+else:
+    ...
+
+# ---------- loops ----------
+for i in range(n): ...
+for item in items: ...
+for i, item in enumerate(items): ...
+for a, b in zip(xs, ys): ...
+while cond: ...
+break / continue
+
+# ---------- functions ----------
+def name(arg, optional=default):
+    """Docstring."""
+    return value
+
+# ---------- lists ----------
+lst.append(x);
+lst.pop();
+lst.sort()
+lst[0], lst[-1], lst[1:3]
+[f(x) for x in items if cond]
+len, sum, min, max, sorted
+
+# ---------- strings ----------
+f"{value:.2f}  {value:.3e}  {name:>10}"
+.split().join().strip().replace().upper()
+
+# ---------- files ----------
+with open("f.txt") as f:
+    for line in f: ...
+with open("f.txt", "w") as f:
+    f.write("line\n")
+
+# ---------- errors ----------
+try:
+    ...
+except ValueError as e:
+    ...
+
+# ---------- numpy ----------
+import numpy as np
+
+np.array, np.zeros, np.linspace, np.arange
+a.shape, a.sum(), a.mean(), a[a > 0]
+
+# ---------- matplotlib ----------
+import matplotlib.pyplot as plt
+
+plt.plot(x, y, label="data")
+plt.xlabel("x");
+plt.ylabel("y");
+plt.legend()
+plt.savefig("fig.png", dpi=300)
+plt.show()
+```
+
+---
+
+## Where to go next
+
+**Official** — [docs.python.org/3/tutorial](https://docs.python.org/3/tutorial/) is genuinely good and often overlooked.
+The [library reference](https://docs.python.org/3/library/) is where you look things up.
+
+**Practice** — [Exercism](https://exercism.org/tracks/python) has small problems with mentor feedback. [Advent of Code](https://adventofcode.com/) is a yearly
+set of puzzles that ramp up nicely. Best of all: pick something you actually want to exist and build it badly.
+
+**Books** — *Automate the Boring Stuff* (free online) for practical scripting, *Fluent Python* once you want to know why Python works the way it does.
+
+**Libraries worth knowing about** — `requests` for HTTP, `pandas` for tabular data, `pytest` for tests, `rich` for nice terminal output, `flask`/`fastapi` for
+web services, `scipy` for numerical methods, `scikit-learn` for machine learning.

@@ -10,7 +10,9 @@ import _medive from "@/assets/projects/medive.jpeg";
 export const TAGS = [
     "ai",
     "devlog",
+    "excel",
     "gaming",
+    "git",
     "med",
     "notes",
     "python",
@@ -32,7 +34,7 @@ export type Post = {
     description: string;   // card copy, and the meta description on the post route
     date: Date;
     tags: Tag[];
-    lang: "en" | "fr";
+    lang: "en" | "fr" | "es";
     image?: string | ReactElement;
     draft?: boolean;       // listed either way, but greyed and unreadable in production (BYPASSED IN DEV)
 };
@@ -41,6 +43,78 @@ export type Post = {
 // Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so
 // the list page can rank and render every card without touching any prose.
 export const posts: Post[] = [
+    {
+        slug: "python-basics",
+        title: "Python I — The basics",
+        description: "Variables, loops, functions, lists and debugging, starting from the first print(). Read top to bottom; each section builds on the last.",
+        date: postDate("2026-08-29"),
+        tags: ["python"],
+        lang: "en",
+    },
+    {
+        slug: "python-going-further",
+        title: "Python II — Going further",
+        description: "Dictionaries, classes, exceptions, files and environments. Written as reference rather than tutorial: skim the headings and come back when you need them.",
+        date: postDate("2026-08-29"),
+        tags: ["python"],
+        lang: "en",
+    },
+    {
+        slug: "python-scientific",
+        title: "Python III — Scientific Python",
+        description: "NumPy, matplotlib and numerical data. For anything involving arrays, plots, or a lot of numbers.",
+        date: postDate("2026-08-29"),
+        tags: ["python"],
+        lang: "en",
+    },
+    {
+        slug: "python-appendices",
+        title: "Python — Appendices",
+        description: "The gotchas that eat hours, a cheat sheet, and where to go next.",
+        date: postDate("2026-08-29"),
+        tags: ["python", "notes"],
+        lang: "en",
+    },
+    {
+        slug: "git-basics",
+        title: "Git & GitHub I — Git",
+        description: "Commits, branches, merges, and how to undo almost anything. The half of version control that runs on your own machine.",
+        date: postDate("2026-08-29"),
+        tags: ["git"],
+        lang: "en",
+    },
+    {
+        slug: "git-github",
+        title: "Git & GitHub II — GitHub",
+        description: "Remotes, pull requests, collaboration and Pages. Putting the work online and letting other people near it.",
+        date: postDate("2026-08-29"),
+        tags: ["git"],
+        lang: "en",
+    },
+    {
+        slug: "git-reference",
+        title: "Git & GitHub III — Reference",
+        description: "Workflows, fixing mistakes, and a command list to come back to once the concepts have stuck.",
+        date: postDate("2026-08-29"),
+        tags: ["git", "notes"],
+        lang: "en",
+    },
+    {
+        slug: "excel-formulas",
+        title: "Excel formula handbook",
+        description: "Quick reference for the formulas that come up constantly — math, stats, lookups, text and dates.",
+        date: postDate("2026-08-29"),
+        tags: ["excel", "notes"],
+        lang: "en",
+    },
+    {
+        slug: "excel-formulas-es",
+        title: "Manual de fórmulas de Excel",
+        description: "Referencia rápida de las fórmulas más habituales de Excel: matemáticas, estadística, búsquedas, texto y fechas.",
+        date: postDate("2026-08-29"),
+        tags: ["excel", "notes"],
+        lang: "es",
+    },
     {
         slug: "medive-devlog0",
         title: "MEDIVE Devlog #0: Starting over",
@@ -64,11 +138,15 @@ export const posts: Post[] = [
 
 // Non-eager on purpose: this is a map of import *functions*, not the modules.
 // Each post compiles to its own chunk, fetched only when its route is opened.
-const postBodies = import.meta.glob<{ default: ComponentType }>("./posts/*.mdx");
+// `**` rather than `*`: a single star does not cross a directory separator, so with the old pattern
+// anything under posts/guides/ was simply not in this map — no error, just a card leading nowhere.
+const postBodies = import.meta.glob<{ default: ComponentType }>("./posts/**/*.mdx");
 
-const PREFIX = "./posts/";
+// Basename, not path-minus-prefix. Folders under posts/ are filing, not routing: the slug for
+// posts/guides/python-basics.mdx is "python-basics", because /blog/:slug is a single wouter segment
+// and a slug with a slash in it matches no route at all.
 const SUFFIX = ".mdx";
-const slugOf = (key: string): string => key.slice(PREFIX.length, -SUFFIX.length);
+const slugOf = (key: string): string => key.slice(key.lastIndexOf("/") + 1, -SUFFIX.length);
 
 // lazy() only stores the loader, so building the whole map up front fetches
 // nothing and every post keeps its own chunk. Module scope rather than inside
@@ -131,10 +209,12 @@ export const chaptersInTopic = (id: TopicId): Chapter[] => {
         if (typeof entry === "string") {
             const post = listedPosts.find((p) => p.slug === entry);
             if (post && isReadable(post)) current.posts.push(post);
-        } else {
+        } else if (entry.chapter !== undefined) {
             out.push(current);
             current = {name: entry.chapter, anchor: slugifyChapter(entry.chapter), posts: []};
         }
+        // An unnamed marker is a prev/next break only, so it is skipped here and the posts either side
+        // of it stay in the same chapter.
     }
     out.push(current);
 
@@ -183,6 +263,17 @@ if (import.meta.env.DEV) {
 
     for (const slug of files) {
         if (!listed.has(slug)) console.error(`[blog] posts/${slug}.mdx has no entry in posts.ts`);
+    }
+
+    // Only possible now that posts/ has subfolders. Slugs are basenames, so posts/a.mdx and
+    // posts/guides/a.mdx collapse to the same key and Object.fromEntries keeps whichever came last —
+    // one post silently starts rendering the other one's prose, with nothing else to notice it by.
+    const byBasename = new Map<string, string>();
+    for (const key of Object.keys(postBodies)) {
+        const slug = slugOf(key);
+        const other = byBasename.get(slug);
+        if (other) console.error(`[blog] ${other} and ${key} share the slug "${slug}"; one shadows the other`);
+        byBasename.set(slug, key);
     }
     for (const slug of listed) {
         if (!files.has(slug)) console.error(`[blog] posts.ts lists "${slug}" but posts/${slug}.mdx is missing`);

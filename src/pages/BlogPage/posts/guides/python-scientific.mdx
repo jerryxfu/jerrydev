@@ -1,0 +1,290 @@
+Arrays, plots, and numerical data. This is the toolkit for anything involving lots of numbers — simulations, data analysis, signal processing, coursework in any
+quantitative field.
+
+```bash
+pip install numpy matplotlib scipy
+```
+
+## 25. NumPy
+
+An **array** is a fixed-size collection of numbers that behaves like a mathematical vector. Operations apply to every element at once, with no loop:
+
+```python
+import numpy as np
+
+x = np.array([1.0, 2.0, 3.0])
+
+x * 2  # [2. 4. 6.]      — a list would repeat itself instead
+x + x  # [2. 4. 6.]
+x ** 2  # [1. 4. 9.]
+np.sin(x)  # sine of each element
+x @ x  # dot product
+```
+
+This is both shorter to read and roughly a hundred times faster than the equivalent Python loop, because the work happens in compiled code.
+
+### Creating arrays
+
+```python
+np.array([1, 2, 3])
+np.zeros(100)  # 100 zeros
+np.ones((3, 4))  # 3×4 of ones
+np.full((3, 3), 7)
+np.arange(0, 10, 0.5)  # like range, but floats — excludes the end
+np.linspace(0, 1, 101)  # 101 points from 0 to 1 INCLUSIVE
+np.random.random(50)
+np.random.normal(0, 1, 1000)  # 1000 samples, mean 0, sd 1
+```
+
+`linspace` when you care about the number of points, `arange` when you care about the step size.
+
+### Shape and indexing
+
+```python
+a.shape  # (3, 4)  — check this whenever something's confusing
+a.ndim  # 2
+a.dtype  # dtype('float64')
+a.reshape(2, 6)
+a.T  # transpose
+a.flatten()
+```
+
+```python
+a[0]  # first element (or first row, if 2D)
+a[-1]
+a[2:5]
+a[i, j]  # 2D: one bracket, comma inside
+a[i, :]  # whole row i
+a[:, j]  # whole column j
+a[1:3, 2:4]  # sub-block
+```
+
+**Boolean masking** is the idiom that replaces filter loops:
+
+```python
+a[a > 0]  # every positive element
+a[(a > 0) & (a < 10)]  # use & and |, NOT and/or, and parenthesise
+np.where(a > 0, a, 0)  # elementwise if/else
+```
+
+### Operations
+
+```python
+a.sum(), a.mean(), a.std(), a.min(), a.max()
+a.sum(axis=0)  # sum down columns
+a.sum(axis=1)  # sum across rows
+np.argmax(a)  # INDEX of the max, not the value
+np.abs, np.sqrt, np.exp, np.log
+np.cumsum(a)
+np.sort(a)
+np.gradient(y, x)  # numerical derivative
+np.trapezoid(y, x)  # numerical integral (np.trapz on older versions)
+np.linalg.solve(A, b)  # solve a linear system
+np.linalg.eig(A)  # eigenvalues and eigenvectors
+```
+
+### Two things to internalise
+
+**Arrays are typed and fixed-size.** No appending in a loop — that reallocates every time. Preallocate with `np.zeros(n)` and fill by index, or build a Python
+list and convert once at the end.
+
+**Broadcasting.** Arrays of different shapes combine automatically when the shapes are compatible:
+
+```python
+a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+a + np.array([10, 20, 30])  # adds the row vector to every row
+```
+
+Powerful once it clicks, and the source of confusing errors until it does. When shapes fight, print `.shape`.
+
+---
+
+## 26. Plotting with matplotlib
+
+The minimum viable plot:
+
+```python
+import matplotlib.pyplot as plt
+
+plt.plot(x, y)
+plt.xlabel("time (s)")
+plt.ylabel("value")
+plt.title("A plot")
+plt.show()
+```
+
+`plt.show()` opens the window — forget it and nothing appears. To save instead, `plt.savefig("figure.png", dpi=300)`, and it must come **before** `show()`.
+
+### Line plots
+
+```python
+plt.plot(x, y1, "b-", label="measured")
+plt.plot(x, y2, "r--", label="model")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.xlim(0, 10)
+plt.yscale("log")
+```
+
+The format string is colour + marker + line style: `"ro"` red circles, `"k-"` black solid, `"g^--"` green triangles on a dashed line. For more control use
+keywords: `color="steelblue", linewidth=2, alpha=0.7`.
+
+### Scatter plots
+
+For points that aren't a connected curve. A third variable can drive colour or size:
+
+```python
+plt.scatter(x, y, s=20, c=values, cmap="viridis", alpha=0.6)
+plt.colorbar(label="value")
+```
+
+### Histograms
+
+```python
+plt.hist(data, bins=30, edgecolor="black")
+```
+
+### Density plots and images
+
+For a 2D field:
+
+```python
+plt.imshow(grid, origin="lower", extent=[0, 1, 0, 1], cmap="inferno")
+plt.colorbar()
+```
+
+`origin="lower"` puts (0,0) at the bottom left, where a graph expects it. The default puts it top left, image-style, and silently flips your data. Related:
+`plt.contour` and `plt.contourf` for contour lines and filled contours, `plt.pcolormesh` for non-uniform grids.
+
+### 3D
+
+```python
+fig = plt.figure()
+ax = fig.add_subplot(projection="3d")
+
+X, Y = np.meshgrid(x, y)
+ax.plot_surface(X, Y, Z, cmap="viridis")
+ax.set_xlabel("x")
+ax.set_zlabel("z")
+plt.show()
+```
+
+`meshgrid` turns two 1D coordinate arrays into the 2D grids that surface plots need. Also available: `ax.plot3D` for curves, `ax.scatter3D` for point clouds,
+`ax.contour3D`.
+
+### Multiple panels
+
+```python
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+axes[0, 0].plot(x, y)
+axes[0, 0].set_title("first")
+axes[1, 1].scatter(x, y)
+fig.tight_layout()
+```
+
+Note that on an axes object it's `set_xlabel` / `set_title`, not `xlabel` / `title`.
+
+### Animation
+
+The straightforward version — update the data and redraw:
+
+```python
+plt.ion()
+fig, ax = plt.subplots()
+line, = ax.plot(x, y)  # note the comma: plot returns a list
+
+for step in range(500):
+    y = update(y)
+    line.set_ydata(y)
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(0.01)
+```
+
+To save a video, use `FuncAnimation`:
+
+```python
+from matplotlib.animation import FuncAnimation
+
+def frame(i):
+    line.set_ydata(np.sin(x + i / 10))
+    return line,
+
+anim = FuncAnimation(fig, frame, frames=200, interval=20, blit=True)
+anim.save("out.mp4", fps=30)  # needs ffmpeg installed
+```
+
+**Label your axes, with units.** Every time. It costs nothing and stops you misreading your own results.
+
+---
+
+## 27. Numerical data files
+
+For plain numeric tables, NumPy handles the whole job:
+
+```python
+data = np.loadtxt("data.txt")  # → 2D array
+x = data[:, 0]
+y = data[:, 1]
+
+np.loadtxt("data.csv", delimiter=",", skiprows=1)
+
+np.savetxt("out.txt", np.column_stack([x, y]), fmt="%.6f")
+```
+
+For messy files — mixed types, missing values, headers, real-world data — `pandas` is the right tool:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("data.csv")
+df.head()
+df["column"].mean()
+df[df["score"] > 80]
+df.to_csv("out.csv", index=False)
+```
+
+For arrays you only need to reload in Python, `np.save` / `np.load` uses a binary format that's faster and lossless.
+
+---
+
+## 28. Testing numerical code
+
+Numerical code fails quietly. It produces a number, the number looks like a number, and it's wrong. Some habits that catch it:
+
+**Test against a case you can work out by hand.** Before trusting a routine on a hard problem, check it reproduces something with a known answer.
+
+```python
+assert abs(integrate(lambda x: x ** 2, 0, 1) - 1 / 3) < 1e-6
+```
+
+**Check quantities that shouldn't change.** If something conserved drifts over a long run, your method or step size is wrong. Plot it as a diagnostic even when
+nobody asked.
+
+**Check the limiting cases.** Does the result go to zero when the input does? Does it match the simple formula when the complicated term is switched off?
+
+**Halve the step size and rerun.** If the answer moves a lot, you haven't converged. If it barely moves, you probably have.
+
+**Sanity-check magnitudes.** An answer off by ten orders of magnitude means a flipped fraction or a unit error, and it's visible at a glance.
+
+**Test small functions in isolation.** A function with known inputs and outputs is testable; a 200-line script is not. This is the practical reason to break
+code into functions.
+
+For real test suites, `pytest` is the standard:
+
+```python
+# test_analysis.py
+def test_average():
+    assert average([1, 2, 3]) == 2
+
+def test_average_of_floats():
+    assert abs(average([0.1, 0.2]) - 0.15) < 1e-12
+```
+
+```bash
+pip install pytest
+pytest
+```
+
+`np.allclose(a, b)` is the array-aware version of "these are equal enough".

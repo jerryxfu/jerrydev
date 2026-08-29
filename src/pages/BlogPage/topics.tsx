@@ -1,10 +1,11 @@
-// A chapter heading inside the syllabus. Only markers are tagged, a post stays a bare slug string, because posts are the common case and shouldn't
+// A marker inside the syllabus. Only markers are tagged, a post stays a bare slug string, because posts are the common case and shouldn't
 // pay ceremony for the exception. `typeof entry === "string"` discriminates the union, the same way nav.config.ts discriminates NavItem on `type`.
-export type ChapterMarker = {
-    chapter: string;
-    // Whether prev/next stops here. Default false, so chapters flow into each other.
-    break?: boolean;
-};
+export type ChapterMarker =
+    // A named chapter heading. `break` decides whether prev/next stops here too. Default false, so chapters flow into each other.
+    | { chapter: string; break?: boolean }
+    // No heading, only a stop for prev/next. For two posts that belong under the same heading but should not chain into one another —
+    // the Excel handbook and its Spanish translation are one lesson in two languages, not two consecutive lessons.
+    | { chapter?: undefined; break: true };
 export type SyllabusEntry = string | ChapterMarker;
 
 export type Topic = {
@@ -28,7 +29,24 @@ export const TOPICS: Record<TopicId, Topic> = {
     "guides": {
         name: "Guides",
         description: "Practical guides to tools worth knowing. Each one starts from zero and doubles as a reference you can come back to. No prior experience assumed.",
+        // break: true on the named markers, because these are three unrelated courses sharing a shelf rather than
+        // one syllabus. Without it "next" at the end of the Python appendices is Git, which is not a next lesson in
+        // any sense. The unnamed marker before the Spanish handbook does the same job inside a single chapter: both
+        // Excel posts list under "Excel", but neither is the one to read after the other.
         posts: [
+            {chapter: "Python", break: true},
+            "python-basics",
+            "python-going-further",
+            "python-scientific",
+            "python-appendices",
+            {chapter: "Git & GitHub", break: true},
+            "git-basics",
+            "git-github",
+            "git-reference",
+            {chapter: "Excel", break: true},
+            "excel-formulas",
+            {break: true},
+            "excel-formulas-es",
         ],
     },
 };

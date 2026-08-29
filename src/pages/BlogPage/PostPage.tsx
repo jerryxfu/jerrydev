@@ -1,10 +1,11 @@
-import {Suspense} from "react";
+import {Suspense, useRef} from "react";
 import {Helmet} from "react-helmet-async";
 import {Link, useParams} from "wouter";
 import {ArrowLeft, ArrowRight} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
+import PostToc from "./components/PostToc.tsx";
 import {formatPostAge, formatPostDate, isReadable, listedPosts, neighbours, postComponents} from "./posts.tsx";
 import {TOPICS} from "./topics.tsx";
 import "katex/dist/katex.min.css";
@@ -12,6 +13,7 @@ import "./PostPage.scss";
 
 export default function PostPage() {
     const {slug} = useParams<{ slug: string }>();
+    const bodyRef = useRef<HTMLElement>(null);
 
     const post = listedPosts.find((entry) => entry.slug === slug);
     // Already-constructed lazy components, keyed by slug. Nothing has been fetched yet; rendering one below is what triggers its chunk.
@@ -36,6 +38,30 @@ export default function PostPage() {
         );
     }
 
+    // Built once and rendered twice. Dropping the old empty <span /> placeholder along the way: the
+    // sides are pinned by auto margins now, so prev stays left and next stays right whether or not
+    // the other one exists, without an empty element holding a slot open.
+    const navLinks = topic && (prev || next) ? (
+        <>
+            {prev && (
+                <Link href={`/blog/${prev.slug}`} className="post_nav_link post_nav_prev">
+                    <span className="post_nav_label">
+                        <ArrowLeft size={13} /><span className="post_nav_word">Previous</span>
+                    </span>
+                    <span className="post_nav_title">{prev.title}</span>
+                </Link>
+            )}
+            {next && (
+                <Link href={`/blog/${next.slug}`} className="post_nav_link post_nav_next">
+                    <span className="post_nav_label">
+                        <span className="post_nav_word">Next</span><ArrowRight size={13} />
+                    </span>
+                    <span className="post_nav_title">{next.title}</span>
+                </Link>
+            )}
+        </>
+    ) : null;
+
     return (
         <div className="post">
             <Helmet>
@@ -55,6 +81,10 @@ export default function PostPage() {
             <main className="post_container">
                 <Link href="/blog" className="post_back"><ArrowLeft size={15} /> Back to the blog</Link>
 
+                {/* The same links as the pair at the foot of the post, minus the titles. A div rather than
+                    a second <nav>, so the page does not expose two navigation landmarks sharing one name. */}
+                {navLinks && <div className="post_nav post_nav--compact">{navLinks}</div>}
+
                 <header className="post_header">
                     <h1>{post.title}</h1>
                     <p className="post_description">{post.description}</p>
@@ -67,7 +97,12 @@ export default function PostPage() {
                     </div>
                 </header>
 
-                <article className="post_body">
+                {/* Reads its headings back off the rendered article, so it needs the ref rather than the
+                    post: the ids come from rehype-slug at build time and only exist in the DOM. Renders
+                    nothing at all on a post with fewer than three sections. */}
+                <PostToc bodyRef={bodyRef} slug={post.slug} />
+
+                <article className="post_body" ref={bodyRef}>
                     <Suspense fallback={null}>
                         <Body />
                     </Suspense>
@@ -75,20 +110,9 @@ export default function PostPage() {
 
                 {/* Only rendered inside a topic, and each side only when there is somewhere to go, so the first and
                     last lesson each show a single control rather than a greyed-out pair. */}
-                {topic && (prev || next) && (
+                {topic && navLinks && (
                     <nav className="post_nav" aria-label={`${TOPICS[topic].name} navigation`}>
-                        {prev ? (
-                            <Link href={`/blog/${prev.slug}`} className="post_nav_link post_nav_prev">
-                                <span className="post_nav_label"><ArrowLeft size={13} /> Previous</span>
-                                <span className="post_nav_title">{prev.title}</span>
-                            </Link>
-                        ) : <span />}
-                        {next && (
-                            <Link href={`/blog/${next.slug}`} className="post_nav_link post_nav_next">
-                                <span className="post_nav_label">Next <ArrowRight size={13} /></span>
-                                <span className="post_nav_title">{next.title}</span>
-                            </Link>
-                        )}
+                        {navLinks}
                     </nav>
                 )}
             </main>

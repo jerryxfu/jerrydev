@@ -106,26 +106,7 @@
 // Below this the halves are narrower than the card's own mobile breakpoint, where the image stacks above the text.
 // two stacked-layout cards side by side reads as a mess, so it drops to one column first.
 @media screen and (max-width: 860px) {
-    .topic_chapters {
-    margin-top: 1.5rem;
-}
-
-.topic_chapter + .topic_chapter {
-    margin-top: 2.25rem;
-}
-
-.topic_chapter_title {
-    margin: 0 0 0.9rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
-    font-size: var(--fs-lgg);
-    font-weight: 600;
-    color: var(--text-strong);
-    // Clears the fixed navbar when the chapter nav jumps to this anchor.
-    scroll-margin-top: 6rem;
-}
-
-.topic_list {
+    .topic_list {
         grid-template-columns: 1fr;
     }
 }

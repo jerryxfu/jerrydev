@@ -1,4 +1,5 @@
 import {Mdx} from "@/assets/projects/mdx.tsx"; // THE IMPORT IS CRUCIAL;
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // SO IS THIS ONE;
 
 This post is for MDX reference.
 
@@ -8,11 +9,12 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
 
 ````ts
 {
-    slug: "why-rag-is-mid",          // must match posts/why-rag-is-mid.mdx
+    slug: "why-rag-is-mid",          // must match the filename, anywhere under posts/
     title: "Why RAG is mid",
     description: "Card copy, and the meta description on the post page.",
     date: postDate("2026-09-01"),   // NOT new Date() (see below)
     tags: ["ai", "notes"],
+    lang: "en",                      // "en" | "fr" | "es", shown on the card
     image: _ragDiagram,              // optional
     draft: true,                     // optional
 }
@@ -24,10 +26,82 @@ Use `postDate("YYYY-MM-DD")`, never `new Date("YYYY-MM-DD")`. A bare date string
 is the previous evening anywhere west of Greenwich. The helper appends `T00:00:00` to force local parsing.
 Similar issue to ProjectCards.
 
+## Folders under `posts/`
+
+Subfolders are allowed and are used for the guides:
+
+````
+posts/
+  hello-blog.mdx          -> /blog/hello-blog
+  guides/
+    python-basics.mdx     -> /blog/python-basics
+````
+
+**Folders are filing, not routing.** The slug is the *basename*, so the folder never appears in the URL. That is deliberate:
+`/blog/:slug` is a single Wouter segment, and a slug containing a slash matches no route at all.
+
+Two consequences worth knowing:
+
+- The glob is `posts/**/*.mdx`. A single `*` does not cross a directory separator, so with the older `posts/*.mdx` a file in a
+subfolder was not merely unrouted, it was **invisible** — no error, just a card leading nowhere.
+- Because slugs are basenames, `posts/a.mdx` and `posts/guides/a.mdx` collapse to the same key and one silently shadows the other.
+The dev check names both files if it ever happens.
+
+## Topics and chapters
+
+A topic is a reading order. `topics.tsx` holds one entry per topic, and its `posts` array is the single source of truth for four
+things at once: which posts belong to it, what order the topic page lists them in, how they group into chapters, and what prev/next
+resolve to at the bottom of a post.
+
+````ts
+posts: [
+    {chapter: "Python", break: true},
+    "python-basics",
+    "python-going-further",
+    {chapter: "Git & GitHub", break: true},
+    "git-basics",
+]
+````
+
+A bare string is a post. An object is a marker.
+
+`break: true` is the part that is easy to skip: it stops prev/next at that boundary. Without it, "next" at the end of the last Python
+lesson is the first Git one, which is not a next lesson in any sense. Use it whenever a topic holds more than one course.
+
+A marker with **no** `chapter` is a break and nothing else — it stops prev/next without starting a new heading:
+
+````ts
+{chapter: "Excel", break: true},
+"excel-formulas",
+{break: true},          // same chapter, but not the lesson after it
+"excel-formulas-es",
+````
+
+That is what keeps the Excel handbook and its Spanish translation filed under one heading without "next" at the foot of the English one
+offering the same page in Spanish. Posts before the first marker land in an unnamed leading chapter, which is what lets a topic open with
+a couple of ungrouped lessons.
+
+Posts carry no topic field — the topic claims the post, never the other way round — so the two cannot disagree. Nothing type-checks
+the slug strings, though, so the dev console is again the only thing between a typo and a lesson quietly vanishing from its course.
+It also complains if one slug appears in two topics.
+
 ## Headings start at h2
 
 The `title` field renders as the page's `h1`. Starting a post with `#` produces a second `h1` and the page ends up with two competing titles.
 Use `##` for top-level sections; `h2` through `h4` are styled.
+
+## Anchors and the contents list
+
+Every heading gets an `id` from `rehype-slug` and a `¶` link from `rehype-autolink-headings`, revealed on hover. That is what makes
+`/blog/python-basics#3-variables-and-types` work, and it is why cross-post links can point at a section rather than a page.
+
+The contents control reads those headings straight back off the rendered article. Things that follow from that:
+
+- **`h2` and `h3` only.** An `h4` is styled but never listed.
+- **Fewer than three headings and it does not render**, so ordinary posts get nothing and only the long guides pay for it.
+- It appears as a rail beside the article on wide screens, and as a bar under the navbar with a scroll progress meter below 1280px.
+
+Nothing to configure — write headings and it appears.
 
 ## Tags are a closed set
 
@@ -74,6 +148,35 @@ default card when it's shared. Use an imported asset if the social preview matte
 
 Images inside the prose are centered automatically. Text stays left aligned.
 
+## Callouts
+
+`Callout` is a component, so it needs the import at the top of the file, exactly like `Mdx` above:
+
+````jsx
+import Callout from "@/pages/BlogPage/components/Callout.tsx";
+
+<Callout kind="warning">
+Body text. Markdown works in here, including `inline code` and fenced blocks.
+</Callout>
+````
+
+Five kinds — `tip`, `note`, `important`, `warning`, `caution`:
+
+<Callout kind="tip">
+Leave a blank line after the opening tag if the body contains a list or a fence, or markdown reads it as one paragraph.
+</Callout>
+
+<Callout kind="caution">
+These replaced the hand-written `div` blocks the guides arrived with. Do not go back to those: a raw `style="..."` attribute compiles
+to a **string** style prop, which React rejects outright, and hardcoded hex ignores the theme entirely.
+</Callout>
+
+`label` overrides the heading text, which is how the Spanish Excel handbook reads "Nota" without a second component:
+
+````jsx
+<Callout kind="note" label="Nota">…</Callout>
+````
+
 ## Code blocks
 
 Fenced code is highlighted by Shiki at build time, so nothing ships to the browser except the coloured markup:
@@ -84,19 +187,27 @@ def attention(q, k, v):
     return softmax(scores) @ v
 ```
 
-Registered languages are `ts`, `tsx`, `js`, `jsx`, `python`, `bash`, `json`, `scss` and `java`. Adding one is a
+Registered languages are `ts`, `tsx`, `js`, `jsx`, `python`, `bash`, `json`, `scss`, `java`, `latex` and `text`. Adding one is a
 one-line change in `vite.config.ts` and costs build time only.
 
-**The gotcha:** an unregistered language does not fail the build. It renders as a plain unhighlighted block, exactly
-like this one, and it is easy not to notice why:
+**Two gotchas, and they point opposite ways.**
+
+An unregistered language in a *fence* does not fail the build. It renders as a plain unhighlighted block, exactly like this one,
+and it is easy not to notice why:
 
 ```ruby
 puts "ruby is not registered, so this is not highlighted"
 ```
 
-A fence with no language at all does the same thing, which is sometimes what you want:
+An unrecognised name in the *`langs` array* does the opposite and kills the build outright, with
+`Language X is not included in this bundle`. Shiki's grammar names are not always the obvious ones — there is no `gitignore`
+grammar at all, for instance, so a `.gitignore` listing is written as `bash`, which gets the `#` comments right.
 
-```
+`text` is the exception to both: Shiki special-cases it, so it costs no grammar and produces a styled but deliberately
+unhighlighted block. Prefer it over a bare fence for terminal output and plain listings, so the result looks like a choice
+rather than a forgotten language:
+
+```text
 $ pnpm dev
 ```
 
@@ -218,6 +329,10 @@ markdown, so it renders as visible text in the post *and* swallows the import in
 Put it below the import and it stays invisible but suppresses nothing, since `noinspection` applies to what follows it.
 
 Possible fix: in the IDE exclude `*.mdx` from Unused import checks.
+
+This applies to every component a post uses, `Callout` included — the two Excel guides break the same way if their import is
+tidied away. If callouts ever spread far enough that this stops being a two-file problem, `providerImportSource` plus an
+`MDXProvider` would supply them globally and retire the trap for good.
 
 ### Custom blocks
 

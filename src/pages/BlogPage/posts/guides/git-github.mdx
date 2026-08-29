@@ -1,0 +1,213 @@
+## 11. What GitHub adds
+
+Git is complete on its own. GitHub is a hosting service that adds:
+
+- **A backup that isn't your laptop.**
+- **A place to collaborate** — pull requests, code review, issues.
+- **A portfolio.** For anything technical, a GitHub profile with real projects on it matters.
+- **Free static site hosting** (GitHub Pages), CI (Actions), and issue tracking.
+
+Alternatives exist — GitLab, Codeberg, Bitbucket, or your own server — and all the Git knowledge transfers directly.
+
+Terms:
+
+- **Remote** — a copy of the repo somewhere else. Yours is conventionally called `origin`.
+- **Push** — send your commits to the remote.
+- **Pull** — get commits from the remote.
+- **Clone** — download a full copy of a repo, history and all.
+- **Fork** — your own copy of someone else's repo, on GitHub.
+
+---
+
+## 12. Authentication
+
+GitHub stopped accepting account passwords over Git in 2021. Two options:
+
+### SSH keys (recommended — set it up once, never think about it again)
+
+```bash
+ssh-keygen -t ed25519 -C "you@example.com"
+```
+
+Press Enter to accept the default location. A passphrase is optional but sensible.
+
+Copy the **public** key:
+
+```bash
+cat ~/.ssh/id_ed25519.pub          # macOS/Linux/Git Bash
+```
+
+Paste it into GitHub → **Settings → SSH and GPG keys → New SSH key**. Test:
+
+```bash
+ssh -T git@github.com
+```
+
+You should be greeted by name.
+
+**Never share the file without `.pub`.** That's the private key.
+
+### Personal access token (if you prefer HTTPS)
+
+GitHub → **Settings → Developer settings → Personal access tokens → Fine-grained tokens**. Use the token in place of your password when Git asks. A credential helper will remember it:
+
+```bash
+git config --global credential.helper store      # or 'osxkeychain' on macOS
+```
+
+Alternatively the [GitHub CLI](https://cli.github.com/) handles all of this: `gh auth login`.
+
+---
+
+## 13. Connecting a repo to GitHub
+
+### Existing local repo → new GitHub repo
+
+Create an empty repository on GitHub (**no** README, .gitignore, or licence — you already have a history). Then:
+
+```bash
+git remote add origin git@github.com:username/repo-name.git
+git branch -M main
+git push -u origin main
+```
+
+- `remote add origin` names that URL `origin`.
+- `-M main` renames your branch to `main`, just in case.
+- `-u` sets the upstream, so future pushes are just `git push`.
+
+### Starting from GitHub instead
+
+Create the repo on GitHub *with* a README, then:
+
+```bash
+git clone git@github.com:username/repo-name.git
+cd repo-name
+```
+
+Clone gives you the files, the full history, and the remote already configured.
+
+### Checking
+
+```bash
+git remote -v          # list remotes and their URLs
+```
+
+---
+
+## 14. Push, pull, fetch
+
+```bash
+git push               # send your commits up
+git pull               # fetch and merge others' commits down
+git fetch              # download, but don't merge — look before you leap
+```
+
+`git pull` is `git fetch` plus `git merge`. When you want to see what's coming first:
+
+```bash
+git fetch
+git log HEAD..origin/main --oneline     # what's new upstream
+git merge origin/main
+```
+
+**Pull before you push.** If someone else pushed while you were working, your push is rejected with "updates were rejected because the remote contains work you do not have locally". Pull, resolve anything that conflicts, push again.
+
+When you push a new branch for the first time:
+
+```bash
+git push -u origin my-branch
+```
+
+**Never `git push --force` to a shared branch.** It overwrites other people's history. If you genuinely need it — after cleaning up your own feature branch — use `--force-with-lease`, which refuses if someone else has pushed since you last looked.
+
+---
+
+## 15. Pull requests
+
+A pull request (PR) proposes merging one branch into another, with a place to discuss it first. It's a GitHub feature, not a Git one.
+
+The flow:
+
+```bash
+git switch -c fix-navbar
+# ...work, commit...
+git push -u origin fix-navbar
+```
+
+GitHub shows a "Compare & pull request" button. Click it, write what changed and why, open the PR. Then people comment, you push more commits to the same branch (the PR updates automatically), and when everyone's happy someone clicks Merge. Delete the branch afterwards.
+
+Why not just commit to `main`? Because a PR gives you a diff someone can read, a place to explain reasoning, automated checks before anything lands, and a record of the discussion. On solo projects it's optional — though PRs against your own repo are a decent way to review your own work with fresh eyes.
+
+**Writing a PR people will actually review:** keep it small. A 30-line PR gets careful comments; a 3000-line PR gets "LGTM". Say what changed and *why* in the description, and mention anything you're unsure about.
+
+Merge options GitHub offers:
+
+- **Merge commit** — keeps every commit plus a merge commit. Full history.
+- **Squash and merge** — flattens the branch to one commit. Tidy `main`, most common default.
+- **Rebase and merge** — replays your commits onto main, no merge commit. Linear, but rewrites hashes.
+
+Any of them is fine. Pick one per project and be consistent.
+
+---
+
+## 16. Working on someone else's project
+
+If you don't have write access, you can't push to their repo. So:
+
+1. **Fork** it on GitHub — your own server-side copy.
+2. **Clone your fork** locally.
+3. Add the original as a second remote so you can stay current:
+
+```bash
+git remote add upstream git@github.com:original-owner/repo.git
+git fetch upstream
+git merge upstream/main
+```
+
+4. Branch, commit, push to *your* fork.
+5. Open a PR from your fork to theirs.
+
+**Issues** are the tracker: bug reports, feature requests, questions. Before opening one, search the existing ones. When you open one, include what you expected, what happened, and how to reproduce it. `Fixes #42` in a commit message or PR description auto-closes issue 42 when merged.
+
+Most projects have a `CONTRIBUTING.md`. Read it. It's there so you don't have to guess.
+
+---
+
+## 17. Things a good repo has
+
+**README.md** — rendered on the front page. It should answer: what is this, how do I install it, how do I use it. A short one that exists beats a comprehensive one that doesn't.
+
+**LICENSE** — without one, nobody may legally use your code. MIT is permissive and simple; GPL requires derivatives to stay open. GitHub will add one for you: **Add file → Create new file → type `LICENSE` → Choose a license template**.
+
+**.gitignore** — see §8.
+
+**Releases and tags** — mark versions:
+
+```bash
+git tag -a v1.0.0 -m "First release"
+git push origin v1.0.0
+```
+
+**Actions** — run tests, linters, or deploys automatically on every push. A YAML file in `.github/workflows/`. Overkill for a small project, invaluable on anything with tests.
+
+---
+
+## 18. GitHub Pages
+
+Free static hosting straight from a repo.
+
+**Settings → Pages → Source: Deploy from a branch → `main` / root.**
+
+Your site appears at `https://username.github.io/repo-name/` within a minute or two.
+
+What gets served:
+
+- `index.html` if there is one.
+- Otherwise `README.md`, rendered as HTML.
+- Markdown files in subfolders become pages too — `/python/README.md` is served at `/python/`.
+
+Pick a theme under **Settings → Pages → Theme chooser**, or add a `_config.yml` with `theme: jekyll-theme-cayman`. For a custom domain, add a `CNAME` file with your domain and point a DNS record at GitHub.
+
+Only for **static** content — HTML, CSS, JS, images. No server-side code.
+
+---

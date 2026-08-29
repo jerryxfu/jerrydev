@@ -1,0 +1,826 @@
+## 1. Setup
+
+**Install Python.** Get it from [python.org](https://www.python.org/downloads/) — any version 3.10 or newer. On Windows, tick **"Add Python to PATH"** during
+installation. Skipping that box is the single most common reason `python` doesn't work in a terminal later. macOS and most Linux distributions ship with a
+Python already, but installing a current one yourself is cleaner.
+
+**Install an editor.** [VS Code](https://code.visualstudio.com/) with the official Python extension is the standard choice and it's free. Any editor works, but
+don't write code somewhere without syntax highlighting — you'll lose an evening to an invisible typo.
+
+**Check the install.** Open a terminal (Terminal on macOS/Linux, PowerShell on Windows) and type:
+
+```bash
+python --version
+```
+
+You should see something like `Python 3.12.4`. If the command isn't found, try `python3 --version`. If that works, use `python3` everywhere below.
+
+---
+
+## 2. Your first program
+
+Make a file called `hello.py` containing:
+
+```python
+print("Hello!")
+```
+
+Open a terminal **in the folder that file is in** and run:
+
+```bash
+python hello.py
+```
+
+That's the whole loop: write a file, run it, look at the output, change it, run it again. You'll do this a few thousand times.
+
+### How Python reads your file
+
+Top to bottom, one statement at a time, doing exactly what each line says. No hidden magic. Two consequences matter immediately.
+
+**Order matters.** You can't use something before the line that creates it.
+
+```python
+print(name)  # NameError: 'name' is not defined
+name = "Ada"
+```
+
+**Indentation is part of the syntax.** In most languages, curly braces mark out a block of code. In Python, *whitespace does*. Anything indented underneath a
+line ending in `:` belongs to that line.
+
+```python
+for i in range(3):
+    print("inside")  # runs three times
+print("outside")  # runs once
+```
+
+Use **4 spaces** per level, and never mix tabs and spaces in one file. Any decent editor handles this for you.
+
+**Comments** start with `#` and are ignored:
+
+```python
+# this line does nothing
+x = 5  # so does this part
+```
+
+Good comments explain *why*, not *what*. `x = x + 1  # add one to x` is noise.
+
+---
+
+## 3. Variables and types
+
+A **variable** is a name attached to a value:
+
+```python
+name = "Ada"
+age = 36
+height = 1.68
+is_student = False
+```
+
+`=` is an assignment operator, it means "put this value in this name". It is not mathematical equality.
+
+Names are case-sensitive (`age` and `Age` are different), can contain letters, digits and underscores, and can't start with a digit. Convention is
+`lower_case_with_underscores`. Avoid naming things `list`, `sum`, `max`, `input`, or `str` — those are built-in functions and you'll break them for the rest of
+your program.
+
+### The types you'll meet first
+
+| Type       | What it is         | Example         |
+|------------|--------------------|-----------------|
+| `int`      | whole number       | `42`, `-7`      |
+| `float`    | decimal number     | `3.14`, `-0.5`  |
+| `str`      | text               | `"hello"`       |
+| `bool`     | true or false      | `True`, `False` |
+| `list`     | ordered collection | `[1, 2, 3]`     |
+| `NoneType` | "nothing here"     | `None`          |
+
+Type determines what operators do, so when something behaves strangely, check it:
+
+```python
+print(type(age))  # <class 'int'>
+```
+
+### Converting
+
+```python
+int("42")  # 42
+float("3.14")  # 3.14
+str(42)  # "42"
+int(3.99)  # 3 -> truncates off the decimal, does NOT round
+round(3.99)  # 4
+bool(0)  # False
+```
+
+`int("3.9")` raises an error. Go through float first: `int(float("3.9"))`.
+
+---
+
+## 4. Numbers and arithmetic
+
+```python
+a + b  # add
+a - b  # subtract
+a * b  # multiply
+a / b  # divide —> always gives a float. 6 / 3 is 2.0, not 2
+a // b  # floor division —> 7 // 2 is 3 (3.5 rounded down)
+a % b  # remainder —> 7 % 2 is 1
+a ** b  # power. NOT a ^ b
+```
+
+`%` (modulo) is more useful than it looks: `n % 2 == 0` tests for even, and `i % 10 == 0` fires every tenth time through a loop.
+
+Precedence works like normal maths: `**` first, then `*` `/` `//` `%`, then `+` `-`. **Use parentheses anyway.** Having a vague equation that potentially
+doesn't do what you intended it to is far worse than a crash.
+
+Shorthand you'll use constantly:
+
+```python
+total += price  # same as total = total + price
+count -= 1
+n *= 2
+```
+
+Converting a number back into a fraction:
+
+```python
+(0.75).as_integer_ratio()  # (3, 4) "3/4"  
+```
+
+### Floats are approximate
+
+This surprises everyone once:
+
+```python
+0.1 + 0.2 == 0.3  # False
+0.1 + 0.2  # 0.30000000000000004
+```
+
+This is not a Python bug. It's a rounding error caused by how computers use binary to represent everything. So **never compare floats with `==`**. Check the
+difference is small:
+
+```python
+import math
+
+math.isclose(0.1 + 0.2, 0.3)  # True
+
+# or compare it manually yourself
+if abs(x - target) < 1e-9:
+    ...
+```
+
+Integers have no such problem and no size limit: `2 ** 1000` works fine.
+
+<details>
+<summary><strong>Technical explanation of why floating-point rounding error (0.1+0.2).</strong></summary>
+
+<br />
+
+Short version: your CPU stores numbers in **base 2**, and one tenth is not representable in base 2, for the same reason one third isn't representable in base
+
+10.
+
+### The rule
+
+A fraction terminates in base *b* only if the prime factors of its denominator all divide *b*.
+
+- Base 10 = 2 × 5, so it handles halves and fifths exactly. `1/3` becomes `0.3333...` forever.
+- Base 2 = 2, so it handles halves only. **`1/10` becomes `0.0001100110011...` forever.**
+
+`0.5`, `0.25`, `0.75` are exact. `0.1`, `0.2`, `0.3` are not, and actually never were: the decimal you typed in the code was rounded to the nearest
+representable binary value the moment Python ran into it.
+
+### What actually gets stored
+
+A Python `float` is an IEEE 754 **binary64**, the same 8 bytes your CPU's floating-point unit works on. One sign bit, 11 exponent bits, 52 stored mantissa bits:
+
+```text
+value = (-1)^sign × 1.mantissa × 2^(exponent - 1023)
+```
+
+So `0.1` is stored as the nearest binary64 to one tenth, which is slightly too big:
+
+```python
+>> > from decimal import Decimal
+>> > Decimal(0.1)  # the EXACT value sitting in memory
+Decimal('0.1000000000000000055511151231257827021181583404541015625')
+
+>> > (0.1).hex()  # the raw binary, in hexadecimal
+'0x1.999999999999ap-4'  # 0x1999... is 0.1's repeating pattern
+
+>> > (0.1).as_integer_ratio()
+(3602879701896397, 36028797018963968)  # the exact fraction it really is
+```
+
+That `...a` on the end of the hex is the rounding — the true pattern repeats `9999` forever and has to stop somewhere.
+
+### The addition itself
+
+`a + b` on two floats compiles down to **one CPU instruction**: `ADDSD` on x86-64, `FADD` on ARM. The hardware:
+
+1. lines up the exponents,
+2. adds the 53-bit mantissas,
+3. renormalizes,
+4. **rounds the result to the nearest representable binary64.**
+
+Four cycles or so. Step 4 is where the famous surprise comes from: the answer is correct to within half a bit, but that's not the same as correct.
+
+```python
+>> > Decimal(0.1 + 0.2)
+Decimal('0.3000000000000000444089209850062616169452667236328125')
+>> > Decimal(0.3)
+Decimal('0.299999999999999988897769753748434595763683319091796875')
+```
+
+Two different bit patterns, so `==` says False. Nothing went wrong; you asked whether two slightly-wrong approximations of different things happened to land on
+the same approximation, and they didn't.
+
+### The example above is a fun case
+
+```python
+>> > 0.1 + 0.2 == 0.3  # False
+>> > 0.1 + 0.3 == 0.4  # True  (!)
+```
+
+`0.1 + 0.3` works, but not because it's more correct. In fact, both inputs are wrong, the sum is wrong, and the rounding at step 4 just happens to land on the
+same bit pattern that `0.4` rounds to. Luck, not accuracy.
+
+### Error accumulates
+
+One operation is off by ~1e-17. Do it a thousand times and the errors compound:
+
+```python
+>> > total = 0.0
+>> > for _ in range(1000):
+    ...
+total += 0.1
+>> > total
+99.9999999999986  # not 100.0
+
+>> > import math
+>> > math.fsum([0.1] * 1000)
+100.0  # fsum tracks the lost bits and adds them back
+```
+
+</details>
+
+<details>
+<summary><strong>Decimal: doing base 10 in software</strong></summary>
+
+<br />
+
+`decimal.Decimal` stores a number as **an integer coefficient plus a base-10 exponent**: `123.45` is literally `12345 × 10⁻²`. Since the arithmetic happens in
+base 10, anything you can write as a decimal is stored exactly.
+
+```python
+>> > from decimal import Decimal
+>> > Decimal("0.1") + Decimal("0.2") == Decimal("0.3")
+True
+>> > sum([Decimal("0.1")] * 1000)
+Decimal('100.0')
+```
+
+**Always construct from a string.** `Decimal(0.1)` converts the already-broken float and faithfully preserves all 55 wrong digits. `Decimal("0.1")` is the exact
+tenth.
+
+### How it runs
+
+There's no CPU instruction for this. CPython's `decimal` module is a C library (libmpdec) that stores digits in arrays and implements addition as a **software
+loop with carries**: the long addition you learned in school, on 9-digit chunks. Hundreds of instructions instead of one.
+
+In practice the gap is smaller than that sounds, because Python's interpreter overhead dominates either way:
+
+```text
+                              per op        summing 10k values
+float (hardware)              ~17 ns              96 µs
+Decimal (software base 10)    ~39 ns             333 µs   ~3.5x slower
+numpy float (hardware, no                          3.6 µs   27x faster
+  interpreter per element)
+```
+
+So Decimal costs you a few times, not a hundred times — unless you're in NumPy, where floats get vectorized and Decimal isn't an option at all.
+
+### Precision is configurable
+
+Floats are stuck at 53 bits (~15–17 decimal digits). Decimal isn't:
+
+```python
+>> > from decimal import getcontext
+>> > getcontext().prec = 50
+>> > Decimal(1) / Decimal(3)
+Decimal('0.33333333333333333333333333333333333333333333333333')
+```
+
+You also get control over rounding mode, and signals that raise an error on inexact results instead of silently rounding, which is the actual reason finance
+uses it. Note that `1/3` still doesn't terminate: base 10 fixes fifths, not thirds.
+
+### When to use which
+
+| Use        | For                                                                                                                                     |
+|------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `float`    | almost everything: science, graphics, statistics, ML. Fast, hardware-native, and 1e-16 error is far below your measurement error anyway |
+| `Decimal`  | money, and anywhere a spec dictates decimal rounding (tax, billing, accounting)                                                         |
+| `Fraction` | exact rational arithmetic. `Fraction(1,3) * 3 == 1` exactly. ~30x slower than float                                                     |
+
+**Rule of thumb:** if the number came from measuring the physical world, use `float` and compare with a tolerance. If it came from a legal or financial
+document, don't use `float`.
+
+</details>
+
+### The math module
+
+```python
+import math
+
+math.sqrt(16)  # 4.0
+math.pi  # 3.141592653589793
+math.sin(math.pi / 2)
+math.log(100)  # natural log
+math.log10(100)  # base 10
+math.floor(3.7), math.ceil(3.2)
+```
+
+Trig functions take **radians**, not degrees. `math.radians(90)` converts.
+
+---
+
+## 5. Strings
+
+Text, in single or double quotes — identical, just be consistent:
+
+```python
+greeting = "hello"
+name = 'Ada'
+```
+
+```python
+"abc" + "def"  # "abcdef"
+"ab" * 3  # "ababab"
+len("hello")  # 5
+"hello".upper()  # "HELLO"
+"  spaces  ".strip()  # "spaces"
+"a,b,c".split(",")  # ["a", "b", "c"]
+"-".join(["a", "b"])  # "a-b"
+"hello".replace("l", "L")  # heLLo
+"ell" in "hello"  # True
+```
+
+### Indexing and slicing
+
+Positions start at **zero**:
+
+```python
+word = "Python"
+word[0]  # "P"
+word[-1]  # "n"      negative counts from the end
+word[0:3]  # "Pyt"    start included, end excluded
+word[2:]  # "thon"
+word[:2]  # "Py"
+```
+
+Strings are **immutable** meaning you cannot modify the content of the string itself: `word[0] = "J"` is an error. Build a new one instead.
+
+### f-strings
+
+Practical way to write output: put `f` before the quote, and expressions inside `{}`:
+
+```python
+name = "Ada"
+score = 91.5
+
+print(f"{name} scored {score}")  # Ada scored 91.5
+print(f"{name} scored {score:.1f}%")  # Ada scored 91.5%
+print(f"double: {score * 2}")  # expressions work inside
+```
+
+Format specifiers worth remembering:
+
+| Spec    | Effect on `1234.5678`       | Meaning                                     |
+|---------|-----------------------------|---------------------------------------------|
+| `:.2f`  | `1234.57`                   | Keep 2 decimals                             |
+| `:.3e`  | `1.235e+03`                 | Keep 3 decimals and use scientific notation |
+| `:,.2f` | `1,234.57`                  | Keep 2 decimals and use digit grouping (,)  |
+| `:>12`  | right-aligned in 12 columns | Aligns the text to the right when printed   |
+| `:<12`  | left-aligned                | Aligns the text to the left when printed    |
+
+Alignment is what makes columns of output line up.
+
+---
+
+## 6. Input and output
+
+```python
+print("hello")
+print("x =", x, "y =", y)  # commas insert spaces
+print("no newline", end="")
+print()  # blank line
+```
+
+Reading from the user: **`input()` always gives you a string**:
+
+```python
+name = input("What's your name? ")
+age = int(input("How old are you? "))  # convert!
+price = float(input("Price: "))
+```
+
+Forget the conversion and `"5" * 2` gives you `"55"` instead of `10`.
+
+For anything you'll run more than a few times, put values at the top of the file rather than prompting for them. Re-typing input on every run gets old fast.
+
+---
+
+## 7. Booleans and comparison
+
+```python
+x == y  # equal: TWO equals signs
+x != y  # not equal
+x < y  # less than (lt)
+x <= y  # less than or equal to (lte)
+x > y  # greater than (gt)
+x >= y  # greater or equal than (gte)
+```
+
+Combine with words:
+
+```python
+if age >= 18 and has_id:
+    ...
+if day == "Sat" or day == "Sun":
+    ...
+if not finished:
+    ...
+```
+
+Chaining works and reads well: `if 0 < x < 10:`.
+
+### Truthiness
+
+Anything can be tested for truth. **Empty things are false**: `0`, `0.0`, `""`, `[]`, `{}`, `None`. Everything else is true. So:
+
+```python
+if items:  # "if the list isn't empty"
+    print(len(items))
+```
+
+---
+
+## 8. Conditionals
+
+```python
+if score >= 90:
+    grade = "A"
+elif score >= 80:
+    grade = "B"
+elif score >= 70:
+    grade = "C"
+else:
+    grade = "F"
+```
+
+Conditions are checked in order and **stop at the first true one**. Only the `if` is required; `elif` and `else` are optional. Mind the colons and the
+indentation.
+
+Because they stop at the first match, order matters: putting `score >= 70` first would grade everyone above 70 as a C.
+
+Blocks nest:
+
+```python
+if logged_in:
+    if is_admin:
+        show_admin_panel()
+    else:
+        show_dashboard()
+```
+
+But deep nesting gets unreadable fast. Often you can flatten it by returning early or combining conditions with `and`.
+
+```python
+if not logged_in:
+    return
+
+if is_admin:
+    show_admin_panel()
+else:
+    show_dashboard()
+```
+
+---
+
+## 9. Loops
+
+### `for`: repeat a known number of times, or over a collection
+
+```python
+for i in range(5):
+    print(i)  # 0 1 2 3 4 — stops BEFORE 5
+```
+
+`range(a, b)` runs from `a` to `b - 1`. `range(a, b, step)` adds a stride, and the step can be negative: `range(10, 0, -1)` counts down.
+
+Loop over things directly — this is more Pythonic than looping over indices:
+
+```python
+for item in shopping_list:
+    print(item)
+
+for char in "hello":
+    print(char)
+
+for i, item in enumerate(shopping_list):  # when you need the position too
+    print(i, item)
+```
+
+### `while` — repeat until a condition changes
+
+```python
+total = 0
+while total < 100:
+    total += 7
+```
+
+**Something inside the loop must change the condition**, or it runs forever. If a program hangs, `Ctrl+C` in the terminal stops it.
+
+Use `for` when you know the count and `while` when you don't — waiting for user input, repeating until something converges, running until a queue is empty.
+
+### Controlling loops
+
+```python
+break  # leave the loop immediately
+continue  # skip to the next iteration
+```
+
+```python
+while True:
+    answer = input("Type 'quit' to exit: ")
+    if answer == "quit":
+        break
+```
+
+### Nested loops
+
+Each indentation level is a level of looping. The inner loop runs completely for every single step of the outer one:
+
+```python
+for row in range(3):
+    for col in range(3):
+        print(row, col)  # prints 9 lines
+```
+
+---
+
+## 10. Lists
+
+An ordered, changeable collection:
+
+```python
+scores = [88, 92, 79, 95]
+mixed = [1, "two", 3.0, True]  # allowed, though rarely a good idea to mix types
+empty = []
+
+scores[0]  # 88     zero-indexed, meaning the first element is at index (position) 0 and so on
+scores[-1]  # 95
+scores[1:3]  # [92, 79]    slicing, same rules as strings
+len(scores)  # 4
+95 in scores  # True
+```
+
+Changing them:
+
+```python
+scores.append(100)  # add to the end
+scores.insert(0, 70)  # insert at a position 0
+scores.remove(79)  # remove the first matching VALUE
+scores.pop()  # remove and return the last item
+scores[0] = 90  # replace value at index 0 in place
+scores.sort()  # sort in place
+scores.reverse()  # flips the list around
+```
+
+Useful built-in functions:
+
+```python
+sum(scores)
+max(scores), min(scores)
+sorted(scores)  # returns a NEW sorted list, leaves the original alone
+```
+
+### The build-a-list pattern
+
+Start empty and append values inside a loop. Fast and easy:
+
+```python
+squares = []
+for n in range(1, 11):
+    squares.append(n ** 2)  # [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+
+### List comprehensions
+
+The compressed version of exactly the pattern above:
+
+```python
+squares = [n ** 2 for n in range(1, 11)]  # [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+evens = [n for n in numbers if n % 2 == 0]
+upper = [word.upper() for word in words]
+```
+
+Read it left to right: *the expression*, for *each item*, optionally *if a condition*. Use them for short transformations; if it doesn't fit comfortably on one
+line, use a regular loop.
+
+### The aliasing trap
+
+Assignment does **not** copy a list. It creates a second name for the same one:
+
+```python
+a = [1, 2, 3]
+b = a
+b[0] = 99
+print(a)  # [99, 2, 3] list a also changed!
+```
+
+To actually copy: `b = a.copy()` or `b = a[:]`. More on this in §17.
+
+---
+
+## 11. Functions
+
+A named block of code you can run whenever you want:
+
+```python
+def greet(name):
+    """Return a greeting for the given name."""
+    return f"Hello, {name}!"
+
+message = greet("Ada")
+```
+
+- `def` starts the definition, the name follows, then parameters in parentheses, then a colon.
+- The body is indented.
+- The string on the first line is a **docstring**. Write one. It's a description for the function that shows up when hovering over it.
+- `return` hands a value back and exits the function immediately.
+
+### return vs print
+
+- `print` displays something on screen and that's it.
+- `return` gives a value back to whatever called the function.
+
+```python
+def double_bad(x):
+    print(x * 2)
+
+def double_good(x):
+    return x * 2
+
+result = double_bad(5)  # prints 10, but result is None
+result = double_good(5)  # result is 10, nothing printed
+```
+
+A function with no `return` returns `None`. Most of your functions should return.
+
+### Arguments
+
+```python
+def area(width, height):
+    return width * height
+
+area(3, 4)  # positional (value 3 is associated with width, value 4 is associated with height, in order)
+area(width=3, height=4)  # keyword, clearer at the call site
+area(height=4, width=3)  # order doesn't matter when specifying keywords
+```
+
+Defaults make arguments optional:
+
+```python
+def greet(name, greeting="Hello"):  # the greeting parameter is now optional
+    return f"{greeting}, {name}!"
+
+greet("Ada")  # "Hello, Ada!"
+greet("Ada", "Hi")  # "Hi, Ada!"
+```
+
+### Scope
+
+Variables created inside a function are **local**: they disappear when it ends, and they don't touch same-named variables outside:
+
+```python
+def f():
+    x = 5  # local, completely separate
+
+x = 1
+f()
+print(x)  # still 1
+```
+
+A function can *read* variables from outside, but relying on that makes functions that only work in one context. **Pass what you need in as arguments and return
+what you produce.** A function that takes inputs and returns outputs is one you can test, reuse, and reason about.
+
+### Why functions matter
+
+Not to save typing. To let you think about one thing at a time. Once `calculate_tax` is written and works, you stop thinking about tax and just call it. Every
+large program is small functions stacked up.
+
+---
+
+## 12. Errors and debugging
+
+Errors are information. **Read the last line first** — it says what went wrong. Then look at the line number above it — that's where.
+
+```text
+Traceback (most recent call last):
+  File "script.py", line 12, in <module>
+    total = price + tax
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+```
+
+Line 12, adding a number to a string. Something that should be a number is text — probably an `input()` that was never converted.
+
+### The ones you'll actually hit
+
+| Error                 | Usual cause                                                                |
+|-----------------------|----------------------------------------------------------------------------|
+| `SyntaxError`         | missing `:`, unclosed `(` or `"` — check the line *above* the one reported |
+| `IndentationError`    | misaligned block, or mixed tabs and spaces                                 |
+| `NameError`           | typo, used before defined, or a missing import                             |
+| `TypeError`           | wrong type — often a string where a number belongs                         |
+| `ValueError`          | right type, impossible value: `int("abc")`                                 |
+| `IndexError`          | index past the end of a list — usually off by one                          |
+| `KeyError`            | dictionary key doesn't exist                                               |
+| `AttributeError`      | called a method that type doesn't have                                     |
+| `ZeroDivisionError`   | exactly that                                                               |
+| `ModuleNotFoundError` | package not installed, or wrong environment                                |
+
+### How to actually debug
+
+**Print things.** Not clever things — obvious things. Print the variable right before the line that breaks. Print its type. Print the length of the list.
+
+```python
+print(i)
+print(value)
+print(type(value))
+print(f"i={i} value={value} type={type(value)}")  # prettier but more effort
+```
+
+**Narrow it down.** Comment out half the code. Still broken? The problem is in the half that's left. Repeat. This finds bugs faster than reading carefully.
+
+**Check your assumptions one at a time.** Is the file being read? Is the list the length you expect? Is the condition ever true? Test the smallest claim you
+can.
+
+When you're properly stuck, you IDE's debugger lets you pause and inspect everything while the code is running. Worth learning eventually, but print statements
+will carry you a long way.
+
+---
+
+## 13. Putting it together
+
+Everything in Part I, in one small program:
+
+```python
+"""Grade summary: reads scores, reports statistics."""
+
+def letter_grade(score):
+    """Convert a numeric score to a letter grade."""
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    elif score >= 70:
+        return "C"
+    elif score >= 60:
+        return "D"
+    return "F"
+
+def summarize(scores):
+    """Return the average, highest and lowest of a list of scores."""
+    return sum(scores) / len(scores), max(scores), min(scores)
+
+def main():
+    scores = []
+
+    while True:
+        entry = input("Enter a score (or 'done'): ")
+        if entry == "done":
+            break
+        try:
+            scores.append(float(entry))
+        except ValueError:
+            print("  That wasn't a number, try again.")
+
+    if not scores:
+        print("No scores entered.")
+        return
+
+    average, highest, lowest = summarize(scores)
+
+    print(f"\n{len(scores)} scores")
+    print(f"Average: {average:.1f} ({letter_grade(average)})")
+    print(f"Highest: {highest:.1f}")
+    print(f"Lowest:  {lowest:.1f}")
+
+    print("\nBreakdown:")
+    for i, score in enumerate(scores, start=1):
+        print(f"  {i:>3}. {score:>6.1f}  {letter_grade(score)}")
+
+main()
+```
+
+Small functions that each do one thing, a `main` that wires them together, input validated as it arrives. That shape scales.

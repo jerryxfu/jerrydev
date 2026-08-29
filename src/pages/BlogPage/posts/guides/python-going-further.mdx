@@ -1,0 +1,594 @@
+Reference material, less prose. Skim the headings; read a section when you need it.
+
+## 14. Dictionaries, tuples, sets
+
+### Dictionaries
+
+Key -> value lookup. The most useful data structure in Python after the list.
+
+```python
+person = {"name": "Ada", "age": 36, "city": "London"}
+
+person["name"]  # "Ada"
+person["email"] = "a@b.com"  # adds it
+person.get("phone")  # None instead of an error
+person.get("phone", "n/a")  # with a fallback
+"age" in person  # True
+del person["age"]
+```
+
+Iterating:
+
+```python
+for key in person:
+    print(key, person[key])
+
+for key, value in person.items():
+    print(f"{key}: {value}")
+
+person.keys(), person.values(), person.items()
+```
+
+Counting things is the classic use:
+
+```python
+counts = {}
+for word in words:
+    counts[word] = counts.get(word, 0) + 1
+```
+
+Keys must be immutable — strings, numbers and tuples work; lists don't. Since Python 3.7 dictionaries keep insertion order.
+
+### Tuples
+
+Like lists, but **immutable**, meaning its values cannot be modified, written with parentheses:
+
+```python
+point = (3, 4)
+x, y = point  # unpacking
+```
+
+Use them for fixed groupings, and for returning several values:
+
+```python
+def min_max(values):
+    return min(values), max(values)
+
+low, high = min_max(scores)
+```
+
+Swapping is a one-liner: `a, b = b, a`.
+
+### Sets
+
+Unordered, no duplicates. Fast membership testing.
+
+```python
+tags = {"python", "guide", "python"}  # {"python", "guide"}
+set([1, 1, 2, 3])  # {1, 2, 3} — dedupe a list
+
+a | b  # union
+a & b  # intersection
+a - b  # difference
+"x" in a  # fast, even for huge sets
+```
+
+`{}` alone makes an empty *dictionary*. For an empty set, use `set()`.
+
+---
+
+## 15. Working with sequences
+
+### Slicing, fully
+
+```python
+s[start:stop:step]
+
+s[::2]  # every second element
+s[::-1]  # reversed
+s[-3:]  # last three
+```
+
+Slices are forgiving — out-of-range bounds clamp down instead of erroring.
+
+### Iteration helpers
+
+```python
+enumerate(items)  # (index, item) pairs
+enumerate(items, start=1)  # count from 1
+zip(names, scores)  # pair up two sequences
+reversed(items)
+sorted(items)
+sorted(items, reverse=True)
+sorted(people, key=lambda p: p["age"])  # sort by a computed value
+sorted(words, key=len)
+```
+
+`zip` stops at the shorter sequence. It's also how you transpose: `zip(*rows)`.
+
+### Aggregating
+
+```python
+sum(x), max(x), min(x), len(x)
+any(flags)  # True if at least one is truthy
+all(flags)  # True if every one is
+```
+
+### Comprehensions
+
+```python
+[f(x) for x in items]  # list
+{k: v for k, v in pairs}  # dict
+{f(x) for x in items}  # set
+(f(x) for x in items)  # generator — lazy, no list built
+```
+
+Generators matter for large data: `sum(x**2 for x in range(10_000_000))` never builds the list.
+
+---
+
+## 16. More about functions
+
+### Flexible arguments
+
+```python
+def total(*numbers):  # any number of positional args → tuple
+    return sum(numbers)
+
+total(1, 2, 3)
+
+def configure(**options):  # any number of keyword args → dict
+    for key, value in options.items():
+        print(key, value)
+
+configure(colour="red", size=10)
+```
+
+### Mutable defaults — a real trap
+
+```python
+def add_item(item, basket=[]):  # WRONG — the list is shared between calls
+    basket.append(item)
+    return basket
+
+def add_item(item, basket=None):  # right
+    if basket is None:
+        basket = []
+    basket.append(item)
+    return basket
+```
+
+The default value is created once, when the function is defined — not on each call.
+
+### Lambdas
+
+Tiny anonymous functions, mostly for `key=` arguments:
+
+```python
+sorted(words, key=lambda w: w.lower())
+```
+
+If it needs a name or more than one expression, write a real `def`.
+
+### Functions are values
+
+You can pass them around like anything else:
+
+```python
+def apply_twice(f, x):
+    return f(f(x))
+
+apply_twice(str.upper, "hi")
+```
+
+### Type hints
+
+Optional annotations. They don't change how the code runs, but they document intent and let editors catch mistakes:
+
+```python
+def average(values: list[float]) -> float:
+    return sum(values) / len(values)
+```
+
+### Recursion
+
+A function that calls itself. Needs a base case that doesn't recurse:
+
+```python
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+```
+
+Elegant for tree-shaped problems, but Python caps recursion around 1000 deep and loops are usually faster. Use it where it genuinely fits.
+
+---
+
+## 17. References, copying, mutability
+
+Variables hold **references** to objects, not the objects themselves. Assignment copies the reference.
+
+**Mutable** (can be changed in place): lists, dicts, sets, most custom objects. **Immutable** (can't): ints, floats, strings, tuples, booleans.
+
+```python
+a = [1, 2, 3]
+b = a
+b.append(4)
+print(a)  # [1, 2, 3, 4]
+
+x = 5
+y = x
+y += 1
+print(x)  # 5 — ints are immutable, so y got a new object
+```
+
+This also affects function arguments — a function that mutates a list it was passed changes the caller's list.
+
+Copying:
+
+```python
+import copy
+
+shallow = original.copy()  # or list(original), or original[:]
+deep = copy.deepcopy(original)  # for nested structures
+```
+
+A shallow copy duplicates the outer container but shares the inner objects. With a list of lists, you need `deepcopy`.
+
+`is` tests whether two names point at the *same object*; `==` tests whether values are equal. Use `is` only for `None`: `if x is None:`.
+
+---
+
+## 18. Modules and project layout
+
+```python
+import math  # math.sqrt(2)
+import numpy as np  # np.array(...)
+from math import sqrt, pi  # sqrt(2)
+from math import *  # avoid — dumps everything, causes name clashes
+```
+
+### Your own modules
+
+Any `.py` file is a module. Given `helpers.py` next to your script:
+
+```python
+from helpers import clean_text, load_config
+import helpers
+```
+
+Two rules:
+
+**Don't name a file after a package you import.** A `math.py` or `random.py` in your folder shadows the real one and produces bewildering errors.
+
+**Guard code that runs.** Anything at the top level of a file executes on import. Wrap it:
+
+```python
+def main():
+    ...
+
+if __name__ == "__main__":
+    main()
+```
+
+`__name__` is `"__main__"` when the file is run directly, and the module's name when it's imported. So this runs your program when you run the file, and stays
+quiet when someone imports it.
+
+### A reasonable layout
+
+```text
+project/
+├── README.md
+├── requirements.txt
+├── main.py
+├── src/
+│   ├── __init__.py
+│   ├── data.py
+│   └── analysis.py
+└── tests/
+    └── test_analysis.py
+```
+
+For small projects, a flat folder of `.py` files is completely fine. Don't build structure you don't need yet.
+
+---
+
+## 19. Exceptions
+
+Handle failures instead of crashing:
+
+```python
+try:
+    value = int(user_input)
+except ValueError:
+    print("Not a valid number.")
+```
+
+Full form:
+
+```python
+try:
+    f = open("data.txt")
+except FileNotFoundError:
+    print("No such file.")
+except PermissionError:
+    print("Can't read it.")
+else:
+    print("Worked.")  # runs only if no exception
+finally:
+    print("Always runs.")  # cleanup
+```
+
+**Catch specific exceptions.** A bare `except:` swallows everything including your own typos and `Ctrl+C`, and turns a five-second bug into an hour.
+
+Raise your own when an input doesn't make sense:
+
+```python
+def set_age(age):
+    if age < 0:
+        raise ValueError(f"Age cannot be negative: {age}")
+```
+
+Inspect the error object when you need details:
+
+```python
+except ValueError as e:
+print(f"Failed: {e}")
+```
+
+When to use exceptions versus an `if`: `if` for conditions you expect, `try` for genuine failures — a missing file, malformed input, a network that isn't there.
+
+---
+
+## 20. Files, paths, and formats
+
+### Text
+
+Always use `with` — it closes the file even if something goes wrong:
+
+```python
+with open("notes.txt", "r") as f:
+    content = f.read()  # whole file as one string
+
+with open("notes.txt", "r") as f:
+    for line in f:  # line by line — memory-friendly
+        print(line.strip())  # strip removes the trailing newline
+```
+
+Writing:
+
+```python
+with open("out.txt", "w") as f:  # "w" overwrites, "a" appends
+    f.write("first line\n")  # you must add \n yourself
+    f.writelines(lines)
+```
+
+Add `encoding="utf-8"` if there's any chance of non-ASCII characters — and there usually is.
+
+### Paths
+
+```python
+from pathlib import Path
+
+here = Path(__file__).parent  # folder this script is in
+data = here / "data" / "input.csv"  # / joins paths, cross-platform
+
+data.exists()
+data.suffix  # ".csv"
+data.stem  # "input"
+list(here.glob("*.csv"))  # all CSVs in the folder
+```
+
+If a file "isn't there", it's almost always because the script ran from a different working directory than you assumed. Building paths relative to `__file__`
+fixes that permanently.
+
+### CSV
+
+```python
+import csv
+
+with open("data.csv", newline="") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(row["name"], row["score"])
+
+with open("out.csv", "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(["name", "score"])
+    writer.writerows(rows)
+```
+
+### JSON
+
+```python
+import json
+
+with open("config.json") as f:
+    config = json.load(f)  # → dict
+
+with open("out.json", "w") as f:
+    json.dump(data, f, indent=2)
+```
+
+`json.loads` / `json.dumps` do the same with strings instead of files.
+
+---
+
+## 21. Classes and objects
+
+A class bundles data with the functions that work on it. You don't need them for small scripts, but you'll read them everywhere.
+
+```python
+class BankAccount:
+    """A simple bank account."""
+
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("Deposit must be positive")
+        self.balance += amount
+
+    def withdraw(self, amount):
+        if amount > self.balance:
+            raise ValueError("Insufficient funds")
+        self.balance -= amount
+
+    def __repr__(self):
+        return f"BankAccount({self.owner!r}, {self.balance})"
+
+account = BankAccount("Ada", 100)
+account.deposit(50)
+print(account.balance)  # 150
+```
+
+- `__init__` runs when you create an instance, setting up its data.
+- `self` is the instance, and is the first parameter of every method.
+- `__repr__` controls how the object prints — worth defining for debugging.
+
+**Inheritance** — a class that extends another:
+
+```python
+class SavingsAccount(BankAccount):
+    def __init__(self, owner, balance=0, rate=0.02):
+        super().__init__(owner, balance)
+        self.rate = rate
+
+    def add_interest(self):
+        self.balance *= (1 + self.rate)
+```
+
+For plain data holders, a dataclass saves boilerplate:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: float
+    y: float
+```
+
+That gets you `__init__`, `__repr__` and `==` for free.
+
+Reach for a class when several functions keep passing the same clump of data around. Otherwise, functions and dicts are often simpler.
+
+---
+
+## 22. Environments and packages
+
+**pip** installs packages from PyPI:
+
+```bash
+pip install requests
+pip install requests==2.31.0
+pip install --upgrade requests
+pip uninstall requests
+pip list
+```
+
+If `pip` isn't found, use `python -m pip install ...`.
+
+**Virtual environments** keep each project's packages separate, so upgrading something for one project doesn't break another:
+
+```bash
+python -m venv .venv
+
+source .venv/bin/activate       # macOS / Linux
+.venv\Scripts\activate          # Windows
+
+deactivate
+```
+
+Your prompt shows `(.venv)` when it's active. Add `.venv/` to `.gitignore`.
+
+**Recording dependencies** so others can reproduce your setup:
+
+```bash
+pip freeze > requirements.txt
+pip install -r requirements.txt
+```
+
+Worth doing on any project you'll share. `ModuleNotFoundError` for a package you're certain you installed is almost always an environment mismatch — you
+installed it in one and are running in another.
+
+---
+
+## 23. Writing code people can read
+
+Most of a program's life is spent being read, usually by you, later, having forgotten everything.
+
+**Names should say what the thing is.** `student_count`, not `sc` or `n2`. The exception is genuinely conventional short names: `i` for a loop index, `x`/`y`
+for coordinates.
+
+**Functions should do one thing.** If you can't name it without "and", split it.
+
+**Keep functions short.** If it doesn't fit on a screen, there's probably a piece worth extracting.
+
+**Don't repeat yourself.** The third time you copy-paste a block, make it a function.
+
+**Prefer flat over nested.** Return early rather than wrapping the whole body in an `if`:
+
+```python
+def process(data):
+    if not data:
+        return None
+    # main logic here, un-indented
+```
+
+**Comment the why.** The code already says what it does. Comments should explain the reasoning that isn't visible: why this threshold, why this workaround
+exists.
+
+**Follow PEP 8** — the style guide. 4-space indents, `snake_case` for functions and variables, `PascalCase` for classes, `UPPER_CASE` for constants, spaces
+around operators. Don't memorise it; install a formatter:
+
+```bash
+pip install black ruff
+black .        # reformats
+ruff check .   # finds problems
+```
+
+Letting a tool handle formatting ends every argument about it permanently.
+
+---
+
+## 24. Standard library tour
+
+Batteries included. Before installing anything, check whether this covers it.
+
+| Module        | For                                          |
+|---------------|----------------------------------------------|
+| `math`        | scalar maths, constants                      |
+| `random`      | random numbers, shuffling, sampling          |
+| `datetime`    | dates, times, durations                      |
+| `pathlib`     | file paths                                   |
+| `os`, `sys`   | operating system, arguments, environment     |
+| `json`, `csv` | data formats                                 |
+| `re`          | regular expressions                          |
+| `collections` | `Counter`, `defaultdict`, `deque`            |
+| `itertools`   | combinations, permutations, clever iteration |
+| `functools`   | `lru_cache`, `partial`, `reduce`             |
+| `argparse`    | command-line interfaces                      |
+| `unittest`    | testing                                      |
+| `time`        | timing, sleeping                             |
+| `statistics`  | mean, median, stdev without NumPy            |
+
+Three that pay off immediately:
+
+```python
+from collections import Counter
+
+Counter(words).most_common(5)  # word frequencies in one line
+
+from functools import lru_cache
+
+@lru_cache
+def slow_function(n): ...  # caches results automatically
+
+import itertools
+
+itertools.combinations(items, 2)  # every pair
+```

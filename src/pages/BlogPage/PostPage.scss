@@ -57,6 +57,102 @@
     color: var(--text-4);
 }
 
+// .post_topic and .post_nav_* had no rules whatsoever, so they rendered as bare anchors: browser-default
+// #0000EE, turning #551A8B once visited. Every colour below is stated explicitly, :visited included, so no
+// state of these links can fall back to the UA stylesheet again.
+.post_topic {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--tertiary);
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:visited {
+        color: var(--tertiary);
+    }
+
+    &:hover {
+        color: var(--tertiary-da);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+}
+
+.post_nav {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+// The sides are pinned rather than distributed. justify-content: space-between would put a lone "next"
+// on the left when there is no previous, which is exactly the thing being fixed.
+.post_nav_prev {
+    margin-right: auto;
+}
+
+.post_nav_next {
+    margin-left: auto;
+    text-align: right;
+}
+
+.post_nav_link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    max-width: 47%;
+    text-decoration: none;
+}
+
+// The underline sits on the label rather than on the whole link: it is the part that says what the
+// control does, and running a rule under a two-line post title reads as heavy rather than as a link.
+// Same treatment as .blog_topic, so every tertiary link on the blog underlines the same way.
+.post_nav_label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: fit-content;
+    font-size: var(--fs-xs);
+    color: var(--tertiary);
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+    // On the word only. The label is an inline-flex box, so decorating it would strike a line under
+    // the arrow icon as well.
+    .post_nav_word {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: color-mix(in srgb, var(--tertiary) 40%, transparent);
+    }
+}
+
+.post_nav_next .post_nav_label {
+    margin-left: auto;
+}
+
+.post_nav_link:hover .post_nav_label {
+    color: var(--tertiary-da);
+
+    .post_nav_word {
+        text-decoration-color: var(--tertiary);
+    }
+}
+
+.post_nav_title {
+    font-size: var(--fs-sm);
+    line-height: 1.35;
+    color: var(--text-strong);
+}
+
+// The copy above the title. Same links and same titles, only without the rule and the top margin
+// that separate the end-of-post pair from the article above it.
+.post_nav--compact {
+    margin: 1rem 0 0;
+    padding-top: 0;
+    border-top: none;
+}
+
 .post_missing {
     h1 {
         margin: 0 0 0.5rem;
@@ -81,7 +177,37 @@
         font-weight: 600;
         line-height: 1.3;
         color: var(--text-strong);
+        // Clears the navbar. Below the rail breakpoint the contents bar is fixed underneath it and
+        // occupies roughly another 36px, so an anchored heading needs the larger offset there or it
+        // arrives tucked behind the bar it was just clicked in.
         scroll-margin-top: 6rem;
+
+        @media (max-width: 1279px) {
+            scroll-margin-top: 7.75rem;
+        }
+    }
+
+    // The ¶ appended by rehype-autolink-headings. Deliberately decorative: the plugin renders it
+    // aria-hidden with tabIndex -1, so there is no focus state to style here — a keyboard user would
+    // otherwise pick up 42 extra tab stops on a post like python-basics for a link to the heading
+    // they are already on. Hover only, and the TOC is the real navigation.
+    .heading_anchor {
+        margin-left: 0.4rem;
+        opacity: 0;
+        font-weight: 400;
+        color: var(--text-5);
+        text-decoration: none;
+        transition: opacity 0.15s ease;
+
+        &:hover {
+            color: var(--text-3);
+        }
+    }
+
+    h2:hover .heading_anchor,
+    h3:hover .heading_anchor,
+    h4:hover .heading_anchor {
+        opacity: 1;
     }
 
     h2 {

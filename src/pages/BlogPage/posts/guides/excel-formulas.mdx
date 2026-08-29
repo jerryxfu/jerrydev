@@ -1,0 +1,259 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // load-bearing, see hello-blog
+
+A quick-reference guide for common Excel formulas — math, stats, and the basics.
+
+🇪🇸 [Leer en español](/blog/excel-formulas-es)
+
+<Callout kind="tip">
+Every formula starts with `=`. Excel evaluates whatever comes after it as a calculation, not plain text.
+</Callout>
+
+---
+
+## Cell References
+
+| Type                  | Example | Behavior when copied/dragged  |
+|-----------------------|---------|-------------------------------|
+| Relative              | `A1`    | Changes to match new position |
+| Absolute (locked)     | `$A$1`  | Never changes                 |
+| Mixed (column locked) | `$A1`   | Column stays, row changes     |
+| Mixed (row locked)    | `A$1`   | Row stays, column changes     |
+
+<Callout kind="important">
+Press <strong>F4</strong> while editing a formula to cycle through reference types (`A1` → `$A$1` → `A$1` → `$A1`). Saves a lot of typing.
+</Callout>
+
+**When to use `$`:** any time you're dragging a formula across cells but want it to always point at the *same* cell (like a tax rate or a fixed total).
+
+```text
+=B2*$D$1     ← B2 changes as you drag down, D1 stays locked
+```
+
+---
+
+## Basic Math
+
+| Operation        | Symbol | Example   | Result         |
+|------------------|--------|-----------|----------------|
+| Addition         | `+`    | `=A1+A2`  | Adds two cells |
+| Subtraction      | `-`    | `=A1-A2`  | Subtracts      |
+| Multiplication   | `*`    | `=A1*A2`  | Multiplies     |
+| Division         | `/`    | `=A1/A2`  | Divides        |
+| Exponent (power) | `^`    | `=A1^2`   | Squares A1     |
+| Percentage       | `%`    | `=A1*10%` | 10% of A1      |
+
+<Callout kind="note">
+Excel follows standard order of operations (PEMDAS). Use parentheses `()` to control what calculates first: `=(A1+A2)*B1` vs `=A1+A2*B1` give different results.
+</Callout>
+
+### Example: calculating tax on a purchase
+
+Say you're in Quebec and want to figure out the total cost of an item after federal (GST, 5%) and provincial (QST, 9.975%) tax.
+
+|   | A            | B            |
+|---|--------------|--------------|
+| 1 | Price        | 100.00       |
+| 2 | GST (5%)     | `=B1*5%`     |
+| 3 | QST (9.975%) | `=B1*9.975%` |
+| 4 | Total        | `=B1+B2+B3`  |
+
+This gives `B4` = **114.98**. Since taxes here are both calculated on the *original* price (not stacked on each other), you can also skip the helper rows and do
+it in one line:
+
+```text
+=B1*(1+5%+9.975%)
+```
+
+Both approaches land on the same number — the multi-row version is easier to audit later, the one-liner is faster to write once you trust it.
+
+<Callout kind="tip">
+Keep tax rates in their own cells (like `B2`/`B3` above) instead of typing `5%` directly into a formula. If a rate changes, you only update it in one place instead of hunting through every formula that uses it.
+</Callout>
+
+---
+
+## Sum & Count Functions
+
+| Function     | What it does                               | Example                                     |
+|--------------|--------------------------------------------|---------------------------------------------|
+| `SUM`        | Adds a range of numbers                    | `=SUM(A1:A10)`                              |
+| `SUMIF`      | Adds cells that meet one condition         | `=SUMIF(A1:A10,">50")`                      |
+| `SUMIFS`     | Adds cells that meet multiple conditions   | `=SUMIFS(B1:B10,A1:A10,">50",C1:C10,"Yes")` |
+| `COUNT`      | Counts cells with numbers                  | `=COUNT(A1:A10)`                            |
+| `COUNTA`     | Counts non-empty cells (any type)          | `=COUNTA(A1:A10)`                           |
+| `COUNTIF`    | Counts cells that meet one condition       | `=COUNTIF(A1:A10,">50")`                    |
+| `COUNTIFS`   | Counts cells that meet multiple conditions | `=COUNTIFS(A1:A10,">50",B1:B10,"Yes")`      |
+| `COUNTBLANK` | Counts empty cells                         | `=COUNTBLANK(A1:A10)`                       |
+
+### Example: summing sales by category
+
+|   | A        | B     |
+|---|----------|-------|
+| 1 | Category | Sales |
+| 2 | Coffee   | 45    |
+| 3 | Tea      | 30    |
+| 4 | Coffee   | 60    |
+| 5 | Tea      | 20    |
+
+To total up just the coffee sales:
+
+```text
+=SUMIF(A2:A5,"Coffee",B2:B5)
+```
+
+This reads as: *"Look through A2:A5, find rows that say 'Coffee', then add up the matching rows in B2:B5."* Result: **105**.
+
+Add a second condition — say you only want coffee sales over 50 — with `SUMIFS` (note the extra "S", and the condition range/criteria come in pairs):
+
+```text
+=SUMIFS(B2:B5,A2:A5,"Coffee",B2:B5,">50")
+```
+
+<Callout kind="note">
+`SUMIF` takes one condition. `SUMIFS` takes multiple. The argument order is also different between them — `SUMIF` puts the sum range last, `SUMIFS` puts it first. Easy mix-up, worth double-checking.
+</Callout>
+
+---
+
+## Averages & Stats
+
+| Function    | What it does                | Example                    |
+|-------------|-----------------------------|----------------------------|
+| `AVERAGE`   | Mean of a range             | `=AVERAGE(A1:A10)`         |
+| `AVERAGEIF` | Mean with one condition     | `=AVERAGEIF(A1:A10,">50")` |
+| `MEDIAN`    | Middle value                | `=MEDIAN(A1:A10)`          |
+| `MODE.SNGL` | Most frequent value         | `=MODE.SNGL(A1:A10)`       |
+| `MIN`       | Smallest value              | `=MIN(A1:A10)`             |
+| `MAX`       | Largest value               | `=MAX(A1:A10)`             |
+| `STDEV.S`   | Standard deviation (sample) | `=STDEV.S(A1:A10)`         |
+
+---
+
+## Rounding
+
+| Function    | What it does                    | Example               | Result |
+|-------------|---------------------------------|-----------------------|--------|
+| `ROUND`     | Rounds to N decimal places      | `=ROUND(3.14159,2)`   | `3.14` |
+| `ROUNDUP`   | Always rounds up                | `=ROUNDUP(3.001,0)`   | `4`    |
+| `ROUNDDOWN` | Always rounds down              | `=ROUNDDOWN(3.999,0)` | `3`    |
+| `INT`       | Rounds down to nearest integer  | `=INT(3.9)`           | `3`    |
+| `CEILING`   | Rounds up to nearest multiple   | `=CEILING(23,5)`      | `25`   |
+| `FLOOR`     | Rounds down to nearest multiple | `=FLOOR(23,5)`        | `20`   |
+
+---
+
+## Conditional Functions
+
+| Function  | What it does                                | Example                               |
+|-----------|---------------------------------------------|---------------------------------------|
+| `IF`      | Returns one value if true, another if false | `=IF(A1>50,"Pass","Fail")`            |
+| `IFS`     | Checks multiple conditions in order         | `=IFS(A1>90,"A",A1>80,"B",A1>70,"C")` |
+| `AND`     | True only if all conditions are true        | `=AND(A1>0,A1<100)`                   |
+| `OR`      | True if any condition is true               | `=OR(A1>100,B1>100)`                  |
+| `IFERROR` | Returns a fallback value if formula errors  | `=IFERROR(A1/B1,"N/A")`               |
+
+<Callout kind="tip">
+Nest `IF` inside `IF` for multiple outcomes, but if you're nesting more than 2–3, switch to `IFS` — it's much easier to read.
+</Callout>
+
+```text
+=IF(A1>90,"A",IF(A1>80,"B",IF(A1>70,"C","D")))
+
+=IFS(A1>90,"A", A1>80,"B", A1>70,"C", TRUE,"D")   ← same result, cleaner
+```
+
+---
+
+## Lookup Functions
+
+| Function          | What it does                                                                | Example                             |
+|-------------------|-----------------------------------------------------------------------------|-------------------------------------|
+| `VLOOKUP`         | Looks up a value in the leftmost column, returns from a column to the right | `=VLOOKUP(A1,B1:D10,3,FALSE)`       |
+| `XLOOKUP`         | Modern replacement — looks up in any direction                              | `=XLOOKUP(A1,B1:B10,D1:D10)`        |
+| `INDEX` + `MATCH` | Flexible lookup combo, works in any direction                               | `=INDEX(D1:D10,MATCH(A1,B1:B10,0))` |
+
+<Callout kind="warning">
+`VLOOKUP`'s last argument should almost always be `FALSE` (exact match). Leaving it blank or `TRUE` can silently return the wrong value if your data isn't sorted.
+</Callout>
+
+<Callout kind="note">
+If your version of Excel has `XLOOKUP`, prefer it over `VLOOKUP` — it can look left, doesn't break when columns are inserted, and has a built-in "not found" fallback:
+
+```text
+=XLOOKUP(A1,B1:B10,D1:D10,"Not found")
+```
+</Callout>
+
+### Example: looking up a price from a product list
+
+|   | A        | B     |
+|---|----------|-------|
+| 1 | Product  | Price |
+| 2 | Pen      | 1.50  |
+| 3 | Notebook | 4.00  |
+| 4 | Stapler  | 8.25  |
+
+To find the price of "Notebook":
+
+```text
+=VLOOKUP("Notebook",A2:B4,2,FALSE)
+```
+
+Breaking that down: *look for `"Notebook"` in the first column of `A2:B4`, and return the value from the 2nd column of that range.* Result: **4.00**.
+
+The `XLOOKUP` version is a bit more readable since you point directly at the two columns instead of counting column positions:
+
+```text
+=XLOOKUP("Notebook",A2:A4,B2:B4)
+```
+
+<Callout kind="tip">
+If you're referencing a cell instead of typing the product name directly — like `=VLOOKUP(D1,A2:B4,2,FALSE)` — you can drag that formula down a list of products in column D and it'll look each one up automatically.
+</Callout>
+
+---
+
+## Text Functions
+
+| Function          | What it does                     | Example        |
+|-------------------|----------------------------------|----------------|
+| `CONCAT` / `&`    | Joins text together              | `=A1&" "&B1`   |
+| `LEFT`            | Grabs characters from the start  | `=LEFT(A1,3)`  |
+| `RIGHT`           | Grabs characters from the end    | `=RIGHT(A1,3)` |
+| `MID`             | Grabs characters from the middle | `=MID(A1,2,5)` |
+| `TRIM`            | Removes extra spaces             | `=TRIM(A1)`    |
+| `UPPER` / `LOWER` | Changes case                     | `=UPPER(A1)`   |
+| `LEN`             | Counts characters                | `=LEN(A1)`     |
+
+---
+
+## Date Functions
+
+| Function                 | What it does                         | Example               |
+|--------------------------|--------------------------------------|-----------------------|
+| `TODAY`                  | Current date                         | `=TODAY()`            |
+| `NOW`                    | Current date and time                | `=NOW()`              |
+| `YEAR` / `MONTH` / `DAY` | Extracts part of a date              | `=YEAR(A1)`           |
+| `DATEDIF`                | Difference between two dates         | `=DATEDIF(A1,B1,"D")` |
+| `EOMONTH`                | Last day of the month, N months away | `=EOMONTH(A1,0)`      |
+| `WORKDAY`                | Adds business days to a date         | `=WORKDAY(A1,10)`     |
+
+---
+
+## Common Errors
+
+| Error     | Usually means                                              |
+|-----------|------------------------------------------------------------|
+| `#DIV/0!` | Dividing by zero or an empty cell                          |
+| `#N/A`    | Lookup couldn't find a match                               |
+| `#REF!`   | Formula points to a cell that was deleted                  |
+| `#VALUE!` | Wrong type of input (e.g. text where a number is expected) |
+| `#NAME?`  | Excel doesn't recognize the function name (typo?)          |
+
+<Callout kind="caution">
+Wrap risky formulas in `IFERROR()` before sharing a sheet with others — a stray `#DIV/0!` looks unprofessional and can break downstream formulas that reference it.
+</Callout>
+
+```text
+=IFERROR(A1/B1,0)
+```

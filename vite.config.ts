@@ -6,6 +6,8 @@ import rehypeShiki from "@shikijs/rehype";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import {VitePWA} from "vite-plugin-pwa";
 
 // use rollup-plugin-visualizer
@@ -27,7 +29,16 @@ export default defineConfig({
                 // which is why LaTeX survives in MDX at all. rehype-katex then renders those nodes to markup at build.
                 // MDX is CommonMark only, so tables, strikethrough, footnotes and task lists need remark-gfm.
                 remarkPlugins: [remarkGfm, remarkMath],
-                rehypePlugins: [rehypeKatex, [rehypeShiki, {
+                // Order matters twice over. rehype-slug has to run before autolink-headings, which
+                // has nothing to point at until the ids exist; and both run before Shiki, which
+                // rewrites code subtrees they have no business walking.
+                rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, {
+                    // "append", not "wrap": wrapping turns the whole heading into a link, so every
+                    // heading in a post renders underlined and steals the pointer.
+                    behavior: "append",
+                    properties: {className: "heading_anchor", tabIndex: -1, "aria-hidden": "true"},
+                    content: {type: "text", value: "¶"},
+                }], rehypeKatex, [rehypeShiki, {
                     // Dual themes: the light one is baked in as inline styles and
                     // the dark one ships as --shiki-dark custom properties, which
                     // PostPage.scss swaps in for the dark themes. All of this is
@@ -36,7 +47,12 @@ export default defineConfig({
                     // Explicit list on purpose. Left open, Shiki loads every
                     // grammar it has and build time balloons. Adding one here is
                     // free at runtime and costs only the build.
-                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex"],
+                    // "text" is the deliberate no-highlight lang: the guides are full of terminal
+                    // output and plain listings, and a bare fence renders as an unstyled block that
+                    // looks like a mistake rather than a choice. Shiki special-cases it, so unlike
+                    // every other entry here it costs no grammar. There is no `gitignore` grammar in
+                    // the bundle at all — that one is written as `bash`, which gets the # comments right.
+                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex", "text"],
                 }]],
             }),
         },

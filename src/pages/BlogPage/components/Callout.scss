@@ -1,0 +1,74 @@
+// Each variant sets --callout-tint and everything else reads from it, so a new kind is one block of
+// three lines rather than a parallel set of border/background/label rules that can drift apart.
+.callout {
+    --callout-tint: var(--info);
+
+    margin: 1.5rem 0;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--callout-tint);
+    border-radius: 10px;
+    // color-mix against --bg rather than a fixed alpha: an alpha tint over the dark themes washes
+    // out to grey, while mixing with the page background keeps the same 8% weight readable in all four.
+    background-color: color-mix(in srgb, var(--callout-tint) 8%, var(--bg));
+}
+
+.callout_label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.4rem;
+    font-size: var(--fs-smm);
+    font-weight: 600;
+    // Not the raw tint. --warning is a pale yellow that fails against a light background, so the
+    // label is darkened toward the text colour while the border keeps the undiluted hue.
+    color: color-mix(in srgb, var(--callout-tint) 55%, var(--text-strong));
+}
+
+.callout_body {
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+    // Global `p { color: var(--text) }` in index.scss overrides inherited colour, so children have to
+    // be told explicitly to inherit or the body reverts to full-strength text inside the tinted box.
+    color: var(--text-2);
+
+    > :first-child {
+        margin-top: 0;
+    }
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    p {
+        margin: 0 0 0.6rem;
+        color: inherit;
+    }
+
+    // Callouts sit inside .post_body, which gives pre a 1.5rem vertical margin meant for full-width
+    // blocks. Inside a callout that margin is most of the box again.
+    pre {
+        margin: 0.6rem 0 0;
+        font-size: var(--fs-xs);
+    }
+}
+
+.callout--tip {
+    --callout-tint: var(--success);
+}
+
+.callout--note {
+    --callout-tint: var(--info);
+}
+
+.callout--important {
+    --callout-tint: var(--purple);
+}
+
+.callout--warning {
+    --callout-tint: var(--warning);
+}
+
+.callout--caution {
+    --callout-tint: var(--danger);
+}
