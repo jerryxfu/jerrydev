@@ -8,7 +8,7 @@ type Heading = { id: string; text: string; level: 2 | 3 };
 const MIN_HEADINGS = 3;
 // Where a heading counts as "the one being read". Must sit at or just below the largest scroll-margin-top in PostPage.scss (124px on narrow screens):
 // an anchor jump lands the heading at exactly that offset, and if this line is above it, the tapped section's *predecessor* stays lit.
-const ACTIVE_LINE = 128;
+const ACTIVE_LINE = 72;
 // How far past centre the rail scrolls when the active entry drops out of view, in pixels. The jump otherwise lands the active entry dead centre,
 // which leaves half the visible list showing sections already read. Raise this to scroll further and keep more of what is coming in view, 0 for centred.
 // Keep it well under half the rail's height (750px ish on a laptop) or the entry lands above the top edge.

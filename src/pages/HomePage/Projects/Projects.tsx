@@ -132,7 +132,6 @@ const projects: CardProps[] = [
         image: _guides,
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
         url: "/blog/topics/guides",
-        specialLink:"/blog/topics/guides",
         dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
     },
     {

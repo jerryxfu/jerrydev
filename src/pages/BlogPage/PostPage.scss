@@ -6,7 +6,13 @@
 .post_container {
     max-width: 740px;
     margin: 0 auto;
-    padding: 7rem 1.25rem 4rem;
+    padding: 3rem 1.25rem 4rem;
+}
+
+@media (max-width: 1279px) {
+    .post_container {
+        padding-top: 4.25rem;
+    }
 }
 
 .post_back {
@@ -78,23 +84,33 @@
     }
 }
 
+// Three fixed slots rather than flex with auto margins. An empty slot still holds its column, so "back to top" stays
+// centred on the first and last lesson where one neighbour is missing — with auto margins it would drift to whichever
+// side still had a link. It is also what keeps a lone "next" on the right instead of collapsing left.
 .post_nav {
-    display: flex;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    // Labels line up across all three even though only prev and next carry a title underneath.
+    align-items: start;
     gap: 1rem;
     margin-top: 3rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border);
 }
 
-// The sides are pinned rather than distributed. justify-content: space-between would put a lone "next"
-// on the left when there is no previous, which is exactly the thing being fixed.
 .post_nav_prev {
-    margin-right: auto;
+    grid-column: 1;
+    justify-self: start;
+}
+
+.post_nav_top {
+    grid-column: 2;
+    justify-self: center;
 }
 
 .post_nav_next {
-    margin-left: auto;
+    grid-column: 3;
+    justify-self: end;
     text-align: right;
 }
 
@@ -102,7 +118,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    max-width: 47%;
+    // min-width rather than the old max-width: 47%. The grid columns already bound the width, and a percentage
+    // measured against a 1fr track just fights them; min-width: 0 is what lets a long title wrap inside its column.
+    min-width: 0;
     text-decoration: none;
 }
 
@@ -152,6 +170,14 @@
     border-top: none;
 }
 
+// Shares .post_container, but unlike a real post this branch still renders a navbar — a dead end needs a way out. So
+// it keeps clearance the container itself gave up. Compound selector on purpose: a bare .post_missing ties with
+// .post_container on specificity and loses to the 600px block further down, which sets padding as a shorthand and
+// dragged the heading back to 10px off the navbar.
+.post_container.post_missing {
+    padding-top: 5rem;
+}
+
 .post_missing {
     h1 {
         margin: 0 0 0.5rem;
@@ -178,10 +204,10 @@
         color: var(--text-strong);
         // Clears the navbar. Below the rail breakpoint the contents bar is fixed underneath it and occupies roughly another 36px,
         // so an anchored heading needs the larger offset there or it arrives tucked behind the bar it was just clicked in.
-        scroll-margin-top: 6rem;
+        scroll-margin-top: 2rem;
 
         @media (max-width: 1279px) {
-            scroll-margin-top: 7.75rem;
+            scroll-margin-top: 4.25rem;
         }
     }
 
@@ -367,7 +393,7 @@
 
 @media (max-width: 600px) {
     .post_container {
-        padding: 6rem 1rem 3rem;
+        padding: 4.25rem 1rem 3rem;
     }
 
     .post_header h1 {

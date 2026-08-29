@@ -1,7 +1,7 @@
 import {Suspense, useRef} from "react";
 import {Helmet} from "react-helmet-async";
 import {Link, useParams} from "wouter";
-import {ArrowLeft, ArrowRight} from "lucide-react";
+import {ArrowLeft, ArrowRight, ArrowUp} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
@@ -44,28 +44,27 @@ export default function PostPage() {
         );
     }
 
-    // Built once and rendered twice. Dropping the old empty <span /> placeholder along the way: the sides are pinned by auto margins now,
-    // so prev stays left and next stays right whether or not the other one exists, without an empty element holding a slot open.
-    const navLinks = topic && (prev || next) ? (
-        <>
-            {prev && (
-                <Link href={`/blog/${prev.slug}`} className="post_nav_link post_nav_prev">
-                    <span className="post_nav_label">
-                        <ArrowLeft size={13} /><span className="post_nav_word">Previous</span>
-                    </span>
-                    <span className="post_nav_title">{prev.title}</span>
-                </Link>
-            )}
-            {next && (
-                <Link href={`/blog/${next.slug}`} className="post_nav_link post_nav_next">
-                    <span className="post_nav_label">
-                        <span className="post_nav_word">Next</span><ArrowRight size={13} />
-                    </span>
-                    <span className="post_nav_title">{next.title}</span>
-                </Link>
-            )}
-        </>
-    ) : null;
+    // Built once and rendered twice. Kept as two separate elements rather than one fragment, because the pair at the
+    // foot of the post puts "back to top" between them and a fragment gives nothing to insert into.
+    const prevLink = prev && (
+        <Link href={`/blog/${prev.slug}`} className="post_nav_link post_nav_prev">
+            <span className="post_nav_label">
+                <ArrowLeft size={13} /><span className="post_nav_word">Previous</span>
+            </span>
+            <span className="post_nav_title">{prev.title}</span>
+        </Link>
+    );
+
+    const nextLink = next && (
+        <Link href={`/blog/${next.slug}`} className="post_nav_link post_nav_next">
+            <span className="post_nav_label">
+                <span className="post_nav_word">Next</span><ArrowRight size={13} />
+            </span>
+            <span className="post_nav_title">{next.title}</span>
+        </Link>
+    );
+
+    const hasNav = Boolean(topic && (prev || next));
 
     return (
         <div className="post">
@@ -81,13 +80,18 @@ export default function PostPage() {
                     <meta property="og:image" content={`https://jerryxf.net${post.image}`} />}
             </Helmet>
 
-            <Navbar isShrunk={true} stagger={false} animate={false} />
+            {/* No navbar while reading. The 404 branch above keeps one, because a dead end needs a way out; a real post
+                has the back link and prev/next, and the chrome only competes with the prose. Everything that used to
+                offset it — the container padding, the heading scroll-margins, and $nav-h in PostToc.scss — came down
+                to match, so removing it here alone would leave a navbar's worth of dead space behind. */}
 
-            <main className="post_container">
+            <main className="post_container" id="top">
                 <Link href={back.href} className="post_back"><ArrowLeft size={15} /> {back.label}</Link>
 
                 {/* The same pair as at the foot of the post. A div rather than a second <nav>, so the page does not expose two navigation landmarks sharing one name. */}
-                {navLinks && <div className="post_nav post_nav--compact">{navLinks}</div>}
+                {hasNav && (
+                    <div className="post_nav post_nav--compact">{prevLink}{nextLink}</div>
+                )}
 
                 <header className="post_header">
                     <h1>{post.title}</h1>
@@ -113,9 +117,17 @@ export default function PostPage() {
 
                 {/* Only rendered inside a topic, and each side only when there is somewhere to go, so the first and
                     last lesson each show a single control rather than a greyed-out pair. */}
-                {topic && navLinks && (
+                {topic && hasNav && (
                     <nav className="post_nav" aria-label={`${TOPICS[topic].name} navigation`}>
-                        {navLinks}
+                        {prevLink}
+                        {/* A plain anchor to the container's own id, matching the contents links: a bare hash is a
+                            same-page jump the browser handles, and global scroll-behavior makes it glide. */}
+                        <a href="#top" className="post_nav_link post_nav_top">
+                            <span className="post_nav_label">
+                                <ArrowUp size={13} /><span className="post_nav_word">Back to top</span>
+                            </span>
+                        </a>
+                        {nextLink}
                     </nav>
                 )}
             </main>

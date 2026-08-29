@@ -1,7 +1,7 @@
 // PostPage always renders <Navbar isShrunk>, which pins .navbar--solid.is-scrolled at a constant
 // 0.45rem + 44px + 0.45rem. It never transitions on this page, so the bar below can sit at a fixed
 // offset instead of measuring the navbar at runtime.
-$nav-h: calc(3.65rem + env(safe-area-inset-top));
+$nav-h: env(safe-area-inset-top);
 
 $rail-w: 210px;
 // Article column is 740px wide and centred, so its left edge is 50vw - 370px. The rail sits a gutter

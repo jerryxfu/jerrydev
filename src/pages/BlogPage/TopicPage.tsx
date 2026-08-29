@@ -61,9 +61,8 @@ export default function TopicPage() {
                         <p className="topic_description">{description}</p>
                     </div>
 
-                    {/* After the text in source order, not before it as on a card, so the heading is still the first
-                        thing read out; CSS places it on the right. Decorative when it's an asset — the name sits
-                        beside it — while an element carries its own <title> and passes through as-is. */}
+                    {/* After the text in source order, not before it as on a card, so the heading is still the first thing read out; CSS places it on the right.
+                        Decorative when it's an asset — the name sits beside it — while an element carries its own <title> and passes through as-is. */}
                     {image && (
                         <div className="topic_header_image">
                             {typeof image === "string"
