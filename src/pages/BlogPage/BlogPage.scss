@@ -7,7 +7,7 @@
 
 .blog_container {
     flex: 1 0 auto;
-    max-width: 900px;
+    max-width: 1020px;
     margin: 0 auto;
     padding: 5rem 1.25rem 4rem;
 }
@@ -30,11 +30,48 @@
     color: var(--text-3);
 }
 
+.blog_topics {
+    margin-top: 1.75rem;
+}
+
+.blog_topics_title {
+    margin: 0 0 0.45rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-4);
+}
+
+// Plain underlined text rather than pills, so these read as navigation away from this page rather than as another
+// row of filters sitting next to the tag chips.
+.blog_topics_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+}
+
+// The one place --tertiary is used: deeper and more saturated than the pastel palette, so a topic reads as a
+// different kind of destination from a tag chip without needing a different shape.
+.blog_topic {
+    font-size: var(--fs-md);
+    color: var(--tertiary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--tertiary) 40%, transparent);
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+    &:hover {
+        color: var(--tertiary-da);
+        text-decoration-color: var(--tertiary);
+    }
+}
+
 .blog_controls {
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
-    margin: 2.25rem 0 2rem;
+    margin: 1rem 0 2rem;
 }
 
 .blog_search {
@@ -132,7 +169,33 @@
 .blog_list {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 1.15rem;
+}
+
+// Label plus a hairline running to the right edge. Lives inside .blog_list, which is a flex column, so it sits
+// between cards as a normal child rather than needing to break out of a grid.
+.blog_month {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.9rem 0 0;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-4);
+
+    &::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: var(--border);
+    }
+
+    // The first divider is already below the controls, so it does not need the separating margin the rest do.
+    &:first-child {
+        margin-top: 0;
+    }
 }
 
 .blog_empty {

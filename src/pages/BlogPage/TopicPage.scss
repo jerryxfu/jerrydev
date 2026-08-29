@@ -1,0 +1,145 @@
+.topic {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg);
+}
+
+.topic_container {
+    flex: 1 0 auto;
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 5rem 1.25rem 4rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+// A plain panel now the image is gone, so it can use theme tokens throughout rather than the hardcoded light-on-dark
+// the scrim required. The left rule in --tertiary ties it to the topic links on /blog.
+.topic_header {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--tertiary);
+    border-radius: 12px;
+    background-color: var(--bg-lt);
+}
+
+.topic_header_inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1.6rem 1.5rem 1.75rem;
+}
+
+.topic_back {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--tertiary);
+    }
+}
+
+.topic_header h1 {
+    margin: 0;
+    font-size: var(--fs-3xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--text-strong);
+}
+
+.topic_description {
+    margin: 0;
+    max-width: 62ch;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+.topic_missing {
+    h1 {
+        margin: 0 0 0.5rem;
+        font-size: var(--fs-2xl);
+        color: var(--text-strong);
+    }
+
+    p {
+        margin: 0 0 1.25rem;
+        color: var(--text-3);
+    }
+}
+
+// Two columns on the topic page only, filling left-to-right then top-to-bottom, which is what grid does by default.
+// minmax(0, 1fr) rather than 1fr: a plain 1fr has a min-content floor, and a long unbroken title would push the
+// column wider than half and break the symmetry.
+.topic_chapters {
+    margin-top: 1.5rem;
+}
+
+.topic_chapter + .topic_chapter {
+    margin-top: 2.25rem;
+}
+
+.topic_chapter_title {
+    margin: 0 0 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-lgg);
+    font-weight: 600;
+    color: var(--text-strong);
+    // Clears the fixed navbar when the chapter nav jumps to this anchor.
+    scroll-margin-top: 6rem;
+}
+
+.topic_list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem;
+}
+
+// Below this the halves are narrower than the card's own mobile breakpoint, where the image stacks above the text.
+// two stacked-layout cards side by side reads as a mess, so it drops to one column first.
+@media screen and (max-width: 860px) {
+    .topic_chapters {
+    margin-top: 1.5rem;
+}
+
+.topic_chapter + .topic_chapter {
+    margin-top: 2.25rem;
+}
+
+.topic_chapter_title {
+    margin: 0 0 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-lgg);
+    font-weight: 600;
+    color: var(--text-strong);
+    // Clears the fixed navbar when the chapter nav jumps to this anchor.
+    scroll-margin-top: 6rem;
+}
+
+.topic_list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .topic_container {
+        padding: 4.5rem 1rem 3rem;
+    }
+
+    .topic_header_inner {
+        padding: 1.25rem 1.1rem 1.4rem;
+    }
+
+    .topic_header h1 {
+        font-size: var(--fs-2xl);
+    }
+}

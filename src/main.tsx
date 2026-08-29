@@ -33,6 +33,7 @@ const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
 const LazyPost = lazy(() => import("./pages/BlogPage/PostPage.tsx"));
+const LazyTopic = lazy(() => import("./pages/BlogPage/TopicPage.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 
@@ -108,6 +109,9 @@ root.render(
                     <Switch>
                         <Route path="/"><HomePage /></Route>
                         <Route path="/blog">{renderLazy(<LazyBlog />)}</Route>
+                        {/* Ahead of /blog/:slug. They differ in segment count so the order is not load-bearing,
+                            but keeping it first documents that topics are not posts. */}
+                        <Route path="/blog/topics/:topic">{renderLazy(<LazyTopic />)}</Route>
                         <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
                         <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
                         <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>

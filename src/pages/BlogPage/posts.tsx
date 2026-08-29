@@ -1,4 +1,5 @@
 import {type ComponentType, lazy, type ReactElement} from "react";
+import {type SyllabusEntry, TOPICS, type TopicId, topicIds} from "./topics.tsx";
 
 // assets
 import {Mdx} from "@/assets/projects/mdx.tsx";
@@ -81,6 +82,60 @@ export const listedPosts: Post[] = [...posts].sort((a, b) => b.date.getTime() - 
 // The single gate for whether a post can be opened. A draft is listed but inert in production. Bypassed in dev
 export const isReadable = (post: Post): boolean => !post.draft || import.meta.env.DEV;
 
+// Derived from the topic manifests rather than stored on the post, so a post cannot claim a topic that does not list
+// it. Returns the first match; the dev check below complains if a slug appears in more than one.
+export const topicOf = (slug: string): TopicId | undefined =>
+    topicIds.find((id) => syllabusSlugs(TOPICS[id].posts).includes(slug));
+
+// Drops chapter markers, leaving just the slugs in order.
+const syllabusSlugs = (entries: SyllabusEntry[]): string[] =>
+    entries.filter((entry): entry is string => typeof entry === "string");
+
+// The topic's own order, not date order. Drafts drop out so a hidden lesson does not leave a gap mid-course.
+export const postsInTopic = (id: TopicId): Post[] =>
+    syllabusSlugs(TOPICS[id].posts)
+        .map((slug) => listedPosts.find((post) => post.slug === slug))
+        .filter((post): post is Post => post !== undefined && isReadable(post));
+
+export type Chapter = { name?: string; anchor?: string; posts: Post[] };
+
+// The same syllabus, grouped. Posts before the first marker land in a leading chapter with no name, which is what
+// lets a topic open with a couple of ungrouped lessons. Chapters that end up empty — every lesson still a draft —
+// are dropped rather than rendered as a heading with nothing under it.
+export const chaptersInTopic = (id: TopicId): Chapter[] => {
+    const out: Chapter[] = [];
+    let current: Chapter = {posts: []};
+
+    for (const entry of TOPICS[id].posts) {
+        if (typeof entry === "string") {
+            const post = listedPosts.find((p) => p.slug === entry);
+            if (post && isReadable(post)) current.posts.push(post);
+        } else {
+            out.push(current);
+            current = {name: entry.chapter, anchor: slugifyChapter(entry.chapter), posts: []};
+        }
+    }
+    out.push(current);
+
+    return out.filter((chapter) => chapter.posts.length > 0);
+};
+
+const slugifyChapter = (name: string): string =>
+    "chapter-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// Previous and next lesson within the post's own topic. Undefined at either end, and undefined entirely for a post in
+// no topic, which is what keeps the control off ordinary blog posts.
+export const neighbours = (slug: string): { topic?: TopicId; prev?: Post; next?: Post } => {
+    const topic = topicOf(slug);
+    if (!topic) return {};
+
+    const sequence = postsInTopic(topic);
+    const index = sequence.findIndex((post) => post.slug === slug);
+    if (index === -1) return {topic};
+
+    return {topic, prev: sequence[index - 1], next: sequence[index + 1]};
+};
+
 export const formatPostDate = (date: Date): string =>
     date.toLocaleDateString("en-CA", {year: "numeric", month: "long", day: "numeric"});
 
@@ -109,5 +164,17 @@ if (import.meta.env.DEV) {
     }
     for (const slug of listed) {
         if (!files.has(slug)) console.error(`[blog] posts.ts lists "${slug}" but posts/${slug}.mdx is missing`);
+    }
+
+    // Topic slug arrays are plain strings — tsc cannot check them against post slugs, because slugs are not a union
+    // type. This check is the only thing between a typo and a lesson silently vanishing from its course.
+    const seen = new Map<string, TopicId>();
+    for (const id of topicIds) {
+        for (const slug of syllabusSlugs(TOPICS[id].posts)) {
+            if (!listed.has(slug)) console.error(`[blog] topic "${id}" lists "${slug}", which is not a post`);
+            const other = seen.get(slug);
+            if (other) console.error(`[blog] "${slug}" is in both "${other}" and "${id}"; a post belongs to one topic`);
+            seen.set(slug, id);
+        }
     }
 }
