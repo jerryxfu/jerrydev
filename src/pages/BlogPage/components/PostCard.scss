@@ -25,7 +25,8 @@
     }
 
     // Listed so a draft reads as coming rather than missing, but visibly inert. Nested so the hover reset outranks
-    // .postcard:hover regardless of where this block ends up in the file.
+    // .postcard:hover regardless of where this block ends up in the file. Nothing here greys an image: a draft card
+    // renders neither image nor description, only its title, tags and date.
     &.postcard--draft {
         opacity: 0.55;
         border-style: dashed;
@@ -34,10 +35,6 @@
             border-color: var(--border);
             box-shadow: none;
             transform: none;
-        }
-
-        .postcard_image img {
-            filter: grayscale(1);
         }
     }
 }

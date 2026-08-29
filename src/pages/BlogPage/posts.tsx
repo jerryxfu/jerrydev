@@ -164,15 +164,18 @@ export const topicOf = (slug: string): TopicId | undefined =>
 const syllabusSlugs = (entries: SyllabusEntry[]): string[] =>
     entries.filter((entry): entry is string => typeof entry === "string");
 
-// The topic's own order, not date order. Drafts drop out so a hidden lesson does not leave a gap mid-course.
+// The topic's own order, not date order. Drafts are listed here exactly as /blog lists them, so a course shows the
+// lessons still being written instead of a gap. isReadable governs whether a card opens, never whether it appears.
 export const postsInTopic = (id: TopicId): Post[] =>
     syllabusSlugs(TOPICS[id].posts)
         .map((slug) => listedPosts.find((post) => post.slug === slug))
-        .filter((post): post is Post => post !== undefined && isReadable(post));
+        .filter((post): post is Post => post !== undefined);
 
 export type Chapter = { name?: string; anchor?: string; posts: Post[] };
 
 // A chapter marker with break: true makes prev/next stop at that boundary instead. Without any breaking markers this returns a single run.
+// The one place isReadable still filters. A draft belongs on the topic page as a card, but must never be a prev/next
+// target: in production its route is a dead end, so "Next" would walk the reader into "Post not found".
 const sequencesInTopic = (id: TopicId): Post[][] => {
     const runs: Post[][] = [];
     let current: Post[] = [];
@@ -191,9 +194,9 @@ const sequencesInTopic = (id: TopicId): Post[][] => {
     return runs;
 };
 
-// The same syllabus, grouped. Posts before the first marker land in a leading chapter with no name, which is what
-// lets a topic open with a couple of ungrouped lessons. Chapters that end up empty — every lesson still a draft —
-// are dropped rather than rendered as a heading with nothing under it.
+// The same syllabus, grouped. Posts before the first marker land in a leading chapter with no name, which is what lets a topic open with a couple of ungrouped lessons.
+// A syllabus that opens with a marker instead produces that leading chapter empty, so empty ones are dropped rather than rendered as a heading
+// with nothing under it — which also keeps them out of the Chapters nav, built from this same list, where the link would point at an id no section renders.
 export const chaptersInTopic = (id: TopicId): Chapter[] => {
     const out: Chapter[] = [];
     let current: Chapter = {posts: []};
@@ -201,7 +204,7 @@ export const chaptersInTopic = (id: TopicId): Chapter[] => {
     for (const entry of TOPICS[id].posts) {
         if (typeof entry === "string") {
             const post = listedPosts.find((p) => p.slug === entry);
-            if (post && isReadable(post)) current.posts.push(post);
+            if (post) current.posts.push(post);
         } else if (entry.chapter !== undefined) {
             out.push(current);
             current = {name: entry.chapter, anchor: slugifyChapter(entry.chapter), posts: []};

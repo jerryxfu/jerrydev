@@ -13,8 +13,8 @@ const PostCard = memo(function PostCard({post}: { post: Post }) {
 
     const content = (
         <>
-            {/* No image element at all when there isn't one, so the body simply takes the full width. */}
-            {post.image && (
+            {/* A draft shows the shape of the post and nothing more: title, tags, date. */}
+            {!post.draft && post.image && (
                 <div className="postcard_image">
                     {/* Decorative when it's an asset: the title sits directly beside it. An element carries its own <title>, so it passes through as-is. */}
                     {typeof post.image === "string"
@@ -25,7 +25,7 @@ const PostCard = memo(function PostCard({post}: { post: Post }) {
 
             <div className="postcard_body">
                 <h2 className="postcard_title">{post.title}</h2>
-                <p className="postcard_description">{post.description}</p>
+                {!post.draft && <p className="postcard_description">{post.description}</p>}
 
                 <div className="postcard_meta">
                     {post.draft && <Chip size="sm">📝 Draft</Chip>}
