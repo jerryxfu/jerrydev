@@ -3,7 +3,6 @@ import {type SyllabusEntry, type TopicId, topicIds, TOPICS} from "./topics.tsx";
 
 // assets
 import {Mdx} from "@/assets/projects/mdx.tsx";
-import _medive from "@/assets/projects/medive.jpeg";
 
 // Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
 export const TAGS = [
@@ -119,8 +118,7 @@ export const posts: Post[] = [
         description: "Where MEDIVE came from, why I threw out the first implementation before it produced a single number, and what the next few months look like.",
         date: postDate("2026-08-28"),
         tags: ["ai", "devlog", "med"],
-        lang: "en",
-        image: _medive
+        lang: "en"
     },
     {
         slug: "hello-blog",

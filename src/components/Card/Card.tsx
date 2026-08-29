@@ -26,10 +26,13 @@ export interface CardProps {
         | "📦 Archived" // The project is archived and read-only
         | "🔒 Internal" // The project is internal and not publicly available
         | string;
-    // Slug of the post that expands on this project, e.g. "expedite-p2p" for /blog/expedite-p2p. Deliberately a slug
-    // rather than a full path so Card owns the route shape, and deliberately not validated against posts.ts — importing
-    // the manifest here would drag the whole blog index into the home page bundle for a compile-time nicety.
-    blogSlug?: string;
+    // Destination for the banner across the bottom of the image — usually the post that expands on this project, but
+    // any href works: an internal route like "/blog/expedite-p2p" or "/projects", or an external URL, which opens in a
+    // new tab. A full path rather than a bare slug, so the card is not tied to one route shape. Not validated against
+    // posts.ts: importing the manifest here would drag the whole blog index into the home page bundle.
+    specialLink?: string;
+    // Banner text. "Open article" fits a post; anything else usually wants its own wording.
+    specialLinkText?: string;
     url?: string | undefined;
     color?: string | undefined;
     footer?: string | undefined;
@@ -37,12 +40,23 @@ export interface CardProps {
 }
 
 const Card = memo(function Card(props: CardProps) {
-    const {image, title, subTitle, description, chipText, blogSlug, url, color, footer, dateDisplay} = props;
+    const {image, title, subTitle, description, chipText, specialLink, specialLinkText, url, color, footer, dateDisplay} = props;
 
     // Guard the string branch before touching string methods — .toLowerCase() on an element throws at render.
     const isAsset = typeof image === "string";
     const isVideo = isAsset && /\.(mp4|webm|ogg|mov)$/.test(image.toLowerCase());
     const shouldOpenNewTab = Boolean(url?.startsWith("http"));
+    // A scheme or a protocol-relative prefix means the href leaves the site, so it needs a plain anchor: handing an
+    // absolute URL to wouter's Link makes it intercept the click and try to route to it, and navigation dies there.
+    const specialLinkIsExternal = Boolean(specialLink && /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(specialLink));
+
+    // Built once so the internal and external branches below cannot drift apart.
+    const specialLinkContent = (
+        <>
+            <span>{specialLinkText ?? "Open article"}</span>
+            <span className="card_article_arrow" aria-hidden="true">→</span>
+        </>
+    );
 
     return (
         <div className="card" style={{backgroundColor: color || "initial"}}>
@@ -61,12 +75,17 @@ const Card = memo(function Card(props: CardProps) {
                 {chipText && <Chip className="card_image_chip" size={"sm"}>{chipText}</Chip>}
 
                 {/* Sibling of card_image, never a child. card_image is itself an <a>, and nesting anchors is invalid and breaks click handling.
-                As siblings, the overlay takes the blog route and the rest of the image keeps the project URL. */}
-                {blogSlug && (
-                    <Link href={`/blog/${blogSlug}`} className="card_article">
-                        <span>Open article</span>
-                        <span className="card_article_arrow" aria-hidden="true">→</span>
-                    </Link>
+                As siblings, the overlay takes the special link and the rest of the image keeps the project URL. */}
+                {specialLink && (
+                    specialLinkIsExternal ? (
+                        <a href={specialLink} className="card_article" target="_blank" rel="noopener noreferrer">
+                            {specialLinkContent}
+                        </a>
+                    ) : (
+                        <Link href={specialLink} className="card_article">
+                            {specialLinkContent}
+                        </Link>
+                    )
                 )}
             </div>
 

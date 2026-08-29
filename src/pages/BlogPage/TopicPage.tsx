@@ -26,7 +26,7 @@ export default function TopicPage() {
     if (!id) {
         return (
             <div className="topic">
-                <Navbar isShrunk={true} stagger={false} />
+                <Navbar isShrunk={true} stagger={false} animate={false} />
                 <main className="topic_container topic_missing">
                     <h1>Topic not found</h1>
                     <p>That topic doesn&apos;t exist.</p>
@@ -51,7 +51,7 @@ export default function TopicPage() {
                 <link rel="canonical" href={`https://jerryxf.net/blog/topics/${id}`} />
             </Helmet>
 
-            <Navbar isShrunk={true} stagger={false} />
+            <Navbar isShrunk={true} stagger={false} animate={false} />
 
             <main className="topic_container">
                 <header className="topic_header">

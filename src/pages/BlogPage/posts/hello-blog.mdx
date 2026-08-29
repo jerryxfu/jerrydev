@@ -371,13 +371,27 @@ the import silently becomes prose and every component in the file breaks. Leave 
 
 ## Linking a project card here
 
-Add `blogSlug` to a project entry in `Projects.tsx` and an "Open article" banner will show at the bottom of the card:
+Add `specialLink` to a project entry in `Projects.tsx` and a banner will show at the bottom of the card:
 
 ````ts
 {
     title: "*.jerryxf.net",
     description: "This portfolio website, the blog, as well as the API that empowers other projects.",
-    blogSlug: "hello-blog",
+    specialLink: "/blog/hello-blog",
+}
+````
+
+Any href works, not just a post. An internal route is handed to Wouter; anything with a scheme — or a protocol-relative
+`//` — is detected as external and gets a plain anchor with `target="_blank"`, because Wouter's `Link` would otherwise
+intercept the click and try to route to it.
+
+The banner reads "Open article" unless `specialLinkText` says otherwise, which is usually what you want once the
+destination is not a post:
+
+````ts
+{
+    specialLink: "https://github.com/jerryxfu/guide",
+    specialLinkText: "View on GitHub",
 }
 ````
 

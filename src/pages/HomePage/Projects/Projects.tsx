@@ -68,7 +68,7 @@ const projects: CardProps[] = [
         chipText: "🚧 WIP",
         dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
         url: "https://github.com/jerryxfu/medive",
-        blogSlug: "medive-devlog0",
+        specialLink: "/blog/medive-devlog0",
         description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
         footer: "IB Extended Essay"
     },
@@ -132,6 +132,7 @@ const projects: CardProps[] = [
         image: _guides,
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
         url: "/blog/topics/guides",
+        specialLink:"/blog/topics/guides",
         dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
     },
     {
@@ -141,7 +142,7 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
         description: "This portfolio website, the blog, as well as the API that empowers other projects.",
-        blogSlug: "hello-blog",
+        specialLink: "/blog/hello-blog",
     },
     {
         title: "stats.jerryxf",
