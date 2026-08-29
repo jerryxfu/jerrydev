@@ -1,5 +1,5 @@
 import {type ComponentType, lazy, type ReactElement} from "react";
-import {type SyllabusEntry, TOPICS, type TopicId, topicIds} from "./topics.tsx";
+import {type SyllabusEntry, type TopicId, topicIds, TOPICS} from "./topics.tsx";
 
 // assets
 import {Mdx} from "@/assets/projects/mdx.tsx";
@@ -37,6 +37,7 @@ export type Post = {
     draft?: boolean;       // listed either way, but greyed and unreadable in production (BYPASSED IN DEV)
 };
 
+
 // Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so
 // the list page can rank and render every card without touching any prose.
 export const posts: Post[] = [
@@ -59,6 +60,7 @@ export const posts: Post[] = [
         image: <Mdx />,
     },
 ];
+
 
 // Non-eager on purpose: this is a map of import *functions*, not the modules.
 // Each post compiles to its own chunk, fetched only when its route is opened.
@@ -99,6 +101,25 @@ export const postsInTopic = (id: TopicId): Post[] =>
 
 export type Chapter = { name?: string; anchor?: string; posts: Post[] };
 
+// A chapter marker with break: true makes prev/next stop at that boundary instead. Without any breaking markers this returns a single run.
+const sequencesInTopic = (id: TopicId): Post[][] => {
+    const runs: Post[][] = [];
+    let current: Post[] = [];
+
+    for (const entry of TOPICS[id].posts) {
+        if (typeof entry === "string") {
+            const post = listedPosts.find((p) => p.slug === entry);
+            if (post && isReadable(post)) current.push(post);
+        } else if (entry.break) {
+            if (current.length > 0) runs.push(current);
+            current = [];
+        }
+    }
+    if (current.length > 0) runs.push(current);
+
+    return runs;
+};
+
 // The same syllabus, grouped. Posts before the first marker land in a leading chapter with no name, which is what
 // lets a topic open with a couple of ungrouped lessons. Chapters that end up empty — every lesson still a draft —
 // are dropped rather than rendered as a heading with nothing under it.
@@ -129,11 +150,12 @@ export const neighbours = (slug: string): { topic?: TopicId; prev?: Post; next?:
     const topic = topicOf(slug);
     if (!topic) return {};
 
-    const sequence = postsInTopic(topic);
-    const index = sequence.findIndex((post) => post.slug === slug);
-    if (index === -1) return {topic};
+    for (const run of sequencesInTopic(topic)) {
+        const index = run.findIndex((post) => post.slug === slug);
+        if (index !== -1) return {topic, prev: run[index - 1], next: run[index + 1]};
+    }
 
-    return {topic, prev: sequence[index - 1], next: sequence[index + 1]};
+    return {topic};
 };
 
 export const formatPostDate = (date: Date): string =>
