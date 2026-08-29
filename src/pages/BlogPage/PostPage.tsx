@@ -38,9 +38,8 @@ export default function PostPage() {
         );
     }
 
-    // Built once and rendered twice. Dropping the old empty <span /> placeholder along the way: the
-    // sides are pinned by auto margins now, so prev stays left and next stays right whether or not
-    // the other one exists, without an empty element holding a slot open.
+    // Built once and rendered twice. Dropping the old empty <span /> placeholder along the way: the sides are pinned by auto margins now,
+    // so prev stays left and next stays right whether or not the other one exists, without an empty element holding a slot open.
     const navLinks = topic && (prev || next) ? (
         <>
             {prev && (
@@ -81,8 +80,8 @@ export default function PostPage() {
             <main className="post_container">
                 <Link href="/blog" className="post_back"><ArrowLeft size={15} /> Back to the blog</Link>
 
-                {/* The same links as the pair at the foot of the post, minus the titles. A div rather than
-                    a second <nav>, so the page does not expose two navigation landmarks sharing one name. */}
+                {/* The same pair as at the foot of the post. A div rather than a second <nav>, so the
+                    page does not expose two navigation landmarks sharing one name. */}
                 {navLinks && <div className="post_nav post_nav--compact">{navLinks}</div>}
 
                 <header className="post_header">
@@ -97,9 +96,8 @@ export default function PostPage() {
                     </div>
                 </header>
 
-                {/* Reads its headings back off the rendered article, so it needs the ref rather than the
-                    post: the ids come from rehype-slug at build time and only exist in the DOM. Renders
-                    nothing at all on a post with fewer than three sections. */}
+                {/* Reads its headings back off the rendered article, so it needs the ref rather than the post: the ids come from rehype-slug at build time
+                    and only exist in the DOM. Renders nothing at all on a post with fewer than three sections. */}
                 <PostToc bodyRef={bodyRef} slug={post.slug} />
 
                 <article className="post_body" ref={bodyRef}>

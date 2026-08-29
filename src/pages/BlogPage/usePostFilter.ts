@@ -49,8 +49,7 @@ export function usePostFilter(source: Post[], {basePath, sortByDate = true}: Opt
         };
     }, [search]);
 
-    // replace: true; otherwise every keystroke buries the previous page one deeper in history and "back" takes twenty
-    // presses to leave the blog.
+    // replace: true; otherwise every keystroke buries the previous page one deeper in history and "back" takes twenty presses to leave the blog.
     const setParams = useCallback((next: { q?: string; tags?: Tag[] }) => {
         const params = new URLSearchParams(search);
 
@@ -76,8 +75,7 @@ export function usePostFilter(source: Post[], {basePath, sortByDate = true}: Opt
     const clearTags = useCallback(() => setParams({tags: []}), [setParams]);
     const setQuery = useCallback((q: string) => setParams({q}), [setParams]);
 
-    // Only tags something in this particular source actually uses get a chip, in TAGS order. On a topic page that
-    // narrows the chips to the topic's own tags without any extra wiring.
+    // Only tags something in this particular source actually uses get a chip, in TAGS order. On a topic page that narrows the chips to the topic's own tags without any extra wiring.
     const usedTags = useMemo(
         () => TAGS.filter((tag) => source.some((post) => post.tags.includes(tag))),
         [source]

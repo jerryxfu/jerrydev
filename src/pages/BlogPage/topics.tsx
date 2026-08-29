@@ -29,10 +29,9 @@ export const TOPICS: Record<TopicId, Topic> = {
     "guides": {
         name: "Guides",
         description: "Practical guides to tools worth knowing. Each one starts from zero and doubles as a reference you can come back to. No prior experience assumed.",
-        // break: true on the named markers, because these are three unrelated courses sharing a shelf rather than
-        // one syllabus. Without it "next" at the end of the Python appendices is Git, which is not a next lesson in
-        // any sense. The unnamed marker before the Spanish handbook does the same job inside a single chapter: both
-        // Excel posts list under "Excel", but neither is the one to read after the other.
+        // break: true on the named markers, because these are three unrelated courses sharing a shelf rather than one syllabus.
+        // Without it "next" at the end of the Python appendices is Git, which is not a next lesson in any sense. The unnamed marker before the Spanish handbook
+        // does the same job inside a single chapter: both Excel posts list under "Excel", but neither is the one to read after the other.
         posts: [
             {chapter: "Python", break: true},
             "python-basics",

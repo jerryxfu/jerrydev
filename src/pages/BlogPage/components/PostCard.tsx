@@ -16,8 +16,7 @@ const PostCard = memo(function PostCard({post}: { post: Post }) {
             {/* No image element at all when there isn't one, so the body simply takes the full width. */}
             {post.image && (
                 <div className="postcard_image">
-                    {/* Decorative when it's an asset: the title sits directly beside it. An element carries its own
-                        <title>, so it passes through as-is. */}
+                    {/* Decorative when it's an asset: the title sits directly beside it. An element carries its own <title>, so it passes through as-is. */}
                     {typeof post.image === "string"
                         ? <img src={post.image} alt="" loading="lazy" decoding="async" fetchPriority="low" />
                         : post.image}

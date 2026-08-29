@@ -4,12 +4,15 @@ import "./PostToc.scss";
 
 type Heading = { id: string; text: string; level: 2 | 3 };
 
-// Below this a contents list is longer than the thing it indexes. Ordinary posts have a couple of
-// sections and get nothing; the guides have thirteen and get the full control.
+// Below this a contents list is longer than the thing it indexes. Ordinary posts have a couple of sections and get nothing.
 const MIN_HEADINGS = 3;
-// Where a heading counts as "the one being read". Roughly the navbar plus a line of breathing room,
-// and it has to match scroll-margin-top in PostPage.scss or the highlight lands one section early.
-const ACTIVE_LINE = 120;
+// Where a heading counts as "the one being read". Must sit at or just below the largest scroll-margin-top in PostPage.scss (124px on narrow screens):
+// an anchor jump lands the heading at exactly that offset, and if this line is above it, the tapped section's *predecessor* stays lit.
+const ACTIVE_LINE = 128;
+// How far past centre the rail scrolls when the active entry drops out of view, in pixels. The jump otherwise lands the active entry dead centre,
+// which leaves half the visible list showing sections already read. Raise this to scroll further and keep more of what is coming in view, 0 for centred.
+// Keep it well under half the rail's height (750px ish on a laptop) or the entry lands above the top edge.
+const RAIL_LOOKAHEAD = 64;
 
 const sameIds = (a: Heading[], b: Heading[]) =>
     a.length === b.length && a.every((heading, i) => heading.id === b[i]?.id);
@@ -31,8 +34,7 @@ export default function PostToc({bodyRef, slug}: { bodyRef: RefObject<HTMLElemen
             const found = [...body.querySelectorAll<HTMLHeadingElement>("h2[id], h3[id]")].map((el) => ({
                 id: el.id,
                 level: (el.tagName === "H2" ? 2 : 3) as 2 | 3,
-                // rehype-autolink-headings appends a ¶ anchor inside the heading, so textContent
-                // would put a pilcrow on the end of every entry in the list.
+                // rehype-autolink-headings appends a ¶ anchor inside the heading, so textContent would put a pilcrow on the end of every entry in the list.
                 text: [...el.childNodes]
                     .filter((node) => !(node instanceof HTMLElement && node.classList.contains("heading_anchor")))
                     .map((node) => node.textContent ?? "")
@@ -62,8 +64,7 @@ export default function PostToc({bodyRef, slug}: { bodyRef: RefObject<HTMLElemen
             const scrolled = -top;
             setProgress(span > 0 ? Math.min(1, Math.max(0, scrolled / span)) : scrolled >= 0 ? 1 : 0);
 
-            // Last heading past the line wins, so scrolling up reverses cleanly. An IntersectionObserver
-            // would need a rootMargin tuned per heading height to behave the same way.
+            // Last heading past the line wins, so scrolling up reverses cleanly. An IntersectionObserver would need a rootMargin tuned per heading height to behave the same way.
             let current = headings[0]?.id ?? "";
             for (const {id} of headings) {
                 const el = document.getElementById(id);
@@ -86,9 +87,8 @@ export default function PostToc({bodyRef, slug}: { bodyRef: RefObject<HTMLElemen
         };
     }, [headings, bodyRef]);
 
-    // A 42-entry rail is taller than the viewport, so on a long guide the active entry drifts out of
-    // the scroll box and the highlight becomes invisible. Only rail.scrollTop is touched, never the
-    // page's, so this cannot fight the reading position.
+    // A 42-entry rail is taller than the viewport, so on a long guide the active entry drifts out of the scroll box and the highlight becomes invisible.
+    // Only rail.scrollTop is touched, never the page's, so this cannot fight the reading position.
     useEffect(() => {
         const rail = railRef.current;
         if (!rail || !activeId) return;
@@ -99,7 +99,7 @@ export default function PostToc({bodyRef, slug}: { bodyRef: RefObject<HTMLElemen
         const railBox = rail.getBoundingClientRect();
         const linkBox = link.getBoundingClientRect();
         if (linkBox.top < railBox.top || linkBox.bottom > railBox.bottom) {
-            rail.scrollTop += linkBox.top - railBox.top - railBox.height / 2 + linkBox.height / 2;
+            rail.scrollTop += linkBox.top - railBox.top - railBox.height / 2 + linkBox.height / 2 + RAIL_LOOKAHEAD;
         }
     }, [activeId]);
 

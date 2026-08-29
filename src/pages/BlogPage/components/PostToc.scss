@@ -162,8 +162,9 @@ $rail-left: calc(50vw - 370px - 1.75rem - #{$rail-w});
     scale: 0 1;
 }
 
-// Both of these scroll themselves to follow the active section, and a container that scrolls is a
-// container the platform draws a bar for. Neither is meant to be driven by dragging one.
+// The rail scrolls itself to follow the active section; the sheet scrolls under the reader's thumb.
+// Either way, nothing here is meant to be driven by dragging a bar, and the platform drawing one for
+// the rail mid-read looked like a defect.
 .posttoc_rail,
 .posttoc_sheet {
     scrollbar-width: none;

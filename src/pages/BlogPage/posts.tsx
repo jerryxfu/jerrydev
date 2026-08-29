@@ -5,8 +5,7 @@ import {type SyllabusEntry, type TopicId, topicIds, TOPICS} from "./topics.tsx";
 import {Mdx} from "@/assets/projects/mdx.tsx";
 import _medive from "@/assets/projects/medive.jpeg";
 
-// Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a
-// filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
+// Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
 export const TAGS = [
     "ai",
     "devlog",
@@ -40,8 +39,7 @@ export type Post = {
 };
 
 
-// Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so
-// the list page can rank and render every card without touching any prose.
+// Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so the list page can rank and render every card without touching any prose.
 export const posts: Post[] = [
     {
         slug: "python-basics",
@@ -102,7 +100,7 @@ export const posts: Post[] = [
     {
         slug: "excel-formulas",
         title: "Excel formula handbook",
-        description: "Quick reference for the formulas that come up constantly — math, stats, lookups, text and dates.",
+        description: "Quick reference for the formulas that come up constantly: math, stats, lookups, text and dates.",
         date: postDate("2026-08-29"),
         tags: ["excel", "notes"],
         lang: "en",
@@ -136,22 +134,17 @@ export const posts: Post[] = [
 ];
 
 
-// Non-eager on purpose: this is a map of import *functions*, not the modules.
-// Each post compiles to its own chunk, fetched only when its route is opened.
-// `**` rather than `*`: a single star does not cross a directory separator, so with the old pattern
-// anything under posts/guides/ was simply not in this map — no error, just a card leading nowhere.
+// Non-eager on purpose: this is a map of import *functions*, not the modules. Each post compiles to its own chunk, fetched only when its route is opened.
+// `**` rather than `*`: a single star does not cross a directory separator.
 const postBodies = import.meta.glob<{ default: ComponentType }>("./posts/**/*.mdx");
 
-// Basename, not path-minus-prefix. Folders under posts/ are filing, not routing: the slug for
-// posts/guides/python-basics.mdx is "python-basics", because /blog/:slug is a single wouter segment
-// and a slug with a slash in it matches no route at all.
+// Basename, not path-minus-prefix. Folders under posts/ are filing, not routing: the slug for posts/guides/python-basics.mdx is "python-basics",
+// because /blog/:slug is a single wouter segment and a slug with a slash in it matches no route at all.
 const SUFFIX = ".mdx";
 const slugOf = (key: string): string => key.slice(key.lastIndexOf("/") + 1, -SUFFIX.length);
 
-// lazy() only stores the loader, so building the whole map up front fetches
-// nothing and every post keeps its own chunk. Module scope rather than inside
-// the page because creating components during render is exactly what
-// react-hooks/static-components exists to catch.
+// lazy() only stores the loader, so building the whole map up front fetches nothing and every post keeps its own chunk. Module scope rather than inside
+// the page because creating components during render is exactly what react-hooks/static-components exists to catch.
 export const postComponents: Record<string, ComponentType> = Object.fromEntries(
     Object.entries(postBodies).map(([key, loader]) => [slugOf(key), lazy(loader)])
 );
@@ -213,8 +206,7 @@ export const chaptersInTopic = (id: TopicId): Chapter[] => {
             out.push(current);
             current = {name: entry.chapter, anchor: slugifyChapter(entry.chapter), posts: []};
         }
-        // An unnamed marker is a prev/next break only, so it is skipped here and the posts either side
-        // of it stay in the same chapter.
+        // An unnamed marker is a prev/next break only, so it is skipped here and the posts either side of it stay in the same chapter.
     }
     out.push(current);
 
@@ -243,9 +235,8 @@ export const formatPostDate = (date: Date): string =>
 
 const relative = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
 
-// Both sides are collapsed to local midnight before differencing, so the answer is a whole number of calendar days
-// regardless of the time of day either fell on (that's the same rounding issue that bit the project footer). numeric: "auto"
-// turns 0 and 1 into "today" and "yesterday" instead of "0 days ago".
+// Both sides are collapsed to local midnight before differencing, so the answer is a whole number of calendar days regardless of the time of day either fell on
+// (that's the same rounding issue that bit the project footer). numeric: "auto" turns 0 and 1 into "today" and "yesterday" instead of "0 days ago".
 export const formatPostAge = (date: Date): string => {
     const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     const days = Math.round((midnight(date) - midnight(new Date())) / 86_400_000);
@@ -265,9 +256,8 @@ if (import.meta.env.DEV) {
         if (!listed.has(slug)) console.error(`[blog] posts/${slug}.mdx has no entry in posts.ts`);
     }
 
-    // Only possible now that posts/ has subfolders. Slugs are basenames, so posts/a.mdx and
-    // posts/guides/a.mdx collapse to the same key and Object.fromEntries keeps whichever came last —
-    // one post silently starts rendering the other one's prose, with nothing else to notice it by.
+    // Only possible now that posts/ has subfolders. Slugs are basenames, so posts/a.mdx and posts/guides/a.mdx collapse to the same key and Object.fromEntries
+    // keeps whichever came last — one post silently starts rendering the other one's prose, with nothing else to notice it by.
     const byBasename = new Map<string, string>();
     for (const key of Object.keys(postBodies)) {
         const slug = slugOf(key);
@@ -279,8 +269,8 @@ if (import.meta.env.DEV) {
         if (!files.has(slug)) console.error(`[blog] posts.ts lists "${slug}" but posts/${slug}.mdx is missing`);
     }
 
-    // Topic slug arrays are plain strings — tsc cannot check them against post slugs, because slugs are not a union
-    // type. This check is the only thing between a typo and a lesson silently vanishing from its course.
+    // Topic slug arrays are plain strings, tsc cannot check them against post slugs, because slugs are not a union type.
+    // This check is the only thing between a typo and a lesson silently vanishing from its course.
     const seen = new Map<string, TopicId>();
     for (const id of topicIds) {
         for (const slug of syllabusSlugs(TOPICS[id].posts)) {
