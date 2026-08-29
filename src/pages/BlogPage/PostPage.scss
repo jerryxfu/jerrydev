@@ -63,9 +63,8 @@
     color: var(--text-4);
 }
 
-// .post_topic and .post_nav_* had no rules whatsoever, so they rendered as bare anchors: browser-default
-// #0000EE, turning #551A8B once visited. Every colour below is stated explicitly, :visited included, so no
-// state of these links can fall back to the UA stylesheet again.
+// .post_topic and .post_nav_* had no rules whatsoever, so they rendered as bare anchors: browser-default #0000EE, turning #551A8B once visited.
+// Every colour below is stated explicitly, :visited included, so no state of these links can fall back to the UA stylesheet again.
 .post_topic {
     font-size: var(--fs-sm);
     font-weight: 500;
@@ -313,6 +312,11 @@
         background-color: var(--surface-da);
         font-size: 0.875em;
         color: var(--text);
+        // Without this a span that breaks across two lines is decorated once for the whole run, not once per line:
+        // the first fragment loses its right border and radius, the second loses its left ones and its padding, so
+        // `python3 --version` renders as a box sliced in half with the tail sitting flush against the column edge.
+        // `clone` repeats the padding, border and radius on every fragment, which is what makes each half read as code.
+        box-decoration-break: clone;
     }
 
     // Styled on `pre` rather than on `.shiki`, because a fence with no language or an unregistered one is passed
