@@ -80,13 +80,15 @@
     gap: 0.6rem;
     padding: 0.65rem 0.9rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-sm);
     background-color: var(--bg-lt);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
+    // The accent rather than the pale --primary it used to use: at 1px against --bg-lt that blue was
+    // near-invisible, so a focused field looked the same as an idle one in three of the four themes.
     &:focus-within {
-        border-color: var(--primary-da);
-        box-shadow: 0 0 0 3px var(--surface-da);
+        border-color: var(--tertiary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--tertiary) 18%, transparent);
     }
 
     svg {
@@ -120,7 +122,7 @@
     align-items: center;
     padding: 0.15rem;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--r-xs);
     background: transparent;
     color: var(--text-4);
     cursor: pointer;
@@ -141,7 +143,7 @@
 .blog_tag {
     padding: 0.35rem 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-sm);
     background-color: var(--bg-lt);
     font-family: inherit;
     font-size: var(--fs-smm);
@@ -154,9 +156,12 @@
         color: var(--text);
     }
 
+    // Tinted from the accent rather than filled with --primary-ltx, which is a light-theme colour and
+    // rendered as a pale blue slab on the two dark themes. color-mix against the page background keeps the
+    // same weight everywhere, the way the callouts already do it.
     &.active {
-        border-color: var(--primary-da);
-        background-color: var(--primary-ltx);
+        border-color: var(--tertiary);
+        background-color: color-mix(in srgb, var(--tertiary) 12%, var(--bg));
         color: var(--text-strong);
     }
 }
@@ -166,10 +171,11 @@
     color: var(--text-4);
 }
 
+// gap: 0 on purpose. Each row carries its own vertical padding and its own top rule, so a gap here would
+// push the rules away from the rows they separate.
 .blog_list {
     display: flex;
     flex-direction: column;
-    gap: 1.15rem;
 }
 
 // Label plus a hairline running to the right edge. Lives inside .blog_list, which is a flex column, so it sits
@@ -178,7 +184,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 0.9rem 0 0;
+    margin: 2rem 0 0;
     font-size: var(--fs-sm);
     font-weight: 600;
     letter-spacing: 0.04em;

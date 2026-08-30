@@ -1,40 +1,48 @@
+// A row in a list, not a card in a grid. No outline and no background: the hairline between rows and the
+// whitespace do the separating, which is what stops a page of twelve posts reading as twelve widgets.
 .postcard {
     display: flex;
     align-items: stretch;
-    gap: 1.1rem;
-    padding: 0.9rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background-color: var(--bg-lt);
+    gap: 1.25rem;
+    padding: 1.25rem 0;
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    transition: background-color 0.15s ease;
 
-    &:hover {
-        border-color: var(--border-da);
-        box-shadow: 0 4px 16px var(--shadow);
-        transform: translateY(-2px);
+    // Rule on the top rather than the bottom. A card sitting directly under a month heading is already
+    // separated by that heading's own hairline, and a bottom rule would put a second line 12px below it.
+    // It also means the last row in the list ends on whitespace rather than on a stray line.
+    & + & {
+        border-top: 1px solid var(--border);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        transition: border-color 0.18s ease;
+    // No lift and no shadow. The row tints and the title underlines in the accent — the same underline
+    // language as .blog_topic and .post_nav_label, so every hover on the blog resolves the same way.
+    &:hover {
+        background-color: var(--surface-lt);
 
-        &:hover {
-            transform: none;
+        .postcard_title {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--tertiary);
         }
     }
 
-    // Listed so a draft reads as coming rather than missing, but visibly inert. Nested so the hover reset outranks
-    // .postcard:hover regardless of where this block ends up in the file. Nothing here greys an image: a draft card
-    // renders neither image nor description, only its title, tags and date.
+    // Listed so a draft reads as coming rather than missing, but visibly inert. This used to be
+    // opacity: 0.55 on the whole row, which dimmed the title's contrast along with everything else;
+    // stepping the title down one rung on the text ladder says the same thing without that cost.
+    // A draft card renders neither image nor description, only its title, tags and date.
     &.postcard--draft {
-        opacity: 0.55;
-        border-style: dashed;
+        .postcard_title {
+            color: var(--text-3);
+        }
 
         &:hover {
-            border-color: var(--border);
-            box-shadow: none;
-            transform: none;
+            background-color: transparent;
+
+            .postcard_title {
+                text-decoration: none;
+            }
         }
     }
 }
@@ -42,7 +50,9 @@
 .postcard_image {
     flex-shrink: 0;
     width: 160px;
-    border-radius: 8px;
+    // Square, and flush with the text column. With no card border left to sit inside, a radius here would
+    // be the only curve on the page.
+    border-radius: var(--r-none);
     overflow: hidden;
     background-color: var(--surface);
 
@@ -50,32 +60,32 @@
         display: block;
         width: 100%;
         height: 100%;
-        min-height: 138px;
+        min-height: 112px;
         object-fit: cover;
     }
 
-    // Unlike a photo, a vector mark should fit rather than crop, so it scales to the slot and letterboxes on its own
-    // via the viewBox. The padding stops it touching the rounded corners.
+    // Unlike a photo, a vector mark should fit rather than crop, so it scales to the slot and letterboxes
+    // on its own via the viewBox. The padding keeps it off the slot edges.
     svg {
         display: block;
         width: 100%;
         height: 100%;
-        min-height: 138px;
+        min-height: 112px;
         padding: 0.75rem;
         box-sizing: border-box;
     }
 }
 
-// No .postcard_image sibling means this is the only child, so it fills the card.
+// No .postcard_image sibling means this is the only child, so it fills the row.
 .postcard_body {
-    // Without this the body shrinks to its content, so the date's margin-left:auto only reaches the end of that narrow box rather than the card edge
+    // Without this the body shrinks to its content, so the date's margin-left:auto only reaches the end of
+    // that narrow box rather than the row edge
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 0.3rem;
     min-width: 0;
-    padding: 0.2rem 0;
 }
 
 .postcard_title {
@@ -84,6 +94,9 @@
     font-weight: 600;
     line-height: 1.25;
     color: var(--text-strong);
+    // Declared here rather than only under :hover, so the underline fades in instead of snapping on.
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .postcard_description {
@@ -113,6 +126,23 @@
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--text-5);
+}
+
+// Plain text rather than a pill. Sits a step below the description (--text-3) so the row reads as an
+// aside to the post rather than as a second set of controls competing with the title.
+.postcard_tag {
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--text-5);
+}
+
+// The one item in the meta row that is a status rather than a label, so it gets the uppercase treatment
+// to separate it from the tags sitting beside it at the same size and colour.
+.postcard_draft {
+    text-transform: uppercase;
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-4);
 }
 
 @media (max-width: 600px) {

@@ -64,7 +64,7 @@ $rail-left: calc(50vw - 370px - 1.75rem - #{$rail-w});
     }
 
     &.is-active {
-        border-left-color: var(--text-3);
+        border-left-color: var(--tertiary);
         color: var(--text-strong);
     }
 }

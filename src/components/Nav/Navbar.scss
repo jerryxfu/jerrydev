@@ -18,7 +18,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     translate: -50% -150%;
     z-index: 600;
     padding: 0.6rem 1.1rem;
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 var(--r-md) var(--r-md);
     background-color: var(--bg-lt);
     color: var(--text-strong);
     border: 1px solid var(--border);
@@ -52,7 +52,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     flex-direction: column;
     scale: 1;
     translate: 0 0;
-    border-radius: 0;
+    border-radius: var(--r-none);
 }
 
 .navbar_bar {
@@ -77,9 +77,9 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da);
+        outline: 2px solid var(--tertiary);
         outline-offset: 3px;
-        border-radius: 4px;
+        border-radius: var(--r-sm);
     }
 }
 
@@ -128,7 +128,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     justify-content: center;
     padding: 0.4rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-md);
     background: transparent;
     color: var(--text-2);
     cursor: pointer;
@@ -142,7 +142,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da);
+        outline: 2px solid var(--tertiary);
         outline-offset: 2px;
     }
 }
@@ -168,7 +168,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 .navbar--hero.is-scrolled {
     scale: 0.95;
     translate: 0 6px;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     padding: 0.5rem 0;
 }
 
@@ -183,7 +183,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .navbar--hero .navbar_logo img {
     height: 58px;
-    border-radius: 0;
+    border-radius: var(--r-none);
     transition: height $dur $ease, border-radius $dur $ease;
 
     @media screen and (max-width: 768px) {
@@ -193,7 +193,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 .navbar--hero.is-scrolled .navbar_logo img {
     height: 42px;
-    border-radius: 4px;
+    border-radius: var(--r-sm);
 }
 
 .navbar--hero .navbar_inline {
@@ -344,7 +344,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da);
+        outline: 2px solid var(--tertiary);
         outline-offset: 2px;
     }
 }
@@ -407,7 +407,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     color: var(--text-2);
 
     padding: 0.5rem 0.65rem;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     transition: color 0.2s, background-color 0.2s;
 
     &:hover {
@@ -416,7 +416,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da);
+        outline: 2px solid var(--tertiary);
         outline-offset: -2px;
     }
 
@@ -440,7 +440,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     color: var(--text-3);
     padding: 0.4rem 0.65rem 0.4rem 0.35rem;
     margin-bottom: 0.35rem;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     transition: color 0.2s, background-color 0.2s;
 
     &:hover {
@@ -449,7 +449,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     &:focus-visible {
-        outline: 2px solid var(--primary-da);
+        outline: 2px solid var(--tertiary);
         outline-offset: -2px;
     }
 }

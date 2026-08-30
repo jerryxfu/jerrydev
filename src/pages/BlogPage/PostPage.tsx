@@ -4,7 +4,6 @@ import {Link, useParams} from "wouter";
 import {ArrowLeft, ArrowRight, ArrowUp} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
-import Chip from "@/components/Chip/Chip.tsx";
 import PostToc from "./components/PostToc.tsx";
 import {formatPostAge, formatPostDate, isReadable, listedPosts, neighbours, postComponents} from "./posts.tsx";
 import {TOPICS} from "./topics.tsx";
@@ -100,7 +99,7 @@ export default function PostPage() {
                         {topic && (
                             <Link href={`/blog/topics/${topic}`} className="post_topic">{TOPICS[topic].name}</Link>
                         )}
-                        {post.tags.map((tag) => <Chip key={tag} size="sm">#{tag}</Chip>)}
+                        {post.tags.map((tag) => <span key={tag} className="post_tag">#{tag}</span>)}
                         <span className="post_date">{formatPostDate(post.date)} ({formatPostAge(post.date)})</span>
                     </div>
                 </header>

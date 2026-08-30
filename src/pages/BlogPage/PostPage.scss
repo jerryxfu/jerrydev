@@ -63,6 +63,13 @@
     color: var(--text-4);
 }
 
+// Matches .postcard_tag: plain text, a step below the body, no pill.
+.post_tag {
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--text-5);
+}
+
 // .post_topic and .post_nav_* had no rules whatsoever, so they rendered as bare anchors: browser-default #0000EE, turning #551A8B once visited.
 // Every colour below is stated explicitly, :visited included, so no state of these links can fall back to the UA stylesheet again.
 .post_topic {
@@ -280,7 +287,7 @@
         max-width: 100%;
         height: auto;
         margin: 1.75rem auto;
-        border-radius: 10px;
+        border-radius: var(--r-md);
     }
 
     blockquote {
@@ -308,7 +315,7 @@
     :not(pre) > code {
         padding: 0.15em 0.4em;
         border: 1px solid var(--border-lt);
-        border-radius: 5px;
+        border-radius: var(--r-xs);
         background-color: var(--surface-da);
         font-size: 0.875em;
         color: var(--text);
@@ -326,7 +333,9 @@
         margin: 1.5rem 0;
         padding: 1rem 1.15rem;
         border: 1px solid var(--border);
-        border-radius: 10px;
+        // Square, matching the callouts. Both are boxes inset into prose, and they sit within a screen of
+        // each other on most of the guides.
+        border-radius: var(--r-none);
         overflow-x: auto;
         background-color: var(--surface-da);
         font-size: var(--fs-smm);

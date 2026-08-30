@@ -24,7 +24,7 @@
     align-items: stretch;
     border: 1px solid var(--border);
     border-left: 3px solid var(--tertiary);
-    border-radius: 12px;
+    border-radius: var(--r-md);
     background-color: var(--bg-lt);
     // The image is square-cornered; without this it overflows the panel's rounded corner.
     overflow: hidden;
@@ -111,9 +111,6 @@
     }
 }
 
-// Two columns on the topic page only, filling left-to-right then top-to-bottom, which is what grid does by default.
-// minmax(0, 1fr) rather than 1fr: a plain 1fr has a min-content floor, and a long unbroken title would push the
-// column wider than half and break the symmetry.
 .topic_chapters {
     margin-top: 1.5rem;
 }
@@ -133,19 +130,9 @@
     scroll-margin-top: 6rem;
 }
 
-.topic_list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.15rem;
-}
-
-// Below this the halves are narrower than the card's own mobile breakpoint, where the image stacks above the text.
-// two stacked-layout cards side by side reads as a mess, so it drops to one column first.
-@media screen and (max-width: 860px) {
-    .topic_list {
-        grid-template-columns: 1fr;
-    }
-}
+// Was a two-column grid. A chapter is a reading order, and rows separated by hairlines carry that order down
+// the page in a way a left-to-right-then-wrap grid never did — lesson 3 sat to the right of lesson 2 rather
+// than under it. Inherits the stack from .blog_list, so there is nothing left to declare.
 
 @media screen and (max-width: 860px) {
     // Below this the image would squeeze the text into a column narrower than it reads well in. Back to column, and

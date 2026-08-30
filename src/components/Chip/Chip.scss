@@ -1,7 +1,7 @@
 .chip {
     display: inline-flex;
     align-items: center;
-    border-radius: 999px;
+    border-radius: var(--r-sm);
     background: var(--chip-bg, rgba(0, 0, 0, 0.08));
     color: var(--chip-color, inherit);
     font-weight: 500;

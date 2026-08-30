@@ -170,6 +170,7 @@ export const posts: Post[] = [
         lang: "fr",
         draft: true,
     },
+    // region python
     {
         slug: "python-basics",
         title: "Python I — The basics",
@@ -202,6 +203,8 @@ export const posts: Post[] = [
         tags: ["python", "notes"],
         lang: "en",
     },
+    // endregion
+    // region git
     {
         slug: "git-basics",
         title: "Git & GitHub I — Git",
@@ -226,6 +229,7 @@ export const posts: Post[] = [
         tags: ["git", "notes"],
         lang: "en",
     },
+    // endregion
     {
         slug: "excel-formulas",
         title: "Excel formula handbook",

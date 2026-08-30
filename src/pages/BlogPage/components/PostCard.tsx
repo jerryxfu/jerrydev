@@ -1,6 +1,5 @@
 import {memo} from "react";
 import {Link} from "wouter";
-import Chip from "@/components/Chip/Chip.tsx";
 import {formatPostAge, formatPostDate, isReadable, type Post} from "../posts.tsx";
 import "./PostCard.scss";
 
@@ -28,9 +27,9 @@ const PostCard = memo(function PostCard({post}: { post: Post }) {
                 {!post.draft && <p className="postcard_description">{post.description}</p>}
 
                 <div className="postcard_meta">
-                    {post.draft && <Chip size="sm">📝 Draft</Chip>}
+                    {post.draft && <span className="postcard_draft">📝 Draft</span>}
                     <span className="postcard_lang">{post.lang}</span>
-                    {post.tags.map((tag) => <Chip key={tag} size="sm">#{tag}</Chip>)}
+                    {post.tags.map((tag) => <span key={tag} className="postcard_tag">#{tag}</span>)}
                     <span className="postcard_date">{formatPostDate(post.date)} ({formatPostAge(post.date)})</span>
                 </div>
             </div>

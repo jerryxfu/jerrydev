@@ -61,6 +61,15 @@ body.homeisland-body {
     --fs-2xl: 2rem; // 32px - page titles
     --fs-3xl: 2.5rem; // 40px - hero
 
+    // Corner radii. One scale so the whole site can be sharpened or softened from here rather than
+    // from twenty scattered literals. Deliberately tight: .card has always been 3px, and the blog
+    // was the only place using 10-12px.
+    --r-none: 0;
+    --r-xs: 2px; // inline code, chips, small controls
+    --r-sm: 3px; // cards, panels, inputs
+    --r-md: 6px; // large surfaces, images
+    --r-full: 999px; // avatars and anything genuinely circular
+
     // Color constants that don't change between themes
     --pink: #ff64f9;
     --red: #ff6565;
@@ -314,6 +323,16 @@ p {
     //color: var(--text);
     transition: color 450ms;
     line-height: 1.38;
+}
+
+// One focus ring for the whole site. Previously this only existed on the navbar, so every link, card and
+// filter elsewhere fell back to the UA default — which is a thin blue line that disappears against night
+// and burgundy. --tertiary is the one saturated colour in the palette, so it stays visible in all four.
+// Modern browsers follow the element's own border-radius here, so no radius is set: it would override
+// whatever the focused component uses.
+:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 2px;
 }
 
 .container {
