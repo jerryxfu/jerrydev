@@ -1,0 +1,105 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+<Callout kind="note" label="For the curious">
+This chapter is optional. Nothing in it is needed to understand vision on the robot, and almost none of it is applied in
+our robotics context. It exists because the questions come up at every formation. Read it for fun.
+</Callout>
+
+The first computers were excellent at what humans find hard (calculating, sorting, applying rules) and hopeless at what
+humans do without thinking: recognizing a face, understanding a sentence, catching an object. Modern artificial
+intelligence grew out of that paradox, and out of one idea: instead of writing the rules, we could make machines learn
+them.
+
+<Callout kind="note" label="In this lesson">
+
+- What "artificial intelligence" means, and its three levels
+- Programming rules versus learning from data
+- A concrete example: recognizing a handwritten digit
+- What "learning" means for a machine
+- The kinds of learning
+- Data, training, testing
+
+</Callout>
+
+## 1. What artificial intelligence is
+
+<Callout kind="important" label="TODO">
+A working definition, the three levels (narrow, general, super), and a few current examples — refresh these every year,
+examples age fast in this field.
+</Callout>
+
+---
+
+## 2. Programming rules versus learning from data
+
+An ordinary program is a list of rules written by a human: *if* the sensor reads this, *then* do that. It works as long
+as someone can write the rules. For recognizing a cat in a photo, nobody knows how to write the rule.
+
+Machine learning flips the process. We give the machine examples and the expected answers, and it builds the rule
+itself, as a function with millions of parameters adjusted until its answers match the examples. The programmer no
+longer writes the solution; they write the way of learning it.
+
+<Callout kind="important" label="TODO">
+Small side-by-side diagram: classical programming (rules + data → answers) versus learning (data + answers → rules).
+</Callout>
+
+---
+
+## 3. An example: recognizing a 9
+
+<Callout kind="important" label="TODO">
+The MNIST example: a $28 \times 28$ pixel image, try to write rules by hand (a loop and a stroke?), show why it breaks
+as soon as the digit is shifted, slanted, or written differently. Introduce *factors of variation* and the idea that the
+features themselves have to be learned (*representation learning*).
+</Callout>
+
+---
+
+## 4. What "learning" means
+
+The classic definition is Tom Mitchell's: a program learns from experience $E$ with respect to a task $T$ and a
+performance measure $P$ if its performance on $T$, as measured by $P$, improves with $E$.
+
+In other words, three things are needed: a task (recognize a digit), a way of measuring success (the percentage of
+digits classified correctly), and experience (thousands of labeled images). The task is not to learn; the task is to
+recognize the digit. Learning is what happens when $P$ goes up.
+
+<Callout kind="important" label="TODO">
+Spell out $T$, $E$ and $P$ on a robotics example (detecting a game piece) to anchor the definition.
+</Callout>
+
+---
+
+## 5. The kinds of learning
+
+<Callout kind="important" label="TODO">
+*Supervised* learning (we provide the answers), *unsupervised* (the machine groups the data on its own), and
+*reinforcement* learning (we reward), with one vivid example each. The fruit analogy for supervised; AlphaZero for
+reinforcement.
+</Callout>
+
+---
+
+## 6. Data, training, testing
+
+<Callout kind="important" label="TODO">
+An example is a vector of features (for an image, the pixels). Splitting data into training, validation and test sets,
+and why: *overfitting*, or memorizing instead of generalizing.
+</Callout>
+
+---
+
+## What about the robot?
+
+<Callout kind="important" label="TODO">
+Say clearly where learning shows up (or doesn't) in our context: AprilTags use none of it; neural object detection on a
+Limelight does. Point to [Object detection](/blog/ai-object-detection).
+</Callout>
+
+---
+
+## Further reading
+
+- I. Goodfellow, Y. Bengio and A. Courville, [Deep Learning](https://www.deeplearningbook.org/) (MIT Press, 2016): chapters 1 and 5 cover everything here, better.
+- [Teachable Machine](https://teachablemachine.withgoogle.com/): train an image classifier in the browser in five minutes, no code. The best possible first workshop.
+- 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the video series everyone should start with.

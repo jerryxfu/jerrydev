@@ -1,0 +1,126 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Quel axe pointe où, dans WPILib et dans les Limelight, et comment passer d'un repère à l'autre sans inverser un signe.
+La moitié des bogues de vision sont des bogues de convention; cette page existe pour qu'on n'ait pas à les redécouvrir.
+
+<Callout kind="important" label="TODO">
+Vérifier chaque convention contre la documentation de la saison avant de publier, et ajouter un schéma par repère.
+Compléter la section « Chez nous » avec les choix de l'équipe.
+</Callout>
+
+## WPILib
+
+Le repère du robot suit la convention **NWU** (*North-West-Up*) :
+
+| Axe | Direction | Rotation |
+| --- | --- | --- |
+| $X+$ | Vers l'avant du robot | 0° |
+| $Y+$ | Vers la **gauche** du robot | 90° |
+| $Z+$ | Vers le haut | |
+
+Les rotations sont positives dans le sens **antihoraire** vu de dessus, et le lacet (*yaw*) est ramené dans
+$(-180°, 180°]$. Tourner à droite, c'est un angle négatif.
+
+Le repère du terrain a son origine au coin du mur de l'alliance **bleue** : $X+$ s'éloigne du mur bleu (vers le rouge),
+$Y+$ va vers la gauche quand on regarde le terrain depuis la station bleue, $Z+$ vers le haut. Tout est en **mètres** et,
+dans les objets WPILib, en **radians**.
+
+<Callout kind="note">
+WPILib recommande de garder l'origine bleue toute la saison (*always blue origin*) plutôt que de la déplacer selon
+l'alliance. C'est ce que supposent les AprilTags, PathPlanner, Choreo et l'affichage `Field2d`. Le prix : inverser les
+commandes du pilote quand on est rouge.
+</Callout>
+
+Les objets à connaître :
+
+| Classe | Contient | Sert à |
+| --- | --- | --- |
+| `Translation2d` | $x, y$ | Une position, ou un déplacement |
+| `Rotation2d` | un angle | Une orientation, ou une rotation |
+| `Pose2d` | translation + rotation | Où est quelque chose dans un repère |
+| `Transform2d` | translation + rotation | Passer d'une pose à une autre (`pose.plus(transform)`) |
+| `Pose3d`, `Transform3d`, `Rotation3d` | La même chose en 3D | Les caméras et les tags |
+
+---
+
+## Limelight
+
+Les Limelight ont leurs propres repères, et deux d'entre eux ne ressemblent pas à ceux de WPILib :
+
+| Repère | Origine | $X+$ | $Y+$ | $Z+$ |
+| --- | --- | --- | --- | --- |
+| Camera space | Centre optique | Vers la droite de la caméra | Vers le **bas** | Vers l'**avant**, hors de la caméra |
+| Target space | Centre du tag | Vers la droite du tag (vu de face) | Vers le **bas** | Hors du tag, perpendiculaire à sa surface |
+| Robot space | Centre du robot, au sol | Vers l'avant | Vers la **droite** du robot | Vers le haut |
+| Field space (WPIBlue) | Origine bleue de WPILib | Long du terrain | Court du terrain | Vers le haut |
+
+<Callout kind="warning">
+Le *robot space* du Limelight a $Y+$ vers la **droite**; celui de WPILib a $Y+$ vers la **gauche**. La pose de la caméra
+entrée dans l'interface Limelight suit la convention Limelight. C'est la source d'erreur classique.
+</Callout>
+
+Les clés `botpose_wpiblue` et `botpose_orb_wpiblue` sont déjà exprimées dans le repère du terrain de WPILib, origine
+bleue, en mètres et en **degrés**; `LimelightHelpers` les convertit en `Pose2d` (donc en radians) pour nous.
+
+---
+
+## Unités et conversions
+
+| Quantité | WPILib | NetworkTables Limelight |
+| --- | --- | --- |
+| Distances | mètres | mètres (`botpose`), millimètres (taille du tag dans l'interface) |
+| Angles | radians (`Rotation2d`), degrés via `getDegrees()` | degrés |
+| Temps | secondes (`Timer.getFPGATimestamp()`) | millisecondes (`tl`, `cl`) |
+
+Conversions qui reviennent :
+
+- $1\ \text{po} = 25{,}4\ \text{mm}$; un tag FRC de $6{,}5\ \text{po}$ fait $165{,}1\ \text{mm}$.
+- $180° = \pi\ \text{rad}$; `Units.degreesToRadians()` et `Units.inchesToMeters()` existent, s'en servir plutôt que de
+multiplier à la main.
+- Horodatage d'une mesure Limelight : `Timer.getFPGATimestamp() - (tl + cl) / 1000.0`; `PoseEstimate.timestampSeconds`
+le calcule déjà.
+
+---
+
+## Passer d'un repère à l'autre
+
+Une pose dans un repère et une transformation vers un autre se composent avec `plus` et se défont avec `inverse` :
+
+```java
+// La caméra est montée 30 cm devant le centre du robot, 20 cm de haut, tournée de 15° vers la gauche.
+Transform3d robotToCamera = new Transform3d(
+        new Translation3d(0.30, 0.0, 0.20),
+        new Rotation3d(0.0, 0.0, Units.degreesToRadians(15)));
+
+// Pose de la caméra sur le terrain -> pose du robot sur le terrain.
+Pose3d robotOnField = cameraOnField.plus(robotToCamera.inverse());
+```
+
+Les tags viennent de la *field layout* de la saison :
+
+```java
+AprilTagFieldLayout layout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+Optional<Pose3d> tag7 = layout.getTagPose(7);
+```
+
+<Callout kind="tip">
+Pour vérifier une convention, poser le robot à un endroit connu, orienté vers $X+$, et lire la pose : les signes doivent
+tomber juste avant de chercher plus loin.
+</Callout>
+
+---
+
+## Chez nous
+
+<Callout kind="important" label="TODO">
+Les choix de l'équipe : origine bleue ou non, où est le « centre du robot », comment sont nommées et orientées les
+caméras, et les transformations caméra → robot mesurées pour chacune.
+</Callout>
+
+---
+
+## Pour aller plus loin
+
+- [Coordinate System](https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html) dans la documentation WPILib.
+- [Coordinate Systems in FRC](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-coordinate-systems) dans la documentation Limelight.
+- [Geometry Classes](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/geometry/index.html) dans la documentation WPILib : `Pose2d`, `Transform2d` et compagnie.

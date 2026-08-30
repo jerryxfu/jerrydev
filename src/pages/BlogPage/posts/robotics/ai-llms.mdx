@@ -1,0 +1,86 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+<Callout kind="note" label="For the curious">
+Last lesson of the optional chapter, and the furthest from the robot. It exists because it is the question we get asked
+the most: how does ChatGPT do what it does?
+</Callout>
+
+A large language model (LLM) does exactly one thing: given some text, predict what comes next. Everything else —
+answering questions, writing code, holding a conversation — falls out of that one task, pushed to a scale nobody had
+tried before. This lesson explains the mechanism, its limits, and how to use these tools intelligently for robot code.
+
+<Callout kind="note" label="In this lesson">
+
+- Predicting the next word — or rather, the next token
+- Embeddings: words as vectors
+- Attention and the transformer, as intuition
+- Pre-training, fine-tuning, and reasoning models
+- What they don't do
+- Using them for robot code without getting burned
+
+</Callout>
+
+## 1. Predicting the next token
+
+<Callout kind="important" label="TODO">
+Text is split into tokens (pieces of words); the model outputs a probability distribution over the next token; we sample
+one, append it, repeat. Show the tokens of a real sentence. Stress that the model doesn't "know" anything: it continues
+a text in the most plausible way.
+</Callout>
+
+---
+
+## 2. Embeddings
+
+<Callout kind="important" label="TODO">
+Each token becomes a vector with thousands of dimensions, learned so that words close in meaning are close in space. The
+classic king − man + woman ≈ queen example. Point to the math toolkit for the dot product, which measures that
+closeness.
+</Callout>
+
+---
+
+## 3. Attention and the transformer
+
+<Callout kind="important" label="TODO">
+The intuition of attention: to understand a word, look at the other words in the sentence and weight their importance.
+The transformer block stacks attention and small neural networks, dozens of times. No formulas here; point to the
+3Blue1Brown videos for the full version.
+</Callout>
+
+---
+
+## 4. Pre-training, fine-tuning, reasoning
+
+<Callout kind="important" label="TODO">
+Pre-training on an enormous amount of text (predict the next token), then fine-tuning to follow instructions, then
+reinforcement learning from human feedback (RLHF). Reasoning models, which "think" by generating text before answering.
+Tools and agents. Refresh regularly — this is the fastest-moving part of the field.
+</Callout>
+
+---
+
+## 5. What they don't do
+
+<Callout kind="important" label="TODO">
+Confidently making things up (hallucination), not knowing what they don't know, not seeing the robot or the code you
+didn't show them, context limits. One concrete example of a plausible-but-wrong answer about WPILib code.
+</Callout>
+
+---
+
+## 6. Using them for robot code
+
+<Callout kind="important" label="TODO">
+The team's ground rules: give context (versions, code excerpts), ask for explanations rather than blocks to paste, test
+everything on the robot, never paste secrets or credentials, and stay responsible for the code you commit. Could become
+the team's official policy if we want one.
+</Callout>
+
+---
+
+## Further reading
+
+- 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the transformer and attention videos, in the same series as the neural network ones.
+- A. Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (NeurIPS 2017): the paper that introduced the transformer.
+- A. Karpathy, [Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY): two hours to build a small GPT and understand every line.

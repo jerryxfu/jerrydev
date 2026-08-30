@@ -2,11 +2,11 @@
     "name": "jerryxf",
     "version": "1.0.0",
     "type": "module",
-    "packageManager": "pnpm@11.17.0",
+    "packageManager": "pnpm@11.24.0",
     "devEngines": {
         "packageManager": {
             "name": "pnpm",
-            "version": "11.17.0",
+            "version": "11.24.0",
             "onFail": "download"
         }
     },

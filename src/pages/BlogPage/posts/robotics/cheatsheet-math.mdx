@@ -1,0 +1,176 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Tout ce que les leçons supposent en maths, au même endroit. Rien ici ne dépasse ce qu'on voit au secondaire ou au début
+du cégep; c'est surtout du vocabulaire et de la notation. À consulter au besoin, pas à lire d'un trait.
+
+<Callout kind="important" label="TODO">
+Ajouter un petit exemple numérique par section, et un schéma pour la rotation et la composition de transformations.
+Adapter la profondeur au public réel.
+</Callout>
+
+## Scalaires, vecteurs, matrices
+
+Un **scalaire** est un simple nombre : $3$, $-0{,}5$, $\pi$.
+
+Un **vecteur** est une liste ordonnée de nombres. Pour un programmeur, c'est un tableau; pour un physicien, une flèche
+avec une longueur et une direction; pour un mathématicien, un point dans un espace à $n$ dimensions. Les trois lectures
+sont utiles. On l'écrit en colonne, et $x \in \mathbb{R}^n$ veut dire « $x$ a $n$ composantes réelles » :
+
+$$
+x = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix}
+$$
+
+Une image de $28 \times 28$ pixels, mise à plat, est un vecteur de $\mathbb{R}^{784}$. Une position sur le terrain est un
+vecteur de $\mathbb{R}^2$ ou $\mathbb{R}^3$.
+
+Une **matrice** est un tableau de nombres à deux dimensions, $m$ lignes par $n$ colonnes, $A \in \mathbb{R}^{m \times n}$.
+L'élément de la ligne $i$ et de la colonne $j$ s'écrit $A_{ij}$.
+
+---
+
+## Opérations sur les vecteurs
+
+| Opération | Écriture | Résultat |
+| --- | --- | --- |
+| Addition | $x + y$ | Composante par composante |
+| Multiplication par un scalaire | $c\,x$ | Chaque composante multipliée par $c$ |
+| Norme (longueur) | $\|x\| = \sqrt{x_1^2 + \dots + x_n^2}$ | Un scalaire, positif |
+| Produit scalaire | $x \cdot y = x^\top y = \sum_i x_i y_i$ | Un scalaire |
+
+Le produit scalaire (*dot product*) est l'opération centrale de tout le cours. Deux lectures :
+
+- **Comme somme pondérée** : $w^\top x = w_1 x_1 + \dots + w_n x_n$. C'est exactement ce que calcule un neurone.
+- **Comme mesure d'alignement** : $x \cdot y = \|x\|\,\|y\| \cos\theta$, où $\theta$ est l'angle entre les deux vecteurs.
+Positif s'ils pointent dans le même sens, nul s'ils sont perpendiculaires, négatif s'ils s'opposent. C'est ce qui
+permet de comparer deux *embeddings*.
+
+---
+
+## Produit matrice-vecteur (*matrix-vector multiplication*)
+
+Multiplier une matrice $A \in \mathbb{R}^{m \times n}$ par un vecteur $x \in \mathbb{R}^n$ donne un vecteur de
+$\mathbb{R}^m$ dont chaque composante est le produit scalaire d'une ligne de $A$ avec $x$ :
+
+$$
+(Ax)_i = \sum_{j=1}^{n} A_{ij}\, x_j
+$$
+
+Autrement dit, $m$ sommes pondérées calculées d'un coup. Une couche de réseau de neurones, c'est ça; une rotation, c'est
+ça; une projection de caméra, c'est ça. Les dimensions doivent s'emboîter : le nombre de colonnes de $A$ est le nombre de
+composantes de $x$.
+
+Le produit de deux matrices $AB$ s'obtient en appliquant $B$ puis $A$ : $(AB)x = A(Bx)$. L'ordre compte : en général,
+$AB$ et $BA$ ne sont pas égaux.
+
+Quelques matrices particulières : l'**identité** $I$ (des 1 sur la diagonale, des 0 ailleurs) ne change rien; la
+**transposée** $A^\top$ échange lignes et colonnes; l'**inverse** $A^{-1}$, quand elle existe, défait ce que $A$ fait :
+$A^{-1} A = I$.
+
+---
+
+## Rotations
+
+En 2D, tourner un vecteur d'un angle $\theta$ dans le sens antihoraire, c'est le multiplier par :
+
+$$
+R(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
+$$
+
+En 3D, une rotation autour de l'axe $Z$ (le lacet, *yaw*) a la même forme avec une ligne et une colonne de plus pour
+laisser $Z$ tranquille :
+
+$$
+R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+Une rotation quelconque en 3D est le produit de trois rotations autour des axes (*roll*, *pitch*, *yaw* — roulis,
+tangage, lacet); l'ordre dans lequel on les enchaîne change le résultat, d'où l'importance des conventions. Une matrice de rotation a une propriété
+pratique : son inverse est sa transposée, $R^{-1} = R^\top$.
+
+---
+
+## Coordonnées homogènes et transformations
+
+Une rotation seule se fait avec une multiplication; une translation seule avec une addition. Pour faire les deux d'un
+seul produit matriciel, on passe en coordonnées homogènes (*homogeneous coordinates*) : on ajoute une composante égale
+à 1 au vecteur et on empaquette rotation et translation dans une matrice $4 \times 4$ :
+
+$$
+\begin{bmatrix} x' \\ y' \\ z' \\ 1 \end{bmatrix}
+= \begin{bmatrix} R & t \\ 0 & 1 \end{bmatrix}
+\begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}
+\qquad \Longleftrightarrow \qquad
+x' = R x + t
+$$
+
+C'est une **transformation rigide** (*rigid transform*) $T$. Deux avantages qui justifient la gymnastique :
+
+**Composer**, c'est multiplier. Passer du tag à la caméra puis de la caméra au robot, c'est :
+
+$$
+T_{\text{robot} \leftarrow \text{tag}} = T_{\text{robot} \leftarrow \text{caméra}}\; T_{\text{caméra} \leftarrow \text{tag}}
+$$
+
+La notation $T_{b \leftarrow a}$ se lit « emmène les coordonnées de $a$ vers $b$ », et les indices voisins s'annulent
+comme des fractions.
+
+**Inverser** est explicite :
+
+$$
+T^{-1} = \begin{bmatrix} R^\top & -R^\top t \\ 0 & 1 \end{bmatrix}
+$$
+
+C'est ce que font `Transform3d.plus` et `Transform3d.inverse` dans WPILib, et ce que la
+[leçon sur l'estimation de pose](/blog/vision-pose-estimation#6-de-la-caméra-au-robot-du-robot-au-terrain) enchaîne
+pour aller de la caméra au terrain.
+
+<Callout kind="note">
+La projection de caméra utilise le même truc en une dimension de moins : le vecteur $(u, v, 1)$ multiplié par un
+facteur $s$ quelconque désigne le même pixel, ce qui permet d'écrire la division par la profondeur comme un produit de
+matrices.
+</Callout>
+
+---
+
+## La notation Σ
+
+$\sum_{i=1}^{n} a_i$ se lit « la somme des $a_i$ pour $i$ allant de 1 à $n$ ». C'est une boucle `for` :
+
+```python
+total = 0
+for i in range(1, n + 1):
+    total += a[i]
+```
+
+La variable sous le symbole est l'indice de sommation, la valeur en bas sa borne inférieure, la valeur en haut sa borne
+supérieure, et l'expression à droite ce qu'on additionne à chaque tour. Par exemple
+$\sum_{i=1}^{3} (2i - 1) = 1 + 3 + 5 = 9$.
+
+---
+
+## Fonctions, pentes, gradients
+
+Une fonction est une machine entrée → sortie, $x \mapsto f(x)$. La **dérivée** $f'(x)$ est la pente de $f$ au point
+$x$ : de combien la sortie change quand on bouge l'entrée d'un tout petit peu. Pour une fonction de plusieurs variables,
+le **gradient** $\nabla f$ rassemble toutes les pentes partielles dans un vecteur, qui pointe dans la direction où $f$
+augmente le plus vite.
+
+Descendre le gradient (*gradient descent*), c'est faire un petit pas dans la direction opposée :
+$\theta \leftarrow \theta - \eta\, \nabla f(\theta)$, avec $\eta$ le *learning rate* (taux d'apprentissage). C'est tout
+ce que veut dire « entraîner un réseau de neurones ».
+
+---
+
+## Angles
+
+- $360° = 2\pi$ rad, donc $1\ \text{rad} \approx 57{,}3°$.
+- Le sens antihoraire est positif, en maths comme dans WPILib.
+- Un angle ramené dans $(-180°, 180°]$ évite qu'un lacet de 359° soit traité comme loin de 1°.
+- `Math.atan2(y, x)` donne l'angle d'un vecteur en tenant compte du quadrant; `Math.atan(y / x)` non.
+
+---
+
+## Pour aller plus loin
+
+- 3Blue1Brown, [Essence of linear algebra](https://www.3blue1brown.com/topics/linear-algebra) : les vecteurs, les matrices et les transformations, en images.
+- I. Goodfellow, Y. Bengio et A. Courville, [Deep Learning](https://www.deeplearningbook.org/), chapitre 2 : la version complète de cette page.

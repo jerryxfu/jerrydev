@@ -1,0 +1,152 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Une pose calculée à partir d'un tag est une mesure : parfois excellente, parfois fausse, jamais disponible en continu.
+L'odométrie, elle, est toujours disponible mais dérive. Cette leçon explique comment on combine les deux pour obtenir une
+position qui reste vraie pendant tout un match, et ce que le code de l'équipe ajoute par-dessus ce que WPILib et Limelight
+fournissent.
+
+<Callout kind="note" label="Dans cette leçon">
+
+- Pourquoi fusionner l'odométrie et la vision, et comment le *pose estimator* de WPILib le fait
+- Les écarts-types : dire au filtre à quel point on fait confiance à chaque mesure
+- Rejeter les mauvaises mesures avant qu'elles n'entrent dans le filtre
+- Nos systèmes : détection du *flip*, fenêtre de convergence, pondération MT1/MT2
+- Vérifier que ça marche
+
+</Callout>
+
+## 1. Odométrie + vision : pourquoi fusionner
+
+L'odométrie intègre les déplacements des modules de la base et le lacet du gyroscope. Elle est lisse, rapide (chaque
+cycle du robot) et toujours là, mais toute erreur devient permanente : un glissement de roue d'un centimètre est un
+centimètre de décalage jusqu'à la fin du match.
+
+La vision fait l'inverse. Une bonne mesure d'AprilTag est *absolue*, elle ne dépend pas de ce qui s'est passé avant. Mais
+elle arrive en retard (le temps de capturer et de traiter l'image), seulement quand un tag est visible, et avec un bruit
+qui grandit avec la distance et l'angle.
+
+Le `SwerveDrivePoseEstimator` de WPILib combine les deux : l'odométrie fait avancer l'estimation à chaque cycle, et chaque
+mesure de vision la *tire* vers la position mesurée, plus ou moins fort selon la confiance qu'on lui accorde. Comme la
+mesure de vision décrit une position passée, on la fournit avec son horodatage (*timestamp*), et l'estimateur la replace
+au bon moment dans l'historique avant de rejouer l'odométrie qui a suivi. Sans cette compensation de latence (*latency
+compensation*), chaque correction tirerait le robot vers là où il était quelques dizaines de millisecondes plus tôt.
+
+```java
+// À chaque cycle : l'odométrie fait avancer l'estimation.
+poseEstimator.update(gyro.getRotation2d(), modulePositions);
+
+// Quand une mesure de vision arrive : on la replace dans le temps et on la pondère.
+poseEstimator.addVisionMeasurement(visionPose, visionTimestampSeconds, visionStdDevs);
+```
+
+<Callout kind="important" label="TODO">
+Figure : trajectoire odométrie seule (qui dérive) contre trajectoire fusionnée (qui se recale à chaque tag), sur un vrai
+log de l'équipe si possible.
+</Callout>
+
+---
+
+## 2. Écarts-types : dire au filtre à quel point on a confiance
+
+L'estimateur ne prend pas une mesure de vision au pied de la lettre; il la pèse contre sa propre estimation. Le poids est
+réglé par des *écarts-types* (*standard deviations*) : un pour $x$, un pour $y$, un pour la rotation, en mètres et en
+radians. Petit écart-type, grande confiance, correction forte. Grand écart-type, la mesure ne fait que nuancer.
+
+Deux idées reçues à corriger :
+
+- **Ce ne sont pas des constantes.** Une mesure à un mètre avec trois tags visibles vaut beaucoup plus qu'une mesure à
+cinq mètres avec un seul. On recalcule les écarts-types à chaque mesure, typiquement en les faisant croître avec la
+distance moyenne aux tags et décroître avec leur nombre.
+- **La rotation se traite à part.** Avec MegaTag2, la rotation vient du gyroscope, pas de la vision : on donne à la
+composante rotation un écart-type énorme (la documentation Limelight utilise `VecBuilder.fill(0.7, 0.7, 9999999)`) pour
+que la vision ne corrige jamais le lacet.
+
+<Callout kind="important" label="TODO">
+Notre formule d'écarts-types en fonction de la distance et du nombre de tags, avec les valeurs et la raison de chacune.
+Un petit graphique écart-type en fonction de la distance serait parfait.
+</Callout>
+
+---
+
+## 3. Rejeter les mauvaises mesures
+
+Un filtre bien pondéré encaisse du bruit, pas des aberrations (*outliers*). Certaines mesures ne doivent jamais entrer
+dans l'estimateur. Les critères habituels :
+
+- **Aucun tag** dans l'image (la pose publiée est alors vide ou périmée).
+- **Ambiguïté trop élevée** sur une mesure à tag unique (MT1).
+- **Distance trop grande** : au-delà de quelques mètres, un tag unique n'apporte plus grand-chose.
+- **Rotation trop rapide** : la documentation Limelight suggère de rejeter les mesures MT2 quand le robot tourne à plus
+de 720°/s, parce que le lacet fourni ne correspond plus à l'image.
+- **Pose hors du terrain**, ou en l'air : une pose dont $z$ n'est pas proche de zéro est fausse par construction.
+- **Horodatage invalide** ou mesure déjà vue.
+
+<Callout kind="tip">
+Loguer les mesures rejetées, et *pourquoi* elles l'ont été, est ce qui rend ces seuils réglables. Un rejet silencieux est
+impossible à diagnostiquer dans les gradins.
+</Callout>
+
+<Callout kind="important" label="TODO">
+Nos seuils exacts et où ils vivent dans le code.
+</Callout>
+
+---
+
+## 4. Nos systèmes
+
+Ce que WPILib et Limelight fournissent est une bonne base, mais ne suffit pas en match. Le code de localisation de
+l'équipe (`Localization.java`) ajoute trois mécanismes.
+
+### Détection du flip
+
+<Callout kind="important" label="TODO">
+Décrire le problème observé (la pose d'un tag qui bascule entre ses deux solutions, voir
+[l'ambiguïté](/blog/vision-pose-estimation#4-lambiguïté-de-pose)), comment le code le détecte, et ce qu'il fait de la
+mesure quand il le détecte. Un extrait du code et une capture d'un flip dans les logs.
+</Callout>
+
+### Rejet des aberrations par fenêtre de convergence (*rolling convergence window*)
+
+<Callout kind="important" label="TODO">
+Décrire la fenêtre glissante : sur quoi elle porte, quelle taille, comment on décide qu'une mesure est une aberration par
+rapport aux précédentes, et ce qui se passe au démarrage quand la fenêtre est vide.
+</Callout>
+
+### Pondération MT1 / MT2
+
+<Callout kind="important" label="TODO">
+Quand on utilise MT1, quand MT2, et comment leur confiance est mise à l'échelle l'une par rapport à l'autre. Le cas du
+lacet : qui a le dernier mot entre le gyroscope et la vision, et quand on réinitialise l'orientation.
+</Callout>
+
+<Callout kind="note">
+Chaque mécanisme est né d'un problème vu en compétition. Raconter le problème avant la solution est ce qui rend la
+section mémorable.
+</Callout>
+
+---
+
+## 5. Vérifier que ça marche
+
+<Callout kind="important" label="TODO">
+Compléter avec la procédure de l'équipe. Pistes : poser le robot à une position mesurée au ruban et comparer;
+visualiser la pose dans AdvantageScope ou Glass (`Field2d`) en marchant le robot autour du terrain; comparer MT1, MT2 et
+la pose fusionnée sur le même log; provoquer volontairement un flip et vérifier qu'il est rejeté.
+</Callout>
+
+---
+
+## Sur le robot
+
+<Callout kind="important" label="TODO">
+Carte du code : quelle classe lit les caméras, quelle classe filtre, où l'estimateur est mis à jour, et ce qui est
+logué. Un lien vers le dépôt si le code est public.
+</Callout>
+
+---
+
+## Pour aller plus loin
+
+- [Pose Estimators](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/state-space/state-space-pose-estimators.html) dans la documentation WPILib : ce que fait `addVisionMeasurement` et d'où viennent les écarts-types.
+- [Robot Localization with MegaTag2](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization-megatag2) et [Localization with MegaTag](https://docs.limelightvision.io/docs/docs-limelight/tutorials/tutorial-swerve-pose-estimation) dans la documentation Limelight : les patrons de code et les critères de rejet recommandés.
+- [AdvantageScope](https://docs.advantagescope.org/) : pour rejouer les logs et voir les poses sur le terrain.

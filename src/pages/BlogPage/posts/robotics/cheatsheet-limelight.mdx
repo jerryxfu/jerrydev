@@ -1,0 +1,161 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+La version courte de [Régler les Limelight](/blog/vision-limelight-tuning) : les réglages, les clés et les appels qu'on
+cherche toujours, sans les explications.
+
+<Callout kind="important" label="TODO">
+Remplacer les valeurs de départ par les nôtres, caméra par caméra, et vérifier les noms d'API contre la version de
+`LimelightHelpers` utilisée dans le code de l'équipe.
+</Callout>
+
+## Se connecter
+
+| Quoi | Où |
+| --- | --- |
+| Interface de configuration | `http://limelight.local:5801` (ou l'adresse IP de la caméra, port 5801) |
+| Flux vidéo | port 5800 |
+| Plusieurs caméras | Donner un nom d'hôte distinct à chacune (`limelight-avant`, `limelight-arriere`...) et l'utiliser dans le code |
+
+<Callout kind="tip">
+Si `limelight.local` ne répond pas, l'adresse IP statique configurée dans l'onglet réseau est toujours là. La noter sur
+la caméra elle-même, avec un bout de ruban.
+</Callout>
+
+---
+
+## Réglages de départ pour les AprilTags
+
+Onglet *Input* :
+
+| Réglage | Départ | Note |
+| --- | --- | --- |
+| Pipeline Type | Fiducial Markers (AprilTag) | |
+| Exposure | Court | Monter seulement si l'image est trop sombre après avoir monté le gain |
+| Sensor Gain | Élevé (autour de 15) | Le bruit est acceptable, le flou ne l'est pas |
+| Black Level Offset | 0 | |
+| Resolution | Selon la portée voulue | Plus haut = plus de portée, moins d'images par seconde |
+
+Onglet du pipeline :
+
+| Réglage | Valeur | Note |
+| --- | --- | --- |
+| Family | AprilTag Classic 36h11 | |
+| Marker Size | 165,1 mm | Tags FRC de 6,5 po; à vérifier chaque saison |
+| Detector Downscale | 1 à 3 | Premier levier contre la latence |
+| ID Filters | Les tags utiles au jeu | Vide = tous |
+| Area filter | Petite surface minimale | Ignore les tags trop lointains |
+| 3D | Activé | Obligatoire pour la localisation |
+
+---
+
+## Les trois étapes à ne pas oublier
+
+1. **Calibrer** la caméra (pipeline « Charuco Calibration Preview », 25 images minimum, erreur de reprojection sous 1 px).
+2. **Charger la carte du terrain** (`.fmap` de la saison).
+3. **Entrer la pose de la caméra sur le robot**, mesurée, en respectant les [conventions d'axes du
+Limelight](/blog/cheatsheet-coordinates).
+
+Les refaire après tout changement mécanique ou remplacement de caméra.
+
+---
+
+## Clés NetworkTables
+
+Lecture, 2D :
+
+| Clé | Contenu |
+| --- | --- |
+| `tv` | 1 si une cible valide est vue, 0 sinon |
+| `tx`, `ty` | Angle horizontal et vertical entre le réticule (*crosshair*) et la cible, en degrés |
+| `txnc`, `tync` | Même chose, mesuré depuis le point principal plutôt que le réticule |
+| `ta` | Surface de la cible, en pourcentage de l'image |
+| `tid` | Identifiant du tag principal |
+| `tl`, `cl` | Latence du pipeline et latence de capture, en millisecondes |
+| `getpipe` | Pipeline active |
+| `hb` | Compteur d'images (*heartbeat*) : s'il n'avance pas, la caméra ne répond pas |
+
+Lecture, 3D (tableaux de nombres) :
+
+| Clé | Contenu |
+| --- | --- |
+| `botpose_wpiblue` | Pose du robot dans le repère du terrain, origine bleue (MegaTag) |
+| `botpose_orb_wpiblue` | Même chose, calculée par MegaTag2 |
+| `botpose_wpired` | Pose du robot, origine rouge |
+| `camerapose_targetspace` | Pose de la caméra dans le repère du tag |
+| `targetpose_cameraspace` | Pose du tag dans le repère de la caméra |
+| `targetpose_robotspace` | Pose du tag dans le repère du robot |
+
+Écriture :
+
+| Clé | Effet |
+| --- | --- |
+| `pipeline` | Choisir la pipeline (0 à 9) |
+| `ledMode` | 0 = selon la pipeline, 1 = éteintes, 2 = clignotantes, 3 = allumées |
+| `crop` | Rectangle de détection, pour réduire le travail |
+| `priorityid` | Tag à privilégier pour `tx` et `ty` |
+| `robot_orientation_set` | Orientation du robot pour MegaTag2 (passer par `SetRobotOrientation`) |
+
+<Callout kind="important" label="TODO">
+Ajouter la disposition exacte des tableaux `botpose` (position, rotation, latence, nombre de tags, distance moyenne...)
+telle que lue par notre version de LimelightHelpers.
+</Callout>
+
+---
+
+## LimelightHelpers : les appels courants
+
+```java
+// 2D
+LimelightHelpers.getTV("limelight");
+LimelightHelpers.getTX("limelight");
+LimelightHelpers.getTY("limelight");
+LimelightHelpers.getTA("limelight");
+LimelightHelpers.getFiducialID("limelight");
+
+// 3D
+LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+// mt2.pose, mt2.timestampSeconds, mt2.tagCount, mt2.avgTagDist, mt2.rawFiducials[i].ambiguity
+
+// Contrôle
+LimelightHelpers.setPipelineIndex("limelight", 0);
+LimelightHelpers.setLEDMode_PipelineControl("limelight");
+LimelightHelpers.SetFiducialIDFiltersOverride("limelight", new int[] {1, 2, 3});
+LimelightHelpers.SetRobotOrientation("limelight", yawDegrees, 0, 0, 0, 0, 0);
+```
+
+---
+
+## Patron MegaTag2 avec le pose estimator
+
+```java
+// À chaque cycle, avant de lire la pose : donner le lacet courant au Limelight.
+LimelightHelpers.SetRobotOrientation("limelight",
+        poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+
+LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+
+boolean reject = mt2 == null
+        || mt2.tagCount == 0
+        || Math.abs(gyro.getRate()) > 720; // degrés par seconde
+
+if (!reject) {
+    poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, 9999999));
+    poseEstimator.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
+}
+```
+
+Critères de rejet suggérés par la documentation Limelight :
+
+| | MegaTag (MT1) | MegaTag2 (MT2) |
+| --- | --- | --- |
+| Rejeter si | un seul tag et ambiguïté au-delà de 0,7, ou distance au-delà de 3 m | aucun tag, ou rotation au-delà de 720°/s |
+| Écarts-types | À moduler selon distance et nombre de tags | `(0.7, 0.7, 9999999)` : la vision ne corrige jamais le lacet |
+
+---
+
+## Pour aller plus loin
+
+- [Complete NetworkTables API](https://docs.limelightvision.io/docs/docs-limelight/apis/complete-networktables-api) dans la documentation Limelight : toutes les clés.
+- [FRC Programming with LimelightLib](https://docs.limelightvision.io/docs/docs-limelight/apis/limelight-lib) : tous les appels.
+- [Robot Localization with MegaTag2](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization-megatag2) : le patron de code complet.

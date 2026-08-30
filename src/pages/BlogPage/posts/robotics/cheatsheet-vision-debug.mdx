@@ -1,0 +1,88 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Quand la vision ne marche pas, dans l'ordre. Chaque section part du symptôme et remonte vers les causes, des plus
+fréquentes aux plus rares. La règle : changer une chose à la fois, et vérifier sur une image enregistrée (*snapshot*) avant
+de conclure.
+
+<Callout kind="important" label="TODO">
+Compléter avec les problèmes réellement rencontrés par l'équipe et ce qui les a réglés. C'est la partie la plus utile de
+la page, et personne d'autre ne peut l'écrire.
+</Callout>
+
+## 0. Est-ce que la caméra répond?
+
+- [ ] Le flux vidéo s'affiche (port 5800) et l'interface répond (port 5801).
+- [ ] Le compteur `hb` avance dans NetworkTables. S'il n'avance pas, le problème est réseau ou alimentation, pas vision.
+- [ ] La bonne pipeline est active (`getpipe`), et c'est bien une pipeline AprilTag avec le 3D activé.
+- [ ] Le nom utilisé dans le code correspond au nom d'hôte de la caméra.
+
+---
+
+## 1. Le tag n'est pas détecté
+
+- [ ] **Exposition** : l'image est-elle floue quand le robot bouge? Baisser l'exposition, monter le gain.
+- [ ] **Luminosité** : le tag est-il franchement noir et blanc dans le flux? Sinon, ajuster gain et exposition; niveau de
+noir à 0.
+- [ ] **Famille et taille** : 36h11, taille de marqueur correcte.
+- [ ] **Downscale et résolution** : un tag trop petit en pixels n'est pas décodable. Baisser le *downscale* ou monter la
+résolution, et vérifier la portée réelle avec un ruban.
+- [ ] **Crop** : le tag est-il dans la zone de détection?
+- [ ] **ID Filters** : le tag est-il dans la liste autorisée?
+- [ ] **Angle** : un tag vu très de biais devient illisible. Ce n'est pas un bogue.
+- [ ] **Occlusion** : un tag partiellement caché n'est jamais détecté.
+
+---
+
+## 2. Le tag est détecté, mais la pose est fausse
+
+- [ ] **Taille du marqueur** : une mauvaise valeur donne des distances fausses d'un facteur constant.
+- [ ] **Calibration** : la caméra est-elle calibrée, à cette résolution, et le bandeau est-il vert dans l'interface?
+- [ ] **Pose de la caméra sur le robot** : mesurée? Dans la convention Limelight ($Y+$ vers la droite)? En mètres et en
+degrés? Voir [Repères, unités et conventions](/blog/cheatsheet-coordinates).
+- [ ] **Carte du terrain** : le bon `.fmap`, de la bonne saison, chargé sur *cette* caméra.
+- [ ] **Origine** : le code lit-il `botpose_wpiblue` et travaille-t-il en origine bleue partout?
+- [ ] **Unités** : degrés contre radians, pouces contre mètres, millisecondes contre secondes.
+- [ ] **Test de référence** : robot posé à un endroit mesuré, orienté vers $X+$. Les signes doivent tomber juste.
+
+---
+
+## 3. La pose saute
+
+- [ ] **Ambiguïté** : un seul tag vu presque de face bascule entre deux solutions. Filtrer sur l'ambiguïté, ou passer
+à MegaTag2, ou monter la caméra de biais. Voir [l'ambiguïté](/blog/vision-pose-estimation#4-lambiguïté-de-pose).
+- [ ] **Tag unique lointain** : rejeter au-delà d'une distance, ou exiger plus d'un tag.
+- [ ] **MegaTag2 sans orientation** : `SetRobotOrientation` est-il appelé à chaque cycle, avec le bon lacet, en degrés?
+- [ ] **Gyroscope qui dérive** : MegaTag2 fait confiance au lacet fourni. Vérifier l'orientation au repos.
+- [ ] **Écarts-types trop petits** : la vision écrase l'odométrie à chaque image bruitée. Les faire croître avec la
+distance.
+- [ ] **Rotation rapide** : rejeter les mesures pendant une rotation au-delà de 720°/s.
+- [ ] **Horodatage** : la mesure est-elle fournie avec son horodatage, en secondes FPGA?
+
+---
+
+## 4. La latence est trop grande
+
+- [ ] **Résolution** : la baisser est le levier le plus direct.
+- [ ] **Downscale** : le monter accélère beaucoup la détection.
+- [ ] **Crop** : réduire la zone de détection si les tags sont toujours au même endroit dans l'image.
+- [ ] **Latence mesurée** : `tl + cl` dans NetworkTables, et le temps de traitement du côté robot.
+- [ ] **Réseau** : le flux vidéo consomme de la bande passante; le couper ou le réduire pendant les matchs.
+
+---
+
+## 5. Ça marchait à l'atelier
+
+- [ ] **Éclairage** : un gymnase ou un aréna n'a pas la lumière de l'atelier. Refaire des *snapshots* sur place et
+ajuster l'exposition.
+- [ ] **Reflets** : lumières d'aréna dans le champ, fenêtres, plancher brillant.
+- [ ] **Tags différents** : ceux du terrain de pratique ne sont pas forcément à la même hauteur ni de la même impression.
+- [ ] **Mécanique** : la caméra a-t-elle bougé pendant le transport? Refaire le test de référence.
+- [ ] **Configuration** : la bonne pipeline, la bonne calibration et la bonne carte sont-elles sur la caméra qu'on vient
+de remplacer?
+
+---
+
+## Pour aller plus loin
+
+- [Tracking AprilTags](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltags) et [Robot Localization with MegaTag2](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltag-robot-localization-megatag2) dans la documentation Limelight : la plupart des seuils cités ici en viennent.
+- [Aide-mémoire Limelight](/blog/cheatsheet-limelight) : les réglages et les clés.

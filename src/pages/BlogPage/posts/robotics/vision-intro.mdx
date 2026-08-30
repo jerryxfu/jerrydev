@@ -1,0 +1,123 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Ce cours explique comment le robot *voit* : comment une caméra transforme le monde en pixels, comment on retrouve des
+AprilTags dans ces pixels, comment quatre coins de tag deviennent une position sur le terrain, et ce que l'équipe fait pour
+que cette position reste fiable quand le robot bouge vite et que l'éclairage change. La dernière leçon est pratique : régler
+les Limelight, avec un aide-mémoire pour ne pas avoir à tout retenir.
+
+<Callout kind="note" label="Dans cette leçon">
+
+- À qui s'adresse le cours et ce qu'il faut savoir avant de commencer
+- Le problème qu'on règle : savoir où est le robot
+- Comment les leçons sont organisées, et dans quel ordre les lire
+- Les conventions utilisées dans les pages
+
+</Callout>
+
+## 1. À qui s'adresse ce cours
+
+<Callout kind="important" label="TODO">
+Public visé (programmation seulement ou toute l'équipe?), prérequis réels (Java de base? aucun?), et ce que le cours ne
+couvre volontairement pas.
+</Callout>
+
+Aucune connaissance en vision ou en intelligence artificielle n'est supposée. Les maths nécessaires (vecteurs, matrices,
+un peu de trigonométrie) sont rassemblées dans la [boîte à outils mathématiques](/blog/cheatsheet-math), à consulter au
+besoin plutôt qu'à lire d'un coup.
+
+---
+
+## 2. Le problème : où est le robot?
+
+Le robot sait à peu près où il est grâce à l'*odométrie* : les encodeurs des roues et le gyroscope lui disent de combien il
+a avancé et tourné depuis le départ. Le problème, c'est que ces erreurs s'accumulent. Une roue qui glisse, une collision, et
+la position estimée dérive sans que rien ne la ramène vers la réalité.
+
+Les AprilTags sur le terrain sont des repères fixes dont la position exacte est connue. Chaque fois qu'une caméra en voit
+un, elle peut recalculer la position absolue du robot et corriger la dérive. C'est ce qu'on appelle la *localisation par
+vision*, et c'est le fil conducteur de tout le cours : chaque leçon ajoute une étape de la chaîne qui va des pixels à la
+position sur le terrain.
+
+<Callout kind="important" label="TODO">
+Un ou deux exemples concrets de ce que la localisation permet sur notre robot (auto-alignement, autonomes, tir en
+mouvement...) et un exemple de ce qui arrive quand elle est mauvaise.
+</Callout>
+
+---
+
+## 3. Comment le cours est organisé
+
+Le cours a deux parties, plus une étagère de références.
+
+**Computer vision** est le cœur du cours. Les leçons se lisent dans l'ordre; chacune suppose la précédente.
+
+1. [Caméras et images](/blog/vision-cameras) : le modèle sténopé, l'exposition, le gain, la calibration.
+2. [Les AprilTags](/blog/vision-apriltags) : ce qu'ils encodent et comment le détecteur les trouve.
+3. [L'estimation de pose](/blog/vision-pose-estimation) : le problème Perspective-n-Point et l'ambiguïté qui vient avec.
+4. [Localisation robuste](/blog/vision-localization) : fusionner odométrie et vision, et ce que notre code fait de plus.
+5. [Régler les Limelight](/blog/vision-limelight-tuning) : la leçon pratique.
+
+**Artificial intelligence** est la partie « pour les curieux », en anglais. Elle n'est pas nécessaire pour comprendre la
+vision sur le robot, et à peu près rien de ce qu'elle contient n'est utilisé dans notre contexte. Elle existe parce que les
+questions reviennent à chaque formation : c'est quoi un réseau de neurones, comment un détecteur d'objets fonctionne,
+comment ChatGPT fait ce qu'il fait.
+
+**Tools** contient les aide-mémoire : [Limelight](/blog/cheatsheet-limelight), [repères et
+conventions](/blog/cheatsheet-coordinates), [maths](/blog/cheatsheet-math) et la [checklist de
+débogage](/blog/cheatsheet-vision-debug). Ce sont les pages qu'on rouvre pendant la saison.
+
+### Le plan de la semaine
+
+<Callout kind="important" label="TODO">
+Répartition proposée, à ajuster selon la durée réelle des séances et le matériel disponible.
+</Callout>
+
+| Jour | Leçons | Atelier |
+| --- | --- | --- |
+| 1 | Par où commencer · Caméras et images | Regarder une image comme une grille de nombres; calibrer une caméra |
+| 2 | Les AprilTags | Détecter des tags, jouer avec le *downscale*, l'exposition et la distance |
+| 3 | L'estimation de pose | Résoudre PnP sur une photo de tag; provoquer l'ambiguïté et la voir |
+| 4 | Localisation robuste | Lire le code de localisation de l'équipe; logger et comparer les estimations |
+| 5 | Régler les Limelight | Régler les caméras du vrai robot en suivant la checklist |
+
+---
+
+## 4. Le matériel
+
+<Callout kind="important" label="TODO">
+Liste du matériel utilisé pendant la formation : modèles de Limelight, coprocesseur s'il y en a un, robot ou base de test,
+ordinateurs des participants, et ce qu'il faut installer d'avance.
+</Callout>
+
+---
+
+## 5. Conventions
+
+Les leçons de vision et les aide-mémoire sont en français; le chapitre *Artificial intelligence* est en anglais. Dans les
+deux cas, les termes techniques restent **toujours en anglais**, en italique la première fois (*pose estimation*, *axis
+aligned bounding box*), parce que c'est sous ce nom qu'on les retrouve dans la documentation, le code et les forums, et
+que les traduire donne des choses étranges. Une traduction française n'apparaît que si elle aide.
+
+Les encadrés ont chacun un rôle :
+
+<Callout kind="note">
+Une précision ou un rappel qui ne casse pas le fil de la lecture.
+</Callout>
+
+<Callout kind="tip">
+Un raccourci, une astuce, une façon de vérifier quelque chose rapidement.
+</Callout>
+
+<Callout kind="warning">
+Une erreur fréquente ou un piège.
+</Callout>
+
+Les blocs de code sont en Java quand ils parlent du robot et en Python quand ils servent à expérimenter.
+
+---
+
+## Pour aller plus loin
+
+- [Vision Processing](https://docs.wpilib.org/en/stable/docs/software/vision-processing/index.html) dans la documentation WPILib : le point de départ officiel.
+- [Limelight Documentation](https://docs.limelightvision.io/) : la référence pour les caméras qu'on utilise.
+- [PhotonVision Documentation](https://docs.photonvision.org/) : l'alternative libre, dont les explications sur les AprilTags et l'ambiguïté sont excellentes même si on ne l'utilise pas.

@@ -1,0 +1,94 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+<Callout kind="note" label="For the curious">
+Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector,
+but none of this is needed for AprilTag localization.
+</Callout>
+
+AprilTags are designed to be found; a game piece is not. To recognize an arbitrary object in an image, nobody knows how
+to write the rules, so we learn them: neural object detection. This lesson explains how a network goes from a grid of
+pixels to a list of boxes, each with a label and a score.
+
+<Callout kind="note" label="In this lesson">
+
+- Classification, detection, segmentation: three tasks, three outputs
+- The convolution: a filter that learns
+- How a detector produces boxes
+- Measuring a detector: IoU, precision, recall, mAP
+- The data: labeling and augmentation
+- What this looks like on a Limelight or a coprocessor
+
+</Callout>
+
+## 1. Classification, detection, segmentation
+
+<Callout kind="important" label="TODO">
+Classification gives one label per image; detection gives axis-aligned bounding boxes, each with a label and a
+confidence score; segmentation colors every pixel. Figure with the same image processed all three ways.
+</Callout>
+
+---
+
+## 2. The convolution: a filter that learns
+
+<Callout kind="important" label="TODO">
+A filter is a small grid of weights slid across the image; the result highlights a pattern (edge, corner, texture). In a
+convolutional network (CNN) the filter weights are learned, and successive layers detect increasingly abstract patterns.
+Why this solves the factors-of-variation problem: the same filter applies everywhere in the image. Animation or figure
+of a $3 \times 3$ convolution.
+</Callout>
+
+---
+
+## 3. How a detector produces boxes
+
+<Callout kind="important" label="TODO">
+The YOLO family as the running example: the image is divided into a grid, each cell predicts boxes, scores and classes
+in a single pass. Removing duplicates with non-maximum suppression (NMS). A few words on current architectures without
+going deep — they change every year.
+</Callout>
+
+---
+
+## 4. Measuring a detector
+
+Intersection over Union (IoU) measures how much a predicted box overlaps the expected one: the area of their
+intersection divided by the area of their union, from 0 (no overlap) to 1 (identical). A prediction counts as correct
+above a threshold, commonly 0.5.
+
+$$
+\text{IoU} = \frac{\text{area}(A \cap B)}{\text{area}(A \cup B)}
+$$
+
+<Callout kind="important" label="TODO">
+Precision, recall, and mean average precision (mAP) as the one-number summary of a detector. Why a confidence score
+alone means nothing, and why we test on images never seen during training.
+</Callout>
+
+---
+
+## 5. The data
+
+<Callout kind="important" label="TODO">
+Labeling (drawing the boxes) is the real work; the tools (Roboflow or similar); how many images it takes; data
+augmentation (rotations, brightness, blur) to cover competition conditions; the traps (every photo taken in the shop,
+under the same lighting).
+</Callout>
+
+---
+
+## 6. On a Limelight or a coprocessor
+
+<Callout kind="important" label="TODO">
+What a Limelight can run as a detector and at what framerate, the models Limelight ships for the season's game pieces,
+and how to train and upload your own. Re-check against the current documentation every season, this moves a lot.
+Mention that the output is a 2D box (angle to the object, area), not a field position.
+</Callout>
+
+---
+
+## Further reading
+
+- J. Redmon et al., [You Only Look Once: Unified, Real-Time Object Detection](https://arxiv.org/abs/1506.02640) (CVPR 2016): the original YOLO paper, very readable.
+- [Getting Started with Neural Networks](https://docs.limelightvision.io/docs/docs-limelight/pipeline-neural/getting-started-with-neural-networks) in the Limelight documentation: the Neural Detector and Neural Classifier pipelines, the hardware required, and the provided models. Re-check every season.
+- [Roboflow](https://roboflow.com/): label, augment and train without installing anything.

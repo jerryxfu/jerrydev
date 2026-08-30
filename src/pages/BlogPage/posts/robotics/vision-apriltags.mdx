@@ -1,0 +1,171 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Un AprilTag est un code-barres carré conçu pour être trouvé vite, de loin, sous un mauvais éclairage, et pour donner en
+prime ses quatre coins avec une précision inférieure au pixel. Cette leçon explique ce qu'il encode, comment le détecteur
+le retrouve dans une image, et pourquoi ces quatre coins sont exactement ce qu'il faut pour se localiser.
+
+<Callout kind="note" label="Dans cette leçon">
+
+- Ce qu'est un AprilTag et ce que veut dire « 36h11 »
+- Pourquoi des marqueurs plutôt que des objets
+- Les étapes du détecteur, de l'image brute au code décodé
+- Ce qu'on obtient à la sortie : $t_x$, $t_y$, $t_a$ et les coins
+- Ce qui fait rater une détection
+
+</Callout>
+
+## 1. C'est quoi un AprilTag
+
+Un AprilTag est un *fiducial marker* (marqueur fiduciaire) : un motif imprimé dont la seule fonction est d'être reconnu
+par une caméra. Il est composé d'une bordure noire, d'une bordure blanche autour, et d'une grille de cases noires et
+blanches au centre qui encodent un nombre, l'*identifiant* du tag.
+
+Les tags viennent en *familles*. La FRC utilise la famille **36h11** : chaque tag encode 36 bits (une grille de $6 \times 6$
+cases), et deux codes valides de la famille diffèrent toujours d'au moins 11 bits (*distance de Hamming* de 11). C'est
+cette marge qui rend le décodage robuste : quelques cases mal lues ne transforment pas un tag en un autre. La famille
+compte 587 codes, dont la FRC n'utilise qu'une poignée.
+
+Sur le terrain, chaque tag a un identifiant, une taille (6,5 pouces, soit 165,1 mm de côté pour la partie noire) et une
+position et une orientation exactes, publiées chaque année dans la *field layout* de WPILib et dans le fichier `.fmap` qu'on
+charge dans le Limelight.
+
+<Callout kind="important" label="TODO">
+Image d'un tag 36h11 annoté (bordures, grille, orientation), et la carte des tags du terrain de la saison en cours.
+</Callout>
+
+---
+
+## 2. Pourquoi des tags et pas des objets
+
+On pourrait localiser le robot en reconnaissant des éléments du terrain. Un tag fait mieux sur tous les points qui comptent :
+
+- **Il est fait pour ça.** Contraste maximal, forme simple, code redondant : le détecteur n'a pas à apprendre quoi que ce soit.
+- **Il dit qui il est.** L'identifiant lève toute ambiguïté sur *quel* repère on regarde, et donc où on est sur le terrain.
+- **Sa taille est connue.** Quatre coins dont on connaît l'écartement réel, c'est tout ce qu'il faut pour retrouver une
+distance et une orientation (voir [L'estimation de pose](/blog/vision-pose-estimation)).
+- **Ses coins sont précis.** Le détecteur affine leur position au sous-pixel, ce qu'aucune détection d'objet ne donne.
+
+---
+
+## 3. Comment le détecteur trouve un tag
+
+Le détecteur utilisé partout en FRC descend des travaux d'Edwin Olson à l'Université du Michigan. La version 2 (2016) a
+fixé la structure encore utilisée aujourd'hui; la version 3 (2019) l'a rendue plus rapide et plus flexible. Les étapes,
+dans l'ordre :
+
+### Seuillage adaptatif (*adaptive thresholding*)
+
+L'image est convertie en noir et blanc, mais pas avec un seul seuil : elle est découpée en tuiles de $4 \times 4$ pixels,
+et chaque pixel est comparé à la moyenne du minimum et du maximum observés dans les tuiles voisines ($3 \times 3$ tuiles).
+Un seuil local résiste aux ombres et aux dégradés d'éclairage, là où un seuil global rate la moitié de l'image.
+
+### Segmentation en composantes
+
+Les pixels noirs adjacents sont regroupés en régions, de même pour les blancs, avec un algorithme *union-find*. Le bord
+d'un tag est là où une région noire touche une région blanche.
+
+### Segmentation des contours
+
+Plutôt que de chercher des lignes n'importe où, le détecteur ne garde que les frontières entre une composante noire et une
+composante blanche précises. C'est ce qui a rendu la version 2 tellement plus rapide que la première : beaucoup moins de
+candidats à examiner.
+
+### Ajustement de quadrilatères (*quad fitting*)
+
+Pour chaque frontière, les points sont triés par angle autour de leur centre, les coins candidats sont trouvés là où une
+droite ajustée sur une fenêtre de points cesse de coller, et le détecteur essaie les combinaisons de quatre coins jusqu'à
+trouver un quadrilatère convaincant.
+
+### Décodage
+
+Le quadrilatère donne une *homography* (homographie), une transformation qui envoie le carré idéal du tag sur sa version
+déformée dans l'image. Elle permet d'aller lire la valeur de chaque case de la grille. Le code lu est comparé à la famille : tous les
+codes à au plus deux bits d'erreur d'un code valide sont précalculés dans une table, donc la recherche est immédiate.
+
+### Raffinement des coins (*edge refinement*)
+
+Enfin, les bords du quadrilatère sont réajustés sur les gradients de l'image originale, pas sur la version seuillée, ce
+qui ramène les coins au sous-pixel. Ce sont ces coins-là qui servent à l'estimation de pose.
+
+<Callout kind="note" label="Le downscale">
+Le détecteur peut travailler sur une image réduite (*decimation*, « detector downscale » dans le Limelight) pour les
+premières étapes, puis revenir à la pleine résolution pour raffiner les coins. On y gagne beaucoup d'images par seconde
+pour une perte de portée modeste. C'est le premier réglage à toucher quand la latence est trop grande.
+</Callout>
+
+<Callout kind="important" label="TODO">
+Une figure par étape sur la même image (image brute, seuillée, composantes, contours, quads, tag décodé). OpenCV ou le
+code de référence AprilTag peuvent produire ces images intermédiaires.
+</Callout>
+
+---
+
+## 4. Le code : familles et distance de Hamming
+
+Une famille est construite pour que ses codes soient aussi différents que possible les uns des autres, y compris quand un
+tag est vu tourné de 90, 180 ou 270 degrés : les quatre rotations d'un code sont toutes à bonne distance de tous les autres
+codes. Les codes trop simples (tout noir, rayures) sont écartés parce qu'ils apparaissent trop facilement par hasard dans
+une scène ordinaire.
+
+La notation « 36h11 » résume tout : 36 bits, distance minimale de 11. Plus la distance est grande, moins il y a de codes
+dans la famille, mais plus on tolère d'erreurs de lecture. La famille 36h11 est le compromis retenu par la FRC.
+
+<Callout kind="important" label="TODO">
+Optionnel : montrer deux tags de la famille et compter les bits qui diffèrent. Bon exercice de cinq minutes.
+</Callout>
+
+---
+
+## 5. Ce qu'on obtient à la sortie
+
+Une fois le tag décodé, deux niveaux d'information sont disponibles.
+
+**En 2D**, sans aucune notion de distance : l'identifiant, et l'angle horizontal et vertical entre l'axe de la caméra et
+le centre du tag ($t_x$, $t_y$, en degrés), plus la surface qu'il occupe dans l'image ($t_a$, en pourcentage). C'est
+suffisant pour *viser* un tag, et c'est robuste parce que ça ne dépend presque pas de la calibration.
+
+**En 3D**, en combinant les quatre coins, la taille réelle du tag et la calibration de la caméra : la position et
+l'orientation du tag par rapport à la caméra, et donc, en remontant la chaîne des repères, la position du robot sur le
+terrain. C'est l'objet de la [leçon suivante](/blog/vision-pose-estimation).
+
+---
+
+## 6. Ce qui fait rater une détection
+
+<Callout kind="important" label="TODO">
+Compléter avec les cas rencontrés par l'équipe, idéalement avec une capture pour chacun.
+</Callout>
+
+- **Le flou de mouvement** : une exposition trop longue pendant une rotation, et les bords du tag se diluent.
+- **La distance** : passé une certaine taille en pixels, la grille n'est plus lisible. Plus de résolution ou moins de
+*downscale* repoussent cette limite.
+- **L'angle** : un tag vu très de biais devient un trapèze étroit dont les cases se confondent.
+- **L'éclairage** : reflets sur le tag (les tags FRC sont mats pour cette raison), contre-jour, ou image trop sombre.
+- **L'occlusion** : un tag partiellement caché n'est plus détecté du tout; le détecteur moderne ne tente pas de
+récupérer les tags occultés.
+
+---
+
+## Sur le robot
+
+<Callout kind="important" label="TODO">
+Quels tags comptent pour le jeu de cette saison (ceux près des cibles, ceux qu'on filtre), les réglages du pipeline
+AprilTag sur nos Limelight, et les portées réelles mesurées avec nos caméras.
+</Callout>
+
+---
+
+## Pour aller plus loin
+
+Les trois articles fondateurs, du plus simple à lire au plus technique :
+
+- E. Olson, [AprilTag: A robust and flexible visual fiducial system](https://april.eecs.umich.edu/pdfs/olson2011tags.pdf) (ICRA 2011) : le détecteur original et la construction des familles.
+- J. Wang et E. Olson, [AprilTag 2: Efficient and robust fiducial detection](https://april.eecs.umich.edu/pdfs/wang2016iros.pdf) (IROS 2016) : le détecteur décrit dans cette leçon.
+- M. Krogius, A. Haggenmiller et E. Olson, [Flexible Layouts for Fiducial Tags](https://april.eecs.umich.edu/pdfs/krogius2019iros.pdf) (IROS 2019) : AprilTag 3, les nouvelles familles et les accélérations.
+
+Et pour la pratique :
+
+- [AprilTag](https://april.eecs.umich.edu/software/apriltag.html), le code de référence du laboratoire APRIL.
+- [Tracking AprilTags](https://docs.limelightvision.io/docs/docs-limelight/pipeline-apriltag/apriltags) dans la documentation Limelight.
+- [About AprilTags](https://docs.photonvision.org/en/latest/docs/apriltag-pipelines/about-apriltags.html) dans la documentation PhotonVision.
+- [AprilTag Introduction](https://docs.wpilib.org/en/stable/docs/software/vision-processing/apriltag/apriltag-intro.html) dans la documentation WPILib.

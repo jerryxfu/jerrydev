@@ -27,7 +27,7 @@ export type Topic = {
 // with `satisfies` alone the values are *inferred*, so a syllabus of nothing but slugs infers string[] and the chapter branch of the union narrows to never.
 // Annotating gives every array the same SyllabusEntry[] type whether or not it happens to contain a marker.
 // Record also makes a missing or misspelt id an error, so the two lists cannot drift.
-export const TOPIC_IDS = ["guides", "medive"] as const;
+export const TOPIC_IDS = ["guides", "medive", "robotics"] as const;
 export type TopicId = typeof TOPIC_IDS[number];
 
 
@@ -61,6 +61,38 @@ export const TOPICS: Record<TopicId, Topic> = {
         posts: [
             "medive-devlog0"
         ]
+    },
+    "robotics": {
+        name: "Robotics",
+        description: "The vision course I give to my FRC team, written up as lessons. The core is vision on the robot: cameras, AprilTags, pose estimation and " +
+            "keeping localization honest. The AI chapter is the optional deep end. The vision lessons and cheatsheets are in French (technical terms stay in " +
+            "English), the AI chapter is in English; the cheatsheets are the part you'll come back to.",
+        // Two courses and a shelf of references sharing one topic. The intro sits before the first marker, in the unnamed leading chapter, and that
+        // marker deliberately does NOT break: "next" on the intro is the first vision lesson. Every later marker breaks, because "next" at the end of
+        // the vision course must not be the first AI lesson, and a cheatsheet has no "next" in any sense.
+        posts: [
+            "vision-intro",
+            {chapter: "Computer vision"},
+            "vision-cameras",
+            "vision-apriltags",
+            "vision-pose-estimation",
+            "vision-localization",
+            "vision-limelight-tuning",
+            {chapter: "Artificial intelligence", break: true},
+            "ai-basics",
+            "ai-neural-networks",
+            "ai-object-detection",
+            "ai-llms",
+            // Cheatsheets are reference pages, not a sequence: an unnamed break between each keeps "next" off all of them.
+            {chapter: "Tools", break: true},
+            "cheatsheet-limelight",
+            {break: true},
+            "cheatsheet-coordinates",
+            {break: true},
+            "cheatsheet-math",
+            {break: true},
+            "cheatsheet-vision-debug",
+        ],
     }
 };
 
