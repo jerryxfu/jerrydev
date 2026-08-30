@@ -34,7 +34,7 @@
     // A draft card renders neither image nor description, only its title, tags and date.
     &.postcard--draft {
         .postcard_title {
-            color: var(--text-3);
+            color: var(--text-5);
         }
 
         &:hover {

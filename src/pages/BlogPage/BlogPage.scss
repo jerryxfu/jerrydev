@@ -5,11 +5,19 @@
     background-color: var(--bg);
 }
 
+// width: 100% is load-bearing, not belt-and-braces. .blog is a flex column, so this is a flex item, and a
+// flex item with an auto cross-axis margin does not stretch — the auto margin absorbs the free space
+// instead. Without an explicit width the box therefore sized to fit-content capped at max-width, so
+// filtering the list down to a few short posts visibly narrowed the whole page and shifted it inward.
+// box-sizing keeps the 1.25rem padding inside the 1024px rather than adding to it. .topic_container has
+// carried both since it was written; this is the one that missed them.
 .blog_container {
     flex: 1 0 auto;
+    width: 100%;
     max-width: 1024px;
     margin: 0 auto;
     padding: 5rem 1.25rem 4rem;
+    box-sizing: border-box;
 }
 
 .blog_header {
