@@ -23,7 +23,7 @@
     // and in a normal row that already puts the text left and the image right — reversing would swap them back.
     align-items: stretch;
     border: 1px solid var(--border);
-    border-left: 3px solid var(--tertiary);
+    border-left: 3px solid var(--secondary);
     border-radius: var(--r-md);
     background-color: var(--bg-lt);
     // The image is square-cornered; without this it overflows the panel's rounded corner.
@@ -77,7 +77,7 @@
     transition: color 0.15s ease;
 
     &:hover {
-        color: var(--tertiary);
+        color: var(--secondary);
     }
 }
 

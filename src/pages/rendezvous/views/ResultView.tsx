@@ -79,15 +79,6 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                 )}
             </div>
 
-            {/* Heatmap legend */}
-            {totalResponses > 0 && (
-                <div className="rv_legend">
-                    <span className="rv_legend-label text-small">Fewer</span>
-                    <div className="rv_legend-gradient" />
-                    <span className="rv_legend-label text-small">All ({totalResponses})</span>
-                </div>
-            )}
-
             {/* Heatmap */}
             {isDay ? (
                 <WeekGrid

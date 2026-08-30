@@ -63,15 +63,15 @@
 // different kind of destination from a tag chip without needing a different shape.
 .blog_topic {
     font-size: var(--fs-md);
-    color: var(--tertiary);
+    color: var(--secondary);
     text-decoration: underline;
     text-underline-offset: 3px;
-    text-decoration-color: color-mix(in srgb, var(--tertiary) 40%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
     &:hover {
-        color: var(--tertiary-da);
-        text-decoration-color: var(--tertiary);
+        color: var(--secondary-da);
+        text-decoration-color: var(--secondary);
     }
 }
 
@@ -95,8 +95,8 @@
     // The accent rather than the pale --primary it used to use: at 1px against --bg-lt that blue was
     // near-invisible, so a focused field looked the same as an idle one in three of the four themes.
     &:focus-within {
-        border-color: var(--tertiary);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--tertiary) 18%, transparent);
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 18%, transparent);
     }
 
     svg {
@@ -168,8 +168,8 @@
     // rendered as a pale blue slab on the two dark themes. color-mix against the page background keeps the
     // same weight everywhere, the way the callouts already do it.
     &.active {
-        border-color: var(--tertiary);
-        background-color: color-mix(in srgb, var(--tertiary) 12%, var(--bg));
+        border-color: var(--secondary);
+        background-color: color-mix(in srgb, var(--secondary) 12%, var(--bg));
         color: var(--text-strong);
     }
 }

@@ -47,31 +47,6 @@
     background: color-mix(in srgb, currentColor 4%, transparent);
 }
 
-// --- Legend ---
-.rv_legend {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.rv_legend-label {
-    color: var(--text-5);
-}
-
-.rv_legend-gradient {
-    width: 100px;
-    height: 12px;
-    border-radius: var(--r-xs);
-    background: linear-gradient(
-        to right,
-        color-mix(in srgb, var(--primary) 10%, transparent),
-        color-mix(in srgb, var(--primary) 55%, transparent),
-        color-mix(in srgb, var(--primary) 90%, transparent)
-    );
-    border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
-}
-
 // --- Selected slot ---
 // Renamed from .rv_tooltip: it is a panel in the flow of the page, not a tooltip. min-height holds the
 // resting hint and a one-line name list to the same height, so selecting a slot does not nudge the buttons

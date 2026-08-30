@@ -75,16 +75,16 @@
 .post_topic {
     font-size: var(--fs-sm);
     font-weight: 500;
-    color: var(--tertiary);
+    color: var(--secondary);
     text-decoration: none;
     transition: color 0.15s ease;
 
     &:visited {
-        color: var(--tertiary);
+        color: var(--secondary);
     }
 
     &:hover {
-        color: var(--tertiary-da);
+        color: var(--secondary-da);
         text-decoration: underline;
         text-underline-offset: 3px;
     }
@@ -139,7 +139,7 @@
     gap: 0.3rem;
     width: fit-content;
     font-size: var(--fs-xs);
-    color: var(--tertiary);
+    color: var(--secondary);
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
     // On the word only. The label is an inline-flex box, so decorating it would strike a line under
@@ -147,7 +147,7 @@
     .post_nav_word {
         text-decoration: underline;
         text-underline-offset: 3px;
-        text-decoration-color: color-mix(in srgb, var(--tertiary) 40%, transparent);
+        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
     }
 }
 
@@ -156,10 +156,10 @@
 }
 
 .post_nav_link:hover .post_nav_label {
-    color: var(--tertiary-da);
+    color: var(--secondary-da);
 
     .post_nav_word {
-        text-decoration-color: var(--tertiary);
+        text-decoration-color: var(--secondary);
     }
 }
 
