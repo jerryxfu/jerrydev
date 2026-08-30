@@ -191,15 +191,6 @@ const projects: CardProps[] = [
         footer: "RSEQ Montreal & CRA"
     },
     {
-        title: "Time",
-        subTitle: "Date/time tools",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
-        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
-        url: "/time",
-    },
-    {
         title: "Tools",
         subTitle: "A repo with random utility scripts",
         image: _tools_light,
@@ -244,68 +235,85 @@ const projects: CardProps[] = [
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
     },
     {
-        title: "ORCA",
-        subTitle: "Uncover the unseen",
+        title: "Time",
+        subTitle: "Date/time tools",
         image: _endPortal,
         chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-        url: "https://unveiltechnologies.com",
-        description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
-        footer: "TRL-3"
+        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
+        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
+        url: "/time",
     },
     {
-        title: "Cyclic",
-        subTitle: "Sleep cycle calculator and periods tracker",
+        title: "...",
+        subTitle: "More projects to come...",
         image: _endPortal,
         chipText: "🌀 Concept",
-        dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
-        description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-        footer: "iOS & Android"
+        // dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
+        description: "",
     },
-    {
-        title: "Pulse",
-        subTitle: "Screen time micro-session limiter",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: formatDate(new Date("2026-04-20T00:00:00")),
-        url: "",
-        description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
-        footer: "iOS & Android"
-    },
-    {
-        title: "Cheatsheet",
-        subTitle: "A collection of useful cheatsheets",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: "awaiting",
-        url: "/cheatsheet",
-        description: "A collection of useful cheatsheets for various topics.",
-    },
-    {
-        title: "TechDashboard",
-        subTitle: "Pit dashboard for FRC",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
-    },
-    {
-        title: "MegaCSV",
-        subTitle: "Preview large CSV files",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "Preview large CSV files without crashing your computer.",
-        url: "/megacsv"
-    },
-    {
-        title: "Itinerary",
-        subTitle: "Optimize travel by public transit",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        dateDisplay: "awaiting",
-        description: "description."
-    }
+    // {
+    //     title: "ORCA",
+    //     subTitle: "Uncover the unseen",
+    //     image: _endPortal,
+    //     chipText: "🧩 MVP",
+    //     dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
+    //     url: "https://unveiltechnologies.com",
+    //     description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
+    //     footer: "TRL-3"
+    // },
+    // {
+    //     title: "Cyclic",
+    //     subTitle: "Sleep cycle calculator and periods tracker",
+    //     image: _endPortal,
+    //     chipText: "🌀 Concept",
+    //     dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
+    //     description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
+    //     footer: "iOS & Android"
+    // },
+    // {
+    //     title: "Pulse",
+    //     subTitle: "Screen time micro-session limiter",
+    //     image: _endPortal,
+    //     chipText: "🌀 Concept",
+    //     dateDisplay: formatDate(new Date("2026-04-20T00:00:00")),
+    //     url: "",
+    //     description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
+    //     footer: "iOS & Android"
+    // },
+    // {
+    //     title: "Cheatsheet",
+    //     subTitle: "A collection of useful cheatsheets",
+    //     image: _endPortal,
+    //     chipText: "🧩 MVP",
+    //     dateDisplay: "awaiting",
+    //     url: "/cheatsheet",
+    //     description: "A collection of useful cheatsheets for various topics.",
+    // },
+    // {
+    //     title: "TechDashboard",
+    //     subTitle: "Pit dashboard for FRC",
+    //     image: _endPortal,
+    //     chipText: "🌀 Concept",
+    //     dateDisplay: "awaiting",
+    //     description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
+    // },
+    // {
+    //     title: "MegaCSV",
+    //     subTitle: "Preview large CSV files",
+    //     image: _endPortal,
+    //     chipText: "🌀 Concept",
+    //     dateDisplay: "awaiting",
+    //     description: "Preview large CSV files without crashing your computer.",
+    //     url: "/megacsv"
+    // },
+    // {
+    //     title: "Itinerary",
+    //     subTitle: "Optimize travel by public transit",
+    //     image: _endPortal,
+    //     chipText: "🌀 Concept",
+    //     dateDisplay: "awaiting",
+    //     description: "description."
+    // }
 ];
 
 export default function Projects() {
