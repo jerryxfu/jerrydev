@@ -27,14 +27,14 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    opacity: 0.55;
+    color: var(--text-4);
 }
 
 .expedite_meta-code {
     font-size: var(--fs-smm);
     font-weight: 600;
     letter-spacing: 0.18em;
-    opacity: 0.35;
+    color: var(--text-6);
 }
 
 .expedite_meta-grid {
@@ -64,7 +64,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    opacity: 0.3;
+    color: var(--text-6);
 }
 
 .expedite_meta-value {
@@ -78,7 +78,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    opacity: 0.3;
+    color: var(--text-6);
     margin: 1rem 0 0;
 }
 

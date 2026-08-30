@@ -13,14 +13,14 @@
 
 .rv_result-meta {
     margin: 0.15rem 0 0;
-    opacity: 0.35;
+    color: var(--text-6);
     letter-spacing: 0.01em;
 }
 
 // --- Respondents ---
 .rv_respondents {
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-sm);
     padding: 0.75rem 0.95rem;
     display: flex;
     flex-direction: column;
@@ -31,7 +31,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    opacity: 0.6;
+    color: var(--text-4);
 }
 
 .rv_respondent-list {
@@ -43,7 +43,7 @@
 .rv_respondent-chip {
     padding: 0.2rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
-    border-radius: 5px;
+    border-radius: var(--r-xs);
     background: color-mix(in srgb, currentColor 4%, transparent);
 }
 
@@ -56,13 +56,13 @@
 }
 
 .rv_legend-label {
-    opacity: 0.4;
+    color: var(--text-5);
 }
 
 .rv_legend-gradient {
     width: 100px;
     height: 12px;
-    border-radius: 3px;
+    border-radius: var(--r-xs);
     background: linear-gradient(
         to right,
         color-mix(in srgb, var(--primary) 10%, transparent),
@@ -72,31 +72,42 @@
     border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
-// --- Tooltip ---
-.rv_tooltip {
+// --- Selected slot ---
+// Renamed from .rv_tooltip: it is a panel in the flow of the page, not a tooltip. min-height holds the
+// resting hint and a one-line name list to the same height, so selecting a slot does not nudge the buttons
+// below it.
+.rv_slot-detail {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 0.35rem;
+    min-height: 2.6rem;
     padding: 0.65rem 0.85rem;
-    border: 1px solid var(--border-da);
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
     background: var(--surface);
 }
 
-.rv_tooltip-time {
-    opacity: 0.5;
+.rv_slot-detail-time {
     font-weight: 500;
+    color: var(--text-4);
 }
 
-.rv_tooltip-names {
+// A real colour rather than opacity: 0.5, which multiplies against whatever is behind it and lands at a
+// different contrast on each of the four themes.
+.rv_slot-detail-hint {
+    color: var(--text-5);
+}
+
+.rv_slot-detail-names {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
 }
 
-.rv_tooltip-name {
+.rv_slot-detail-name {
     font-size: var(--fs-smm);
     padding: 0.15rem 0.45rem;
-    border-radius: 4px;
+    border-radius: var(--r-xs);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
 }

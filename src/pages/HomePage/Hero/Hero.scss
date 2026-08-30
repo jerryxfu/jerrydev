@@ -127,7 +127,7 @@
 .hero_typing-text {
     height: 2rem;
     margin-top: 1.75rem;
-    color: color-mix(in srgb, var(--text-2) 90%, transparent);
+    color: var(--text-3);
 
     @media screen and (max-width: 1024px) {
         font-size: 96%;

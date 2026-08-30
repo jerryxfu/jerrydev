@@ -74,6 +74,15 @@ body.homeisland-body {
     --r-md: 6px; // large surfaces, images
     --r-full: 999px; // avatars and anything genuinely circular
 
+    // Opacity, for dimming a whole component — never for making text quieter. Text uses the --text-N
+    // ladder, which is tuned per theme; opacity multiplies against the backdrop instead, so one value
+    // lands ~2 contrast ratios apart between the light and dark themes. These four are the only cases
+    // where a border and a background need to dim along with the label inside them.
+    --opacity-inert: 0.2; // non-interactive context: past dates, gap columns, out-of-range cells
+    --opacity-disabled: 0.35; // a control that is present but cannot be used
+    --opacity-quiet: 0.55; // resting state of a deliberately de-emphasised control
+    --opacity-hover: 0.85; // any control under the pointer, whether it dims from 1 or lifts from quiet
+
     // Color constants that don't change between themes
     --pink: #ff64f9;
     --red: #ff6565;
@@ -125,12 +134,26 @@ body.homeisland-body {
     --surface-da: rgba(0, 0, 0, 0.03);
     --surface-daa: rgba(0, 0, 0, 0.3);
 
+    // The two faintest rungs are translucent rather than opaque. Over --bg each composites to the solid
+    // value it replaces, so nothing moved on an ordinary page; over a tinted surface — a heatmap cell, a
+    // pill, a mesh — the label picks up what is behind it instead of sitting on it as a foreign grey.
+    // Alpha on the colour, not opacity on the element: it touches the glyphs and leaves borders,
+    // backgrounds and children alone, which is the part that actually mattered.
+    //
+    // The percentages differ per theme because each ladder was tuned by hand. --text-6 happens to be
+    // --text-2 at 40% in all four; --text-5 needs 57/45/48/45. Blush is the one inexact fit: its ladder
+    // gains saturation as it fades, which a straight mix toward transparent cannot follow, so --text-5
+    // there lands about 10 points less pink than the solid value did.
+    //
+    // --text-6 is below AA (2.1-2.8:1 depending on theme) and is for decoration only: calendar weekday
+    // initials, separators, a placeholder. Anything the reader has to read stops at --text-5.
     --text-strong: rgba(26, 26, 26, 1);
     --text: rgba(28, 28, 28, 1);
     --text-2: rgba(52, 52, 52, 1);
     --text-3: rgba(86, 86, 86, 1);
     --text-4: rgba(100, 100, 100, 1);
-    --text-5: rgba(138, 138, 138, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 57%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(138, 138, 138, 0.5);
     --shadow-da: rgba(150, 150, 150, 0.20);
@@ -176,7 +199,8 @@ body.homeisland-body {
     --text-2: rgba(200, 200, 200, 1);
     --text-3: rgba(160, 160, 160, 1);
     --text-4: rgba(130, 130, 130, 1);
-    --text-5: rgba(100, 100, 100, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 45%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(0, 0, 0, 0.6);
     --shadow-da: rgba(0, 0, 0, 0.30);
@@ -222,7 +246,8 @@ body.homeisland-body {
     --text-2: rgba(90, 48, 73, 1);
     --text-3: rgba(122, 74, 102, 1);
     --text-4: rgba(154, 106, 134, 1);
-    --text-5: rgba(186, 142, 166, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 48%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(190, 120, 160, 0.50);
     --shadow-da: rgba(200, 140, 175, 0.22);
@@ -273,7 +298,8 @@ body.homeisland-body {
     --text-2: rgba(216, 194, 202, 1);
     --text-3: rgba(180, 152, 164, 1);
     --text-4: rgba(150, 122, 134, 1);
-    --text-5: rgba(118, 92, 104, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 45%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(0, 0, 0, 0.6);
     --shadow-da: rgba(0, 0, 0, 0.32);
@@ -388,7 +414,7 @@ p {
 .text-caption {
     font-size: var(--fs-sm);
     line-height: 1.25;
-    color: color-mix(in srgb, var(--text-2) 55%, transparent);
+    color: var(--text-5);
 }
 
 .text-label {
@@ -397,7 +423,9 @@ p {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--text-2) 40%, transparent);
+    // --text-6 is itself --text-2 at 40%, so this is exactly what the rule used to say inline — the mix
+    // just lives in the ladder now instead of being repeated at the call site.
+    color: var(--text-6);
 }
 
 .text-underline {

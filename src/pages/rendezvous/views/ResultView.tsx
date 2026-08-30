@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Check, Clipboard, Link, UserPlus, Users} from "lucide-react";
 import {type EventMeta} from "../types.ts";
 import {formatDateShort, formatTime12h, generateTimeSlots, getDateRange, getEventUrl, getWeekRows, timeUntil} from "../utils.ts";
@@ -15,11 +15,19 @@ interface ResultViewProps {
 }
 
 export default function ResultView({event, copiedField, onCopy, onAddAvailability}: ResultViewProps) {
-    const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
+    // Click, not hover. A hovered panel is unreadable on the way to reading it — the pointer has to leave
+    // the cell to reach anything, and the panel goes with it — and it never existed at all on touch, which
+    // is what the isTouch branch here used to be working around. A selection persists until it is dismissed.
+    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-    // detect devices that don't have hovering (mobile) for onHover and onClick
-    const isTouch = typeof window !== "undefined" &&
-        window.matchMedia("(hover: none)").matches;
+    useEffect(() => {
+        if (!selectedSlot) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setSelectedSlot(null);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [selectedSlot]);
 
     const timeSlots = generateTimeSlots(event.timeStart, event.timeEnd, event.granularity);
     const dateRange = getDateRange(event.dates);
@@ -37,11 +45,12 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
     }
 
     const maxAvail = Math.max(0, ...Array.from(slotAvailability.values()).map(v => v.length));
-    const hoveredNames = hoveredSlot ? slotAvailability.get(hoveredSlot) || [] : [];
+    const selectedNames = selectedSlot ? slotAvailability.get(selectedSlot) || [] : [];
     // A slot key is "YYYY-MM-DDTHH:MM". Split once here so both halves are typed
     // as strings rather than re-splitting and re-checking at each use.
-    const [hoveredDate = "", hoveredTime = ""] = hoveredSlot ? hoveredSlot.split("T") : [];
-    const hoveredInfo = hoveredSlot ? formatDateShort(hoveredDate) : null;
+    const [selectedDate = "", selectedTime = ""] = selectedSlot ? selectedSlot.split("T") : [];
+    const selectedInfo = selectedSlot ? formatDateShort(selectedDate) : null;
+    const toggle = (key: string) => setSelectedSlot(selectedSlot === key ? null : key);
 
     return (
         <div className="rv_result">
@@ -96,23 +105,34 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                         const count = names.length;
                         const ratio = totalResponses > 0 ? count / totalResponses : 0;
                         const isBest = count === maxAvail && maxAvail > 0;
-                        return (
-                            <div
-                                key={cell.date}
-                                className={[
-                                    "rv_week-cell rv_week-cell--selectable",
-                                    count > 0 && "rv_week-cell--filled",
-                                    isBest && "rv_week-cell--best",
-                                    hoveredSlot === key && "rv_week-cell--hovered",
-                                ].filter(Boolean).join(" ")}
-                                style={count > 0 ? {"--heat": ratio} as React.CSSProperties : undefined}
-                                onMouseEnter={!isTouch ? () => setHoveredSlot(key) : undefined}
-                                onMouseLeave={!isTouch ? () => setHoveredSlot(null) : undefined}
-                                onClick={() => setHoveredSlot(hoveredSlot === key ? null : key)}
-                            >
+                        const className = [
+                            "rv_week-cell rv_week-cell--selectable",
+                            count > 0 ? "rv_week-cell--filled" : "rv_week-cell--empty",
+                            isBest && "rv_week-cell--best",
+                            selectedSlot === key && "rv_week-cell--selected",
+                        ].filter(Boolean).join(" ");
+                        const body = (
+                            <>
                                 <span className="rv_week-cell-num">{info.date}</span>
                                 {count > 0 && <span className="rv_week-cell-count">{count}/{totalResponses}</span>}
-                            </div>
+                            </>
+                        );
+                        // A day nobody picked has nothing to open, so it stays a div: no button semantics, no
+                        // tab stop, and the cursor and hover rules already keyed off --empty agree with it.
+                        if (count === 0) {
+                            return <div key={cell.date} className={className}>{body}</div>;
+                        }
+                        return (
+                            <button
+                                key={cell.date}
+                                type="button"
+                                className={className}
+                                style={{"--heat": ratio} as React.CSSProperties}
+                                aria-pressed={selectedSlot === key}
+                                onClick={() => toggle(key)}
+                            >
+                                {body}
+                            </button>
                         );
                     }}
                 />
@@ -131,42 +151,58 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                         const count = names.length;
                         const ratio = totalResponses > 0 ? count / totalResponses : 0;
                         const isBest = count === maxAvail && maxAvail > 0;
+                        const className = [
+                            "rv_grid-cell rv_grid-cell--heatmap",
+                            count > 0 && "rv_grid-cell--filled",
+                            isBest && "rv_grid-cell--best",
+                            selectedSlot === key && "rv_grid-cell--selected",
+                        ].filter(Boolean).join(" ");
+                        // Same rule as the week grid: an empty slot is not a control. The native title
+                        // tooltip that used to live here is gone with it — the panel below says the same
+                        // thing, on click, without the browser's half-second delay.
+                        if (count === 0) {
+                            return <div key={key} className={className} />;
+                        }
                         return (
-                            <div
+                            <button
                                 key={key}
-                                className={[
-                                    "rv_grid-cell rv_grid-cell--heatmap",
-                                    count > 0 && "rv_grid-cell--filled",
-                                    isBest && "rv_grid-cell--best",
-                                    hoveredSlot === key && "rv_grid-cell--hovered",
-                                ].filter(Boolean).join(" ")}
-                                style={count > 0 ? {"--heat": ratio} as React.CSSProperties : undefined}
-                                onMouseEnter={() => setHoveredSlot(key)}
-                                onMouseLeave={() => setHoveredSlot(null)}
-                                onClick={() => setHoveredSlot(hoveredSlot === key ? null : key)}
-                                title={count > 0 ? `${count}/${totalResponses}: ${names.join(", ")}` : "No one available"}
+                                type="button"
+                                className={className}
+                                style={{"--heat": ratio} as React.CSSProperties}
+                                aria-pressed={selectedSlot === key}
+                                onClick={() => toggle(key)}
                             >
-                                {count > 0 && <span className="rv_grid-cell-count">{count}</span>}
-                            </div>
+                                <span className="rv_grid-cell-count">{count}</span>
+                            </button>
                         );
                     }}
                 />
             )}
 
-            {/* Hover tooltip */}
-            {hoveredSlot && hoveredNames.length > 0 && hoveredInfo && (
-                <div className="rv_tooltip">
-                    <span className="rv_tooltip-time text-small">
-                        {isDay
-                            ? <>{hoveredInfo.day}, {hoveredInfo.month} {hoveredInfo.date}</>
-                            : <>{formatTime12h(hoveredTime)} · {hoveredInfo.day} {hoveredInfo.date}</>
-                        }
-                    </span>
-                    <div className="rv_tooltip-names">
-                        {hoveredNames.map(n => (
-                            <span key={n} className="rv_tooltip-name">{n}</span>
-                        ))}
-                    </div>
+            {/* Selected slot. Rendered whether or not anything is selected: it used to appear and disappear
+                with the pointer, which shoved the buttons below it up and down the page on every cell the
+                cursor crossed. The resting state also tells you the grid is clickable, which nothing did. */}
+            {totalResponses > 0 && (
+                <div className="rv_slot-detail" aria-live="polite">
+                    {selectedSlot && selectedInfo ? (
+                        <>
+                            <span className="rv_slot-detail-time text-small">
+                                {isDay
+                                    ? <>{selectedInfo.day}, {selectedInfo.month} {selectedInfo.date}</>
+                                    : <>{formatTime12h(selectedTime)} · {selectedInfo.day} {selectedInfo.date}</>
+                                }
+                            </span>
+                            <div className="rv_slot-detail-names">
+                                {selectedNames.map(n => (
+                                    <span key={n} className="rv_slot-detail-name">{n}</span>
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <span className="rv_slot-detail-hint text-small">
+                            Select a slot to see who is free
+                        </span>
+                    )}
                 </div>
             )}
 

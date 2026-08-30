@@ -155,7 +155,7 @@ $rail-left: calc(50vw - 370px - 1.75rem - #{$rail-w});
 
 .posttoc_progress {
     height: 2px;
-    background-color: var(--text-4);
+    background-color: var(--tertiary);
     // Scaled rather than sized: a width animation lays out every frame, a transform does not. The
     // origin has to be set or it grows from the middle outward.
     transform-origin: 0 50%;

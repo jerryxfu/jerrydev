@@ -19,7 +19,7 @@
 }
 
 .rv_event-code {
-    opacity: 0.3;
+    color: var(--text-6);
     font-weight: 600;
     letter-spacing: 0.15em;
 }
@@ -38,7 +38,7 @@
     transition: border-color 0.15s;
 
     &::placeholder {
-        opacity: 0.3;
+        color: var(--text-6);
     }
 
     &:focus {
@@ -48,7 +48,7 @@
 
 .rv_respondent-count {
     margin: 0;
-    opacity: 0.5;
+    color: var(--text-4);
     text-align: center;
 }
 
@@ -67,12 +67,12 @@
     text-underline-offset: 2px;
 
     &:hover {
-        opacity: 0.7;
+        opacity: var(--opacity-hover);
     }
 }
 
 .rv_slot-count {
     margin: 0;
     text-align: center;
-    opacity: 0.4;
+    color: var(--text-5);
 }

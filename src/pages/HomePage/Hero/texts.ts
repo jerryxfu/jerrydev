@@ -10,7 +10,6 @@ export const texts: { [key: number]: string[] } = {
         "🛰️ Making browsers talk without a middleman.",
         "🧭 Triangulating strongholds and stack traces.",
         "🗓️ Built a scheduler. Still late.",
-        "🌗 Two themes weren't enough, so there are four.",
         "🔍 It was a typo. It's usually a typo.",
         "📉 Deleted more than I wrote today. Good day.",
         "🔭 Reading code I wrote last month like a stranger's.",
