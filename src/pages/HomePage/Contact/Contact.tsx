@@ -135,8 +135,8 @@ export default function Contact() {
                     <div className="contact_work-body">
                         <div className="contact_work-content">
                             <p className="contact_work-blurb">
-                                I build websites and small tools for people, case by case depending on scope
-                                and timing. If you have something in mind, an email is the best place to start.
+                                I build websites, apps, and tools for people, case by case depending on scope and timing.
+                                If you have something in mind, an email is the best place to start.
                             </p>
 
                             {/*<a*/}

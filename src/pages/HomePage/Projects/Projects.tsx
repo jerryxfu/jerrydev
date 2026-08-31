@@ -24,8 +24,8 @@ import _technexus from "../../../assets/projects/technexus.png";
 import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import _tools_light from "../../../assets/projects/tools_light.jpeg";
 import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
-import _template_light from "../../../assets/projects/template.png";
-import _template_dark from "../../../assets/projects/template_dark.png";
+import _vite_light from "../../../assets/projects/vite_light.jpeg";
+import _vite_dark from "../../../assets/projects/vite_dark.jpeg";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
 import _guides from "../../../assets/projects/guides.jpeg";
 import _stats from "../../../assets/projects/stats.jpeg";
@@ -150,7 +150,7 @@ const projects: CardProps[] = [
     {
         title: "Vite + React + TS template",
         subTitle: "A modern website template",
-        image: _stats,
+        image: _vite_light,
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2026-05-22T00:00:00")), // first commit
         url: "https://github.com/jerryxfu/vite-react-ts",
@@ -342,7 +342,7 @@ export default function Projects() {
             return {...project, image: isDarkTheme(currentTheme) ? _tools_dark : _tools_light};
         }
         if (project.title === "Vite + React + TS template") {
-            return {...project, image: isDarkTheme(currentTheme) ? _template_dark : _template_light};
+            return {...project, image: isDarkTheme(currentTheme) ? _vite_dark : _vite_light};
         }
         return project;
     }), [currentTheme]);

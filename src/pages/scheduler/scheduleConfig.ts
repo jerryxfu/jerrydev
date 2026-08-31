@@ -241,7 +241,7 @@ const scheduleConfig: ScheduleType[] = [
                 day: "monday",
                 id: "603-103-MQ",
                 title: "Snobbery in Literature",
-                startTime: "10:30",
+                startTime: "10:00",
                 endTime: "12:00",
                 location: "N-436",
                 color: subjectColors.english
