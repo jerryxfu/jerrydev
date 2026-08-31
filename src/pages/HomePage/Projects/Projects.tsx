@@ -24,6 +24,8 @@ import _technexus from "../../../assets/projects/technexus.png";
 import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
 import _tools_light from "../../../assets/projects/tools_light.jpeg";
 import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
+import _template_light from "../../../assets/projects/template.png";
+import _template_dark from "../../../assets/projects/template_dark.png";
 import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
 import _guides from "../../../assets/projects/guides.jpeg";
 import _stats from "../../../assets/projects/stats.jpeg";
@@ -96,7 +98,7 @@ const projects: CardProps[] = [
         subTitle: "A schedule visualizer and comparer",
         image: _scheduler,
         chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-27")),
+        dateDisplay: formatDate(new Date("2025-08-27T00:00:00")),
         description: "A web app to visualize and compare daily/weekly schedules.",
     },
     {
@@ -145,10 +147,17 @@ const projects: CardProps[] = [
         description: "This portfolio website, the blog, as well as the API that empowers other projects.",
         specialLink: "/blog/hello-blog",
     },
-    // {
-    //   title:"Vite + React + TS template",
-    //     subTitle: "A modern web development template",
-    // },
+    {
+        title: "Vite + React + TS template",
+        subTitle: "A modern website template",
+        image: _stats,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-05-22T00:00:00")), // first commit
+        url: "https://github.com/jerryxfu/vite-react-ts",
+        specialLink: "https://github.com/jerryxfu/vite-react-ts",
+        specialLinkText: "View on GitHub",
+        description: "An opinionated starter for React projects. Ships TypeScript in strict mode, Vite, SCSS with light/dark custom properties, wouter routing, an error boundary, an ESLint flat config, and an offline-capable PWA.",
+    },
     {
         title: "stats.jerryxf",
         subTitle: "Cool live data feeds",
@@ -331,6 +340,9 @@ export default function Projects() {
         }
         if (project.title === "Tools") {
             return {...project, image: isDarkTheme(currentTheme) ? _tools_dark : _tools_light};
+        }
+        if (project.title === "Vite + React + TS template") {
+            return {...project, image: isDarkTheme(currentTheme) ? _template_dark : _template_light};
         }
         return project;
     }), [currentTheme]);
