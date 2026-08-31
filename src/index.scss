@@ -105,8 +105,10 @@ body.homeisland-body {
 // link, active filter and selection ring resolves to. It is the same blue in all four themes on purpose —
 // a token that means a different kind of colour per theme cannot be used from a theme-agnostic rule.
 //
-// --tertiary currently holds each theme's old pastel and has no call sites. It is a slot without a job;
-// if a second accent is ever wanted, it needs to earn one rather than just sit here.
+// There is deliberately no second decorative slot. --primary, --secondary and --accent are ranks, and a
+// rank does not tell you when to reach for it — which is how the old --tertiary ended up holding a pastel
+// that two rules used by accident. --success/--warning/--danger/--info have never drifted, because there
+// the name is the rule. If a second colour is ever wanted, it gets named after its job, not its position.
 
 // Light theme (formerly "default")
 :root,
@@ -123,10 +125,6 @@ body.homeisland-body {
     --accent: rgba(225, 204, 173, 1);
     --accent-lt: rgba(241, 227, 208, 1);
     --accent-da: rgba(219, 195, 158, 1);
-
-    --tertiary: rgba(213, 173, 215, 1);
-    --tertiary-lt: rgba(218, 183, 220, 1);
-    --tertiary-da: rgba(207, 163, 210, 1);
 
     --bg: rgba(251, 250, 249, 1);
     --bg-lt: rgba(254, 254, 254, 1);
@@ -184,10 +182,6 @@ body.homeisland-body {
     --accent-lt: rgba(245, 228, 204, 1);
     --accent-da: rgba(219, 195, 158, 1);
 
-    --tertiary: rgba(215, 174, 226, 1);
-    --tertiary-lt: rgba(219, 184, 229, 1);
-    --tertiary-da: rgba(208, 161, 221, 1);
-
     --bg: rgba(16, 16, 16, 1);
     --bg-lt: rgba(24, 24, 24, 1);
     --bg-da: rgba(8, 8, 8, 1);
@@ -231,10 +225,6 @@ body.homeisland-body {
     --accent-lt: rgba(255, 230, 218, 1);
     --accent-da: rgba(255, 192, 163, 1);
 
-    --tertiary: rgba(217, 194, 240, 1);
-    --tertiary-lt: rgba(228, 211, 245, 1);
-    --tertiary-da: rgba(201, 171, 233, 1);
-
     --bg: rgba(255, 247, 251, 1);
     --bg-lt: rgba(255, 253, 254, 1);
     --bg-da: rgba(253, 239, 247, 1);
@@ -268,7 +258,7 @@ body.homeisland-body {
 [data-theme="burgundy"] {
     // Sits at hue 345, the wine side of red rather than scarlet: #9e1e3e is
     // close to classic burgundy (#800020) but light enough to survive being used
-    // as an accent on a dark background. --tertiary holds the warm neutral grey.
+    // as an accent on a dark background.
     --primary: rgba(158, 30, 62, 1);
     --primary-lt: rgba(186, 56, 88, 1);
     --primary-ltx: rgba(210, 104, 132, 1);
@@ -281,10 +271,6 @@ body.homeisland-body {
     --accent: rgba(212, 175, 140, 1);
     --accent-lt: rgba(228, 200, 174, 1);
     --accent-da: rgba(190, 150, 112, 1);
-
-    --tertiary: rgba(150, 140, 144, 1);
-    --tertiary-lt: rgba(180, 170, 174, 1);
-    --tertiary-da: rgba(118, 108, 112, 1);
 
     --bg: rgba(32, 12, 20, 1);
     --bg-lt: rgba(46, 18, 30, 1);
@@ -362,11 +348,9 @@ p {
     line-height: 1.38;
 }
 
-// One focus ring for the whole site. Previously this only existed on the navbar, so every link, card and
-// filter elsewhere fell back to the UA default — which is a thin blue line that disappears against night
-// and burgundy. --tertiary is the one saturated colour in the palette, so it stays visible in all four.
-// Modern browsers follow the element's own border-radius here, so no radius is set: it would override
-// whatever the focused component uses.
+// One focus ring for the whole site. Previously this only existed on the navbar, so every link, card and filter elsewhere fell back to the UA default
+// which is a thin blue line that disappears against night and burgundy. --secondary is the one saturated colour in the palette, so it stays visible in all four.
+// Modern browsers follow the element's own border-radius here, so no radius is set: it would override whatever the focused component uses.
 :focus-visible {
     outline: 2px solid var(--secondary);
     outline-offset: 2px;
@@ -430,8 +414,8 @@ p {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    // --text-6 is itself --text-2 at 40%, so this is exactly what the rule used to say inline — the mix
-    // just lives in the ladder now instead of being repeated at the call site.
+    // --text-6 is itself --text-2 at 40%, so this is exactly what the rule used to say inline.
+    // The mix just lives in the ladder now instead of being repeated at the call site.
     color: var(--text-6);
 }
 
@@ -440,7 +424,9 @@ p {
         position: absolute;
         content: "";
         width: 100%;
-        height: 3px;
+        // 2px, not 3. This is the only place the accent is painted as a solid bar rather than as a hairline or a glyph,
+        // and at 3px it was the heaviest mark in the navbar. The blog spends this colour at 1-2px everywhere; this now matches.
+        height: 2px;
         top: 90%; /* distance from the bottom */
         left: 0;
         background: var(--secondary-lt);

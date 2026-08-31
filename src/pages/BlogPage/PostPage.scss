@@ -132,7 +132,7 @@
 
 // The underline sits on the label rather than on the whole link: it is the part that says what the
 // control does, and running a rule under a two-line post title reads as heavy rather than as a link.
-// Same treatment as .blog_topic, so every tertiary link on the blog underlines the same way.
+// Same treatment as .blog_topic, so every accent link on the blog underlines the same way.
 .post_nav_label {
     display: inline-flex;
     align-items: center;
@@ -176,10 +176,9 @@
     border-top: none;
 }
 
-// Shares .post_container, but unlike a real post this branch still renders a navbar — a dead end needs a way out. So
-// it keeps clearance the container itself gave up. Compound selector on purpose: a bare .post_missing ties with
-// .post_container on specificity and loses to the 600px block further down, which sets padding as a shorthand and
-// dragged the heading back to 10px off the navbar.
+// Shares .post_container, but unlike a real post this branch still renders a navbar as a way out. So it keeps clearance the container itself gave up.
+// Compound selector on purpose: a bare .post_missing ties with .post_container on specificity and loses to the 600px block further down,
+// which sets padding as a shorthand and dragged the heading back to 10px off the navbar.
 .post_container.post_missing {
     padding-top: 5rem;
 }

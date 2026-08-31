@@ -130,6 +130,8 @@ const projects: CardProps[] = [
         title: "Guide",
         subTitle: "Guides about various stuff",
         image: _guides,
+        specialLink: "/blog/topics/guides",
+        specialLinkText: "Open",
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
         url: "/blog/topics/guides",
         dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
@@ -143,6 +145,10 @@ const projects: CardProps[] = [
         description: "This portfolio website, the blog, as well as the API that empowers other projects.",
         specialLink: "/blog/hello-blog",
     },
+    // {
+    //   title:"Vite + React + TS template",
+    //     subTitle: "A modern web development template",
+    // },
     {
         title: "stats.jerryxf",
         subTitle: "Cool live data feeds",
@@ -150,7 +156,7 @@ const projects: CardProps[] = [
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
         url: "https://stats.jerryxf.net",
-        description: "A collection of *diverse* live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
+        description: "A collection of diverse live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
     },
     {
         title: "JerryBot",
@@ -188,16 +194,7 @@ const projects: CardProps[] = [
         dateDisplay: formatDate(new Date("2025-05-09T00:00:00")),
         url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
         description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
-        footer: "RSEQ Montreal & CRA"
-    },
-    {
-        title: "Tools",
-        subTitle: "A repo with random utility scripts",
-        image: _tools_light,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-06-15T00:00:00")),
-        url: "https://github.com/jerryxfu/tools",
-        description: "A repository with random utility scripts that I use here and there.",
+        footer: "RSEQ Montreal"
     },
     {
         title: "Conditioner",
@@ -215,6 +212,15 @@ const projects: CardProps[] = [
         chipText: "✅ Completed",
         dateDisplay: formatDate(new Date("2025-02-08T00:00:00")),
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
+    },
+    {
+        title: "Tools",
+        subTitle: "A repo with random utility scripts",
+        image: _tools_light,
+        chipText: "🟢 Stable",
+        dateDisplay: formatDate(new Date("2026-06-15T00:00:00")),
+        url: "https://github.com/jerryxfu/tools",
+        description: "A repository with random utility scripts that I use here and there.",
     },
     {
         title: "FRC AutoScout",

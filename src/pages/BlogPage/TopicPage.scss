@@ -15,7 +15,7 @@
 }
 
 // A panel rather than the old scrim-over-photo, so it can use theme tokens throughout instead of the hardcoded
-// light-on-dark that a scrim required. The left rule in --tertiary ties it to the topic links on /blog. The optional
+// light-on-dark that a scrim required. The left rule in --secondary ties it to the topic links on /blog. The optional
 // image sits beside the text rather than behind it, which is what keeps the tokens usable.
 .topic_header {
     display: flex;
@@ -131,7 +131,7 @@
 }
 
 // Was a two-column grid. A chapter is a reading order, and rows separated by hairlines carry that order down
-// the page in a way a left-to-right-then-wrap grid never did — lesson 3 sat to the right of lesson 2 rather
+// the page in a way a left-to-right-then-wrap grid never did. Lesson 3 sat to the right of lesson 2 rather
 // than under it. Inherits the stack from .blog_list, so there is nothing left to declare.
 
 @media screen and (max-width: 860px) {

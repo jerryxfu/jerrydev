@@ -22,7 +22,6 @@
     "dependencies": {
         "@fontsource-variable/outfit": "^5.3.0",
         "@gsap/react": "^2.1.2",
-        "baffle": "^0.3.6",
         "d3": "^7.9.0",
         "gsap": "^3.15.0",
         "lucide-react": "^1.27.0",
