@@ -1,13 +1,15 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
 
 <Callout kind="note" label="For the curious">
-Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector,
-but none of this is needed for AprilTag localization.
+Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector.
+Still, none of this is needed for AprilTag localization — tags don't use any learning at all.
 </Callout>
 
-AprilTags are designed to be found; a game piece is not. To recognize an arbitrary object in an image, nobody knows how
-to write the rules, so we learn them: neural object detection. This lesson explains how a network goes from a grid of
-pixels to a list of boxes, each with a label and a score.
+AprilTags are designed to be found; a game piece is not. Nobody printed a convenient black-and-white code on it, it can
+be anywhere in the image, half-hidden, badly lit, next to three others. For that problem, hand-written rules collapse
+(that was [lesson one's](/blog/ai-basics) whole point), so we learn the rules instead. This lesson explains how a neural
+network goes from a grid of pixels to a list of boxes, each with a label and a score — and what that looks like running
+on our hardware.
 
 <Callout kind="note" label="In this lesson">
 
@@ -22,73 +24,117 @@ pixels to a list of boxes, each with a label and a score.
 
 ## 1. Classification, detection, segmentation
 
+Three vision tasks, sorted by how much they tell you — and how much they cost:
+
+- **Classification**: one label for the whole image. "This photo contains a note." Where? No idea.
+- **Detection**: an axis-aligned bounding box around each object, with a label and a confidence score. "Note here
+(94%), note there (81%)." This is the task that matters for a robot, because a box in the image is something you can
+aim at.
+- **Segmentation**: a label for every single pixel — the exact outline. Beautiful, expensive, and overkill for finding
+a game piece.
+
 <Callout kind="important" label="TODO">
-Classification gives one label per image; detection gives axis-aligned bounding boxes, each with a label and a
-confidence score; segmentation colors every pixel. Figure with the same image processed all three ways.
+Figure with the same image processed all three ways.
 </Callout>
 
 ---
 
 ## 2. The convolution: a filter that learns
 
+How do you even feed an image to a network? Naively, you'd wire every pixel to every neuron — millions of weights for a
+tiny image, and a network that has to re-learn "what an edge looks like" separately for every location. Terrible idea.
+
+The fix is the **convolution**: a small grid of weights (say $3 \times 3$) that *slides* across the image, computing a
+weighted sum at each position. The output is a new image highlighting wherever the pattern appears — an edge, a corner,
+a blob of orange. One filter, applied everywhere. In a convolutional network (CNN), the filter weights are learned like
+any other parameter, and layers stack: early filters find edges, middle layers find textures and parts, deep layers find
+whole objects. Nobody designs that hierarchy; it falls out of training.
+
+Notice what this buys us: the same filter applies at every position, so an object is recognized wherever it sits in the
+frame. Remember the *factors of variation* that killed hand-written rules? Convolutions handle the biggest one —
+position — for free, by construction. That one idea is most of why deep learning conquered vision.
+
 <Callout kind="important" label="TODO">
-A filter is a small grid of weights slid across the image; the result highlights a pattern (edge, corner, texture). In a
-convolutional network (CNN) the filter weights are learned, and successive layers detect increasingly abstract patterns.
-Why this solves the factors-of-variation problem: the same filter applies everywhere in the image. Animation or figure
-of a $3 \times 3$ convolution.
+Animation or figure of a $3 \times 3$ convolution sliding over an image, plus a real filter's output.
 </Callout>
 
 ---
 
 ## 3. How a detector produces boxes
 
-<Callout kind="important" label="TODO">
-The YOLO family as the running example: the image is divided into a grid, each cell predicts boxes, scores and classes
-in a single pass. Removing duplicates with non-maximum suppression (NMS). A few words on current architectures without
-going deep — they change every year.
-</Callout>
+Classification says "there's a note somewhere". How do you get *boxes* out of a network? The family to know is
+**YOLO** — *You Only Look Once* — whose name is the whole idea: instead of scanning the image region by region, one
+single network pass predicts everything at once.
+
+Conceptually: the image is divided into a grid, and each cell predicts a few candidate boxes — position, size, a
+confidence score, and class probabilities. One forward pass, hundreds of candidates, real-time speed. The raw output is
+messy (the same object gets found by several neighboring cells), so a cleanup step called **non-maximum suppression**
+(NMS) keeps the highest-scoring box and deletes overlapping duplicates.
+
+The specific architectures evolve every year — versions, forks, anchor-free variants, transformer hybrids — and chasing
+them is a hobby in itself. The grid-of-predictions picture has survived a decade of that churn, so that's the part worth
+storing in your head.
 
 ---
 
 ## 4. Measuring a detector
 
-Intersection over Union (IoU) measures how much a predicted box overlaps the expected one: the area of their
-intersection divided by the area of their union, from 0 (no overlap) to 1 (identical). A prediction counts as correct
-above a threshold, commonly 0.5.
+A detector that "seems to work" in the shop is worth nothing until you can put a number on it. The vocabulary:
+
+**IoU** (Intersection over Union) measures how well a predicted box matches the true one: the area of their overlap
+divided by the area of their union, from 0 (missed) to 1 (perfect). A prediction usually counts as correct above 0.5.
 
 $$
 \text{IoU} = \frac{\text{area}(A \cap B)}{\text{area}(A \cup B)}
 $$
 
-<Callout kind="important" label="TODO">
-Precision, recall, and mean average precision (mAP) as the one-number summary of a detector. Why a confidence score
-alone means nothing, and why we test on images never seen during training.
-</Callout>
+**Precision** asks: of the boxes I predicted, how many were real? **Recall** asks: of the real objects, how many did I
+find? They fight each other — lower your confidence threshold and recall rises while precision falls. **mAP** (mean
+average precision) sweeps the threshold across the whole range and condenses the trade-off into one number, which is why
+every detector paper leads with it.
+
+And the golden rule from [lesson one](/blog/ai-basics) applies with full force: all of this is measured on images the
+network never trained on. A detector scored on its own training photos is just an expensive way to lie to yourself.
 
 ---
 
 ## 5. The data
 
-<Callout kind="important" label="TODO">
-Labeling (drawing the boxes) is the real work; the tools (Roboflow or similar); how many images it takes; data
-augmentation (rotations, brightness, blur) to cover competition conditions; the traps (every photo taken in the shop,
-under the same lighting).
-</Callout>
+Here's the part no tutorial dwells on: the model is the easy 10%. The real work is the dataset.
+
+Labeling means a human draws the boxes — hundreds of images, by hand, ideally from real competition footage. Tools like
+Roboflow make the drawing tolerable and the exporting painless. A few hundred well-chosen images can be enough for one
+game piece; more variety beats more volume.
+
+Then **augmentation** stretches what you have: random rotations, brightness shifts, blur, crops — each labeled image
+becomes ten slightly different ones, teaching the network the factors of variation you couldn't photograph.
+
+The classic trap deserves its own sentence: if every photo was taken in your shop, under your shop's lights, you have
+trained a shop-detector. It will meet arena lighting for the first time during a match, and it will lose. Photograph
+where you'll play, or augment until it hurts.
 
 ---
 
 ## 6. On a Limelight or a coprocessor
 
+A Limelight can run two kinds of neural pipelines: a **Neural Detector** (boxes around game pieces — everything this
+lesson described) and a **Neural Classifier** (a label for the whole frame). Inference runs on an accelerator rather
+than the main processor, and Limelight ships pretrained models for the season's game pieces, plus a documented path for
+training and uploading your own.
+
+One caution before you fall in love: the output is a box *in the image* — an angle to the object and an apparent size —
+not a field position. Getting from a box to "the note is 2.3 m away at 15°" is a geometry problem, not a learning
+problem, and it's a genuinely hard one. Know exactly why you want a detector before spending build-season time on it.
+
 <Callout kind="important" label="TODO">
-What a Limelight can run as a detector and at what framerate, the models Limelight ships for the season's game pieces,
-and how to train and upload your own. Re-check against the current documentation every season, this moves a lot.
-Mention that the output is a 2D box (angle to the object, area), not a field position.
+Our actual setup if we ever field one: which Limelight, which accelerator, framerate achieved, and how the model was
+trained. Re-check the hardware requirements against the current docs every season — this moves a lot.
 </Callout>
 
 ---
 
 ## Further reading
 
-- J. Redmon et al., [You Only Look Once: Unified, Real-Time Object Detection](https://arxiv.org/abs/1506.02640) (CVPR 2016): the original YOLO paper, very readable.
-- [Getting Started with Neural Networks](https://docs.limelightvision.io/docs/docs-limelight/pipeline-neural/getting-started-with-neural-networks) in the Limelight documentation: the Neural Detector and Neural Classifier pipelines, the hardware required, and the provided models. Re-check every season.
+- J. Redmon et al., [You Only Look Once: Unified, Real-Time Object Detection](https://arxiv.org/abs/1506.02640) (CVPR 2016): the original YOLO paper, very readable as papers go.
+- [Getting Started with Neural Networks](https://docs.limelightvision.io/docs/docs-limelight/pipeline-neural/getting-started-with-neural-networks) in the Limelight documentation: the Neural Detector and Classifier pipelines, hardware, and provided models.
 - [Roboflow](https://roboflow.com/): label, augment and train without installing anything.

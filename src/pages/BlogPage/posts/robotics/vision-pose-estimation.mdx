@@ -1,39 +1,45 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
 
-Le détecteur nous donne quatre coins dans l'image. On connaît la taille réelle du tag, donc la position de ces quatre coins
-dans le monde, et on connaît la caméra grâce à la calibration. La question de cette leçon : où est la caméra par rapport
-au tag? C'est le problème *Perspective-n-Point*, et sa réponse est ce qui transforme une caméra en instrument de mesure.
+Jusqu'ici, `botpose` était une boîte noire : le Limelight voit des tags, une pose de robot en sort, et la
+[leçon précédente](/blog/vision-localization) a montré quoi en faire. Il est temps de l'ouvrir. Comment, exactement,
+quatre coins dans une image deviennent-ils une position sur le terrain? La réponse s'appelle *Perspective-n-Point*, et
+c'est, à mon avis, le plus beau morceau de maths de tout le système : c'est elle qui transforme une caméra en instrument
+de mesure.
 
 <Callout kind="note" label="Dans cette leçon">
 
 - Le problème PnP : des points 3D connus, leurs images 2D, retrouver la pose
 - La chaîne de projection écrite en équations, et l'erreur de reprojection
-- Les algorithmes qui résolvent PnP, et lequel s'applique à un tag
-- L'ambiguïté de pose, d'où elle vient et comment on la contourne
-- Plusieurs tags valent mieux qu'un : MegaTag et MegaTag2
+- Les algorithmes derrière `solvePnP`, et lequel s'applique à un tag
+- L'ambiguïté de pose — le fameux flip, enfin expliqué
+- MegaTag et MegaTag2 : pourquoi plusieurs tags (ou un gyroscope) règlent tout
 - De la caméra au robot, du robot au terrain
 
 </Callout>
 
 ## 1. Le problème : de quatre coins à une pose
 
-On a $n$ points dont on connaît la position dans un repère du monde, $X_i \in \mathbb{R}^3$, et leur projection dans l'image,
-$u_i \in \mathbb{R}^2$. On cherche la rotation $R$ et la translation $t$ qui placent la caméra par rapport à ces points.
-Pour un tag, $n = 4$ : les coins, dont la position dans le repère du tag est simplement donnée par sa taille $s$ :
+Posons le problème proprement. On a $n$ points dont on connaît la position dans un repère du monde, $X_i \in \mathbb{R}^3$,
+et leur projection mesurée dans l'image, $u_i \in \mathbb{R}^2$. On cherche la rotation $R$ et la translation $t$ qui
+placent la caméra par rapport à ces points.
+
+Pour un tag, $n = 4$ : les coins. Et comme on connaît la taille $s$ du tag, leur position dans le repère du tag est
+donnée gratuitement :
 
 $$
 \left(\pm\tfrac{s}{2},\ \pm\tfrac{s}{2},\ 0\right)
 $$
 
-C'est le problème **Perspective-n-Point** (PnP). Le résoudre, c'est trouver la pose $(R, t)$ qui, une fois les points 3D
+Vous voyez maintenant pourquoi la leçon sur les AprilTags insistait sur « taille connue, coins au sous-pixel » : ce sont
+exactement les ingrédients de PnP. Résoudre le problème, c'est trouver la pose $(R, t)$ qui, une fois les points 3D
 projetés à travers la caméra, retombe le mieux possible sur les points 2D mesurés.
 
 ---
 
 ## 2. La projection en équations
 
-En reprenant le modèle sténopé de la [leçon sur les caméras](/blog/vision-cameras), un point du monde passe d'abord dans le
-repère de la caméra par la pose, puis sur l'image par $K$ :
+En reprenant le modèle sténopé de la [leçon sur les caméras](/blog/vision-cameras), un point du monde passe d'abord dans
+le repère de la caméra par la pose, puis sur l'image par $K$ :
 
 $$
 s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
@@ -41,101 +47,107 @@ s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
 $$
 
 On note $\pi(\cdot)$ toute la chaîne, du point 3D au pixel. L'erreur de reprojection (*reprojection error*) d'une pose
-candidate est la distance
-entre là où chaque point *devrait* tomber selon cette pose et là où le détecteur l'a *mesuré* :
+candidate est la distance entre là où chaque point *devrait* tomber selon cette pose et là où le détecteur l'a *mesuré* :
 
 $$
 E(R, t) = \sum_{i=1}^{n} \left\| u_i - \pi(R X_i + t) \right\|^2
 $$
 
 Résoudre PnP, c'est minimiser $E$. Une pose parfaite donne une erreur de zéro; une bonne pose sur un vrai tag donne une
-fraction de pixel.
+fraction de pixel. Gardez cette quantité en tête — elle revient partout, de la calibration jusqu'au flip.
 
 <Callout kind="note">
-Six inconnues (trois angles, trois distances) pour quatre points qui donnent chacun deux équations, soit huit : le
-problème est surdéterminé, et c'est tant mieux. Avec trois points seulement (P3P), il y a jusqu'à quatre solutions exactes.
+Comptons : six inconnues (trois angles, trois distances) pour quatre points qui donnent chacun deux équations, soit huit.
+Le problème est surdéterminé, et c'est tant mieux. Avec trois points seulement (P3P), il existe jusqu'à quatre solutions
+exactes — d'où l'utilité du quatrième coin.
 </Callout>
 
 ---
 
 ## 3. Résoudre PnP
 
-Il existe une famille d'algorithmes, et OpenCV les expose tous derrière `solvePnP` avec un drapeau pour choisir. Les
-grandes lignes :
+Il existe toute une famille d'algorithmes, et OpenCV les expose tous derrière `solvePnP` avec un drapeau pour choisir.
+Vous n'avez pas à les connaître par cœur — voici la carte :
 
 | Méthode | Idée | Quand |
 | --- | --- | --- |
-| P3P, AP3P | Solution exacte à partir de trois points; jusqu'à quatre poses, qu'on départage avec un quatrième point | Cas minimal, très rapide |
+| P3P, AP3P | Solution exacte à partir de trois points; jusqu'à quatre poses, départagées par un quatrième point | Cas minimal, très rapide |
 | EPnP | Exprime les points comme combinaison de quatre points de contrôle, résolution linéaire en $O(n)$ | Beaucoup de points |
 | IPPE, IPPE_SQUARE | Spécialisé pour des points **coplanaires**; la variante *square* suppose exactement un carré centré | Un tag, précisément |
 | Itératif (Levenberg–Marquardt) | Part d'une pose initiale et descend l'erreur de reprojection pas à pas | Raffiner n'importe quelle solution |
-| SQPnP | Formulation globale qui garantit l'optimum | Quand on veut la meilleure pose sans se poser de questions |
+| SQPnP | Formulation globale qui garantit l'optimum | La meilleure pose, sans se poser de questions |
 
-Pour un AprilTag, IPPE_SQUARE est la méthode naturelle : les quatre coins sont coplanaires et forment un carré de taille
-connue. Elle a une particularité importante : elle renvoie **deux** solutions, avec leur erreur de reprojection respective.
-C'est le sujet de la section suivante.
+Pour un AprilTag, IPPE_SQUARE est la méthode naturelle : quatre coins coplanaires qui forment un carré de taille connue,
+c'est littéralement son cas d'usage. Mais elle a une particularité lourde de conséquences : elle renvoie **deux**
+solutions, chacune avec son erreur de reprojection. Deux. Pour une seule image d'un seul tag. C'est le sujet de la
+section suivante.
 
 <Callout kind="important" label="TODO">
-Décider jusqu'où entrer dans chaque algorithme. Une intuition par méthode suffit probablement pour le cours; les articles
-sont en fin de page pour les curieux.
+Décider jusqu'où entrer dans chaque algorithme pendant la formation. Une intuition par méthode suffit probablement; les
+articles sont en fin de page pour les curieux.
 </Callout>
 
 ---
 
 ## 4. L'ambiguïté de pose
 
-Un carré vu presque de face peut correspondre à deux orientations différentes : penché légèrement vers la gauche ou vers
-la droite, l'image est pratiquement la même. C'est la *pose ambiguity*. Les deux poses ont une erreur de reprojection très proche, et le bruit sur les
-coins décide laquelle gagne. Dans le flux vidéo, on voit le tag « basculer » d'une pose à l'autre : c'est le *flip*.
+Vous vous souvenez du « flip » que la leçon précédente rejetait sans explication? Le voici.
 
-On mesure ce risque avec le **rapport d'ambiguïté** (*ambiguity ratio*) : l'erreur de reprojection de la meilleure solution
-divisée par celle de la seconde. Proche de 0, la meilleure pose est nettement meilleure et on peut lui faire confiance;
-proche de 1, les deux sont équivalentes et la pose de ce tag ne vaut rien.
+Un carré vu presque de face peut correspondre à deux orientations différentes : penché légèrement vers la gauche ou vers
+la droite, l'image projetée est pratiquement la même. C'est la *pose ambiguity*. Les deux solutions d'IPPE_SQUARE ont
+alors des erreurs de reprojection très proches, et c'est le bruit sur les coins qui décide laquelle « gagne ». D'une
+image à l'autre, le gagnant change : dans le flux vidéo, la pose du tag bascule d'un côté à l'autre. Voilà le flip. Ce
+n'est pas un bogue du Limelight, c'est une propriété géométrique du problème — on ne peut pas la corriger, seulement la
+détecter et la contourner.
+
+On mesure le risque avec le rapport d'ambiguïté (*ambiguity ratio*) : l'erreur de reprojection de la meilleure solution
+divisée par celle de la seconde. Proche de 0, la meilleure est nettement meilleure, on peut lui faire confiance. Proche
+de 1, les deux se valent, et la pose de ce tag ne vaut rien.
 
 Les parades, par ordre d'efficacité :
 
-1. **Monter les caméras de biais.** Un tag vu sous un angle franc n'est pas ambigu. C'est un choix mécanique, et le plus
-efficace de tous.
-2. **Utiliser plusieurs tags** dans la même résolution PnP, ce qui supprime l'ambiguïté (section suivante).
+1. **Monter les caméras de biais.** Un tag vu sous un angle franc n'est pas ambigu. C'est un choix mécanique, gratuit, et
+le plus efficace de tous.
+2. **Utiliser plusieurs tags** dans la même résolution PnP — l'ambiguïté disparaît complètement (section suivante).
 3. **Rejeter** les mesures dont le rapport dépasse un seuil; PhotonVision suggère 0,2 comme point de départ.
 4. **Fournir l'orientation du robot** au calcul, ce que fait MegaTag2.
 
 <Callout kind="important" label="TODO">
 Figure des deux poses candidates pour un même quadrilatère. Atelier : filmer un tag de face en bougeant lentement et
-regarder la pose basculer, puis refaire la même chose de biais.
+regarder la pose basculer, puis refaire la même chose de biais et constater que ça ne flippe plus.
 </Callout>
 
 ---
 
-## 5. Plusieurs tags valent mieux qu'un : MegaTag et MegaTag2
+## 5. MegaTag et MegaTag2, la boîte ouverte
 
-Quand plusieurs tags sont visibles, on peut résoudre un seul PnP avec tous leurs coins à la fois, puisque leur position
-relative sur le terrain est connue. Les points ne sont plus coplanaires, le problème est bien plus contraint, et
-l'ambiguïté disparaît. C'est **MegaTag** (MT1) dans le vocabulaire Limelight.
+La leçon précédente présentait MT1 et MT2 comme deux modes avec des propriétés différentes. Maintenant on peut dire
+pourquoi.
 
-**MegaTag2** (MT2) va plus loin en acceptant une information de plus : l'orientation du robot, fournie par le gyroscope à
-chaque image via `SetRobotOrientation()`. Avec le lacet (*yaw*) connu, la pose d'un seul tag n'est plus ambiguë, et
-l'estimation devient stable même avec un tag isolé, en échange de deux contraintes : il faut envoyer l'orientation en
-continu, et la rotation du robot n'est plus mesurée par la vision, elle est supposée exacte.
+**MegaTag (MT1)** : quand plusieurs tags sont visibles, on résout un seul PnP avec *tous* leurs coins à la fois — leur
+position relative sur le terrain est connue, donc c'est un seul gros nuage de points 3D. Les points ne sont plus
+coplanaires, le problème est beaucoup plus contraint, et l'ambiguïté disparaît. Avec un seul tag, par contre, MT1 retombe
+exactement dans le cas ambigu de la section 4. D'où ses sautes d'humeur.
+
+**MegaTag2 (MT2)** : on ajoute une information de plus — le lacet du robot, fourni par le gyroscope à chaque cycle via
+`SetRobotOrientation()`. Avec l'orientation connue, il ne reste plus que la position à trouver, et la pose d'un seul tag
+devient stable : des deux solutions du flip, une seule est compatible avec le lacet donné. Le prix à payer : la rotation
+n'est plus *mesurée* par la vision, elle est *supposée* exacte. Si le gyroscope dérive, la position dérive avec lui — et
+c'est précisément pour ça que la leçon précédente donnait à la rotation un écart-type infini et surveillait le gyroscope.
 
 | | MegaTag (MT1) | MegaTag2 (MT2) |
 | --- | --- | --- |
-| Entrée | Les coins de tous les tags visibles | Les coins, plus le lacet du robot |
-| Rotation | Mesurée par la vision | Fournie par le gyroscope |
+| Entrée | Les coins de tous les tags visibles | Les coins, plus le lacet du gyroscope |
+| Rotation | Mesurée par la vision | Fournie, et non remise en question |
 | Un seul tag | Ambigu, à filtrer | Fiable |
-| À rejeter | Tag unique lointain, ambiguïté élevée | Rotation rapide (au-delà de 720°/s), aucun tag |
-
-<Callout kind="warning">
-Avec MT2, si le gyroscope dérive, la position dérive avec lui : le calcul fait confiance au lacet qu'on lui donne. La
-[leçon suivante](/blog/vision-localization) traite de ce qu'on fait pour ne pas se faire piéger.
-</Callout>
+| À surveiller | Tag unique lointain ou de face | Dérive du gyroscope, rotations rapides |
 
 ---
 
 ## 6. De la caméra au robot, du robot au terrain
 
-PnP donne la pose du tag *dans le repère de la caméra*. Ce qu'on veut, c'est la pose du robot *dans le repère du
-terrain*. Il suffit d'enchaîner trois transformations, toutes connues :
+Dernière étape de la boîte. PnP donne la pose du tag *dans le repère de la caméra*. Ce qu'on veut, c'est la pose du robot
+*dans le repère du terrain*. Il suffit d'enchaîner trois transformations, toutes connues :
 
 $$
 T_{\text{terrain} \leftarrow \text{robot}}
@@ -144,18 +156,17 @@ T_{\text{terrain} \leftarrow \text{robot}}
 \cdot T_{\text{caméra} \leftarrow \text{robot}}
 $$
 
-- $T_{\text{terrain} \leftarrow \text{tag}}$ vient de la *field layout* : la position du tag sur le terrain.
+- $T_{\text{terrain} \leftarrow \text{tag}}$ vient de la *field layout* : la position du tag sur le terrain, connue d'avance.
 - $T_{\text{tag} \leftarrow \text{caméra}}$ est l'inverse de ce que PnP vient de calculer.
 - $T_{\text{caméra} \leftarrow \text{robot}}$ est l'inverse du montage de la caméra sur le robot, configuré une fois.
 
 Chaque terme est une rotation et une translation; les composer, c'est multiplier des matrices $4 \times 4$ en coordonnées
-homogènes (voir la [boîte à outils](/blog/cheatsheet-math)). Le Limelight fait ce calcul à l'interne et publie directement
-la pose du robot dans le repère du terrain (`botpose_wpiblue`), à condition que la carte du terrain et la pose de la
-caméra sur le robot lui aient été données.
+homogènes (voir la [boîte à outils](/blog/cheatsheet-math)). Le Limelight fait toute cette gymnastique à l'interne et
+publie le résultat final — le `botpose_wpiblue` que la leçon précédente consommait. La boîte noire, c'était ça.
 
 <Callout kind="warning">
 Une erreur d'un degré sur l'orientation de la caméra dans la configuration se traduit en plusieurs centimètres à trois
-mètres. La transformation caméra → robot mérite d'être mesurée, pas estimée à l'œil.
+mètres. La transformation caméra → robot se mesure, elle ne s'estime pas à l'œil.
 </Callout>
 
 ---
@@ -163,15 +174,16 @@ mètres. La transformation caméra → robot mérite d'être mesurée, pas estim
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-Ce que nos Limelight publient et ce que le code lit : `botpose_wpiblue`, `botpose_orb_wpiblue` (MT2), latence, nombre de
-tags, distance moyenne. Où dans le code on décide d'utiliser MT1 ou MT2.
+Relier la théorie à nos outils : où voir l'ambiguïté d'un tag dans les données Limelight (`rawFiducials[i].ambiguity`),
+comment on l'utilise dans nos seuils, et un exemple réel de flip capté dans nos logs.
 </Callout>
 
 ---
 
 ## Pour aller plus loin
 
-Les articles derrière chaque drapeau de `solvePnP` :
+Les articles derrière chaque drapeau de `solvePnP` — oui, chaque option que vous cochez dans OpenCV est un article de
+recherche :
 
 - Y. Ding et al., [Revisiting the P3P Problem](https://openaccess.thecvf.com/content/CVPR2023/papers/Ding_Revisiting_the_P3P_Problem_CVPR_2023_paper.pdf) (CVPR 2023).
 - T. Ke et S. Roumeliotis, [An Efficient Algebraic Solution to the Perspective-Three-Point Problem](https://arxiv.org/pdf/1701.08237) (CVPR 2017), AP3P.

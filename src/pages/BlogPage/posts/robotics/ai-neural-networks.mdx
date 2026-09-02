@@ -2,13 +2,14 @@ import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligat
 
 <Callout kind="note" label="For the curious">
 Second lesson of the optional chapter. The math it leans on (vectors, matrices, the $\Sigma$ notation) is collected in
-the [math toolkit](/blog/cheatsheet-math).
+the [math toolkit](/blog/cheatsheet-math) — open it beside this page if the notation feels new.
 </Callout>
 
-There is nothing mysterious about a neural network: it is a function. Numbers go in, numbers come out, and in between it
-does nothing but multiplications, additions and a few simple functions applied millions of times. What makes it
-interesting is that its parameters are not written by a human: they are adjusted automatically until the function does
-what we want.
+I'll ruin the mystery in the first paragraph: a neural network is a function. Numbers go in, numbers come out, and in
+between there is nothing but multiplications, additions, and a few simple functions applied millions of times. No
+thoughts, no neurons in any biological sense. What makes it remarkable — and it *is* remarkable — is that its parameters
+are not written by anyone. They are adjusted automatically until the function does what we want. This lesson is about
+that adjustment.
 
 <Callout kind="note" label="In this lesson">
 
@@ -23,79 +24,104 @@ what we want.
 
 ## 1. A network is a function
 
-<Callout kind="important" label="TODO">
-A function is an input → output machine. A network $f_\theta(x)$ is a function whose shape is fixed and whose parameters
-$\theta$ are free. Learning is choosing $\theta$. One or two examples of what $x$ and $f(x)$ can be (pixels → digit,
-image → boxes).
-</Callout>
+Think of a function as an input → output machine: $x \mapsto f(x)$. A neural network is a function $f_\theta(x)$ whose
+*shape* is fixed by us and whose parameters $\theta$ — the millions of little numbers inside — are free. Learning is
+nothing more than choosing $\theta$.
+
+What can $x$ and $f_\theta(x)$ be? Almost anything you can turn into numbers. The 784 pixels of an MNIST image in, ten
+digit scores out. A camera frame in, boxes around game pieces out. A sentence in, the next word out. Same recipe every
+time; only the size changes.
 
 ---
 
 ## 2. The neuron
 
-A neuron takes inputs $x_1, \dots, x_n$, forms a weighted sum with weights $w_1, \dots, w_n$, adds a bias $b$, then
-applies an activation function $\sigma$:
+The building block is almost insultingly simple. A neuron takes inputs $x_1, \dots, x_n$, forms a weighted sum with
+weights $w_1, \dots, w_n$, adds a bias $b$, then applies an activation function $\sigma$:
 
 $$
 y = \sigma\!\left( \sum_{i=1}^{n} w_i x_i + b \right) = \sigma\!\left( w^\top x + b \right)
 $$
 
-The weights say how much each input matters, the bias shifts the threshold, and the activation (ReLU, sigmoid, tanh)
-brings the non-linearity without which stacking neurons would be pointless: a sum of weighted sums is still a weighted
-sum.
+The weights say how much each input matters (a negative weight means "this input argues against me"), the bias shifts
+the threshold, and the activation (ReLU, sigmoid, tanh) bends the output. That bend matters more than it looks: without
+it, stacking neurons would be pointless, because a weighted sum of weighted sums is still just a weighted sum. The
+non-linearity is what lets depth buy you anything.
 
 <Callout kind="important" label="TODO">
-Figure of the neuron, and a two-input numeric example worked by hand. Possibly the perceptron's history.
+Figure of the neuron, and a two-input numeric example worked by hand. Possibly the perceptron's history — it's a good
+story.
 </Callout>
 
 ---
 
 ## 3. Layers
 
-A network stacks layers of neurons: each neuron in a layer reads every output of the previous one. For a whole layer,
-the weights form a matrix $W$ and the computation becomes a matrix-vector product:
+A network stacks neurons in layers: each neuron of a layer reads every output of the previous one. For a whole layer at
+once, the weights form a matrix $W$ and the computation collapses into one line:
 
 $$
 h = \sigma(W x + b)
 $$
 
-This is the single most frequent operation in all of deep learning, and the reason graphics cards, built to multiply
-matrices, made the field possible.
+One matrix-vector product per layer. That's the whole forward pass — do this a few dozen times and you have the biggest
+networks in the world. It's also why graphics cards, machines built to multiply matrices very fast, are the hardware of
+this entire field: deep learning became practical the day someone noticed gamers had already paid for the right chips.
 
 <Callout kind="important" label="TODO">
-Diagram of a two-layer network with the dimensions of $W$ annotated. Count the parameters of a small MNIST network.
+Diagram of a two-layer network with the dimensions of $W$ annotated. Count the parameters of a small MNIST network — the
+number surprises people.
 </Callout>
 
 ---
 
 ## 4. Learning is minimizing an error
 
+So how do you choose millions of parameters? Not by hand. You define a **loss function**: a single number measuring how
+wrong the network currently is (for example, the squared gap between its outputs and the right answers, averaged over
+examples). Now learning has become an optimization problem: find the $\theta$ that makes the loss small.
+
+The algorithm is **gradient descent**, and the picture to keep is a ball rolling downhill. The loss is a landscape over
+parameter space; the gradient says which direction is uphill; so you take a small step the *other* way, and repeat, a
+few million times:
+
+$$
+\theta \leftarrow \theta - \eta\, \nabla_\theta \mathcal{L}(\theta)
+$$
+
+The step size $\eta$ is the *learning rate*, and it's the first knob everyone learns to respect: too small and training
+takes forever, too large and the ball ricochets across the valley without ever settling. There's no grand theory telling
+you the perfect value — people try, watch the loss curve, and adjust. Welcome to the empirical side of the field.
+
 <Callout kind="important" label="TODO">
-The loss function measures the gap between the output and the expected answer. Gradient descent: compute the slope of
-the loss with respect to every parameter and take a small step in the direction that reduces it. The learning rate, and
-what happens when it is too large or too small. Figure of a ball rolling down a valley.
+Figure: a 1-D loss curve with a ball, one healthy step and one too-large step.
 </Callout>
 
 ---
 
 ## 5. Backpropagation in one picture
 
-<Callout kind="important" label="TODO">
-The intuition of the chain rule: the error at the output is redistributed backwards, layer by layer. No hand derivation;
-the message is that it is mechanical and the libraries do it.
-</Callout>
+One piece is missing: the gradient. The loss depends on millions of parameters through dozens of stacked layers — how do
+you get the slope with respect to *each one*? The answer is **backpropagation**: the error at the output is passed
+backwards through the network, layer by layer, each one computing how much it contributed, using nothing deeper than the
+chain rule from calculus applied very systematically.
+
+Two things to retain, and one thing to skip. Retain: it's mechanical — no insight happens inside backprop, just
+bookkeeping. And it's cheap — one backward pass costs about as much as one forward pass. Skip: deriving it by hand.
+PyTorch and friends do it automatically for any function you write, which is honestly one of the quiet miracles of
+modern software.
 
 ---
 
 ## 6. The training loop
 
-<Callout kind="important" label="TODO">
-Epochs, batches, the loss curve, when to stop. Then the workshop: a network on MNIST in a few lines of PyTorch in a
-notebook, with a link to a ready-to-run notebook.
-</Callout>
+Put the pieces together and you get a loop so short it fits on a slide: grab a small **batch** of examples, run the
+forward pass, measure the loss, backpropagate, take one gradient step. Repeat until you've been through the dataset
+(one **epoch**), then go again, watching the loss curve fall. When the loss on *held-out* data stops improving, stop —
+past that point you're memorizing, not learning ([remember overfitting?](/blog/ai-basics)).
 
 ```python
-# Workshop skeleton, to finish and test.
+# The whole idea, in PyTorch. Missing only the data loading.
 import torch
 from torch import nn
 
@@ -109,16 +135,24 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 for images, labels in train_loader:      # one batch at a time
-    loss = loss_fn(model(images), labels)  # how wrong we are
+    loss = loss_fn(model(images), labels)  # how wrong are we?
     optimizer.zero_grad()
     loss.backward()                        # backpropagation
-    optimizer.step()                       # one step of descent
+    optimizer.step()                       # one step downhill
 ```
+
+Those ~15 lines, scaled up and refined, are the same skeleton behind every model you've heard of. That's not an
+exaggeration; it's the field's best-kept open secret.
+
+<Callout kind="important" label="TODO">
+Link to a ready-to-run notebook (Colab) that trains this on MNIST and plots the loss curve — the "it actually learns"
+moment is worth watching live.
+</Callout>
 
 ---
 
 ## Further reading
 
 - 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the first four videos cover exactly this lesson, with the best animations there are.
-- A. Karpathy, [Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html): build backpropagation from nothing, in Python.
+- A. Karpathy, [Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html): build backpropagation from nothing, in Python. The single best way to *actually* understand it.
 - [TensorFlow Playground](https://playground.tensorflow.org/): a small network you train in the browser while watching the decision boundaries move.

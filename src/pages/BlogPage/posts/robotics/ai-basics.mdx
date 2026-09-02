@@ -2,13 +2,14 @@ import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligat
 
 <Callout kind="note" label="For the curious">
 This chapter is optional. Nothing in it is needed to understand vision on the robot, and almost none of it is applied in
-our robotics context. It exists because the questions come up at every formation. Read it for fun.
+our robotics context. It exists because I find this stuff too interesting not to share. Read it for fun.
 </Callout>
 
-The first computers were excellent at what humans find hard (calculating, sorting, applying rules) and hopeless at what
-humans do without thinking: recognizing a face, understanding a sentence, catching an object. Modern artificial
-intelligence grew out of that paradox, and out of one idea: instead of writing the rules, we could make machines learn
-them.
+Here's a paradox worth sitting with. The first computers were excellent at what humans find hard — calculating,
+sorting, applying rules — and completely hopeless at what you do without thinking: recognizing a face, understanding a
+sentence, catching a ball. A machine could beat you at chess decades before it could tell a cat from a dog. Modern
+artificial intelligence grew out of that paradox, and out of one idea that still feels a bit like cheating: instead of
+writing the rules, make the machine learn them.
 
 <Callout kind="note" label="In this lesson">
 
@@ -23,83 +24,135 @@ them.
 
 ## 1. What artificial intelligence is
 
+"Artificial intelligence" is a marketing term as much as a technical one, so let's use a working definition: a system
+that performs tasks we'd normally say require intelligence — recognizing, predicting, deciding, generating. People
+usually split it into three levels:
+
+- **Narrow AI**: good at one task. A chess engine, a spam filter, an object detector, a chatbot. Everything that exists
+today is here, including the most impressive systems you've used.
+- **General AI (AGI)**: as capable as a human across the board, able to learn a new task the way you would. Doesn't
+exist. Whether we're close is one of the loudest debates in tech.
+- **Superintelligence**: beyond human capability across the board. Science fiction for now, taken seriously as a
+long-term question by serious people.
+
+The examples worth naming change every year, which tells you something about the field's pace.
+
 <Callout kind="important" label="TODO">
-A working definition, the three levels (narrow, general, super), and a few current examples — refresh these every year,
-examples age fast in this field.
+Two or three current examples (refresh yearly — nothing ages a lesson faster than last year's hot model), and maybe the
+"AI effect": every time something works, we stop calling it AI.
 </Callout>
 
 ---
 
 ## 2. Programming rules versus learning from data
 
-An ordinary program is a list of rules written by a human: *if* the sensor reads this, *then* do that. It works as long
-as someone can write the rules. For recognizing a cat in a photo, nobody knows how to write the rule.
+An ordinary program is a list of rules written by a human: *if* the sensor reads this, *then* do that. It works
+beautifully as long as someone can actually write the rules. Now try writing the rule for "this photo contains a cat."
+Whiskers? Some dogs have whiskers. Pointy ears? Not from behind. Fur texture? Not in low light. Nobody has ever written
+that rule, and nobody ever will.
 
-Machine learning flips the process. We give the machine examples and the expected answers, and it builds the rule
-itself, as a function with millions of parameters adjusted until its answers match the examples. The programmer no
-longer writes the solution; they write the way of learning it.
+Machine learning flips the process. We give the machine examples and the expected answers, and *it* builds the rule — as
+a function with thousands or millions of parameters, adjusted automatically until its answers match the examples. The
+programmer no longer writes the solution. They write the way of learning it, which is a very different job.
 
 <Callout kind="important" label="TODO">
-Small side-by-side diagram: classical programming (rules + data → answers) versus learning (data + answers → rules).
+Small side-by-side diagram: classical programming (rules + data → answers) versus machine learning (data + answers →
+rules).
 </Callout>
 
 ---
 
 ## 3. An example: recognizing a 9
 
+Let's make this concrete with the "hello world" of machine learning: MNIST, a dataset of 70,000 handwritten digits, each
+a $28 \times 28$ grayscale image. Your job: given the image, say which digit it is.
+
+Try the rules approach first. A 9 is a circle with a stick, right? Write a circle detector, write a vertical-line
+detector, and if both fire, it's a 9. This actually sort of works — until someone writes a 9 slightly tilted. Or with an
+open loop. Or shifted to the left. Or with the tail curved. Each variation breaks a rule, so you patch it with another
+rule, and another, and the pile of patches never ends, because the ways people write a 9 never end.
+
+These variations have a name: *factors of variation* — position, slant, thickness, style, lighting. The lesson
+generalizes brutally: for real images (a game piece anywhere on a field, under arena lighting), hand-written rules don't
+just struggle, they're hopeless.
+
+The way out is called *representation learning*: don't just learn the final answer — learn the features themselves. Let
+the machine discover, from the data, which strokes and shapes matter for telling a 9 from a 4. That idea, pushed hard,
+is deep learning, and it's the subject of the [next lesson](/blog/ai-neural-networks).
+
 <Callout kind="important" label="TODO">
-The MNIST example: a $28 \times 28$ pixel image, try to write rules by hand (a loop and a stroke?), show why it breaks
-as soon as the digit is shifted, slanted, or written differently. Introduce *factors of variation* and the idea that the
-features themselves have to be learned (*representation learning*).
+Figure: a few real MNIST 9s that would each break a different hand-written rule.
 </Callout>
 
 ---
 
 ## 4. What "learning" means
 
-The classic definition is Tom Mitchell's: a program learns from experience $E$ with respect to a task $T$ and a
-performance measure $P$ if its performance on $T$, as measured by $P$, improves with $E$.
+Can we say precisely what it means for a program to learn? Tom Mitchell's classic definition: a program learns from
+experience $E$ with respect to a task $T$ and a performance measure $P$ if its performance on $T$, as measured by $P$,
+improves with $E$.
 
-In other words, three things are needed: a task (recognize a digit), a way of measuring success (the percentage of
-digits classified correctly), and experience (thousands of labeled images). The task is not to learn; the task is to
-recognize the digit. Learning is what happens when $P$ goes up.
+Sounds bureaucratic, but it's actually sharp. Three ingredients, always:
 
-<Callout kind="important" label="TODO">
-Spell out $T$, $E$ and $P$ on a robotics example (detecting a game piece) to anchor the definition.
-</Callout>
+- a **task** $T$ — recognize the digit, detect the game piece;
+- a **performance measure** $P$ — the percentage classified correctly;
+- an **experience** $E$ — thousands of labeled images.
+
+Learning is simply: $P$ goes up as $E$ accumulates. Note the subtlety — the task is not "to learn". If we want a robot
+to detect game pieces, $T$ is detecting game pieces; learning is what happens on the way there. In FRC terms: $T$ =
+put a box around every game piece in the camera image, $E$ = a folder of labeled photos from past events, $P$ = how
+often the boxes are right on photos it has never seen.
 
 ---
 
 ## 5. The kinds of learning
 
-<Callout kind="important" label="TODO">
-*Supervised* learning (we provide the answers), *unsupervised* (the machine groups the data on its own), and
-*reinforcement* learning (we reward), with one vivid example each. The fruit analogy for supervised; AlphaZero for
-reinforcement.
-</Callout>
+Three big families, split by what kind of feedback the machine gets.
+
+**Supervised learning** — we provide the answers. Show the algorithm images of bananas labeled "banana" and pears
+labeled "pear", and let it adjust itself until it stops mixing them up. Most of what touches our world (image
+classification, object detection) is supervised. The bottleneck is exactly what it sounds like: someone has to label
+all that data.
+
+**Unsupervised learning** — data, but no answers. The algorithm's job is to find structure on its own: group similar
+customers, compress images, spot the weird data point. Nobody tells it what the groups mean.
+
+**Reinforcement learning** — no labels at all, just rewards. The system acts, the environment scores it, and behaviors
+that lead to reward get reinforced. This is how AlphaZero learned chess and Go: it played millions of games against
+itself, starting from random moves, with "did I win?" as the only teacher — and ended up beating world champions. It's
+also a big part of how robots learn to walk in simulation. If any of this course makes you want to go down a rabbit
+hole, make it this one.
 
 ---
 
 ## 6. Data, training, testing
 
-<Callout kind="important" label="TODO">
-An example is a vector of features (for an image, the pixels). Splitting data into training, validation and test sets,
-and why: *overfitting*, or memorizing instead of generalizing.
-</Callout>
+One habit separates people who do ML from people who get fooled by it: never grade a model on data it trained on.
+
+An example, for a machine, is a vector of features — for an image, literally the pixel values. The dataset gets split:
+a **training set** the model learns from, and a **test set** it never sees until the end. Why so strict? Because a model
+with millions of parameters can *memorize* its training data — perfect scores in practice, useless on anything new.
+That failure is called *overfitting*, and it's the default outcome, not the exception. Generalizing — being right on
+examples you've never seen — is the entire game. (In between, a *validation set* is used to tune settings without
+contaminating the final exam.)
+
+Keep that lens for the rest of the chapter: whenever someone claims a model "works", your first question is now
+"on data it trained on, or on data it had never seen?"
 
 ---
 
 ## What about the robot?
 
-<Callout kind="important" label="TODO">
-Say clearly where learning shows up (or doesn't) in our context: AprilTags use none of it; neural object detection on a
-Limelight does. Point to [Object detection](/blog/ai-object-detection).
-</Callout>
+So where does any of this show up on our robot? Almost nowhere — and that's worth saying clearly. AprilTag detection
+and all of the localization course use zero machine learning: the detector is hand-written rules, and they work
+precisely because the tags were designed to make the rules easy. The one exception: a Limelight can run a *neural
+detector* to find game pieces, which is supervised learning end to end — labeled photos in, boxes out. That's the
+subject of [Object detection](/blog/ai-object-detection).
 
 ---
 
 ## Further reading
 
-- I. Goodfellow, Y. Bengio and A. Courville, [Deep Learning](https://www.deeplearningbook.org/) (MIT Press, 2016): chapters 1 and 5 cover everything here, better.
-- [Teachable Machine](https://teachablemachine.withgoogle.com/): train an image classifier in the browser in five minutes, no code. The best possible first workshop.
+- I. Goodfellow, Y. Bengio and A. Courville, [Deep Learning](https://www.deeplearningbook.org/) (MIT Press, 2016): chapters 1 and 5 cover everything here, with the factors-of-variation story told properly.
+- [Teachable Machine](https://teachablemachine.withgoogle.com/): train an image classifier in your browser in five minutes, no code. Try it on two game pieces and you'll have done supervised learning for real.
 - 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the video series everyone should start with.

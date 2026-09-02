@@ -1,13 +1,14 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
 
 <Callout kind="note" label="For the curious">
-Last lesson of the optional chapter, and the furthest from the robot. It exists because it is the question we get asked
-the most: how does ChatGPT do what it does?
+Last lesson of the optional chapter, and the furthest from the robot. It exists because it's the question I get asked
+the most: how does ChatGPT actually work?
 </Callout>
 
-A large language model (LLM) does exactly one thing: given some text, predict what comes next. Everything else —
-answering questions, writing code, holding a conversation — falls out of that one task, pushed to a scale nobody had
-tried before. This lesson explains the mechanism, its limits, and how to use these tools intelligently for robot code.
+A large language model (LLM) does exactly one thing: given some text, predict what comes next. That's it. That's the
+whole trick. Everything else — answering questions, writing code, translating, holding a conversation — falls out of
+that one task, pushed to a scale nobody had seriously tried before. I find this one of the most surprising facts in all
+of computing, and by the end of this lesson I hope you see why it's surprising rather than just accepting it.
 
 <Callout kind="note" label="In this lesson">
 
@@ -22,65 +23,114 @@ tried before. This lesson explains the mechanism, its limits, and how to use the
 
 ## 1. Predicting the next token
 
-<Callout kind="important" label="TODO">
-Text is split into tokens (pieces of words); the model outputs a probability distribution over the next token; we sample
-one, append it, repeat. Show the tokens of a real sentence. Stress that the model doesn't "know" anything: it continues
-a text in the most plausible way.
-</Callout>
+Text is first chopped into **tokens** — pieces of words, roughly. "Robotics" might be one token, "localization" two or
+three; common words get their own, rare words get assembled from fragments. The model reads a sequence of tokens and
+outputs one thing: a probability for every token in its vocabulary to come next. Sample one, append it, feed the longer
+text back in, repeat. Every answer you've ever gotten from a chatbot was produced one token at a time, each chosen from
+a probability table.
+
+Sit with what that means. The model has no plan for the paragraph, no database of facts it consults, no notion of true
+and false — it continues text in the most plausible way, where "plausible" was learned from a colossal amount of human
+writing. The astonishing part, the part nobody fully predicted, is how much apparent understanding falls out of doing
+that extremely well: to guess the next token of a physics answer, it helps to have absorbed a lot of actual physics.
 
 ---
 
 ## 2. Embeddings
 
-<Callout kind="important" label="TODO">
-Each token becomes a vector with thousands of dimensions, learned so that words close in meaning are close in space. The
-classic king − man + woman ≈ queen example. Point to the math toolkit for the dot product, which measures that
-closeness.
-</Callout>
+For a network, tokens have to be numbers. Each token becomes a vector with thousands of dimensions — its **embedding** —
+and these vectors are learned so that similarity in meaning becomes closeness in space. "Motor" and "actuator" end up
+near each other; "motor" and "poetry" end up far apart.
+
+The classic party trick shows directions carry meaning too: take the vector for *king*, subtract *man*, add *woman*, and
+the nearest vector is *queen*. Meaning, turned into geometry. (How do you measure "near" between vectors? The dot
+product — the same one from the [math toolkit](/blog/cheatsheet-math). Told you it was the operation of the course.)
 
 ---
 
 ## 3. Attention and the transformer
 
-<Callout kind="important" label="TODO">
-The intuition of attention: to understand a word, look at the other words in the sentence and weight their importance.
-The transformer block stacks attention and small neural networks, dozens of times. No formulas here; point to the
-3Blue1Brown videos for the full version.
-</Callout>
+Here's the problem embeddings alone don't solve: "the note the robot dropped" — what does "dropped" attach to? Meaning
+depends on context, and context means other words, sometimes far away in the sentence.
+
+**Attention** is the mechanism. For each token, the model computes how relevant every other token is, and blends their
+information in, weighted by that relevance. "Dropped" attends strongly to "robot" and to "note", weakly to "the". Each
+token's representation gets progressively enriched by exactly the context that matters for it — and the weights that
+decide what matters are all learned.
+
+The **transformer** (from the 2017 paper "Attention Is All You Need" — great title, accurate too) is the architecture
+built on this: a block of attention plus a small neural network, stacked dozens of times. Its superpower is less
+subtle than people expect: attention across the whole text can be computed massively in parallel on GPUs. The
+architecture won partly because it *trains fast*, and at this scale, training speed is destiny.
+
+For the full picture with animations, the 3Blue1Brown videos linked below are unbeatable — I'd genuinely rather you
+watch them than read three more of my paragraphs.
 
 ---
 
 ## 4. Pre-training, fine-tuning, reasoning
 
+Getting from "next-token predictor" to "assistant" takes three stages, and the distinction explains a lot of behavior
+you've seen:
+
+1. **Pre-training**: predict the next token on a huge slice of the internet, books, and code. This is where the
+knowledge and the language come from. The result is powerful and completely unhelpful — ask it a question and it might
+continue with three more questions, because that's plausible text too.
+2. **Fine-tuning**: train further on examples of good question-answer behavior, so "helpful assistant" becomes the
+plausible continuation.
+3. **RLHF** (reinforcement learning from human feedback): humans compare pairs of answers, a reward model learns their
+preferences, and the model is optimized against it — [reinforcement learning](/blog/ai-basics), the AlphaZero family of
+ideas, aimed at politeness and helpfulness instead of chess.
+
+Recent **reasoning models** add a twist that sounds almost too simple: let the model generate a long private
+chain of thought — text — before committing to an answer. More tokens spent "thinking" measurably improves math, code
+and logic. It's still next-token prediction. It never stopped being next-token prediction.
+
 <Callout kind="important" label="TODO">
-Pre-training on an enormous amount of text (predict the next token), then fine-tuning to follow instructions, then
-reinforcement learning from human feedback (RLHF). Reasoning models, which "think" by generating text before answering.
-Tools and agents. Refresh regularly — this is the fastest-moving part of the field.
+Name current examples sparingly and re-check yearly — this is the fastest-aging section of the whole course.
 </Callout>
 
 ---
 
 ## 5. What they don't do
 
-<Callout kind="important" label="TODO">
-Confidently making things up (hallucination), not knowing what they don't know, not seeing the robot or the code you
-didn't show them, context limits. One concrete example of a plausible-but-wrong answer about WPILib code.
-</Callout>
+The same mechanism that makes LLMs impressive produces their failures, and you should be able to predict them now:
+
+- **Hallucination.** The model produces plausible text, and false statements can be perfectly plausible. It will cite a
+WPILib method that doesn't exist, with a convincing name and signature, in a confident tone. Ask yourself: what in
+"predict the next token" would stop it?
+- **No self-awareness of ignorance.** Estimating "do I actually know this?" is not part of the training objective.
+Confidence and correctness are uncorrelated in the failure cases, which is exactly when you need them correlated.
+- **It only sees what you paste.** No access to your robot, your repo, or this year's game manual unless you provide
+them. Its knowledge also has a cutoff date — ask about the newest WPILib release and it may describe last year's.
+- **Finite context.** Very long conversations fall off the edge; details from the start silently stop influencing the
+output.
+
+None of these are reasons not to use LLMs. They're reasons to use them with your eyes open.
 
 ---
 
 ## 6. Using them for robot code
 
-<Callout kind="important" label="TODO">
-The team's ground rules: give context (versions, code excerpts), ask for explanations rather than blocks to paste, test
-everything on the robot, never paste secrets or credentials, and stay responsible for the code you commit. Could become
-the team's official policy if we want one.
-</Callout>
+Where this becomes practical for us. My ground rules, learned the usual way:
+
+- **Give context.** WPILib version, vendor libraries, the actual code excerpt, the error message. "Why doesn't my
+swerve work" gets you a horoscope; a stack trace gets you help.
+- **Prefer explanations over paste-ready blocks.** "Explain what this pose estimator call does" teaches you something
+and survives the model being wrong. Blindly pasted code fails at the worst possible time, which in FRC is called
+"quals match 3".
+- **Everything gets tested on the robot.** An LLM's confidence is not evidence. The simulator and the practice field
+are.
+- **Never paste secrets** — tokens, keys, credentials. Once sent, gone.
+- **You own what you commit.** "The AI wrote it" is not a code review, and it won't debug it at competition either.
+
+Used like that — a very fast, very well-read assistant with no accountability — an LLM is genuinely one of the best
+learning tools ever built for a programming student. Used as an oracle, it's a way to ship bugs you don't understand.
 
 ---
 
 ## Further reading
 
-- 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the transformer and attention videos, in the same series as the neural network ones.
+- 3Blue1Brown, [Neural networks](https://www.3blue1brown.com/topics/neural-networks): the transformer and attention videos, in the same series as the neural network ones. Watch these first.
 - A. Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762) (NeurIPS 2017): the paper that introduced the transformer.
 - A. Karpathy, [Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY): two hours to build a small GPT and understand every line.

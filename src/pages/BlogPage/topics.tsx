@@ -80,8 +80,9 @@ export const TOPICS: Record<TopicId, Topic> = {
             {chapter: "Computer vision 🍋‍🟩"},
             "vision-cameras",
             "vision-apriltags",
-            "vision-pose-estimation",
+            // Localization before PnP on purpose: lesson 3 treats botpose as a black box the code consumes, lesson 4 opens the box.
             "vision-localization",
+            "vision-pose-estimation",
             "vision-limelight-tuning",
             {chapter: "Artificial intelligence", break: true},
             "ai-basics",
