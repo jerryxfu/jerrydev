@@ -54,7 +54,7 @@ export const posts: Post[] = [
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.
     {
         slug: "vision-intro",
-        title: "Vision sur le robot — par où commencer",
+        title: "Vision sur le robot: introduction",
         description: "Ce que le cours couvre, dans quel ordre le lire, et le problème qu'on essaie de régler : savoir où est le robot sur le terrain.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
@@ -81,7 +81,7 @@ export const posts: Post[] = [
     },
     {
         slug: "vision-pose-estimation",
-        title: "L'estimation de pose",
+        title: "L'estimation de pose avec SolvePnP",
         description: "De quatre coins dans l'image à une position sur le terrain : le problème Perspective-n-Point, ses solutions, et l'ambiguïté qui vient avec.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
@@ -90,7 +90,7 @@ export const posts: Post[] = [
     },
     {
         slug: "vision-localization",
-        title: "Localisation robuste : nos systèmes",
+        title: "Localisation robuste: sur le robot",
         description: "Fusionner l'odométrie et la vision sans se faire mentir : écarts-types, rejet des mauvaises mesures, et ce que le code de l'équipe fait de plus.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
@@ -99,7 +99,7 @@ export const posts: Post[] = [
     },
     {
         slug: "vision-limelight-tuning",
-        title: "Régler les Limelight",
+        title: "Calibrer les Limelight",
         description: "Exposition, gain, pipeline AprilTag, calibration, carte du terrain : les réglages qui comptent et dans quel ordre les faire.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],

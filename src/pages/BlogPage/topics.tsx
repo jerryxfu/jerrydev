@@ -71,9 +71,7 @@ export const TOPICS: Record<TopicId, Topic> = {
     },
     "robotics": {
         name: "Robotics",
-        description: "The vision course I give to my FRC team, written up as lessons. The core is vision on the robot: cameras, AprilTags, pose estimation and " +
-            "keeping localization honest. The AI chapter is the optional deep end. The vision lessons and cheatsheets are in French (technical terms stay in " +
-            "English), the AI chapter is in English; the cheatsheets are the part you'll come back to.",
+        description: "Répertoire des formations sur la vision et l'IA ainsi que des boîtes à outils.",
         // Two courses and a shelf of references sharing one topic. The intro sits before the first marker, in the unnamed leading chapter, and that
         // marker deliberately does NOT break: "next" on the intro is the first vision lesson. Every later marker breaks, because "next" at the end of
         // the vision course must not be the first AI lesson, and a cheatsheet has no "next" in any sense.
