@@ -71,7 +71,7 @@ export const TOPICS: Record<TopicId, Topic> = {
     },
     "robotics": {
         name: "Robotics",
-        description: "Répertoire des formations sur la vision et l'IA ainsi que des boîtes à outils.",
+        description: "Répertoire des formations sur la vision et l'IA ainsi que des boîtes à outils. Équipe de robotique FIRST, FRC Team 3990, Tech for Kids.",
         // Two courses and a shelf of references sharing one topic. The intro sits before the first marker, in the unnamed leading chapter, and that
         // marker deliberately does NOT break: "next" on the intro is the first vision lesson. Every later marker breaks, because "next" at the end of
         // the vision course must not be the first AI lesson, and a cheatsheet has no "next" in any sense.

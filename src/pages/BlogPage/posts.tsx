@@ -55,11 +55,10 @@ export const posts: Post[] = [
     {
         slug: "vision-intro",
         title: "Vision sur le robot: introduction",
-        description: "Ce que le cours couvre, dans quel ordre le lire, et le problème qu'on essaie de régler : savoir où est le robot sur le terrain.",
+        description: "L'objectif de ce cours.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
-        lang: "fr",
-        draft: true,
+        lang: "fr"
     },
     {
         slug: "vision-cameras",
