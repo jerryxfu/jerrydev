@@ -35,9 +35,9 @@ export default function Footer() {
         {
             category: "Tools",
             content: [
-                {text: "Scheduler", url: "/scheduler", decorator: <p>🗓️</p>},
                 {text: "Expedite", url: "/expedite", decorator: <p>📦</p>},
-                {text: "Rendezvous", url: "/rendezvous", decorator: <></>},
+                {text: "Scheduler", url: "/scheduler", decorator: <p>🗓</p>},
+                {text: "Rendezvous", url: "/rendezvous", decorator: <>📌</>},
 
             ]
         },

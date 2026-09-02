@@ -6,8 +6,9 @@ type Heading = { id: string; text: string; level: 2 | 3 };
 
 // Below this a contents list is longer than the thing it indexes. Ordinary posts have a couple of sections and get nothing.
 const MIN_HEADINGS = 3;
-// Where a heading counts as "the one being read". Must sit at or just below the largest scroll-margin-top in PostPage.scss (124px on narrow screens):
-// an anchor jump lands the heading at exactly that offset, and if this line is above it, the tapped section's *predecessor* stays lit.
+// Where a heading counts as "the one being read", for all but the last screenful of a post. Must sit at or just below the largest
+// scroll-margin-top in PostPage.scss (124px on narrow screens): an anchor jump lands the heading at exactly that offset, and if this
+// line is above it, the tapped section's *predecessor* stays lit.
 const ACTIVE_LINE = 72;
 // How far past centre the rail scrolls when the active entry drops out of view, in pixels. The jump otherwise lands the active entry dead centre,
 // which leaves half the visible list showing sections already read. Raise this to scroll further and keep more of what is coming in view, 0 for centred.
@@ -64,11 +65,17 @@ export default function PostToc({bodyRef, slug}: { bodyRef: RefObject<HTMLElemen
             const scrolled = -top;
             setProgress(span > 0 ? Math.min(1, Math.max(0, scrolled / span)) : scrolled >= 0 ? 1 : 0);
 
+            // A section short enough to end on the screen it starts on never pushes its heading past a fixed line so the last two or three entries of a post could never light up.
+            // Once the end of the article is in view the line rides it down to the bottom edge of the viewport.
+            // span > 0 holds an article shorter than the viewport on the fixed line, where nothing scrolls and the first heading is the honest answer.
+            const belowFold = Math.max(0, top + height - window.innerHeight);
+            const line = span > 0 ? Math.max(ACTIVE_LINE, window.innerHeight - belowFold) : ACTIVE_LINE;
+
             // Last heading past the line wins, so scrolling up reverses cleanly. An IntersectionObserver would need a rootMargin tuned per heading height to behave the same way.
             let current = headings[0]?.id ?? "";
             for (const {id} of headings) {
                 const el = document.getElementById(id);
-                if (el && el.getBoundingClientRect().top <= ACTIVE_LINE) current = id;
+                if (el && el.getBoundingClientRect().top <= line) current = id;
             }
             setActiveId(current);
         };

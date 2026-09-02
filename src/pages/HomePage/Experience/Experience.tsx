@@ -14,6 +14,8 @@ const experiences: CardProps[] = [
         image: _crchum,
         dateDisplay: formatDate(new Date("2025-06-26T00:00:00")),
         url: "https://www.chumontreal.qc.ca/en/crchum",
+        specialLink: "https://cv.jerryxf.net",
+        specialLinkText: "Open CV",
         description: "Analyzed regional pleural strain via lung ultrasound elastography to establish normative values and their correlations with tidal volume in healthy volunteers. ",
         footer: "Details on CV"
     },
@@ -21,6 +23,8 @@ const experiences: CardProps[] = [
         title: "FIRST Robotics Team 3990",
         subTitle: "Mentor & former student",
         image: _t4k,
+        specialLink: "https://cv.jerryxf.net",
+        specialLinkText: "Open CV",
         dateDisplay: formatDate(new Date("2023-01-06T00:00:00")),
         url: "https://www.thebluealliance.com/team/3990",
         description: "Former student. Mentoring high school students in programming, computer vision and machine learning. Participated (me) in 11 FRC competitions, including 3 World Championships",

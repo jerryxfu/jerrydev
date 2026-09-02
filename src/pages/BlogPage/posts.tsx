@@ -54,7 +54,7 @@ export const posts: Post[] = [
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.
     {
         slug: "vision-intro",
-        title: "Vision sur le robot: introduction",
+        title: "Vision sur le robot: introduction 🍋‍🟩",
         description: "L'objectif de ce cours.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
@@ -98,7 +98,7 @@ export const posts: Post[] = [
     },
     {
         slug: "vision-limelight-tuning",
-        title: "Calibrer les Limelight",
+        title: "Calibrer les Limelight 🍋‍🟩",
         description: "Exposition, gain, pipeline AprilTag, calibration, carte du terrain : les réglages qui comptent et dans quel ordre les faire.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],

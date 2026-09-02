@@ -230,7 +230,7 @@ export default function Rendezvous() {
     return (
         <div className="rv">
             <Helmet>
-                <title>Rendezvous 🗓️ | jerryxf</title>
+                <title>Rendezvous 📌 | jerryxf</title>
                 <meta name="description"
                       content="Find the best time for your group to meet. Share availabilities and schedule events effortlessly." />
                 <link rel="canonical" href="https://jerryxf.net/rendezvous" />
@@ -247,7 +247,7 @@ export default function Rendezvous() {
                             <span>Back</span>
                         </button>
                     )}
-                    <h1>Rendezvous 🗓️</h1>
+                    <h1>Rendezvous 📌</h1>
                     {view === "idle" && (
                         <p className="caption-text">Find the best time for your group to meet!</p>
                     )}
@@ -328,7 +328,7 @@ export default function Rendezvous() {
 
             <footer className="rv_footer">
                 <p>
-                    <a href="/rendezvous">🗓️ Rendezvous</a>, made with ❤️ by Jerry
+                    <a href="/rendezvous">📌 Rendezvous</a>, made with ❤️ by Jerry
                 </p>
             </footer>
         </div>

@@ -66,7 +66,7 @@ export const menuGroups: NavItem[][] = [
             key: "tools",
             children: [
                 {type: "link", label: "Expedite 📦", href: "/expedite"},
-                {type: "link", label: "Rendezvous 🗓️", href: "/rendezvous"},
+                {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
                 {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"}
             ],
         },

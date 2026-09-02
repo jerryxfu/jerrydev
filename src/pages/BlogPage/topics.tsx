@@ -77,7 +77,7 @@ export const TOPICS: Record<TopicId, Topic> = {
         // the vision course must not be the first AI lesson, and a cheatsheet has no "next" in any sense.
         posts: [
             "vision-intro",
-            {chapter: "Computer vision"},
+            {chapter: "Computer vision 🍋‍🟩"},
             "vision-cameras",
             "vision-apriltags",
             "vision-pose-estimation",
