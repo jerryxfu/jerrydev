@@ -27,11 +27,18 @@ export type Topic = {
 // with `satisfies` alone the values are *inferred*, so a syllabus of nothing but slugs infers string[] and the chapter branch of the union narrows to never.
 // Annotating gives every array the same SyllabusEntry[] type whether or not it happens to contain a marker.
 // Record also makes a missing or misspelt id an error, so the two lists cannot drift.
-export const TOPIC_IDS = ["guides", "medive", "robotics"] as const;
+export const TOPIC_IDS = ["guides", "medive", "robotics", "math_ia"] as const;
 export type TopicId = typeof TOPIC_IDS[number];
 
 
 export const TOPICS: Record<TopicId, Topic> = {
+    "math_ia": {
+        name: "Math IA (LLMs)",
+        description: "Do the numbers inside GPT-2 have a geometric structure, and if so, which one? IBDP Internal Assessment (IA) in Math AA HL.",
+        posts: [
+            "math_ia-devlog0"
+        ]
+    },
     "guides": {
         name: "Guides",
         description: "Practical guides to tools worth knowing. Each one starts from zero and doubles as a reference you can come back to. No prior experience assumed.",

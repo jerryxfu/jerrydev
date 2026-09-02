@@ -1,0 +1,8 @@
+"Language models can't do math" is one of those claims that's technically true but doesn't tell the whole story. If you ask a simpler model like GPT-2 to multiply two big numbers, it will confidently give you something wrong.
+That’s fair considering that it was not trained to be a calculator. However, the same models can still get some arithmetic right too, even with numbers in a combination it hasn’t seen before.
+Getting it right some of the time doesn’t necessarily come from memorizing because even if it memorized some operations, it wouldn’t explain how that generalizes unseen combinations.
+
+So, the question, and the thought that motivated this project, isn't "can LLMs do math" but rather “what a number even is” for LLMs. GPT-2 doesn’t have the built-in concept of arithmetic.
+It was only trained on text, so every token it knows, including every number, is just a vector of 768 numbers sitting in the embedding space. Whatever structure it learned from training, the way it arranged those embeddings relative to each other, is the closest thing the model has to "understanding" what a number is.
+
+> Do the numbers inside GPT-2 have a geometric structure, and if so, which one?

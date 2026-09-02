@@ -42,6 +42,14 @@ export type Post = {
 
 // Metadata only. Bodies live in ./posts/<slug>.mdx and are joined by slug, so the list page can rank and render every card without touching any prose.
 export const posts: Post[] = [
+    {
+        slug: "math_ia-devlog0",
+        title: "Language models can't do math",
+        description: "Devlog #0: The plan. Do the numbers inside GPT-2 have a geometric structure, and if so, which one?",
+        date: postDate("2026-09-01"),
+        tags: ["ai", "devlog"],
+        lang: "en"
+    },
     // Robotics course. All drafts until each lesson is actually written; the topic page lists them either way, so the syllabus is visible from day one.
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.
     {
