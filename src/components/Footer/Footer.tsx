@@ -1,7 +1,7 @@
 import React, {useMemo} from "react";
 import "./Footer.scss";
 import Copyright from "../Copyright.tsx";
-import {useDebugMode} from "../../hooks/useDebugMode.ts";
+import {useDebugMode} from "@/hooks/useDebugMode.ts";
 import {isDarkTheme, useTheme} from "../../context/ThemeContext.tsx";
 import _unveil_light from "../../assets/projects/unveil/unveil_icon_light.png";
 import _unveil_dark from "../../assets/projects/unveil/unveil_icon_dark.png";

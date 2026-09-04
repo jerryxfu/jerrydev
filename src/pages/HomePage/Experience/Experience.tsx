@@ -5,7 +5,7 @@ import _crchum from "../../../assets/experience/crchum.png";
 import _t4k from "../../../assets/experience/t4k_special_edition.png";
 import _ftc from "../../../assets/experience/ftc_icon_horz.png";
 import _zon01 from "../../../assets/experience/zone01.png";
-import {formatDate} from "../../../utils.ts";
+import {formatDate} from "@/utils.ts";
 
 const experiences: CardProps[] = [
     {

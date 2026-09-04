@@ -1,0 +1,230 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+
+Avant de parler d'AprilTags et de position sur le terrain, il faut savoir comment le robot « voit ». C'est quoi une
+image.. pour un robot? Une caméra ne voit rien du tout. Elle capture un monde en trois dimensions sur un capteur en deux
+dimensions, et nous donne une grille de nombres. Toute la vision sur le robot repose sur cette projection entre l'espace
+monde et l'espace image.
+
+## 1. Une image, c'est des nombres
+
+Une image en niveaux de gris est un tableau à deux dimensions : une valeur par pixel, typiquement entre 0 (noir) et 255
+(blanc). Une image en couleur a trois valeurs par pixel, une par canal (rouge, vert, bleu). Pour une image de
+$640 \times 480$ px, ça donne $640 \times 480 \times 3 = 921\,600$ nombres. C'est tout ce que le robot « voit », au moins
+une trentaine de fois par seconde.
+
+Ainsi, on peut établir quelques concepts de base :
+
+- **Le pixel a une adresse.** On note $(u, v)$ ses coordonnées dans l'image : $u$ vers la droite, $v$ vers le **bas**, et
+l'origine dans le coin supérieur gauche. C'est effectivement différent des conventions en mathématiques, où l'axe
+vertical pointe vers le haut.
+- **La résolution est un compromis.** Avoir plus de pixels n'est pas tout le temps ce qu'on veut, pas pour un robot en
+tout cas. Certes, c'est plus de détail, donc des tags lisibles de plus loin, mais c'est aussi beaucoup plus de calcul par
+image, donc moins d'images par seconde. Il n'y a donc pas de bonne réponse universelle; il faut faire un choix dépendamment
+de la situation.
+
+<Callout kind="important" label="TODO">
+    Figure : une petite image affichée à côté de sa grille de nombres, avec une flèche sur l'origine $(0, 0)$ et le sens des
+    axes $u$ et $v$. Le favicon 16×16 du site est un bon candidat, voir les notes.
+</Callout>
+
+---
+
+## 2. Le modèle sténopé
+
+Bien, on sait c'est quoi une image. Mais elle vient d'une caméra. Alors comment décrire mathématiquement ce que fait une
+caméra? Le modèle le plus simple, et celui que vous avez vu en physique optique, est le *pinhole*. Imaginez le
+montage suivant : une boîte fermée, un petit trou sur une face et un capteur au fond. Chaque point du monde envoie un rayon
+qui passe par le trou et touche le capteur à un seul endroit. Le résultat est une *projection perspective* : les objets
+lointains paraissent petits, les lignes parallèles se rejoignent à l'horizon. Exactement comme vos yeux.
+
+Dans le repère de la caméra (origine au centre optique, $Z$ vers l'avant), un point $(X, Y, Z)$ tombe sur le capteur en :
+
+$$
+u = f_x \frac{X}{Z} + c_x, \qquad v = f_y \frac{Y}{Z} + c_y
+$$
+
+où $f_x, f_y$ sont les distances focales (*focal length*) exprimées en pixels et $(c_x, c_y)$ est le *principal point*,
+l'endroit où l'axe optique traverse l'image (à peu près son centre).
+
+### Pourquoi diviser par *Z*?
+
+Parce que c'est exactement ce que disent les triangles semblables. Le trou de la boîte est le sommet, et deux triangles
+partagent ce sommet : celui formé par l'objet réel (hauteur $X$, à la distance $Z$ devant la caméra) et celui formé par
+son image sur le capteur (hauteur $x$, à la distance $f$ derrière le trou). Comme les deux triangles ont exactement la
+même forme, le rapport de leurs côtés est le même :
+
+$$
+\frac{x}{f} = \frac{X}{Z} \qquad \Longrightarrow \qquad x = f \frac{X}{Z}
+$$
+
+C'est tout. La division par $Z$ n'est pas un truc de calcul, c'est la perspective elle-même : doublez la distance, et
+l'objet occupe deux fois moins de pixels.
+
+Cette petite équation a une conséquence que vous devez garder en tête pour le reste du cours. Un objet deux fois plus
+grand placé deux fois plus loin donne **exactement la même image**. Autrement dit, une seule photo ne permet jamais de
+retrouver la distance d'un objet dont on ignore la taille réelle. C'est précisément pour ça qu'on utilise des AprilTags :
+comme on connaît leur taille exacte (165,1 mm), la caméra peut remonter la division et retrouver le $Z$. Sans taille
+connue, pas de distance.
+
+### Les coordonnées homogènes
+
+On aimerait écrire tout ça avec des matrices, parce que les matrices se composent bien (on peut enchaîner une rotation,
+une translation, une projection en les multipliant). Mais il y a un problème : une multiplication de matrices sait
+additionner et multiplier, elle ne sait pas *diviser*. Et notre projection, elle, divise par $Z$.
+
+L'astuce s'appelle les *homogeneous coordinates* (coordonnées homogènes). On ajoute une composante de plus au vecteur,
+et on accepte la règle suivante : un vecteur peut être multiplié par n'importe quel facteur non nul sans changer le point
+qu'il désigne. Concrètement, $(u, v, 1)$, $(2u, 2v, 2)$ et $(su, sv, s)$ représentent tous le même pixel. Pour revenir
+aux vraies coordonnées du pixel, on divise les deux premières composantes par la dernière — et voilà, la division est
+récupérée à la toute fin, gratuitement.
+
+C'est ce facteur $s$ qu'on voit apparaître ici :
+
+$$
+s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
+= K \begin{bmatrix} X \\ Y \\ Z \end{bmatrix},
+\qquad
+K = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+Faites la multiplication à la main une fois : la dernière ligne de $K$ donne $s = Z$, et les deux premières donnent
+$su = f_x X + c_x Z$ et $sv = f_y Y + c_y Z$. Divisez par $s = Z$ et vous retombez exactement sur les deux équations du
+début. La matrice n'a rien ajouté de nouveau; elle a juste rangé la même chose dans une forme qu'on peut composer avec
+d'autres transformations. On réutilisera exactement la même astuce, en 4 dimensions cette fois, pour enchaîner les
+repères (voir la [boîte à outils](/blog/cheatsheet-math)).
+
+### Intrinsèque et extrinsèque
+
+La matrice $K$ est la matrice des propriétés **intrinsèques** de la caméra, c'est-à-dire qu'elle est unique à chaque
+caméra. Elle caractérise mathématiquement le capteur et l'objectif, et on obtient ces nombres en calibrant la caméra. Au
+contraire, la matrice **extrinsèque** est celle qui décrit la position et l'orientation de la caméra dans l'espace : où
+elle est, pas comment elle est faite. Déplacez la caméra et l'extrinsèque change; $K$, lui, ne bouge pas.
+
+### La distorsion
+
+Un vrai objectif ne capture pas une image parfaite du monde : il courbe légèrement les rayons lumineux qui frappent le
+capteur, surtout vers les bords de l'image. Les lignes droites deviennent des arcs (*radial distortion*), c'est l'effet
+*fisheye*. On modélise cette courbure avec quelques coefficients supplémentaires, mesurés en même temps que $K$, et la
+caméra les utilise pour corriger les positions avant de nous retourner quoi que ce soit.
+
+<Callout kind="important" label="TODO">
+    Figure : la même grille vue sans et avec distorsion. Idéalement une vraie image prise par un de nos Limelight.
+</Callout>
+
+---
+
+## 3. Exposition, gain et niveau de noir
+
+Il y a trois réglages qui décident de la luminosité de l'image, et ils ont tous un effet secondaire différent.
+Comprendre ce que chacun fait est essentiel pour régler une caméra correctement, à la place d'ajuster des sliders au
+hasard.
+
+**L'exposition** (*exposure*) est le temps pendant lequel le capteur accumule de la lumière. Plus elle est longue, plus
+l'image est lumineuse, mais tout ce qui bouge pendant ce temps devient flou (*motion blur*), car le mouvement
+« s'accumule » sur la même image. Un robot qui pivote vite peut rendre tous les tags illisibles le temps de la rotation.
+Il est donc préférable de garder l'exposition courte, et on compense la noirceur autrement.
+
+**Le gain** (*sensor gain*) amplifie électroniquement le signal du capteur, comme un bouton de volume. Il éclaircit
+l'image sans allonger l'exposition, au prix de bruit.
+
+Le *bruit* (*noise*), c'est le grain qu'on voit sur les photos prises dans le noir. Il vient du fait qu'un capteur
+compte des photons, et que ce comptage est aléatoire : deux pixels voisins qui reçoivent la même lumière ne compteront
+pas exactement la même chose, et l'électronique ajoute sa propre petite incertitude par-dessus. Quand l'image est
+sombre, le signal est faible mais cette fluctuation, elle, ne diminue pas — elle devient donc proportionnellement
+énorme. Et le gain n'invente rien : il multiplie le signal **et** le bruit ensemble, donc l'image devient plus claire
+mais plus granuleuse.
+
+Pourquoi accepte-t-on le bruit et pas le flou, alors? Parce que le détecteur d'AprilTags cherche de grandes zones noires
+et blanches, et qu'il regarde plusieurs pixels à la fois. Quelques pixels qui grésillent ne renversent pas une zone
+entière. Le flou, lui, attaque directement les bords du tag — c'est-à-dire exactement ce que le détecteur mesure.
+
+**Le niveau de noir** (*black level offset*) décale la valeur que le capteur considère comme du noir pur. Ton intuition
+est bonne : un capteur ne peut pas représenter une infinité de nuances, il range ce qu'il reçoit sur une échelle limitée
+(0 à 255 par canal, pour 8 bits), donc il arrondit les valeurs intermédiaires et coupe les extrêmes. L'écart entre la
+plus faible et la plus forte luminosité qu'il arrive encore à distinguer dans une même image porte un nom : le *dynamic
+range*.
+
+Ce que le black level offset change, ce n'est pas ce que le capteur capte, c'est où on place la ligne du zéro. En le
+montant, tout ce qui était « gris très foncé » tombe à zéro et devient du noir pur. La documentation Limelight le décrit
+comme ça : le monter assombrit fortement l'image, et sert à faire disparaître les lumières d'aréna et les points
+brillants. C'est très utile pour du suivi de cibles rétroréfléchissantes, mais pour les AprilTags on le laisse à zéro :
+un tag est déjà à contraste maximal, on n'a donc rien à gagner à écraser les noirs, et on risque d'abîmer les petits
+dégradés dont le détecteur se sert pour affiner les coins au sous-pixel.
+
+<Callout kind="tip">
+    Le point de départ recommandé par la documentation Limelight pour une pipeline AprilTag : niveau de noir à **zéro**,
+    gain **au maximum**, puis on monte l'exposition **à partir de zéro** jusqu'à ce que les tags soient suivis correctement —
+    et pas plus haut, justement à cause du flou. Les valeurs sont dans l'[aide-mémoire Limelight](/blog/cheatsheet-limelight).
+</Callout>
+
+<Callout kind="important" label="TODO">
+    Trois captures de la même scène : exposition trop longue (flou), gain trop haut (bruit), réglage correct.
+</Callout>
+
+---
+
+## 4. La calibration
+
+Si la matrice intrinsèque $K$ et les coefficients de distorsion sont si importants, d'où viennent-ils? Les Limelight
+sortent de la boîte avec une calibration par défaut, assez bonne pour la majorité des usages et amplement suffisante
+pour viser un tag. Une recalibration devient utile quand on veut plus de précision sur la position, ce qui est
+exactement notre cas.
+
+Calibrer une caméra consiste à photographier une plaque de calibration aux dimensions connues sous plusieurs angles.
+Ensuite, on laisse un algorithme retrouver les paramètres qui expliquent le mieux toutes ces vues. On utilise une plaque
+*ChArUco* : un damier dont les cases blanches contiennent des marqueurs ArUco, ce qui permet de reconnaître la plaque
+même quand elle sort partiellement du cadre.
+
+<Callout kind="important" label="TODO">
+    Photo d'une plaque ChArUco, et idéalement une capture de l'onglet de calibration avec un bon résultat.
+</Callout>
+
+Ce qui fait une bonne calibration :
+
+- Beaucoup d'images. Au moins 25, idéalement une cinquantaine.
+- La planche partout dans l'image, avec des portions qui dépassent les bords, car c'est là que la distorsion est la plus
+forte.
+- Des angles variés, dont environ la moitié inclinés, pas seulement de face.
+- Une erreur de reprojection (*reprojection error*) finale sous 1 pixel. Entre 0,3 et 0,8 pixel, c'est une bonne
+calibration — ce sont les chiffres donnés par la documentation Limelight.
+
+Dû à la nature intrinsèque de ces paramètres, une calibration appartient à une caméra **et** à une résolution. On ne peut
+donc pas interchanger les calibrations entre deux caméras différentes, même si ce sont deux Limelight du même modèle.
+Voir aussi [Calibrer les Limelight](/blog/vision-limelight-tuning).
+
+---
+
+## 5. Les repères : pixel, caméra, robot, terrain
+
+Dernier morceau avant de passer aux choses sérieuses. Tout le cours consiste, au fond, à passer d'un repère à l'autre :
+
+1. **Image** : $(u, v)$ en pixels. C'est ce que le détecteur mesure.
+2. **Caméra** : $(X, Y, Z)$ en mètres, origine au centre optique. C'est là que vit $K$.
+3. **Robot** : origine au centre du châssis, projeté au sol. La caméra y est placée par une transformation fixe qu'on
+configure une fois — sa position et son orientation sur le robot.
+4. **Terrain** : origine sur le mur de l'alliance bleue. C'est là qu'on veut finir.
+
+Chaque flèche entre deux repères est une rotation plus une translation, rien de plus. Les conventions exactes (quel axe
+pointe où, dans WPILib et dans les Limelight — et non, ce ne sont pas les mêmes) sont dans
+[Repères, unités et conventions](/blog/cheatsheet-coordinates). Gardez cette page ouverte pour le reste du cours.
+
+<Callout kind="important" label="TODO">
+    Schéma des quatre repères sur une vue du robot devant un tag.
+</Callout>
+
+---
+
+## Sur le robot
+
+<Callout kind="important" label="TODO">
+    Les caméras de notre robot : modèles, où elles sont montées, à quelle résolution elles tournent, et la transformation
+    caméra → robot configurée pour chacune. Une photo annotée vaut mille lignes.
+</Callout>
+
+---
+
+## Pour aller plus loin
+
+- [ChArUco Camera Calibration](https://docs.limelightvision.io/docs/docs-limelight/getting-started/performing-charuco-camera-calibration) dans la documentation Limelight : la procédure et les critères de qualité.
+- [Camera Calibration](https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html) dans la documentation OpenCV : la même chose en Python, pour comprendre ce que l'interface fait à votre place.
+- [Coordinate System](https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html) dans la documentation WPILib.
