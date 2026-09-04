@@ -63,11 +63,10 @@ export const posts: Post[] = [
     {
         slug: "vision-cameras",
         title: "Caméras et images",
-        description: "Une image est une grille de nombres, une caméra est une projection. Le modèle sténopé, l'exposition, le gain et la calibration.",
+        description: "Une image est une grille de nombres, une caméra est une projection.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
-        lang: "fr",
-        draft: true,
+        lang: "fr"
     },
     {
         slug: "vision-apriltags",
@@ -98,7 +97,7 @@ export const posts: Post[] = [
     },
     {
         slug: "vision-limelight-tuning",
-        title: "Calibrer les Limelight 🍋‍🟩",
+        title: "Calibrer les Limelight",
         description: "Exposition, gain, pipeline AprilTag, calibration, carte du terrain : les réglages qui comptent et dans quel ordre les faire.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
