@@ -1,14 +1,16 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+import _pixel_values0 from "@/assets/blog/robotics/tag36_11_00000-pixel_values.png";
+import _pinhole_camera from "@/assets/blog/robotics/pinhole-camera.png";
 
 Avant de parler d'AprilTags et de position sur le terrain, il faut savoir comment le robot « voit ». C'est quoi une
-image.. pour un robot? Une caméra ne voit rien du tout. Elle capture un monde en trois dimensions sur un capteur en deux
+image... pour un robot? Une caméra ne voit rien du tout. Elle capture un monde en trois dimensions sur un capteur en deux
 dimensions, et nous donne une grille de nombres. Toute la vision sur le robot repose sur cette projection entre l'espace
 monde et l'espace image.
 
 ## 1. Une image, c'est des nombres
 
 Une image en niveaux de gris est un tableau à deux dimensions : une valeur par pixel, typiquement entre 0 (noir) et 255
-(blanc). Une image en couleur a trois valeurs par pixel, une par canal (rouge, vert, bleu). Pour une image de
+(blanc). Une image en couleur en a trois par pixel, une par canal (rouge, vert, bleu). Pour une image de
 $640 \times 480$ px, ça donne $640 \times 480 \times 3 = 921\,600$ nombres. C'est tout ce que le robot « voit », au moins
 une trentaine de fois par seconde.
 
@@ -22,18 +24,16 @@ tout cas. Certes, c'est plus de détail, donc des tags lisibles de plus loin, ma
 image, donc moins d'images par seconde. Il n'y a donc pas de bonne réponse universelle; il faut faire un choix dépendamment
 de la situation.
 
-<Callout kind="important" label="TODO">
-    Figure : une petite image affichée à côté de sa grille de nombres, avec une flèche sur l'origine $(0, 0)$ et le sens des
-    axes $u$ et $v$. Le favicon 16×16 du site est un bon candidat, voir les notes.
-</Callout>
+
+<img src={_pixel_values0} alt="Un tag36h11 et sa grille de nombres" />
 
 ---
 
 ## 2. Le modèle sténopé
 
 Bien, on sait c'est quoi une image. Mais elle vient d'une caméra. Alors comment décrire mathématiquement ce que fait une
-caméra? Le modèle le plus simple, et celui que vous avez vu en physique optique, est le *pinhole*. Imaginez le
-montage suivant : une boîte fermée, un petit trou sur une face et un capteur au fond. Chaque point du monde envoie un rayon
+caméra? Le modèle le plus simple, et celui que vous avez peut-être vu en physique optique, est le *pinhole*. Imaginez le
+montage suivant : une boîte fermée, un petit trou sur une face, un capteur au fond. Chaque point du monde envoie un rayon
 qui passe par le trou et touche le capteur à un seul endroit. Le résultat est une *projection perspective* : les objets
 lointains paraissent petits, les lignes parallèles se rejoignent à l'horizon. Exactement comme vos yeux.
 
@@ -45,6 +45,8 @@ $$
 
 où $f_x, f_y$ sont les distances focales (*focal length*) exprimées en pixels et $(c_x, c_y)$ est le *principal point*,
 l'endroit où l'axe optique traverse l'image (à peu près son centre).
+
+<img src={_pinhole_camera} alt="Un tag36h11 et sa grille de nombres" />
 
 ### Pourquoi diviser par *Z*?
 
