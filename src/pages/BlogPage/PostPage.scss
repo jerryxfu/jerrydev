@@ -288,6 +288,14 @@
         height: auto;
         margin: 1.75rem auto;
         border-radius: var(--r-md);
+
+        // flip colors on transparent background images
+        &.diagram {
+            [data-theme="night"] &,
+            [data-theme="burgundy"] & {
+                filter: invert(1) hue-rotate(180deg);
+            }
+        }
     }
 
     blockquote {

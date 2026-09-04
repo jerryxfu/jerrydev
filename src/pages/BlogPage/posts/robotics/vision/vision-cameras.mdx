@@ -1,6 +1,7 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
 import _pixel_values0 from "@/assets/blog/robotics/tag36_11_00000-pixel_values.png";
 import _pinhole_camera from "@/assets/blog/robotics/pinhole-camera.png";
+import _figure_pinhole from "@/assets/blog/robotics/figure_pinhole.png";
 
 Avant de parler d'AprilTags et de position sur le terrain, il faut savoir comment le robot « voit ». C'est quoi une
 image... pour un robot? Une caméra ne voit rien du tout. Elle capture un monde en trois dimensions sur un capteur en deux
@@ -37,6 +38,8 @@ montage suivant : une boîte fermée, un petit trou sur une face, un capteur au 
 qui passe par le trou et touche le capteur à un seul endroit. Le résultat est une *projection perspective* : les objets
 lointains paraissent petits, les lignes parallèles se rejoignent à l'horizon. Exactement comme vos yeux.
 
+<img src={_pinhole_camera} alt="Un tag36h11 et sa grille de nombres" />
+
 Dans le repère de la caméra (origine au centre optique, $Z$ vers l'avant), un point $(X, Y, Z)$ tombe sur le capteur en :
 
 $$
@@ -46,54 +49,59 @@ $$
 où $f_x, f_y$ sont les distances focales (*focal length*) exprimées en pixels et $(c_x, c_y)$ est le *principal point*,
 l'endroit où l'axe optique traverse l'image (à peu près son centre).
 
-<img src={_pinhole_camera} alt="Un tag36h11 et sa grille de nombres" />
+<img className="diagram" src={_figure_pinhole} alt="Un tag36h11 et sa grille de nombres" />
 
-### Pourquoi diviser par *Z*?
+<details>
+    <summary>Pourquoi diviser par <em>Z</em>?</summary>
 
-Parce que c'est exactement ce que disent les triangles semblables. Le trou de la boîte est le sommet, et deux triangles
-partagent ce sommet : celui formé par l'objet réel (hauteur $X$, à la distance $Z$ devant la caméra) et celui formé par
-son image sur le capteur (hauteur $x$, à la distance $f$ derrière le trou). Comme les deux triangles ont exactement la
-même forme, le rapport de leurs côtés est le même :
+    À cause des triangles semblables. Si on fait un schéma, on observe deux triangles semblables qui partagent le même sommet au centre optique :
 
-$$
-\frac{x}{f} = \frac{X}{Z} \qquad \Longrightarrow \qquad x = f \frac{X}{Z}
-$$
+    - Le petit triangle va jusqu'au plan image (base $f$, hauteur $x$)
+    - Le grand triangle va jusqu'à l'objet (base $Z$, hauteur $X$).
 
-C'est tout. La division par $Z$ n'est pas un truc de calcul, c'est la perspective elle-même : doublez la distance, et
-l'objet occupe deux fois moins de pixels.
+    Puisque le petit est emboîté dans le grand, ils sont semblables alors le rapport de leur coté est le même:
 
-Cette petite équation a une conséquence que vous devez garder en tête pour le reste du cours. Un objet deux fois plus
-grand placé deux fois plus loin donne **exactement la même image**. Autrement dit, une seule photo ne permet jamais de
-retrouver la distance d'un objet dont on ignore la taille réelle. C'est précisément pour ça qu'on utilise des AprilTags :
-comme on connaît leur taille exacte (165,1 mm), la caméra peut remonter la division et retrouver le $Z$. Sans taille
-connue, pas de distance.
+    $$
+    \frac{x}{f} = \frac{X}{Z} \qquad \Longrightarrow \qquad x = f \frac{X}{Z}
+    $$
 
-### Les coordonnées homogènes
+    ### Pourquoi faut-il connaître $Z$?
 
-On aimerait écrire tout ça avec des matrices, parce que les matrices se composent bien (on peut enchaîner une rotation,
-une translation, une projection en les multipliant). Mais il y a un problème : une multiplication de matrices sait
-additionner et multiplier, elle ne sait pas *diviser*. Et notre projection, elle, divise par $Z$.
+    Une seule photo 2D fait perdre la notion de profondeur. Sans connaître $Z$, il est impossible de deviner la taille réelle ($X$) d'un objet. Un
+    petit objet proche de l'objectif et un immense objet situé très loin projetteront exactement la même image sur le capteur. La division par
+    $Z$ est l'opération mathématique qui conserve cet effet de perspective.
 
-L'astuce s'appelle les *homogeneous coordinates* (coordonnées homogènes). On ajoute une composante de plus au vecteur,
-et on accepte la règle suivante : un vecteur peut être multiplié par n'importe quel facteur non nul sans changer le point
-qu'il désigne. Concrètement, $(u, v, 1)$, $(2u, 2v, 2)$ et $(su, sv, s)$ représentent tous le même pixel. Pour revenir
-aux vraies coordonnées du pixel, on divise les deux premières composantes par la dernière — et voilà, la division est
-récupérée à la toute fin, gratuitement.
+    ---
+</details>
 
-C'est ce facteur $s$ qu'on voit apparaître ici :
+<details>
+    <summary>Les coordonnées homogènes</summary>
 
-$$
-s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
-= K \begin{bmatrix} X \\ Y \\ Z \end{bmatrix},
-\qquad
-K = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix}
-$$
+    Afin de faciliter les calculs, il est souvent avantageux de regrouper les valeurs en matrice, car les matrices se composent bien,
+    c'est à dire qu'on peut facilement enchaîner des opérations comme une rotation, une translation, une projection en les multipliant.
+    Le problème c'est que on ne peut pas faire de division de matrices, mais notre projection implique une division par $Z$.
 
-Faites la multiplication à la main une fois : la dernière ligne de $K$ donne $s = Z$, et les deux premières donnent
-$su = f_x X + c_x Z$ et $sv = f_y Y + c_y Z$. Divisez par $s = Z$ et vous retombez exactement sur les deux équations du
-début. La matrice n'a rien ajouté de nouveau; elle a juste rangé la même chose dans une forme qu'on peut composer avec
-d'autres transformations. On réutilisera exactement la même astuce, en 4 dimensions cette fois, pour enchaîner les
-repères (voir la [boîte à outils](/blog/cheatsheet-math)).
+    La solution consiste à utiliser les *homogeneous coordinates* (coordonnées homogènes). On ajoute une composante de plus au vecteur,
+    et on accepte une nouvelle règle : un vecteur peut être multiplié par n'importe quel facteur non nul sans changer le point
+    qu'il désigne. Autrement dit, $(u, v, 1)$, $(2u, 2v, 2)$ et $(su, sv, s)$ représentent tous le même pixel. Pour revenir
+    aux vraies coordonnées du pixel, on divise les deux premières composantes par la dernière à la fin du calcul.
+
+    C'est ce facteur $s$ qui est apparu ici :
+
+    $$
+    s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
+    = K \begin{bmatrix} X \\ Y \\ Z \end{bmatrix},
+    \qquad
+    K = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix}
+    $$
+
+    Si on effectue la multiplication matricielle, ligne par ligne, on obtient :
+
+    - La première ligne : complete this
+    ....
+
+    ---
+</details>
 
 ### Intrinsèque et extrinsèque
 
@@ -129,29 +137,27 @@ Il est donc préférable de garder l'exposition courte, et on compense la noirce
 **Le gain** (*sensor gain*) amplifie électroniquement le signal du capteur, comme un bouton de volume. Il éclaircit
 l'image sans allonger l'exposition, au prix de bruit.
 
-Le *bruit* (*noise*), c'est le grain qu'on voit sur les photos prises dans le noir. Il vient du fait qu'un capteur
-compte des photons, et que ce comptage est aléatoire : deux pixels voisins qui reçoivent la même lumière ne compteront
-pas exactement la même chose, et l'électronique ajoute sa propre petite incertitude par-dessus. Quand l'image est
-sombre, le signal est faible mais cette fluctuation, elle, ne diminue pas — elle devient donc proportionnellement
-énorme. Et le gain n'invente rien : il multiplie le signal **et** le bruit ensemble, donc l'image devient plus claire
-mais plus granuleuse.
+Le bruit (*noise*), c'est le grain qu'on voit sur les photos prises surtout dans le noir. Il vient du fait qu'un capteur
+compte des photons (particule de lumière) et que ce comptage est aléatoire. Deux pixels cote à cote qui sont exposés à la même lumière vont rapporter des valeurs un peu différentes.
+Quand l'image est sombre, cette incertitude relative devient énorme:
 
-Pourquoi accepte-t-on le bruit et pas le flou, alors? Parce que le détecteur d'AprilTags cherche de grandes zones noires
-et blanches, et qu'il regarde plusieurs pixels à la fois. Quelques pixels qui grésillent ne renversent pas une zone
-entière. Le flou, lui, attaque directement les bords du tag — c'est-à-dire exactement ce que le détecteur mesure.
+- Supposons qu'en plein jour un pixel reçoit par exemple 10 000 photons. Une variation de $\pm$ 100 photons correspond à une différence de 1%.
+- En revanche, supposons qu'à l'obscurité un pixel ne reçoit que 10 photons. Une variation de seulement $\pm$ 3 photons correspond à une différence énorme de 33%.
 
-**Le niveau de noir** (*black level offset*) décale la valeur que le capteur considère comme du noir pur. Ton intuition
-est bonne : un capteur ne peut pas représenter une infinité de nuances, il range ce qu'il reçoit sur une échelle limitée
-(0 à 255 par canal, pour 8 bits), donc il arrondit les valeurs intermédiaires et coupe les extrêmes. L'écart entre la
-plus faible et la plus forte luminosité qu'il arrive encore à distinguer dans une même image porte un nom : le *dynamic
-range*.
+Puisque le gain fait qu'amplifier le signal, le gain amplifie aussi le bruit.
 
-Ce que le black level offset change, ce n'est pas ce que le capteur capte, c'est où on place la ligne du zéro. En le
-montant, tout ce qui était « gris très foncé » tombe à zéro et devient du noir pur. La documentation Limelight le décrit
-comme ça : le monter assombrit fortement l'image, et sert à faire disparaître les lumières d'aréna et les points
-brillants. C'est très utile pour du suivi de cibles rétroréfléchissantes, mais pour les AprilTags on le laisse à zéro :
-un tag est déjà à contraste maximal, on n'a donc rien à gagner à écraser les noirs, et on risque d'abîmer les petits
-dégradés dont le détecteur se sert pour affiner les coins au sous-pixel.
+En général, on tolère plus le bruit que le flou, parce que détecteur d'AprilTags cherche des grandes zones noires
+et blanches. Un peu de grésilleent dans les zones grises ne va pas l'empêcher de trouver un tag, mais un flou qui mélange le noir et le blanc va le rendre illisible.
+
+**Le niveau de noir** (*black level offset*) décale la valeur que le capteur considère comme du noir pur. Une caméra ne peut pas représenter une infinité de couleurs,
+il compresse ce qu'il reçoit sur une échelle limitée (0 à 255 par canal, pour une image 8 bits). Il y a donc inévitablement une perte de précision dû à l'arrondissement.
+Si une photo contient à la fois des couleurs très sombres et très claires, les couleurs intermédiares sont dropped.
+L'écart entre la plus faible et la plus forte luminosité qu'il arrive encore à distinguer dans une même image s'appelle le
+*dynamic range*.
+
+Le black level offset change où on place la ligne du zéro. En le montant, tout ce qui était « gris très foncé » tombe à zéro et devient du noir pur.
+La documentation Limelight le décrit comme ça : le monter assombrit fortement l'image, et sert à faire disparaître les lumières d'aréna et les points
+brillants. C'est très utile pour du suivi de cibles rétroréfléchissantes, mais pour les AprilTags on le laisse à zéro, car un tag est déjà à contraste maximal.
 
 <Callout kind="tip">
     Le point de départ recommandé par la documentation Limelight pour une pipeline AprilTag : niveau de noir à **zéro**,
@@ -227,6 +233,7 @@ pointe où, dans WPILib et dans les Limelight — et non, ce ne sont pas les mê
 
 ## Pour aller plus loin
 
+- - Torralba, Isola et Freeman, [Foundations of Computer Vision](https://visionbook.mit.edu/imaging_geometry.html): le chapitre sur la géométrie de la formation d'image, entre autres.
 - [ChArUco Camera Calibration](https://docs.limelightvision.io/docs/docs-limelight/getting-started/performing-charuco-camera-calibration) dans la documentation Limelight : la procédure et les critères de qualité.
 - [Camera Calibration](https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html) dans la documentation OpenCV : la même chose en Python, pour comprendre ce que l'interface fait à votre place.
 - [Coordinate System](https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html) dans la documentation WPILib.
