@@ -8,6 +8,7 @@ import PostToc from "./components/PostToc.tsx";
 import {formatPostAge, formatPostDate, isReadable, listedPosts, neighbours, postComponents} from "./posts.tsx";
 import {TOPICS} from "./topics.tsx";
 import "katex/dist/katex.min.css";
+import "@/assets/styles/prose.scss";
 import "./PostPage.scss";
 
 export default function PostPage() {
@@ -108,7 +109,7 @@ export default function PostPage() {
                     and only exist in the DOM. Renders nothing at all on a post with fewer than three sections. */}
                 <PostToc bodyRef={bodyRef} slug={post.slug} />
 
-                <article className="post_body" ref={bodyRef}>
+                <article className="prose" ref={bodyRef}>
                     <Suspense fallback={null}>
                         <Body />
                     </Suspense>

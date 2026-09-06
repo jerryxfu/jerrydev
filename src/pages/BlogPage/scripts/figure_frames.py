@@ -6,8 +6,9 @@ the frames and not differences in the drawing.
 
     python3 figure-frames.py
 """
-from pathlib import Path
 import matplotlib
+from pathlib import Path
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -16,26 +17,26 @@ from PIL import Image
 # X red, Y green, Z blue — the convention you meet everywhere, from AdvantageScope to Blender
 X_C, Y_C, Z_C = "#d64545", "#2f9e68", "#2f6fd0"
 INK, GREY, FAINT = "#1a1a1a", "#8a8a8a", "#d0d0d0"
-ELEV, AZIM = 18, -58        # one shared viewpoint for the three 3D panels
+ELEV, AZIM = 18, -58  # one shared viewpoint for the three 3D panels
 
 # Each axis: label, arrow direction in the shared world (+x right, +y away, +z up), colour,
 # then where the label sits and how it is aligned. mplot3d clips text at the edge of its box,
 # so a long label goes *inside* the box (under its arrow) rather than past the arrowhead.
 FRAMES = [
     ("Camera space", [
-        ("X (right)",   (1, 0, 0),  X_C, (1.12, 0, 0),  "left"),
-        ("Y (down)",    (0, 0, -1), Y_C, (0, 0, -1.3),  "center"),
-        ("Z (forward)", (0, 1, 0),  Z_C, (0, 1.12, 0),  "left"),
+        ("X (right)", (1, 0, 0), X_C, (1.12, 0, 0), "left"),
+        ("Y (down)", (0, 0, -1), Y_C, (0, 0, -1.3), "center"),
+        ("Z (forward)", (0, 1, 0), Z_C, (0, 1.12, 0), "left"),
     ]),
     ("Robot space", [
-        ("X (forward)", (0, 1, 0),  X_C, (0, 1.12, 0),  "left"),
-        ("Y (left)",    (-1, 0, 0), Y_C, (-1.12, 0, 0), "right"),
-        ("Z (up)",      (0, 0, 1),  Z_C, (0, 0, 1.28),  "center"),
+        ("X (forward)", (0, 1, 0), X_C, (0, 1.12, 0), "left"),
+        ("Y (left)", (-1, 0, 0), Y_C, (-1.12, 0, 0), "right"),
+        ("Z (up)", (0, 0, 1), Z_C, (0, 0, 1.28), "center"),
     ]),
     ("Field space", [
         ("X (away from\nblue wall)", (1, 0, 0), X_C, (.8, 0, -.5), "center"),
-        ("Y (left)",                  (0, 1, 0), Y_C, (0, 1.12, 0), "left"),
-        ("Z (up)",                    (0, 0, 1), Z_C, (0, 0, 1.28), "center"),
+        ("Y (left)", (0, 1, 0), Y_C, (0, 1.12, 0), "left"),
+        ("Z (up)", (0, 0, 1), Z_C, (0, 0, 1.28), "center"),
     ]),
 ]
 
@@ -64,8 +65,10 @@ for (dx, dy), name, color, ha, va in [((2.1, 0), "u (right)", X_C, "left", "cent
             name, color=color, fontsize=10.5, ha=ha, va=va, zorder=7)
 ax.plot(0, 0, "o", color=INK, ms=5, zorder=8)
 ax.text(-.15, .16, "(0, 0)", fontsize=9.5, color=INK, ha="right")
-ax.set_xlim(-1.5, 4.6); ax.set_ylim(-3.6, .9)   # même proportion que les cases 3D, pour aligner les titres
-ax.set_aspect("equal"); ax.axis("off")
+ax.set_xlim(-1.5, 4.6);
+ax.set_ylim(-3.6, .9)  # même proportion que les cases 3D, pour aligner les titres
+ax.set_aspect("equal");
+ax.axis("off")
 
 # ------------------------------------------------------------ 2-4. the 3D frames
 for i, (name, axes3) in enumerate(FRAMES, start=2):
@@ -102,8 +105,10 @@ for i, (name, axes3) in enumerate(FRAMES, start=2):
         axis.set_ticklabels([])
         axis._axinfo["tick"].update(inward_factor=0, outward_factor=0)
 
-    ax.set_xlim(-1.15, 1.15); ax.set_ylim(-1.15, 1.15); ax.set_zlim(-1.15, 1.15)
-    ax.set_box_aspect((1, 1, 1), zoom=1.12)   # zoom : remplit la case au lieu de flotter dedans
+    ax.set_xlim(-1.15, 1.15);
+    ax.set_ylim(-1.15, 1.15);
+    ax.set_zlim(-1.15, 1.15)
+    ax.set_box_aspect((1, 1, 1), zoom=1.12)  # zoom : remplit la case au lieu de flotter dedans
     ax.view_init(elev=ELEV, azim=AZIM)
 
 # Marge à droite laissée exprès : l'étiquette la plus longue déborde de sa case,

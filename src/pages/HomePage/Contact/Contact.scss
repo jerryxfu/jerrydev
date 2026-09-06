@@ -132,7 +132,7 @@
         color: var(--text-4);
     }
 
-    // Underlined in a hairline rather than coloured. Same treatment prose links get in .post_body, which
+    // Underlined in a hairline rather than coloured. Same treatment prose links get in .prose, which
     // is what lets these read as links without putting a second accent colour on the homepage.
     a {
         color: var(--text-2);

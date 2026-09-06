@@ -8,12 +8,12 @@ comment. La [prochaine leçon](/blog/vision-pose-estimation) ouvre la boîte.
 
 <Callout kind="note" label="Dans cette leçon">
 
-- Ce que le Limelight publie : `botpose`, MegaTag et MegaTag2, vus de l'extérieur
-- Pourquoi fusionner l'odométrie et la vision, et comment le *pose estimator* de WPILib le fait
-- Les écarts-types : dire au filtre à quel point on fait confiance à chaque mesure
-- Rejeter les mauvaises mesures avant qu'elles n'entrent dans le filtre
-- Nos systèmes : détection du *flip*, fenêtre de convergence, pondération MT1/MT2
-- Vérifier que ça marche
+    - Ce que le Limelight publie : `botpose`, MegaTag et MegaTag2, vus de l'extérieur
+    - Pourquoi fusionner l'odométrie et la vision, et comment le *pose estimator* de WPILib le fait
+    - Les écarts-types : dire au filtre à quel point on fait confiance à chaque mesure
+    - Rejeter les mauvaises mesures avant qu'elles n'entrent dans le filtre
+    - Nos systèmes : détection du *flip*, fenêtre de convergence, pondération MT1/MT2
+    - Vérifier que ça marche
 
 </Callout>
 
@@ -68,8 +68,8 @@ poseEstimator.addVisionMeasurement(visionPose, visionTimestampSeconds, visionStd
 ```
 
 <Callout kind="important" label="TODO">
-Figure : trajectoire odométrie seule (qui dérive) contre trajectoire fusionnée (qui se recale à chaque tag), sur un vrai
-log de l'équipe si possible.
+    Figure : trajectoire odométrie seule (qui dérive) contre trajectoire fusionnée (qui se recale à chaque tag), sur un vrai
+    log de l'équipe si possible.
 </Callout>
 
 ---
@@ -91,8 +91,8 @@ composante rotation un écart-type énorme (la documentation Limelight utilise `
 que la vision ne touche jamais au lacet.
 
 <Callout kind="important" label="TODO">
-Notre formule d'écarts-types en fonction de la distance et du nombre de tags, avec les valeurs et la raison de chacune.
-Un petit graphique écart-type en fonction de la distance serait parfait.
+    Notre formule d'écarts-types en fonction de la distance et du nombre de tags, avec les valeurs et la raison de chacune.
+    Un petit graphique écart-type en fonction de la distance serait parfait.
 </Callout>
 
 ---
@@ -113,12 +113,12 @@ construction.
 - **Horodatage invalide**, ou mesure déjà traitée.
 
 <Callout kind="tip">
-Loguez les mesures rejetées, et *pourquoi* elles l'ont été. Un rejet silencieux est impossible à diagnostiquer dans les
-gradins, et c'est toujours dans les gradins que ça arrive.
+    Loguez les mesures rejetées, et *pourquoi* elles l'ont été. Un rejet silencieux est impossible à diagnostiquer dans les
+    gradins, et c'est toujours dans les gradins que ça arrive.
 </Callout>
 
 <Callout kind="important" label="TODO">
-Nos seuils exacts et où ils vivent dans le code.
+    Nos seuils exacts et où ils vivent dans le code.
 </Callout>
 
 ---
@@ -131,28 +131,28 @@ comme mentionné dans l'intro. Le code de localisation de l'équipe (`Localizati
 ### Détection du flip
 
 <Callout kind="important" label="TODO">
-Décrire le problème observé (la pose d'un tag qui bascule entre ses deux solutions), comment le code le détecte, et ce
-qu'il fait de la mesure quand il le détecte. Un extrait du code et une capture d'un flip dans les logs. Le pourquoi du
-flip est dans la [leçon suivante](/blog/vision-pose-estimation#4-lambiguïté-de-pose).
+    Décrire le problème observé (la pose d'un tag qui bascule entre ses deux solutions), comment le code le détecte, et ce
+    qu'il fait de la mesure quand il le détecte. Un extrait du code et une capture d'un flip dans les logs. Le pourquoi du
+    flip est dans la [leçon suivante](/blog/vision-pose-estimation#4-lambiguïté-de-pose).
 </Callout>
 
 ### Rejet des aberrations par fenêtre de convergence (*rolling convergence window*)
 
 <Callout kind="important" label="TODO">
-Décrire la fenêtre glissante : sur quoi elle porte, quelle taille, comment on décide qu'une mesure est une aberration par
-rapport aux précédentes, et ce qui se passe au démarrage quand la fenêtre est vide.
+    Décrire la fenêtre glissante : sur quoi elle porte, quelle taille, comment on décide qu'une mesure est une aberration par
+    rapport aux précédentes, et ce qui se passe au démarrage quand la fenêtre est vide.
 </Callout>
 
 ### Pondération MT1 / MT2
 
 <Callout kind="important" label="TODO">
-Quand on utilise MT1, quand MT2, et comment leur confiance est mise à l'échelle l'une par rapport à l'autre. Le cas du
-lacet : qui a le dernier mot entre le gyroscope et la vision, et quand on réinitialise l'orientation.
+    Quand on utilise MT1, quand MT2, et comment leur confiance est mise à l'échelle l'une par rapport à l'autre. Le cas du
+    lacet : qui a le dernier mot entre le gyroscope et la vision, et quand on réinitialise l'orientation.
 </Callout>
 
 <Callout kind="note">
-Chacun de ces mécanismes est né d'un problème vu en compétition. Raconter le problème avant la solution, c'est ce qui
-rend la section mémorable.
+    Chacun de ces mécanismes est né d'un problème vu en compétition. Raconter le problème avant la solution, c'est ce qui
+    rend la section mémorable.
 </Callout>
 
 ---
@@ -160,9 +160,9 @@ rend la section mémorable.
 ## 6. Vérifier que ça marche
 
 <Callout kind="important" label="TODO">
-Compléter avec la procédure de l'équipe. Pistes : poser le robot à une position mesurée au ruban et comparer; visualiser
-la pose dans AdvantageScope ou Glass (`Field2d`) en promenant le robot; comparer MT1, MT2 et la pose fusionnée sur le
-même log; provoquer volontairement un flip et vérifier qu'il est rejeté.
+    Compléter avec la procédure de l'équipe. Pistes : poser le robot à une position mesurée au ruban et comparer; visualiser
+    la pose dans AdvantageScope ou Glass (`Field2d`) en promenant le robot; comparer MT1, MT2 et la pose fusionnée sur le
+    même log; provoquer volontairement un flip et vérifier qu'il est rejeté.
 </Callout>
 
 ---
@@ -170,8 +170,8 @@ même log; provoquer volontairement un flip et vérifier qu'il est rejeté.
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-Carte du code : quelle classe lit les caméras, quelle classe filtre, où l'estimateur est mis à jour, et ce qui est logué.
-Un lien vers le dépôt si le code est public.
+    Carte du code : quelle classe lit les caméras, quelle classe filtre, où l'estimateur est mis à jour, et ce qui est logué.
+    Un lien vers le dépôt si le code est public.
 </Callout>
 
 ---

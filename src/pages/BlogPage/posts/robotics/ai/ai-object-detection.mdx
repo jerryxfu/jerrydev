@@ -1,8 +1,8 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
 
 <Callout kind="note" label="For the curious">
-Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector.
-Still, none of this is needed for AprilTag localization — tags don't use any learning at all.
+    Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector.
+    Still, none of this is needed for AprilTag localization — tags don't use any learning at all.
 </Callout>
 
 AprilTags are designed to be found; a game piece is not. Nobody printed a convenient black-and-white code on it, it can
@@ -13,12 +13,12 @@ on our hardware.
 
 <Callout kind="note" label="In this lesson">
 
-- Classification, detection, segmentation: three tasks, three outputs
-- The convolution: a filter that learns
-- How a detector produces boxes
-- Measuring a detector: IoU, precision, recall, mAP
-- The data: labeling and augmentation
-- What this looks like on a Limelight or a coprocessor
+    - Classification, detection, segmentation: three tasks, three outputs
+    - The convolution: a filter that learns
+    - How a detector produces boxes
+    - Measuring a detector: IoU, precision, recall, mAP
+    - The data: labeling and augmentation
+    - What this looks like on a Limelight or a coprocessor
 
 </Callout>
 
@@ -34,7 +34,7 @@ aim at.
 a game piece.
 
 <Callout kind="important" label="TODO">
-Figure with the same image processed all three ways.
+    Figure with the same image processed all three ways.
 </Callout>
 
 ---
@@ -55,7 +55,7 @@ frame. Remember the *factors of variation* that killed hand-written rules? Convo
 position — for free, by construction. That one idea is most of why deep learning conquered vision.
 
 <Callout kind="important" label="TODO">
-Animation or figure of a $3 \times 3$ convolution sliding over an image, plus a real filter's output.
+    Animation or figure of a $3 \times 3$ convolution sliding over an image, plus a real filter's output.
 </Callout>
 
 ---
@@ -127,8 +127,8 @@ not a field position. Getting from a box to "the note is 2.3 m away at 15°" is 
 problem, and it's a genuinely hard one. Know exactly why you want a detector before spending build-season time on it.
 
 <Callout kind="important" label="TODO">
-Our actual setup if we ever field one: which Limelight, which accelerator, framerate achieved, and how the model was
-trained. Re-check the hardware requirements against the current docs every season — this moves a lot.
+    Our actual setup if we ever field one: which Limelight, which accelerator, framerate achieved, and how the model was
+    trained. Re-check the hardware requirements against the current docs every season — this moves a lot.
 </Callout>
 
 ---

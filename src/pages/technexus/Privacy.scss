@@ -1,0 +1,53 @@
+.legal {
+    min-height: 100vh;
+    background-color: var(--bg);
+}
+
+// 5rem clears the navbar. PostPage gave that padding up when it dropped its own navbar; this page keeps one,
+// so it needs the clearance back — same reason .post_container.post_missing carries it.
+.legal_container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 5rem 1.25rem 4rem;
+}
+
+@media (max-width: 600px) {
+    .legal_container {
+        padding: 5rem 1rem 3rem;
+    }
+}
+
+// The policy supplies its own <h1> and "last updated" line from inside the MDX, so the date sits beside the
+// text it dates — put it in the TSX instead and the first edit that skips the component leaves it lying.
+// .prose deliberately starts at h2 (a post's h1 belongs to .post_header), so the title is this page's business.
+.legal_container .prose {
+    h1 {
+        margin: 0 0 0.4rem;
+        font-size: var(--fs-3xl);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text-strong);
+    }
+
+    // The date line. Adjacent-sibling rather than a class, because MDX has no way to put one on a paragraph
+    // without dropping to raw JSX, and the policy is plain markdown on purpose — it should stay editable
+    // by someone who has never seen this file.
+    h1 + p {
+        margin-bottom: 2.25rem;
+        font-size: var(--fs-sm);
+        color: var(--text-4);
+    }
+
+    // First section heading, which would otherwise carry the 2.25rem top margin meant to separate it from
+    // body text above it. There isn't any above it here.
+    h2:first-of-type {
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .legal_container .prose h1 {
+        font-size: var(--fs-2xl);
+    }
+}

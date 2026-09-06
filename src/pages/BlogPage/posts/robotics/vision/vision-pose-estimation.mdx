@@ -8,12 +8,12 @@ de mesure.
 
 <Callout kind="note" label="Dans cette leçon">
 
-- Le problème PnP : des points 3D connus, leurs images 2D, retrouver la pose
-- La chaîne de projection écrite en équations, et l'erreur de reprojection
-- Les algorithmes derrière `solvePnP`, et lequel s'applique à un tag
-- L'ambiguïté de pose — le fameux flip, enfin expliqué
-- MegaTag et MegaTag2 : pourquoi plusieurs tags (ou un gyroscope) règlent tout
-- De la caméra au robot, du robot au terrain
+    - Le problème PnP : des points 3D connus, leurs images 2D, retrouver la pose
+    - La chaîne de projection écrite en équations, et l'erreur de reprojection
+    - Les algorithmes derrière `solvePnP`, et lequel s'applique à un tag
+    - L'ambiguïté de pose — le fameux flip, enfin expliqué
+    - MegaTag et MegaTag2 : pourquoi plusieurs tags (ou un gyroscope) règlent tout
+    - De la caméra au robot, du robot au terrain
 
 </Callout>
 
@@ -57,9 +57,9 @@ Résoudre PnP, c'est minimiser $E$. Une pose parfaite donne une erreur de zéro;
 fraction de pixel. Gardez cette quantité en tête — elle revient partout, de la calibration jusqu'au flip.
 
 <Callout kind="note">
-Comptons : six inconnues (trois angles, trois distances) pour quatre points qui donnent chacun deux équations, soit huit.
-Le problème est surdéterminé, et c'est tant mieux. Avec trois points seulement (P3P), il existe jusqu'à quatre solutions
-exactes — d'où l'utilité du quatrième coin.
+    Comptons : six inconnues (trois angles, trois distances) pour quatre points qui donnent chacun deux équations, soit huit.
+    Le problème est surdéterminé, et c'est tant mieux. Avec trois points seulement (P3P), il existe jusqu'à quatre solutions
+    exactes — d'où l'utilité du quatrième coin.
 </Callout>
 
 ---
@@ -83,8 +83,8 @@ solutions, chacune avec son erreur de reprojection. Deux. Pour une seule image d
 section suivante.
 
 <Callout kind="important" label="TODO">
-Décider jusqu'où entrer dans chaque algorithme pendant la formation. Une intuition par méthode suffit probablement; les
-articles sont en fin de page pour les curieux.
+    Décider jusqu'où entrer dans chaque algorithme pendant la formation. Une intuition par méthode suffit probablement; les
+    articles sont en fin de page pour les curieux.
 </Callout>
 
 ---
@@ -113,8 +113,8 @@ le plus efficace de tous.
 4. **Fournir l'orientation du robot** au calcul, ce que fait MegaTag2.
 
 <Callout kind="important" label="TODO">
-Figure des deux poses candidates pour un même quadrilatère. Atelier : filmer un tag de face en bougeant lentement et
-regarder la pose basculer, puis refaire la même chose de biais et constater que ça ne flippe plus.
+    Figure des deux poses candidates pour un même quadrilatère. Atelier : filmer un tag de face en bougeant lentement et
+    regarder la pose basculer, puis refaire la même chose de biais et constater que ça ne flippe plus.
 </Callout>
 
 ---
@@ -165,8 +165,8 @@ homogènes (voir la [boîte à outils](/blog/cheatsheet-math)). Le Limelight fai
 publie le résultat final — le `botpose_wpiblue` que la leçon précédente consommait. La boîte noire, c'était ça.
 
 <Callout kind="warning">
-Une erreur d'un degré sur l'orientation de la caméra dans la configuration se traduit en plusieurs centimètres à trois
-mètres. La transformation caméra → robot se mesure, elle ne s'estime pas à l'œil.
+    Une erreur d'un degré sur l'orientation de la caméra dans la configuration se traduit en plusieurs centimètres à trois
+    mètres. La transformation caméra → robot se mesure, elle ne s'estime pas à l'œil.
 </Callout>
 
 ---
@@ -174,8 +174,8 @@ mètres. La transformation caméra → robot se mesure, elle ne s'estime pas à 
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-Relier la théorie à nos outils : où voir l'ambiguïté d'un tag dans les données Limelight (`rawFiducials[i].ambiguity`),
-comment on l'utilise dans nos seuils, et un exemple réel de flip capté dans nos logs.
+    Relier la théorie à nos outils : où voir l'ambiguïté d'un tag dans les données Limelight (`rawFiducials[i].ambiguity`),
+    comment on l'utilise dans nos seuils, et un exemple réel de flip capté dans nos logs.
 </Callout>
 
 ---

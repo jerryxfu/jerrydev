@@ -4,15 +4,16 @@ Labels are in French, to match the lesson.
 
     python3 figure-pinhole.py
 """
-from pathlib import Path
 import matplotlib
+from pathlib import Path
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 RED, BLUE, GREEN, INK, GREY = "#d64545", "#2f6fd0", "#2f9e68", "#1a1a1a", "#9a9a9a"
-F = 2.0           # focale
-Z, X = 6.0, 3.0   # profondeur et hauteur du point P
-x = F * X / Z     # hauteur de son image sur le plan image
+F = 2.0  # focale
+Z, X = 6.0, 3.0  # profondeur et hauteur du point P
+x = F * X / Z  # hauteur de son image sur le plan image
 
 fig, ax = plt.subplots(figsize=(11, 5.9), dpi=170)
 # fond transparent : la figure prend la couleur de la page qui l'affiche
@@ -66,7 +67,7 @@ ax.plot(F, x, "o", color=RED, ms=10, zorder=8)
 ax.text(F - .18, x + .3, "p", fontsize=14, color=RED, style="italic", ha="right", va="bottom")
 ax.text(Z + .24, X - .16, "P", fontsize=14, color=INK, style="italic", ha="left", va="top")
 
-tick(F, "f", RED, dx=-.16, ha="right")   # décalé : le plan image passe par ici
+tick(F, "f", RED, dx=-.16, ha="right")  # décalé : le plan image passe par ici
 tick(Z / 2, "Z/2", GREEN)
 tick(Z, "Z", BLUE)
 
@@ -77,8 +78,10 @@ arrow(-F, 0, -F, -x, GREY, lw=2.4)
 ax.text(-F - .2, -x / 2, "x", color=GREY, fontsize=13, va="center", ha="right", style="italic")
 ax.text(-F, -1.65, "capteur réel\n(image renversée)", fontsize=9.5, color=GREY, ha="center", va="top")
 
-ax.set_xlim(-3.9, 7.9); ax.set_ylim(-2.7, 3.5)
-ax.set_aspect("equal"); ax.axis("off")
+ax.set_xlim(-3.9, 7.9);
+ax.set_ylim(-2.7, 3.5)
+ax.set_aspect("equal");
+ax.axis("off")
 fig.tight_layout()
 out = f"{Path(__file__).stem}.png"
 # bbox_inches="tight" + pad_inches=0 : aucune marge blanche autour du dessin

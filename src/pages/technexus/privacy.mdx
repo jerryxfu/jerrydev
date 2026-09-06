@@ -1,0 +1,132 @@
+# TechNexus privacy policy
+
+Last updated: --
+
+## TODO: FIX THIS ENTIRE DOCUMENT BEFORE PUBLISHING APP
+
+TechNexus is a companion app for *FIRST*® Robotics Competition teams. It shows the match schedule, queue
+position and results for an event you pick, and gives your team a few tools for keeping track of its own
+equipment. There is no account, no sign-up and no login. I don't collect your name, your email address or
+anything else that identifies you, and there is no analytics or advertising code in the app at all. This
+page explains the little that does happen, in plain language.
+
+I'm Jerry. I'm based in Canada, I wrote TechNexus on my own, and I run the server it talks to.
+
+## What's stored on your device
+
+The app remembers three settings, using the standard preferences store your phone provides
+(`NSUserDefaults` on iOS). They live on your device:
+
+| Setting | What it is |
+|---|---|
+| Event | The *FIRST* event you're following, as an event key such as `demo1815`. Starts on a demo event |
+| Team number | Your team number, used to highlight your matches. Starts empty, and you don't have to fill it in |
+| Live Activity toggle | Whether Live Activities are on. iOS only |
+
+Your team number is never sent anywhere. It's used only on your own device, to pick out which rows in the
+schedule are yours.
+
+Deleting the app deletes all three.
+
+## What's sent to the server
+
+The app fetches schedule and results data from `https://nexus.jerryxf.net`, a server I run. Each request
+carries:
+
+- **The event key**, as part of the address the app asks for — for example `/event/{eventKey}`. This is how
+  the server knows which event's schedule to send back.
+- **Battery and cycle records**, but only if your team uses the battery tracker. These are notes your team
+  writes about its own batteries. They describe equipment, not people.
+- **Ordinary web request information**: your IP address, which app version made the request, and the time.
+  Every web request on the internet carries these; they can't be turned off.
+
+The server never receives your team number, a device identifier, or an advertising ID. There isn't one to
+send — the app doesn't ask for either.
+
+## Third-party services
+
+TechNexus doesn't hand your data to anyone for their own purposes. But the server is built on infrastructure
+other companies operate, and it reads competition data from two public sources. Here's everyone in the chain:
+
+| Service | What it does | What it can see |
+|---|---|---|
+| [Cloudflare](https://www.cloudflare.com/privacypolicy/) | Sits in front of my server as a CDN and proxy | Your IP address and standard request information, in its edge logs |
+| [Google Cloud Run](https://cloud.google.com/terms/cloud-privacy-notice) (`us-east1`) | Runs the server itself | Request logs, including your IP address |
+| [Neon](https://neon.com/privacy-policy) (Postgres, AWS `us-east-1`) | Stores the database | Battery and cycle records only |
+| [frc.nexus](https://frc.nexus) | Where schedule and queue data comes from | **Nothing about you.** My server asks frc.nexus, not your phone |
+| [The Blue Alliance](https://www.thebluealliance.com/privacy) | Where match results come from | **Nothing about you.** Same — my server asks, not your phone |
+
+The last two are worth being clear about: your device never contacts frc.nexus or The Blue Alliance
+directly, so they never see your IP address or learn that you exist. My server fetches from them and passes
+the results on.
+
+## What TechNexus doesn't do
+
+This list is short and I intend to keep it that way.
+
+- No analytics, no telemetry, no crash-reporting SDK — none of it, of any kind
+- No advertising, no ad identifiers, no ad networks
+- No third-party trackers
+- No location access
+- No access to your contacts, photos, camera, microphone or health data
+- No selling or sharing your data with anyone, for any purpose
+- No accounts, so there are no passwords or profiles to be breached
+- No messaging or user-generated content shared between users
+
+## Retention and deletion
+
+Server logs at Cloudflare and Google Cloud Run are retained for operational and security purposes — keeping
+the service running and spotting abuse. They aren't used to build a profile of you, and I don't try to
+connect them to anyone.
+
+Battery and cycle records stay in the database until your team deletes them, or until you email me and ask.
+They're team equipment notes, so they're most useful kept across a season.
+
+Settings on your device stay until you delete the app or reset them in the app. Deleting the app removes
+them, and that's the fastest way to remove everything TechNexus knows.
+
+## Children's privacy
+
+*FIRST* Robotics Competition team members are usually 14 to 18, so I've assumed from the start that some
+people using this app are minors.
+
+The app is on a public app store and there's no way for me to verify anyone's age. What I can do instead is
+make sure there's nothing to protect: TechNexus collects no personal information, has no accounts, has no
+profiles, and gives users no way to contact each other or post anything visible to anyone else. There is no
+mechanism in the app through which a child could disclose personal information — to me, or to another user.
+
+The United States' COPPA rule covers children under 13. Whether or not it applies here, the app collects no
+personal information from users of any age, so there's nothing to obtain parental consent for.
+
+If that ever changes — team-to-team messaging is the kind of feature that would change it — this page will
+be updated in the same release that ships the change, not afterwards.
+
+## Your rights and how to contact me
+
+I'm in Canada, so PIPEDA applies to me, and Quebec's Law 25 may as well. *FIRST* is international, so some
+of you are covered by the GDPR in Europe or the CCPA in California. Those laws give you rights to see, correct
+and delete personal information a service holds about you.
+
+In practice there's very little to exercise them against, because I hold very little:
+
+- **To delete your settings**, delete the app. That's immediate and doesn't involve me.
+- **To delete your team's battery and cycle records**, email me and tell me the event and team, and I'll
+  remove them.
+- **For anything else** — a question, a correction, or a request to see what's stored — email me and I'll
+  answer.
+
+The address is **[me@jerryxf.net](mailto:me@jerryxf.net)**.
+
+The server and database run in the United States (`us-east1` and `us-east-1`), so the request information
+described above is processed there, not in Canada or the EU.
+
+## Changes to this policy
+
+If the app starts doing something this page doesn't describe, this page gets updated in the same release —
+not after it ships. The "last updated" date at the top changes whenever the text does.
+
+## Not affiliated with *FIRST*
+
+TechNexus is an independent project and is not affiliated with, endorsed by, or sponsored by *FIRST*®, FIRST
+Robotics Competition, frc.nexus, or The Blue Alliance. *FIRST*® and FIRST® Robotics Competition are trademarks of
+the United States Foundation for Inspiration and Recognition of Science and Technology (*FIRST*®).

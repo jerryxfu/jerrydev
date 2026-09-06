@@ -20,4 +20,9 @@
         <priority>0.4</priority>
         <changefreq>monthly</changefreq>
     </url>
+    <url>
+        <loc>https://jerryxf.net/technexus/privacy</loc>
+        <priority>0.3</priority>
+        <changefreq>yearly</changefreq>
+    </url>
 </urlset>

@@ -1,0 +1,220 @@
+// Styles for MDX output, shared by every page that renders a .mdx file — blog posts and the
+// standalone legal pages. Prose is left aligned; images center.
+//
+// Lifted wholesale out of PostPage.scss when the second call site appeared. Two rules in here are
+// blog-shaped and simply inert elsewhere: the heading scroll-margins are tuned for the post contents
+// bar, and the Shiki dark-theme override only matters on a page with fenced code.
+.prose {
+    font-size: var(--fs-md);
+    line-height: 1.75;
+    color: var(--text-2);
+
+    h2, h3, h4 {
+        margin: 2.25rem 0 0.75rem;
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--text-strong);
+        // Clears the navbar. Below the rail breakpoint the contents bar is fixed underneath it and occupies roughly another 36px,
+        // so an anchored heading needs the larger offset there or it arrives tucked behind the bar it was just clicked in.
+        scroll-margin-top: 2rem;
+
+        @media (max-width: 1279px) {
+            scroll-margin-top: 4.25rem;
+        }
+    }
+
+    // The ¶ appended by rehype-autolink-headings. Deliberately decorative: the plugin renders it aria-hidden with tabIndex -1,
+    // so there is no focus state to style here; a keyboard user would otherwise pick up 42 extra tab stops on a post like python-basics for a link to the heading
+    // they are already on. Hover only, and the TOC is the real navigation.
+    .heading_anchor {
+        margin-left: 0.4rem;
+        opacity: 0;
+        font-weight: 400;
+        color: var(--text-5);
+        text-decoration: none;
+        transition: opacity 0.15s ease;
+
+        &:hover {
+            color: var(--text-3);
+        }
+    }
+
+    h2:hover .heading_anchor,
+    h3:hover .heading_anchor,
+    h4:hover .heading_anchor {
+        opacity: 1;
+    }
+
+    h2 {
+        font-size: var(--fs-xl);
+    }
+
+    h3 {
+        font-size: var(--fs-lgg);
+    }
+
+    h4 {
+        font-size: var(--fs-lg);
+    }
+
+    p {
+        margin: 0 0 1.15rem;
+        line-height: inherit;
+    }
+
+    a {
+        color: var(--secondary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
+        transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+        &:hover {
+            color: var(--secondary-da);
+            text-decoration-color: var(--secondary);
+        }
+    }
+
+    ul, ol {
+        margin: 0 0 1.15rem;
+        padding-left: 1.35rem;
+    }
+
+    li {
+        margin-bottom: 0.35rem;
+    }
+
+    strong {
+        font-weight: 600;
+        color: var(--text-strong);
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 1.75rem auto;
+        border-radius: var(--r-md);
+
+        // flip colors on transparent background images
+        &.diagram {
+            [data-theme="night"] &,
+            [data-theme="burgundy"] & {
+                filter: invert(1) hue-rotate(180deg);
+            }
+        }
+    }
+
+    blockquote {
+        margin: 1.5rem 0;
+        padding: 0.15rem 0 0.15rem 1.1rem;
+        border-left: 3px solid var(--border-da);
+        // One step further down the ladder than it was: against body text at --text-2, --text-3 is only ~34 points
+        // apart in the light theme and reads as the same grey. --text-4 is a visible step in all four themes.
+        color: var(--text-4);
+
+        // Blockquote content is wrapped in <p>, which carries a 1.15rem bottom margin from the rule above. That margin
+        // sits inside the quote, so the left rule ran a full line-height past the last line of text.
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    hr {
+        margin: 2.5rem 0;
+        border: none;
+        border-top: 1px solid var(--border);
+    }
+
+    // Inline code. Shiki only touches fenced blocks, so this stands alone.
+    :not(pre) > code {
+        padding: 0.15em 0.4em;
+        border: 1px solid var(--border-lt);
+        border-radius: var(--r-xs);
+        background-color: var(--surface-da);
+        font-size: 0.875em;
+        color: var(--text);
+        // Without this a span that breaks across two lines is decorated once for the whole run, not once per line:
+        // the first fragment loses its right border and radius, the second loses its left ones and its padding, so
+        // `python3 --version` renders as a box sliced in half with the tail sitting flush against the column edge.
+        // `clone` repeats the padding, border and radius on every fragment, which is what makes each half read as code.
+        box-decoration-break: clone;
+    }
+
+    // Styled on `pre` rather than on `.shiki`, because a fence with no language or an unregistered one is passed
+    // through untouched — no .shiki wrapper — and would otherwise render as naked monospace with no box at all.
+    // Shiki emits its own background inline, which beats this rule, so highlighted blocks are unaffected.
+    pre {
+        margin: 1.5rem 0;
+        padding: 1rem 1.15rem;
+        border: 1px solid var(--border);
+        // Square, matching the callouts. Both are boxes inset into prose, and they sit within a screen of
+        // each other on most of the guides.
+        border-radius: var(--r-none);
+        overflow-x: auto;
+        background-color: var(--surface-da);
+        font-size: var(--fs-smm);
+        line-height: 1.65;
+
+        code {
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+        }
+    }
+
+    // KaTeX sets no colours of its own, so maths inherits --text-2 and follows the theme toggle with no help.
+    // Display maths is the one thing that can overflow: a long derivation is a single unbreakable box, so it scrolls
+    // sideways rather than forcing the whole page wide. padding-bottom leaves room for the scrollbar.
+    .katex-display {
+        margin: 1.5rem 0;
+        padding: 0.25rem 0 0.6rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    // Tables come from remark-gfm. Wrapped in the same horizontal-scroll treatment, since a wide comparison table
+    // would otherwise stretch the article column past its max-width.
+    table {
+        display: block;
+        width: max-content;
+        max-width: 100%;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        border-collapse: collapse;
+        font-size: var(--fs-sm);
+    }
+
+    th,
+    td {
+        padding: 0.45rem 0.8rem;
+        border: 1px solid var(--border);
+        text-align: left;
+    }
+
+    th {
+        background-color: var(--surface-lt);
+        font-weight: 600;
+        color: var(--text-strong);
+    }
+
+    del {
+        color: var(--text-4);
+    }
+
+    // Task lists render a real checkbox; markdown owns its state, so it is not interactive.
+    li input[type="checkbox"] {
+        margin-right: 0.4rem;
+        vertical-align: middle;
+    }
+
+    // Shiki bakes the light theme in as inline styles and ships the dark one as custom properties. Inline styles beat any selector, so the swap needs
+    // !important — this is Shiki's own documented dual-theme pattern. Keyed to the dark themes rather than to theme names, which means DARK_THEMES
+    // in ThemeContext stays the single source of truth and a fifth theme needs nothing here beyond being listed there.
+    [data-theme="night"] &,
+    [data-theme="burgundy"] & {
+        .shiki,
+        .shiki span {
+            color: var(--shiki-dark) !important;
+            background-color: var(--shiki-dark-bg) !important;
+        }
+    }
+}

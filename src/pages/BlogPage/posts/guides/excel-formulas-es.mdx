@@ -5,11 +5,13 @@ Una guía de referencia rápida para las fórmulas más comunes de Excel — mat
 [Read in English](/blog/excel-formulas)
 
 <Callout kind="tip" label="Consejo">
-Toda fórmula empieza con `=`. Excel interpreta lo que sigue como un cálculo, no como texto simple.
+    Toda fórmula empieza con `=`. Excel interpreta lo que sigue como un cálculo, no como texto simple.
 </Callout>
 
 <Callout kind="note" label="Nota">
-Los nombres de las funciones (`SUM`, `IF`, `VLOOKUP`, etc.) se mantienen en inglés en este manual, porque así aparecen en la mayoría de las instalaciones de Excel, incluso en español. Si tu Excel está configurado en español, podrías ver `SUMA` en vez de `SUM`, `SI` en vez de `IF`, etc. — la lógica es idéntica, solo cambia el nombre.
+    Los nombres de las funciones (`SUM`, `IF`, `VLOOKUP`, etc.) se mantienen en inglés en este manual, porque así aparecen en la mayoría de las instalaciones de
+    Excel, incluso en español. Si tu Excel está configurado en español, podrías ver `SUMA` en vez de `SUM`, `SI` en vez de `IF`, etc. — la lógica es idéntica,
+    solo cambia el nombre.
 </Callout>
 
 ---
@@ -24,7 +26,8 @@ Los nombres de las funciones (`SUM`, `IF`, `VLOOKUP`, etc.) se mantienen en ingl
 | Mixta (fila fija)    | `A$1`   | La fila se mantiene, la columna cambia |
 
 <Callout kind="important" label="Importante">
-Presiona <strong>F4</strong> mientras editas una fórmula para alternar entre tipos de referencia (`A1` → `$A$1` → `A$1` → `$A1`). Ahorra mucho tiempo de escritura.
+    Presiona <strong>F4</strong> mientras editas una fórmula para alternar entre tipos de referencia (`A1` → `$A$1` → `A$1` → `$A1`). Ahorra mucho tiempo de
+    escritura.
 </Callout>
 
 **Cuándo usar `$`:** cada vez que arrastres una fórmula entre celdas pero quieras que siempre apunte a la *misma* celda (como una tasa de impuesto o un total
@@ -48,7 +51,8 @@ fijo).
 | Porcentaje           | `%`     | `=A1*10%` | 10% de A1            |
 
 <Callout kind="note" label="Nota">
-Excel sigue el orden estándar de operaciones (PEMDSR / jerarquía de operaciones). Usa paréntesis `()` para controlar qué se calcula primero: `=(A1+A2)*B1` y `=A1+A2*B1` dan resultados distintos.
+    Excel sigue el orden estándar de operaciones (PEMDSR / jerarquía de operaciones). Usa paréntesis `()` para controlar qué se calcula primero: `=(A1+A2)*B1` y
+    `=A1+A2*B1` dan resultados distintos.
 </Callout>
 
 ### Ejemplo: calcular impuestos sobre una compra
@@ -73,7 +77,8 @@ Ambos métodos llegan al mismo número — la versión de varias filas es más f
 en ella.
 
 <Callout kind="tip" label="Consejo">
-Guarda las tasas de impuesto en sus propias celdas (como `B2`/`B3` arriba) en lugar de escribir `5%` directamente en la fórmula. Si una tasa cambia, solo la actualizas en un lugar en vez de buscar en cada fórmula que la use.
+    Guarda las tasas de impuesto en sus propias celdas (como `B2`/`B3` arriba) en lugar de escribir `5%` directamente en la fórmula. Si una tasa cambia, solo la
+    actualizas en un lugar en vez de buscar en cada fórmula que la use.
 </Callout>
 
 ---
@@ -117,7 +122,8 @@ van en pares):
 ```
 
 <Callout kind="note" label="Nota">
-`SUMIF` toma una condición. `SUMIFS` toma varias. El orden de los argumentos también cambia entre ambas — `SUMIF` pone el rango de suma al final, `SUMIFS` lo pone primero. Es fácil confundirse, vale la pena revisarlo dos veces.
+    `SUMIF` toma una condición. `SUMIFS` toma varias. El orden de los argumentos también cambia entre ambas — `SUMIF` pone el rango de suma al final, `SUMIFS`
+    lo pone primero. Es fácil confundirse, vale la pena revisarlo dos veces.
 </Callout>
 
 ---
@@ -160,7 +166,7 @@ van en pares):
 | `IFERROR` | Devuelve un valor alternativo si la fórmula da error   | `=IFERROR(A1/B1,"N/A")`               |
 
 <Callout kind="tip" label="Consejo">
-Puedes anidar `IF` dentro de `IF` para obtener varios resultados, pero si anidas más de 2–3, cambia a `IFS` — es mucho más fácil de leer.
+    Puedes anidar `IF` dentro de `IF` para obtener varios resultados, pero si anidas más de 2–3, cambia a `IFS` — es mucho más fácil de leer.
 </Callout>
 
 ```text
@@ -180,15 +186,17 @@ Puedes anidar `IF` dentro de `IF` para obtener varios resultados, pero si anidas
 | `INDEX` + `MATCH` | Combinación flexible de búsqueda, funciona en cualquier dirección                           | `=INDEX(D1:D10,MATCH(A1,B1:B10,0))` |
 
 <Callout kind="warning" label="Advertencia">
-El último argumento de `VLOOKUP` casi siempre debería ser `FALSE` (coincidencia exacta). Dejarlo vacío o en `TRUE` puede devolver silenciosamente el valor equivocado si tus datos no están ordenados.
+    El último argumento de `VLOOKUP` casi siempre debería ser `FALSE` (coincidencia exacta). Dejarlo vacío o en `TRUE` puede devolver silenciosamente el valor
+    equivocado si tus datos no están ordenados.
 </Callout>
 
 <Callout kind="note" label="Nota">
-Si tu versión de Excel tiene `XLOOKUP`, prefiérela sobre `VLOOKUP` — puede buscar hacia la izquierda, no se rompe si insertas columnas, y tiene un valor de respaldo integrado para cuando no encuentra nada:
+    Si tu versión de Excel tiene `XLOOKUP`, prefiérela sobre `VLOOKUP` — puede buscar hacia la izquierda, no se rompe si insertas columnas, y tiene un valor de
+    respaldo integrado para cuando no encuentra nada:
 
-```text
-=XLOOKUP(A1,B1:B10,D1:D10,"No encontrado")
-```
+    ```text
+    =XLOOKUP(A1,B1:B10,D1:D10,"No encontrado")
+    ```
 </Callout>
 
 ### Ejemplo: buscar el precio de un producto
@@ -215,7 +223,8 @@ La versión con `XLOOKUP` es un poco más clara porque apuntas directamente a la
 ```
 
 <Callout kind="tip" label="Consejo">
-Si en vez de escribir el nombre del producto directamente haces referencia a una celda — como `=VLOOKUP(D1,A2:B4,2,FALSE)` — puedes arrastrar esa fórmula hacia abajo en una lista de productos en la columna D y buscará cada uno automáticamente.
+    Si en vez de escribir el nombre del producto directamente haces referencia a una celda — como `=VLOOKUP(D1,A2:B4,2,FALSE)` — puedes arrastrar esa fórmula
+    hacia abajo en una lista de productos en la columna D y buscará cada uno automáticamente.
 </Callout>
 
 ---
@@ -258,7 +267,8 @@ Si en vez de escribir el nombre del producto directamente haces referencia a una
 | `#NAME?`  | Excel no reconoce el nombre de la función (¿error de tipeo?)  |
 
 <Callout kind="caution" label="Precaución">
-Envuelve fórmulas riesgosas con `IFERROR()` antes de compartir una hoja con otras personas — un `#DIV/0!` inesperado se ve poco profesional y puede romper otras fórmulas que dependan de esa celda.
+    Envuelve fórmulas riesgosas con `IFERROR()` antes de compartir una hoja con otras personas — un `#DIV/0!` inesperado se ve poco profesional y puede romper
+    otras fórmulas que dependan de esa celda.
 </Callout>
 
 ```text
