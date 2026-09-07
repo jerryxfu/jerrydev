@@ -1,4 +1,10 @@
 .about {
+}
+
+// The measure that used to sit on .about itself. Moved down to the prose so the contact block below it
+// can use the section's full width — an 80% section would have squeezed that two-column layout for a
+// constraint that only ever existed to keep this paragraph readable.
+.about_intro {
     width: 80%;
 
     @media screen and (max-width: 768px) {

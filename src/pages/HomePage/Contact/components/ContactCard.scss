@@ -52,15 +52,3 @@
 
 .contactcard_username {
 }
-
-.contactcard_chip {
-    position: absolute !important;
-    top: 8px;
-    right: 8px;
-    background-color: color-mix(in srgb, var(--accent-lt) 78%, transparent) !important;
-
-    @media screen and (max-width: 768px) {
-        top: 6px;
-        right: 6px;
-    }
-}

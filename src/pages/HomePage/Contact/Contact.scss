@@ -1,4 +1,12 @@
+// No longer a section of its own: it renders inside .about, under the intro paragraph. The margin is
+// what used to come from .section's padding, and it is what keeps the two subsection headings from
+// reading as a continuation of the paragraph above them.
 .contact {
+    margin-top: 2.25rem;
+
+    @media screen and (max-width: 768px) {
+        margin-top: 1.5rem;
+    }
 }
 
 // Two halves, 45/55. 45% is what fits three 13rem cards on one line at desktop width; the right side is
@@ -132,8 +140,6 @@
         color: var(--text-4);
     }
 
-    // Underlined in a hairline rather than coloured. Same treatment prose links get in .prose, which
-    // is what lets these read as links without putting a second accent colour on the homepage.
     a {
         color: var(--text-2);
         text-decoration: underline;
@@ -144,6 +150,16 @@
         &:hover {
             color: var(--text-strong);
             text-decoration-color: var(--text-4);
+        }
+    }
+
+    a.contact_email {
+        color: var(--secondary);
+        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
+
+        &:hover {
+            color: var(--secondary-da);
+            text-decoration-color: var(--secondary);
         }
     }
 }

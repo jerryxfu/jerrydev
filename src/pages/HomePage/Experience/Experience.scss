@@ -1,11 +1,27 @@
 .experience {
 }
 
+// Same shape as .skills_container: the grid takes what it needs and the aside is a fixed rail on the
+// right. Stacks below 1100px, where four 19.2rem cards plus a 320px rail stop fitting on one line.
+.experience_container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.5rem;
+    width: 100%;
+
+    @media screen and (max-width: 1100px) {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
 .experience-grid {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
 
     @media screen and (max-width: 768px) {
         flex-direction: column;
@@ -17,3 +33,150 @@
     }
 }
 
+// The rail. margin-top matches the card grid's own 0.9rem margin so the panel's top edge lines up with
+// the top of the first card rather than with the row of whitespace above it.
+.experience_cv {
+    flex: 0 0 320px;
+    box-sizing: border-box;
+    margin-top: 0.9rem;
+    padding: 1.1rem 1rem 1rem;
+    border: 1px solid var(--border-da);
+    border-radius: var(--r-sm);
+    background-color: var(--surface-lt);
+    box-shadow: 0 5px 10px -6px var(--shadow-da);
+
+    @media screen and (max-width: 1100px) {
+        flex: 1 1 auto;
+        width: 100%;
+        margin-top: 0;
+    }
+
+    @media screen and (max-width: 768px) {
+        margin-top: 0.5rem;
+    }
+}
+
+.experience_cv-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-lt);
+
+    svg {
+        flex-shrink: 0;
+        color: var(--text-4);
+    }
+}
+
+.experience_cv-heading {
+    min-width: 0;
+
+    h3 {
+        margin: 0;
+        font-size: var(--fs-lg);
+    }
+
+    // The host, not a link: the whole panel already ends in one, and a second target this small would
+    // just be a smaller version of the same click.
+    p {
+        margin: 0;
+        font-size: var(--fs-xs);
+        color: var(--text-5);
+    }
+}
+
+.experience_cv-blurb {
+    margin: 0.85rem 0 0;
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+    color: var(--text-3);
+}
+
+// The preview proper: the one entry the CV opens on, read off the same array the cards render from.
+.experience_cv-latest {
+    margin-top: 0.9rem;
+    padding: 0.6rem 0.7rem;
+    border-left: 2px solid var(--border-da);
+    background-color: var(--surface);
+}
+
+.experience_cv-latest-title {
+    margin: 0.2rem 0 0;
+    font-size: var(--fs-base);
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.experience_cv-latest-role {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+.experience_cv-latest-date {
+    margin: 0.15rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+}
+
+// Contents, not achievements: these name the CV's sections so the reader knows what opening it costs
+// them. Dashes rather than bullets, to stay in the same hairline register as the rest of the panel.
+.experience_cv-contents {
+    margin: 0.9rem 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        position: relative;
+        padding-left: 0.9rem;
+        font-size: var(--fs-sm);
+        line-height: 1.7;
+        color: var(--text-3);
+
+        &::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--text-6);
+        }
+    }
+}
+
+// The one accented target in the panel. Full width so it reads as the panel's action rather than as an
+// afterthought trailing the list.
+.experience_cv-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border-da);
+    border-radius: var(--r-xs);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--text-2);
+    background-color: var(--bg-lt);
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+    &:hover {
+        color: var(--text-strong);
+        border-color: var(--text-4);
+        background-color: var(--surface-da);
+
+        .experience_cv-arrow {
+            transform: translateX(3px);
+        }
+    }
+}
+
+.experience_cv-arrow {
+    transition: transform 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none !important;
+    }
+}

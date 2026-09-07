@@ -1,7 +1,6 @@
 import {useEffect, useMemo, useState} from "react";
 import {Clock, FileText, Mail} from "lucide-react";
 import "./Contact.scss";
-import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import SubSectionTitle from "../../../components/SubTitle/SubSectionTitle.tsx";
 import ContactCard from "./components/ContactCard.tsx";
 
@@ -17,31 +16,28 @@ import _unveil_mark_light from "../../../assets/projects/unveil/unveil_light.png
 import _unveil_mark_dark from "../../../assets/projects/unveil/unveil_dark.png";
 
 const medias = [
-    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", chipText: "🟩", color: "#56d36410"},
-    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", chipText: "📷", color: "#ffb5a610"},
-    {
-        title: "Steam",
-        username: "jerryxf 1650859595",
-        image: _steam,
-        url: "https://steamcommunity.com/id/jerryxf/",
-        chipText: "🎮",
-        color: "#00adee10"
-    },
+    {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", color: "#56d36410"},
+    {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", color: "#ffb5a610"},
     {
         title: "Discord",
         username: "@jerryxf",
         image: _discord,
         url: "https://discord.com/users/611633988515266562",
-        chipText: "💬",
         color: "#e6a6ff10"
+    },
+    {
+        title: "Steam",
+        username: "jerryxf 1650859595",
+        image: _steam,
+        url: "https://steamcommunity.com/id/jerryxf/",
+        color: "#00adee10"
     }
-    // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", chipText: "nothing here...", color: "#ff003310"},
+    // {title: "YouTube", username: "@jerryxf", image: _youtube, url: "https://youtube.com/@jerryxf", color: "#ff003310"},
     // {
     //     title: "Reddit",
     //     username: "u/jerryxf",
     //     image: _reddit,
     //     url: "https://reddit.com/user/jerryxf/",
-    //     chipText: "",
     //     color: "#ffb5a610"
     // },
 ];
@@ -108,12 +104,13 @@ export default function Contact() {
 
 
     return (
-        <div className="section contact">
-            <SectionTitle text={"Contact Me"} />
-
+        <div className="contact">
             <div className="contact_container">
                 <div className="contact_online">
-                    <SubSectionTitle text={"Find me online"} />
+                    <SubSectionTitle
+                        text={"Find me online"}
+                        description={"Email is a good way to reach me, but any of these work. Ideas, questions, corrections and offers of work are all welcome."}
+                    />
                     <div className="contact_grid">
                         {themedMedias.map((media) => (
                             <ContactCard
@@ -121,7 +118,6 @@ export default function Contact() {
                                 username={media.username}
                                 image={media.image}
                                 url={media.url}
-                                chipText={media.chipText}
                                 color={media.color}
                                 key={media.title.toLowerCase().replace(" ", "-")}
                             />
@@ -161,7 +157,7 @@ export default function Contact() {
                             <ul className="contact_details">
                                 <li className="contact_detail">
                                     <Mail size={17} aria-hidden="true" />
-                                    <a href="mailto:me@jerryxf.net">me@jerryxf.net</a>
+                                    <a className="contact_email" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
                                 </li>
                                 <li className="contact_detail">
                                     <FileText size={17} aria-hidden="true" />

@@ -21,6 +21,14 @@ const tech_stack = [
         url: "https://developer.oracle.com/languages/javascript.html"
     },
     {
+        name: "Python",
+        color: "#ffeda610",
+        description: "PyTorch, OpenCV, scripting, MAVSDK",
+        iconUrl: _python,
+        chipText: "4/5",
+        url: "https://www.python.org/"
+    },
+    {
         name: "Java",
         color: "#a6eaff10",
         description: "Robots (WPILib), Minecraft Forge modding",
@@ -43,14 +51,6 @@ const tech_stack = [
         iconUrl: _react,
         chipText: "4/5",
         url: "https://react.dev/"
-    },
-    {
-        name: "Python",
-        color: "#ffeda610",
-        description: "PyTorch, OpenCV, scripting, MAVSDK",
-        iconUrl: _python,
-        chipText: "4/5",
-        url: "https://www.python.org/"
     },
     {
         name: "SwiftUI",
@@ -82,7 +82,10 @@ const tech_stack = [
 export default function Skills() {
     return (
         <div className="section skills">
-            <SectionTitle text={"Tools & Languages"} />
+            <SectionTitle
+                text={"Tools & Languages"}
+                description={"The stuff I build my projects with, with a thoroughly unscientific rating of how good I am at each."}
+            />
 
             <div className="skills_container">
                 <div className="skills_grid">

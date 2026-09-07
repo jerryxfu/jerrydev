@@ -36,13 +36,12 @@ export const linksLeft: NavLink[] = [
     {type: "link", label: "Home", href: "#"},
     {type: "link", label: "About", href: "#about-me"},
     {type: "link", label: "Skills", href: "#tools---languages"},
-    {type: "link", label: "Contact", href: "#contact-me"},
     {type: "link", label: "Projects", href: "#projects"},
     {type: "link", label: "Experience", href: "#experience---extras"},
+    {type: "link", label: "Blog", href: "#blog"},
 ];
 
 export const linksRight: NavLink[] = [
-    {type: "link", label: "Blog 📝", href: "/blog"},
     {type: "link", label: "Expedite 📦", href: "/expedite"},
     {type: "link", label: "Scheduler 🗓️", href: "/scheduler"}
 ];
@@ -56,20 +55,23 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Skills", href: "#tools---languages"},
         {type: "link", label: "Projects", href: "#projects"},
         {type: "link", label: "Experience", href: "#experience---extras"},
-        {type: "link", label: "Contact", href: "#contact-me"},
+        {type: "link", label: "Blog", href: "#blog"},
     ],
     [
         {type: "link", label: "Blog 📝", href: "/blog"},
-        {
-            type: "branch",
-            label: "Tools",
-            key: "tools",
-            children: [
-                {type: "link", label: "Expedite 📦", href: "/expedite"},
-                {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
-                {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"}
-            ],
-        },
+        {type: "link", label: "Expedite 📦", href: "/expedite"},
+        {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
+        {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"},
+        // {
+        //     type: "branch",
+        //     label: "Tools",
+        //     key: "tools",
+        //     children: [
+        //         {type: "link", label: "Expedite 📦", href: "/expedite"},
+        //         {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
+        //         {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"}
+        //     ],
+        // },
     ],
     [
         {type: "link", label: "GitHub", href: "https://github.com/jerryxfu", external: true},

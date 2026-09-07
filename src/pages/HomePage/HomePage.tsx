@@ -6,9 +6,9 @@ import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";
 import Footer from "../../components/Footer/Footer.tsx";
 
-import Contact from "./Contact/Contact.tsx";
 import Projects from "./Projects/Projects.tsx";
 import Experience from "./Experience/Experience.tsx";
+import Blog from "./Blog/Blog.tsx";
 // import OpeningAnimation from "../../components/OpeningAnimation/OpeningAnimation.tsx";
 
 export default function HomePage() {
@@ -26,9 +26,9 @@ export default function HomePage() {
                 <Hero />
                 <About />
                 <Skills />
-                <Contact />
                 <Projects />
                 <Experience />
+                <Blog />
             </main>
             <Footer />
         </div>

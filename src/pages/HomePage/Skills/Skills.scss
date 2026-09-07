@@ -5,9 +5,22 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 1.5rem;
 
     width: 100%;
+    box-sizing: border-box;
+
+    // The row stops short of the section's right edge instead of running to it, the way .contact_work
+    // leaves its slack at the right rather than pushing the artwork flush against the viewport. On top of
+    // the section's own 3%, so the card sits roughly 9% of the viewport in from the edge.
+    //
+    // Only once the grid can spare it. A .skill-card is content-box, so its real footprint is 277px, not
+    // the 15rem the rule says; two of them plus the 320px card need ~900px of content box, and below about
+    // 1100 taking another 6% tips the grid under that and it drops to one column nine rows tall.
+    @media screen and (min-width: 1100px) {
+        padding-right: 6%;
+    }
 
     @media screen and (max-width: 768px) {
         flex-direction: column;
@@ -33,6 +46,9 @@
     justify-content: center;
 
     width: 320px;
+    // Holds the declared width. Both columns shrink by default and the grid's max-content base is several
+    // times this one's, so the card was quietly losing 20px to the split and rendering at 300.
+    flex-shrink: 0;
 
     @media screen and (max-width: 768px) {
         width: 100%;

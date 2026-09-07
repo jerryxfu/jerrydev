@@ -412,7 +412,7 @@ p {
     font-size: var(--fs-xs);
     line-height: 1.25;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    //letter-spacing: 0.04em;
     text-transform: uppercase;
     // --text-6 is itself --text-2 at 40%, so this is exactly what the rule used to say inline.
     // The mix just lives in the ladder now instead of being repeated at the call site.

@@ -1,0 +1,174 @@
+// Discord's compact mode, more or less: a fixed gutter on the left, then one line per entry that runs to
+// the edge and truncates rather than wrapping. Seven of these read as a feed; seven cards would read as
+// another grid, which the page already has two of.
+.blogfeed {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.blogfeed_list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-lt);
+}
+
+.blogfeed_row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border-lt);
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease;
+
+    // Same resolution every hover on the blog gets: the row tints and the title underlines in the accent.
+    &:hover {
+        background-color: var(--surface-lt);
+
+        .blogfeed_title {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--secondary);
+        }
+    }
+}
+
+// Tabular figures and a fixed width, so the titles start on the same column whether the day is 01 or 30.
+.blogfeed_stamp {
+    flex: 0 0 3.6rem;
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
+    white-space: nowrap;
+}
+
+// The only part of the row allowed to shrink, and the only part that truncates.
+.blogfeed_title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.15s ease, color 0.15s ease;
+}
+
+.blogfeed_tags {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--text-6);
+
+    // The first thing to go when the row runs out of room: the title and the date both carry more.
+    @media screen and (max-width: 1100px) {
+        display: none;
+    }
+}
+
+.blogfeed_age {
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+    white-space: nowrap;
+
+    // Goes after the tags do. The stamp on the left already dates the row; on a phone the title needs
+    // those ~70px more than the reader needs "7 days ago" spelled out.
+    @media screen and (max-width: 600px) {
+        display: none;
+    }
+}
+
+.blogfeed_footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+.blogfeed_topics {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+// Hairline underline rather than a pill, so a row of four does not read as four buttons.
+.blogfeed_topic {
+    font-size: var(--fs-smm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--border-da);
+    color: var(--text-3);
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+    &:hover {
+        color: var(--text-strong);
+        text-decoration-color: var(--text-4);
+    }
+}
+
+.blogfeed_all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    text-decoration: none;
+    color: var(--text-3);
+    transition: color 0.15s ease;
+
+    // On the label alone, for the same reason .blog-section_cta-label carries its own: the arrow beside
+    // it slides on hover, and a rule across the flex box would leave it sliding out from under the line.
+    .blogfeed_all-label {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--border-da);
+        transition: text-decoration-color 0.15s ease;
+    }
+
+    &:hover {
+        color: var(--text-strong);
+
+        .blogfeed_all-label {
+            text-decoration-color: var(--text-4);
+        }
+
+        .blogfeed_arrow {
+            transform: translateX(3px);
+        }
+    }
+}
+
+.blogfeed_arrow {
+    transition: transform 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none !important;
+    }
+}
+
+// Placeholder rows while the feed chunk loads. Same count as the real list, and the same height: the
+// row's own 0.4rem padding top and bottom around one line of --fs-sm at the inherited line-height of
+// 1.5. Only the rows are reserved — the topics footer arrives with the feed, which grows the section
+// downward at the very bottom of the page rather than moving anything already on screen.
+.blogfeed_skeleton {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-lt);
+
+    li {
+        height: calc(1.5 * var(--fs-sm) + 0.8rem);
+        border-bottom: 1px solid var(--border-lt);
+    }
+}

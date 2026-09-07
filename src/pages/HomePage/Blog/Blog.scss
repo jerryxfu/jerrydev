@@ -1,0 +1,93 @@
+.blog-section {
+}
+
+// The mirror of .contact_container: prose on the left, the live thing on the right. The feed is the
+// wider half here because its rows are one line each and truncate — the narrower it gets, the more of
+// every title disappears.
+.blog-section_container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+
+    @media screen and (max-width: 900px) {
+        flex-direction: column;
+        gap: 1.5rem;
+        // Stretch, not the flex-start above. Once this is a column, flex-start is a *cross-axis* rule, so
+        // the feed sizes to its widest row instead of to the section — which overflows the page, because
+        // a row only truncates when something has already bounded it.
+        align-items: stretch;
+    }
+}
+
+// The width knob for the pair.
+.blog-section_intro {
+    flex: 0 0 40%;
+    min-width: 0;
+
+    @media screen and (max-width: 900px) {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+}
+
+.blog-section_blurb {
+    max-width: 52ch;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    color: var(--text-3);
+}
+
+// The accent, matching .blog_topic on /blog: this link and the topic links there lead to the same place,
+// so they get the same treatment rather than reading as two different kinds of destination.
+.blog-section_cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--secondary);
+    transition: color 0.15s ease;
+
+    // The rule sits on the label alone. On the flex container it would run under the gap and the arrow,
+    // and the arrow slides 3px on hover — it would pull out from under its own underline.
+    .blog-section_cta-label {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
+        transition: text-decoration-color 0.15s ease;
+    }
+
+    &:hover {
+        color: var(--secondary-da);
+
+        .blog-section_cta-label {
+            text-decoration-color: var(--secondary);
+        }
+
+        .blog-section_cta-arrow {
+            transform: translateX(3px);
+        }
+    }
+}
+
+.blog-section_cta-arrow {
+    transition: transform 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none !important;
+    }
+}
+
+.blog-section_feed {
+    flex: 1;
+    min-width: 0;
+}
+
+.blog-section_feed-label {
+    display: block;
+    margin-bottom: 0.4rem;
+}

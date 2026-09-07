@@ -349,7 +349,11 @@ export default function Projects() {
 
     return (
         <div className="section projects">
-            <SectionTitle text={"Projects"} />
+            <SectionTitle
+                text={"Projects"}
+                description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
+                    " Many cards have clickable images or a floating link that opens to the project or a write-up for it."}
+            />
             <div className="projects-grid">
                 {themedProjects.map((project) => (
                     <Card key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()} {...project} />

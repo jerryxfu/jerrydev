@@ -7,3 +7,21 @@
         font-size: var(--fs-xl);
     }
 }
+
+// The same block as .section-title-description, one rung quieter on the text ladder. That is the
+// relationship the two headings already have — .subtitle-text is --text where .section-title-text is
+// --text-strong — so the descriptions under them keep the same step rather than inventing a new one.
+// Deliberately the same size and rhythm: a subsection is a smaller heading, not smaller prose.
+.subtitle-description {
+    max-width: 78ch;
+    margin: 0.35rem 0 1.1rem;
+    font-size: var(--fs-base);
+    line-height: 1.55;
+    color: var(--text-4);
+    transition: color 450ms;
+
+    @media screen and (max-width: 768px) {
+        font-size: var(--fs-sm);
+        margin-bottom: 0.9rem;
+    }
+}

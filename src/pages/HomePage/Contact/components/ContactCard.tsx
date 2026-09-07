@@ -1,13 +1,11 @@
 import {memo, type ReactNode} from "react";
-import Chip from "../../../../components/Chip/Chip.tsx";
 import "./ContactCard.scss";
 
-const ContactCard = memo(function ContactCard({title, username, image, url, chipText, color}: {
+const ContactCard = memo(function ContactCard({title, username, image, url, color}: {
     title: string,
     username: string | ReactNode,
     image: string,
     url?: string
-    chipText?: string | undefined,
     color?: string,
 }) {
     return (
@@ -19,7 +17,6 @@ const ContactCard = memo(function ContactCard({title, username, image, url, chip
                 <h3 className="contactcard_title">{title}</h3>
                 <p style={{lineHeight: 1.3}} className="contactcard_username">{username}</p>
             </div>
-            {chipText && <Chip className="contactcard_chip" size={"sm"}>{chipText}</Chip>}
         </div>
     );
 });
