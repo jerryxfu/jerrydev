@@ -42,8 +42,14 @@ export function getDateRange(selectedDates: string[]): { date: string; isSelecte
     const selectedSet = new Set(sorted);
     const result: { date: string; isSelected: boolean }[] = [];
 
+    // toISODate, never toISOString(). Lines above parse with the "T00:00:00" suffix precisely to get
+    // LOCAL midnight, and toISOString then re-renders that instant in UTC — which is the previous calendar
+    // day for every reader at a positive offset. The emitted keys are both displayed (TimeSlotGrid feeds
+    // them to formatDateShort for the column header) and matched against selectedSet, so in Berlin a
+    // single-date event rendered one dead column headed "Sun 24" for an event on Mon 25, with nothing
+    // clickable and Submit disabled forever. getWeekRows below already used toISODate; this did not.
     for (let d = new Date(min); d <= max; d.setDate(d.getDate() + 1)) {
-        const iso = d.toISOString().slice(0, 10);
+        const iso = toISODate(d);
         result.push({date: iso, isSelected: selectedSet.has(iso)});
     }
 
