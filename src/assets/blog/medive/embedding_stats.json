@@ -1,0 +1,114 @@
+{
+  "n_test": 10000,
+  "seed": 0,
+  "drift_mean": 0.059464793652296066,
+  "drift_median": 0.056452423334121704,
+  "drift_p90": 0.08534874767065048,
+  "drift_mean_m1_right": 0.05882741138339043,
+  "drift_mean_m1_wrong": 0.07058724015951157,
+  "m1_acc1_tier3": 94.58,
+  "b1_acc1_tier3": 98.82,
+  "corrupted_words_mean": 24.9968,
+  "corrupted_words_median": 24.0,
+  "nn_same_patient_share": 92.81,
+  "acc_by_corrupted_words": [
+    {
+      "words": "0\u20134",
+      "n": 109,
+      "m1_acc1": 99.08256880733946,
+      "b1_acc1": 100.0,
+      "mean_drift": 0.034369055181741714
+    },
+    {
+      "words": "5\u20139",
+      "n": 504,
+      "m1_acc1": 99.20634920634922,
+      "b1_acc1": 99.8015873015873,
+      "mean_drift": 0.04348336160182953
+    },
+    {
+      "words": "10\u201314",
+      "n": 987,
+      "m1_acc1": 97.26443768996961,
+      "b1_acc1": 98.58156028368793,
+      "mean_drift": 0.057899411767721176
+    },
+    {
+      "words": "15\u201319",
+      "n": 1736,
+      "m1_acc1": 95.33410138248848,
+      "b1_acc1": 97.75345622119815,
+      "mean_drift": 0.05920080468058586
+    },
+    {
+      "words": "20\u201324",
+      "n": 1899,
+      "m1_acc1": 92.57503949447077,
+      "b1_acc1": 97.6303317535545,
+      "mean_drift": 0.06136757880449295
+    },
+    {
+      "words": "25\u201329",
+      "n": 1649,
+      "m1_acc1": 90.35779260157672,
+      "b1_acc1": 99.27228623408126,
+      "mean_drift": 0.06220671534538269
+    },
+    {
+      "words": "30\u201339",
+      "n": 2047,
+      "m1_acc1": 94.1866145578896,
+      "b1_acc1": 99.65803615046408,
+      "mean_drift": 0.0614941343665123
+    },
+    {
+      "words": "40\u201359",
+      "n": 1060,
+      "m1_acc1": 99.05660377358491,
+      "b1_acc1": 100.0,
+      "mean_drift": 0.05984068661928177
+    }
+  ],
+  "wordpiece": {
+    "pieces_mean_clean": 160.9139,
+    "pieces_mean_typos": 185.4557,
+    "share_over_128_clean": 71.91,
+    "share_over_128_typos": 81.49,
+    "examples": {
+      "significantly": [
+        "significantly"
+      ],
+      "signifcantly": [
+        "sign",
+        "##if",
+        "##can",
+        "##tl",
+        "##y"
+      ],
+      "cough": [
+        "cough"
+      ],
+      "couhg": [
+        "cou",
+        "##hg"
+      ],
+      "symptoms": [
+        "symptoms"
+      ],
+      "sypmtoms": [
+        "sy",
+        "##pm",
+        "##to",
+        "##ms"
+      ],
+      "heavy": [
+        "heavy"
+      ],
+      "hevay": [
+        "hev",
+        "##ay"
+      ]
+    }
+  },
+  "map_method": "UMAP fitted on the clean notes, typo notes projected into it"
+}

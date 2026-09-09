@@ -1,0 +1,333 @@
+{
+  "seed": 0,
+  "model": "cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
+  "views_agree": {
+    "k": 5,
+    "mean_neighbour_overlap": 0.27755102040816326,
+    "most_alike": [
+      "Whooping cough",
+      "Acute laryngitis",
+      "Bronchospasm / acute asthma exacerbation"
+    ],
+    "least_alike": [
+      "Scombroid food poisoning",
+      "PSVT",
+      "Inguinal hernia"
+    ]
+  },
+  "closest_name_pairs": [
+    [
+      "Stable angina",
+      "Unstable angina",
+      0.8964754343032837
+    ],
+    [
+      "Bronchiolitis",
+      "Bronchitis",
+      0.7662110924720764
+    ],
+    [
+      "Chronic rhinosinusitis",
+      "Acute rhinosinusitis",
+      0.7611876130104065
+    ],
+    [
+      "Spontaneous rib fracture",
+      "Spontaneous pneumothorax",
+      0.681774377822876
+    ],
+    [
+      "Allergic sinusitis",
+      "Acute rhinosinusitis",
+      0.6777308583259583
+    ],
+    [
+      "Acute laryngitis",
+      "Epiglottitis",
+      0.6725593209266663
+    ]
+  ],
+  "closest_note_pairs": [
+    [
+      "Chronic rhinosinusitis",
+      "Acute rhinosinusitis",
+      0.9958748817443848
+    ],
+    [
+      "Stable angina",
+      "Unstable angina",
+      0.994621753692627
+    ],
+    [
+      "Stable angina",
+      "Possible NSTEMI / STEMI",
+      0.9797351360321045
+    ],
+    [
+      "Unstable angina",
+      "Possible NSTEMI / STEMI",
+      0.9787155985832214
+    ],
+    [
+      "Acute laryngitis",
+      "Viral pharyngitis",
+      0.9696910977363586
+    ],
+    [
+      "URTI",
+      "Viral pharyngitis",
+      0.9619883894920349
+    ]
+  ],
+  "confusions": {
+    "n_errors": 542,
+    "share_to_top3_neighbour": 65.31365313653137,
+    "share_to_top5_neighbour": 72.32472324723247,
+    "median_neighbour_rank": 2.0,
+    "top": [
+      [
+        "Chronic rhinosinusitis",
+        "Acute rhinosinusitis",
+        90
+      ],
+      [
+        "Bronchitis",
+        "GERD",
+        64
+      ],
+      [
+        "Stable angina",
+        "Unstable angina",
+        54
+      ],
+      [
+        "Stable angina",
+        "Possible NSTEMI / STEMI",
+        46
+      ],
+      [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        26
+      ],
+      [
+        "Boerhaave",
+        "GERD",
+        25
+      ],
+      [
+        "Acute rhinosinusitis",
+        "Chronic rhinosinusitis",
+        20
+      ],
+      [
+        "Acute laryngitis",
+        "Viral pharyngitis",
+        19
+      ]
+    ]
+  },
+  "phrases": {
+    "n_canonical": 96,
+    "n_lay": 192,
+    "lay_nn_accuracy": 77.60416666666666,
+    "typo_nn_accuracy": 84.375,
+    "lay_mean_similarity_to_own": 0.6941313743591309,
+    "typo_mean_similarity_to_own": 0.6669190526008606,
+    "lay_best": [
+      [
+        "trouble keeping the tongue in the mouth",
+        "trouble keeping the tongue in",
+        0.9787859320640564
+      ],
+      [
+        "coughing up blood",
+        "coughing up a bit of blood",
+        0.9746325016021729
+      ],
+      [
+        "coughing up blood",
+        "blood coming up when coughing",
+        0.9587720632553101
+      ]
+    ],
+    "lay_worst": [
+      [
+        "diarrhea or an increase in stool frequency",
+        "the runs",
+        0.3812454640865326
+      ],
+      [
+        "a very irregular, disorganized heartbeat",
+        "the heart thumping all over the place",
+        0.4062415361404419
+      ],
+      [
+        "a rash or skin lesions believed to be related to the consultation",
+        "the skin breaking out in marks and redness",
+        0.4202395975589752
+      ]
+    ]
+  },
+  "word_typos": {
+    "trials": 30,
+    "mean_distance_by_edits": {
+      "cough": [
+        0.6154160459836324,
+        0.6080050388971965,
+        0.6356173594792683,
+        0.6368832170963288,
+        0.627878087759018
+      ],
+      "fever": [
+        0.6390978455543518,
+        0.5923433581988017,
+        0.6438232719898224,
+        0.645620584487915,
+        0.6411642253398895
+      ],
+      "headache": [
+        0.5288629194100698,
+        0.5750506500403086,
+        0.6122455338637034,
+        0.63782044450442,
+        0.6411499182383219
+      ],
+      "nausea": [
+        0.5381431559721629,
+        0.5856491605440776,
+        0.5974971354007721,
+        0.6243791858355204,
+        0.6350377519925435
+      ],
+      "dizziness": [
+        0.3664968152840932,
+        0.4722953955332438,
+        0.5242502570152283,
+        0.5914363940556844,
+        0.6206031640370687
+      ],
+      "fatigue": [
+        0.5139516075452168,
+        0.5859060664971669,
+        0.6213290592034658,
+        0.6055980861186981,
+        0.6156851649284363
+      ],
+      "sweating": [
+        0.361648166179657,
+        0.4843042969703674,
+        0.5563928802808126,
+        0.5961528261502583,
+        0.5969449281692505
+      ],
+      "wheezing": [
+        0.3654758850733439,
+        0.5019334892431895,
+        0.5869145711263021,
+        0.6045108258724212,
+        0.6207091371218364
+      ],
+      "vomiting": [
+        0.3917345027128855,
+        0.4990892906983693,
+        0.5586909472942352,
+        0.5889369289080302,
+        0.6056879162788391
+      ],
+      "palpitations": [
+        0.4489862620830536,
+        0.5153976043065389,
+        0.5431780695915223,
+        0.574978361527125,
+        0.586520806948344
+      ]
+    },
+    "mean_pieces_by_edits": {
+      "cough": [
+        2.1,
+        2.2,
+        2.2666666666666666,
+        1.9666666666666666,
+        1.8666666666666667
+      ],
+      "fever": [
+        2.466666666666667,
+        2.2,
+        1.9333333333333333,
+        2.033333333333333,
+        1.9
+      ],
+      "headache": [
+        2.933333333333333,
+        3.066666666666667,
+        3.3,
+        3.3333333333333335,
+        3.066666666666667
+      ],
+      "nausea": [
+        2.5,
+        2.4,
+        2.2333333333333334,
+        2.3666666666666667,
+        2.1666666666666665
+      ],
+      "dizziness": [
+        3.0,
+        3.566666666666667,
+        3.6,
+        3.7666666666666666,
+        3.7
+      ],
+      "fatigue": [
+        3.033333333333333,
+        3.033333333333333,
+        2.8666666666666667,
+        2.9,
+        2.6333333333333333
+      ],
+      "sweating": [
+        2.6,
+        2.9,
+        3.1333333333333333,
+        3.1333333333333333,
+        3.033333333333333
+      ],
+      "wheezing": [
+        2.7333333333333334,
+        3.1,
+        3.2666666666666666,
+        3.2333333333333334,
+        3.2
+      ],
+      "vomiting": [
+        2.6666666666666665,
+        2.933333333333333,
+        3.1333333333333333,
+        3.066666666666667,
+        3.0
+      ],
+      "palpitations": [
+        3.5,
+        4.233333333333333,
+        4.4,
+        4.366666666666666,
+        4.433333333333334
+      ]
+    },
+    "pieces_clean": {
+      "cough": 1,
+      "fever": 1,
+      "headache": 1,
+      "nausea": 1,
+      "dizziness": 1,
+      "fatigue": 1,
+      "sweating": 2,
+      "wheezing": 1,
+      "vomiting": 1,
+      "palpitations": 2
+    },
+    "distance_after_1_edit_mean": 0.47698132057984666,
+    "distance_after_3_edits_mean": 0.5879939085245132
+  }
+}

@@ -1,0 +1,189 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // load-bearing, see hello-blog
+
+This is the documentation for the MEDIVE experiment: the pipeline, the models being compared, the four versions of the test text, the scores, and the rules that protect the numbers. It holds definitions only. Results live in the devlogs, and this page is updated when a definition changes, not when a number does.
+
+Last revised 9 September 2026.
+
+## The question
+
+> To what extent does fusing UMLS concept (CUI) embeddings with SapBERT text embeddings improve the relevance and robustness of differential diagnoses generated from free-text symptom presentations, compared with text-only embeddings and keyword-matching baselines?
+
+In plain words: a patient describes their symptoms in free text, a model returns a ranked list of likely diseases, and the question is whether adding standard medical concept codes to a biomedical language model gives a better list, and whether that list survives when the patient uses different words.
+
+Two sub-questions follow. **SQ1**, relevance: how good is the list on clean text? **SQ2**, robustness: how much does each model lose when the wording changes?
+
+## The pipeline
+
+The dataset is DDXPlus (Mila, 2022). Its patients are not text. Each one is a list of structured *evidences*, symptoms and antecedents with a code, plus an age, a sex, one true pathology out of 49, and a *reference differential*: the list of diseases the dataset considers plausible for that patient, each with a probability.
+
+1. Subsample the DDXPlus release into frozen train, validation and test splits.
+2. Render each patient into a short note with hand-reviewed templates, one clause per evidence, sentence order shuffled. This is tier 0, the clean text.
+3. Re-render the test split only into tiers 1 to 3.
+4. Turn each note into features: keywords, word counts, the oracle evidences, frozen SapBERT vectors, or concept codes.
+5. Train a classifier on tier-0 training text, then score every test tier.
+6. Compare the ranked list with the true pathology and with the reference differential.
+
+A rendered tier-0 note looks like this:
+
+> 59-year-old female patient. Presents with significantly increased sweating. The pain appeared with a speed of 1/10. Reports pain. Pain is located in the top of the head, the forehead, the right cheek, the left cheek and the occiput. Reports a sore throat. The pain location is precise 3/10. The pain radiates to no specific location. The pain is described as tedious and heavy. Pain intensity 6/10. A cough is present. Is exposed to secondhand cigarette smoke daily. Lives with four or more people. Was in contact with a person with similar symptoms in the past two weeks. Travel out of the country in the last 4 weeks: no.
+
+It reads like a template because it is one. That is a known limitation, and it is also the point: because the text is under control, the same patient can be rewritten in different words to see which model flinches.
+
+## The models
+
+Every model gets the same note and must return a ranked list of the 49 diseases. They differ only in how they turn the text into numbers. The names follow one rule: **B** means baseline, a cheap or cheating reference; **M** means a model with a learned representation. The digit is the order they were planned in.
+
+All the B models end in the same classifier, logistic regression (LR). It learns one weight per feature per disease and outputs a probability for each disease. Its one setting, the regularisation strength, is chosen on the validation split, never on test. All the M models end in a small neural network instead, a multi-layer perceptron (MLP) with one hidden layer of 512 units. It trains for a few passes over the data and stops when the validation score stops improving.
+
+| ID | Name | What it reads | Learner | Role |
+| --- | --- | --- | --- | --- |
+| B0 | Keyword match | Fuzzy matches of symptom names from a fixed lexicon | LR | The traditional approach |
+| B1 | TF-IDF | Weighted word and word-pair counts | LR | Strong cheap text baseline |
+| B2 | Oracle structured | The true evidence codes, never the text | LR | Upper bound |
+| M1 | SapBERT text-only | Frozen SapBERT, mean-pooled, 768 numbers | MLP | Text half of the hybrid |
+| M2 | CUI-only | UMLS concept codes extracted from the text, 128 numbers | MLP | Concept half of the hybrid |
+| M3 | Hybrid (concat) | M1's vector joined with M2's vector, 896 numbers | MLP | The object of study |
+| M4 | Hybrid (attention) | Attention-based fusion | MLP | Dropped 8 Sep 2026 |
+
+**B0, keyword matching.** It carries a fixed list of symptom names. For each name it scans the text for a close match, tolerating spelling differences. RapidFuzz does the matching, and how close a match must be is a threshold tuned on validation. The output is one yes-or-no per symptom name. This is the traditional symptom checker the project argues against: it only knows the phrases on its list, and a patient who says the same thing in other words is invisible to it.
+
+**B1, word counting.** It counts every word and every pair of neighbouring words in the text. Each count is weighted so that words appearing in most records count for little and rare words count for a lot. The method is TF-IDF, term frequency times inverse document frequency. It is the standard strong baseline for any text task. It has no idea what words mean. A word it never saw in training gets no weight at all, so it does not know that "tired" and "fatigue" are related.
+
+**B2, the oracle.** It never reads the text. It receives the true list of evidences straight from the dataset, the same list the templates were rendered from, each one as a yes-or-no feature. It is not a competitor. It is a model with a perfect symptom extractor, so whatever it cannot do, no text model can do either. It marks the top of the scale.
+
+**M1, the frozen language model.** SapBERT is a transformer built on PubMedBERT, which read millions of medical papers, and then trained so that different names of the same medical concept land close together in vector space. It reads up to 512 word pieces of a note, which covers every note in every tier, and turns each piece into 768 numbers. Those vectors are averaged into one vector per patient. (The limit was 128 until 9 September 2026, which cut most notes short; see devlog #1.) The network is frozen: it never sees the training data, only the small classifier on top learns. It is the text-only half of the hybrid, and freezing it keeps the later subtraction, M3 minus M1, clean. The price is that it cannot adapt to the wording or the task.
+
+**M2, concepts only.** A dictionary tool called QuickUMLS scans the text for spans that match names of concepts in UMLS, the Unified Medical Language System. Each match gives a concept code, a CUI (Concept Unique Identifier). The model keeps up to 32 codes per note. Each code gets a learned vector of 128 numbers, plus a vector for its semantic type (sign or symptom, disease, finding). The vectors are averaged and the classifier reads the result. It shows what the codes carry on their own. Note that the extraction is approximate string matching, in the same family as RapidFuzz, so it may share the strengths and weaknesses of the keyword baseline.
+
+**M3, the hybrid.** The SapBERT vector from M1 and the concept vector from M2 are joined end to end, 768 numbers plus 128, and the same small classifier reads the joined vector. This is the model the research question is about.
+
+**M4, attention fusion.** Dropped on 8 September 2026. A more elaborate way to join the two vectors, where the text can weight the concepts. Out of scope for the essay.
+
+### Supervision settings
+
+Every M model can be trained under two goals, and the goal is reported as its own setting.
+
+- **Hard target.** The model learns to put one disease, the true pathology, at the top. Standard cross-entropy.
+- **Soft target.** The model learns to reproduce the whole reference differential. Its loss compares the model's probabilities with the dataset's probabilities over all 49 diseases.
+
+A model name with "soft-target" after it, like M1 soft-target, is the same features and the same classifier under the second goal. It is an ablation: one thing changes, everything else stays fixed.
+
+### Optional conditions
+
+- **M1-ft.** SapBERT fine-tuned end to end instead of frozen. Only after the mandatory stages are done, on a desktop GPU. It measures how much the frozen encoder costs.
+- **Ablations on M3.** Semantic-type vectors off; CUI vectors initialised from SapBERT instead of random; the QuickUMLS threshold; the number of codes kept.
+
+## The four tiers
+
+The test patients never change. Only the words do. Each tier is rendered once and cached. Models train on tier 0 only.
+
+| Tier | What changes | Where the variants come from | Purpose |
+| --- | --- | --- | --- |
+| 0, clean | Nothing | The hand-reviewed templates | Reference |
+| 1, synonyms | Symptom names swapped for medical synonyms | UMLS's own name list, held out of the templates | Normalisation inside the ontology's vocabulary. Optional. |
+| 2, lay language | Symptom names swapped for everyday wording, as a patient would say it | Hand-written, about two per symptom, not in UMLS | The realistic case: wording the models never saw |
+| 3, typos | Letters swapped, dropped or transposed inside symptom phrases, about one edit per ten characters | Automatic, seeded | Character noise |
+
+The same note as above, at tier 3:
+
+> 59-year-old female patient. Presents with signifcantly incrasyd sweating. The pain appeared with a speed of 1/10. Pain intensity 6/10. Complains of pafn. A couhg is present. The pain is described as teious and hevay. […] Complains of a sore throa. […] Reports contact wiht a peson jih similar sypmtoms in tha past two weeks.
+
+Tier 2 carries the argument. Tier 1 is circular: its synonyms come from the same UMLS that feeds the concept pathway, so a win there partly measures vocabulary coverage rather than generalisation. Tier 3 is free to produce. Tier 2 is the closest the study gets to how people actually talk.
+
+<Callout kind="note">
+    The tier-2 phrases are written by me from AI drafts and were not reviewed by a clinician. The essay says so.
+</Callout>
+
+## The scores
+
+Each patient has one true disease and one reference differential, and both are used. Below, $g$ is the true pathology, $\text{rank}(g)$ its 1-based position in the model's list, $D$ the set of diseases in the reference differential, and $\text{top}_k$ the first $k$ diseases of the list. All scores are reported in percent.
+
+### Against the true disease
+
+**Acc@k.** The share of patients whose true disease is in the top $k$, for $k$ in 1, 3, 5. Acc@1 is plain accuracy.
+
+$$
+\text{Acc@}k = \frac{1}{n}\sum_{i=1}^{n} \big[\, g_i \in \text{top}_k \,\big]
+$$
+
+**MRR.** Mean reciprocal rank. If the true disease is second, the patient scores one half; third scores one third. MRR is the average of those fractions. It rewards putting the right answer near the top even when it is not first.
+
+$$
+\text{MRR} = \frac{1}{n}\sum_{i=1}^{n} \frac{1}{\text{rank}(g_i)}
+$$
+
+**Macro-F1.** The F1 score at rank 1, computed per disease and then averaged with equal weight over the 49 diseases. A rare disease counts as much as a common one, which plain accuracy does not do.
+
+### Against the reference differential
+
+**DDR@k.** Differential recall. Of the diseases in the reference list, what share appears in the top $k$.
+
+**DDP@k.** Differential precision. Of the top $k$, what share is in the reference list.
+
+**DDF1@k.** The harmonic mean of the two.
+
+$$
+\text{DDR@}k = \frac{|\text{top}_k \cap D|}{|D|}
+\qquad
+\text{DDP@}k = \frac{|\text{top}_k \cap D|}{k}
+\qquad
+\text{DDF1@}k = \frac{2 \cdot \text{DDR@}k \cdot \text{DDP@}k}{\text{DDR@}k + \text{DDP@}k}
+$$
+
+The headline is $k = 5$, because a five-item differential is a common clinical convention. **DDR@10** is a secondary score, added on 9 September 2026.
+
+### The recall ceiling
+
+A list of five cannot hold nine diseases. So when the reference differential is longer than $k$, DDR@k cannot reach one hundred no matter how good the model is. The best any list can do for one patient is $\min(k, |D|) / |D|$, and the ceiling for a whole split is the average of that over patients:
+
+$$
+\text{ceiling}_k = \frac{1}{n}\sum_{i=1}^{n} \frac{\min(k, |D_i|)}{|D_i|}
+$$
+
+On the test split, where the reference list has about nine entries on average, this gives 65.7 percent for DDR@5 and 88.2 percent for DDR@10. Those two numbers are properties of the dataset, not of any model, which is why they can live on this page. The gap between a model and the ceiling is the real headroom.
+
+### A worked example
+
+Say a patient's reference differential has four diseases, A, B, C and D, and the true pathology is B. A model returns the list C, B, E, A, F.
+
+- The true disease is second, so Acc@1 is 0, Acc@3 is 1, and the reciprocal rank is $1/2$.
+- Three of the five listed diseases are in the reference list (C, B, A), so DDR@5 is $3/4$ and DDP@5 is $3/5$.
+- The ceiling for this patient is $\min(5, 4)/4 = 1$, so the model left one quarter of the reachable recall on the table.
+
+### Robustness
+
+**Δ per tier.** For each score $m$ and each tier $t$, the drop from clean text in points, and the same drop as a share of the clean value:
+
+$$
+\Delta_t = m(\text{tier } 0) - m(\text{tier } t)
+\qquad
+\text{rel}_t = \frac{\Delta_t}{m(\text{tier } 0)}
+$$
+
+### Efficiency
+
+One row per model: trainable parameters, training wall-clock, and inference time per record on a laptop CPU. It grounds any discussion of deployability.
+
+## How the numbers are protected
+
+- The splits are frozen and committed. Nobody regenerates them.
+- The test split is touched only through the evaluation module.
+- A leak test runs on every rendered note. Tier 0 fails hard if a condition name appears in the text.
+- Hyperparameters are chosen on the validation split only.
+- Every condition runs on five random seeds. Tables report mean ± standard deviation across seeds.
+- Two comparisons were fixed on 9 September 2026, before the hybrid existed: **M3 against M1** and **M3 against B1**, each on tiers 0, 2 and 3. They get a paired bootstrap over test patients (the same patients for both models) with a 95 percent confidence interval, Holm-corrected within each score. Everything else is exploratory and labelled as such.
+- Every table and figure regenerates from the result files with one command. No number in the essay or the devlogs is typed by hand.
+
+## Glossary
+
+- **CUI.** Concept Unique Identifier, the code UMLS assigns to one medical concept, whatever it is called.
+- **DDXPlus.** A public dataset of about 1.3 million synthetic patients across 49 pathologies, each with a reference differential. Generated by a rule-based simulator from a medical knowledge base.
+- **Differential diagnosis.** A ranked list of the diseases that could explain a presentation, rather than a single answer.
+- **Evidence.** DDXPlus's word for one symptom or antecedent. There are 223 of them.
+- **LR.** Logistic regression, a linear classifier that outputs a probability per class.
+- **MLP.** Multi-layer perceptron, a small feed-forward neural network.
+- **QuickUMLS.** A tool that finds UMLS concept names in text by approximate string matching.
+- **SapBERT.** A BERT-family language model for biomedical text, trained so that synonyms of one concept embed close together.
+- **TF-IDF.** Term frequency times inverse document frequency, a weighting for word counts.
+- **UMLS.** Unified Medical Language System, a large collection of medical vocabularies mapped onto shared concepts.
+- **WordPiece.** The sub-word tokeniser BERT models use. A word not in its vocabulary is split into fragments.

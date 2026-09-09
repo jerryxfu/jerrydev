@@ -65,8 +65,12 @@ export const TOPICS: Record<TopicId, Topic> = {
         name: "MEDIVE",
         image: _medive,
         description: "Medical Inference via Vector Embeddings research project devlogs",
+        // Devlogs chain into each other; the reference sheet is documentation, so the break keeps it off "next" at the end of the latest devlog.
         posts: [
-            "medive-devlog0"
+            "medive-devlog0",
+            "medive-devlog1",
+            {chapter: "Reference", break: true},
+            "medive-reference",
         ]
     },
     "robotics": {
