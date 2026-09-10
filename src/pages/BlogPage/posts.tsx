@@ -254,12 +254,11 @@ export const posts: Post[] = [
     },
     {
         slug: "medive-devlog1",
-        title: "MEDIVE Devlog #1: The yardsticks",
-        description: "Devlog #1: what got decided since the plan, a short tour of the models, tiers and scores, and the first numbers from the baselines.",
+        title: "MEDIVE Devlog #1: First impressions",
+        description: "Devlog #1: Fhe first numbers from the baselines, and presentation of the models.",
         date: postDate("2026-09-09"),
         tags: ["ai", "devlog", "med"],
-        lang: "en",
-        draft: true,
+        lang: "en"
     },
     {
         slug: "medive-reference",
