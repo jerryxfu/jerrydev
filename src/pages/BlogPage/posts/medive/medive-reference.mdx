@@ -1,5 +1,6 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // load-bearing, see hello-blog
 import _figDiseaseNames from "@/assets/blog/medive/fig_disease_names.png";
+import stats from "@/assets/blog/medive/embedding_stats.json"; // the same sample patient as devlog #1, written by scripts/medive_embedding_map.py
 
 This is the documentation for the MEDIVE experiment: the pipeline, the models being compared, the four versions of the test text, the scores, and the rules that protect the numbers. Definitions only -- results live in the devlogs. This page gets updated when a definition changes, not when a number does, so it should mostly sit still.
 
@@ -7,7 +8,7 @@ Last revised 9 September 2026.
 
 ## The question
 
-> To what extent does fusing UMLS concept (CUI) embeddings with SapBERT text embeddings improve the relevance and robustness of differential diagnoses generated from free-text symptom presentations, compared with text-only embeddings and keyword-matching baselines?
+> [TO BE DETERMINED.] To what extent does fusing UMLS concept (CUI) embeddings with SapBERT text embeddings improve the relevance and robustness of differential diagnoses generated from free-text symptom presentations, compared with text-only embeddings and keyword-matching baselines?
 
 In plain words: a patient describes their symptoms in free text, a model returns a ranked list of likely diseases, and the question is whether adding standard medical concept codes to a biomedical language model gives a better list, and whether that list survives when the patient uses different words.
 
@@ -15,7 +16,7 @@ Two sub-questions follow. **SQ1**, relevance: how good is the list on clean text
 
 ## The pipeline
 
-The dataset is DDXPlus (Mila, 2022). Its patients aren't text. Each one is a list of structured *evidences*, symptoms and antecedents with a code, plus an age, a sex, one true pathology out of 49, and a *reference differential*: the list of diseases the dataset considers plausible for that patient, each with a probability.
+The dataset is DDXPlus (Mila, 2022). Each patient has a list of structured *evidences*, symptoms and antecedents with a code, plus an age, a sex, one true pathology out of 49, and a *reference differential*: the list of diseases the dataset considers plausible for that patient, each with a probability.
 
 1. Subsample the DDXPlus release into frozen train, validation and test splits.
 2. Render each patient into a short note with hand-reviewed templates, one clause per evidence, sentence order shuffled. This is tier 0, the clean text.
@@ -24,9 +25,9 @@ The dataset is DDXPlus (Mila, 2022). Its patients aren't text. Each one is a lis
 5. Train a classifier on tier-0 training text, then score every test tier.
 6. Compare the ranked list with the true pathology and with the reference differential.
 
-A rendered tier-0 note looks like this:
+A rendered tier-0 note looks like this. It's test patient <code>{stats.sample.id}</code>, the same one devlog #1 walks through, whose true pathology is {stats.sample.label}:
 
-> 59-year-old female patient. Presents with significantly increased sweating. The pain appeared with a speed of 1/10. Reports pain. Pain is located in the top of the head, the forehead, the right cheek, the left cheek and the occiput. Reports a sore throat. The pain location is precise 3/10. The pain radiates to no specific location. The pain is described as tedious and heavy. Pain intensity 6/10. A cough is present. Is exposed to secondhand cigarette smoke daily. Lives with four or more people. Was in contact with a person with similar symptoms in the past two weeks. Travel out of the country in the last 4 weeks: no.
+> {stats.sample.text_clean}
 
 It reads like a template because it is one. That's a known limitation, and it's also the point: because the text is under my control, the same patient can be rewritten in different words to see which model flinches.
 
@@ -56,7 +57,8 @@ All the B models end in the same classifier, logistic regression (LR). It learns
 
 SapBERT has never been told what the 49 pathologies are, but it can still place their names, and it's worth seeing how. Below, each name was fed to SapBERT on its own and the 49 vectors were squashed to two dimensions with PCA. Names that share words sit together: the two anginas, the two rhinosinusitis, bronchitis and bronchiolitis. This is the ontology's view of the label set, and it is the view the concept pathway is meant to add. Each pathology has one fixed colour, used in every figure of the project.
 
-<img className="diagram" src={_figDiseaseNames} alt="The 49 DDXPlus pathology names as SapBERT embeds them, PCA to two dimensions, one fixed colour per pathology" />
+<img className="diagram" src={_figDiseaseNames}
+     alt="The 49 DDXPlus pathology names as SapBERT embeds them, PCA to two dimensions, one fixed colour per pathology" />
 
 **M2, concepts only.** A dictionary tool called QuickUMLS scans the text for spans that match names of concepts in UMLS, the Unified Medical Language System. Each match gives a concept code, a CUI (Concept Unique Identifier). The model keeps up to 32 codes per note. Each code gets a learned vector of 128 numbers, plus a vector for its semantic type (sign or symptom, disease, finding). The vectors are averaged and the classifier reads the result. It shows what the codes carry on their own. Note that the extraction is approximate string matching, in the same family as RapidFuzz, so it may share the strengths and weaknesses of the keyword baseline.
 
@@ -91,7 +93,7 @@ The test patients never change. Only the words do. Each tier is rendered once an
 
 The same note as above, at tier 3:
 
-> 59-year-old female patient. Presents with signifcantly incrasyd sweating. The pain appeared with a speed of 1/10. Pain intensity 6/10. Complains of pafn. A couhg is present. The pain is described as teious and hevay. […] Complains of a sore throa. […] Reports contact wiht a peson jih similar sypmtoms in tha past two weeks.
+> {stats.sample.text_typos}
 
 Tier 2 carries the argument. Tier 1 is circular: its synonyms come from the same UMLS that feeds the concept pathway, so a win there partly measures vocabulary coverage rather than generalisation. Tier 3 is free to produce. Tier 2 is the closest the study gets to how people actually talk.
 
@@ -181,14 +183,14 @@ One row per model: trainable parameters, training wall-clock, and inference time
 
 ## Glossary
 
-- **CUI.** Concept Unique Identifier, the code UMLS assigns to one medical concept, whatever it is called.
-- **DDXPlus.** A public dataset of about 1.3 million synthetic patients across 49 pathologies, each with a reference differential. Generated by a rule-based simulator from a medical knowledge base.
-- **Differential diagnosis.** A ranked list of the diseases that could explain a presentation, rather than a single answer.
-- **Evidence.** DDXPlus's word for one symptom or antecedent. There are 223 of them.
-- **LR.** Logistic regression, a linear classifier that outputs a probability per class.
-- **MLP.** Multi-layer perceptron, a small feed-forward neural network.
-- **QuickUMLS.** A tool that finds UMLS concept names in text by approximate string matching.
-- **SapBERT.** A BERT-family language model for biomedical text, trained so that synonyms of one concept embed close together.
-- **TF-IDF.** Term frequency times inverse document frequency, a weighting for word counts.
-- **UMLS.** Unified Medical Language System, a large collection of medical vocabularies mapped onto shared concepts.
-- **WordPiece.** The sub-word tokeniser BERT models use. A word not in its vocabulary is split into fragments.
+- **CUI**: Concept Unique Identifier, the code UMLS assigns to one medical concept, whatever it is called.
+- **DDXPlus**: A public dataset of about 1.3 million synthetic patients across 49 pathologies, each with a reference differential. Generated by a rule-based simulator from a medical knowledge base.
+- **Differential diagnosis**: A ranked list of the diseases that could explain a presentation, rather than a single answer.
+- **Evidence**: DDXPlus's word for one symptom or antecedent. There are 223 of them.
+- **LR**: Logistic regression, a linear classifier that outputs a probability per class.
+- **MLP**: Multi-layer perceptron, a small feed-forward neural network.
+- **QuickUMLS**: A tool that finds UMLS concept names in text by approximate string matching.
+- **SapBERT**: A BERT-family language model for biomedical text, trained so that synonyms of one concept embed close together.
+- **TF-IDF**: Term frequency times inverse document frequency, a weighting for word counts.
+- **UMLS**: Unified Medical Language System, a large collection of medical vocabularies mapped onto shared concepts.
+- **WordPiece**: The sub-word tokeniser BERT models use. A word not in its vocabulary is split into fragments.

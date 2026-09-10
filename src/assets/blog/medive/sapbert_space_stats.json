@@ -15,6 +15,1048 @@
       "Inguinal hernia"
     ]
   },
+  "views_spread": {
+    "notes_pairwise_cosine_mean": 0.7909287810325623,
+    "notes_pairwise_cosine_min": 0.5514441132545471,
+    "names_pairwise_cosine_mean": 0.34523579478263855,
+    "names_pairwise_cosine_min": 0.037764184176921844,
+    "pca_variance_kept_notes": 0.3795260190963745,
+    "pca_variance_kept_names": 0.1473485231399536
+  },
+  "procrustes": {
+    "disparity": 0.42262154817581177,
+    "most_moved": [
+      [
+        "Acute COPD exacerbation / infection",
+        0.1213824599981308
+      ],
+      [
+        "Tuberculosis",
+        0.12093385308980942
+      ],
+      [
+        "Larygospasm",
+        0.11620912700891495
+      ],
+      [
+        "HIV (initial infection)",
+        0.11227042973041534
+      ],
+      [
+        "Bronchiectasis",
+        0.10999614745378494
+      ]
+    ],
+    "least_moved": [
+      [
+        "Stable angina",
+        0.060520123690366745
+      ],
+      [
+        "Unstable angina",
+        0.06709619611501694
+      ],
+      [
+        "Localized edema",
+        0.06754791736602783
+      ],
+      [
+        "Acute rhinosinusitis",
+        0.07098996639251709
+      ],
+      [
+        "Epiglottitis",
+        0.07604412734508514
+      ]
+    ]
+  },
+  "what_drives_similarity": {
+    "corr_with_symptom_list_overlap": 0.8770466289254674,
+    "corr_with_evidence_count_gap": -0.45622310442041347,
+    "corr_with_age_gap": -0.18657628120400155
+  },
+  "neighbours": {
+    "Acute COPD exacerbation / infection": {
+      "notes": [
+        "Bronchiectasis",
+        "Larygospasm",
+        "Bronchospasm / acute asthma exacerbation"
+      ],
+      "names": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Croup",
+        "Acute pulmonary edema"
+      ],
+      "symptom_lists": [
+        "Bronchiectasis",
+        "Bronchiolitis",
+        "Bronchospasm / acute asthma exacerbation"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 9.78125,
+      "mean_words": 67.1375
+    },
+    "Acute dystonic reactions": {
+      "notes": [
+        "Myasthenia gravis",
+        "PSVT",
+        "Atrial fibrillation"
+      ],
+      "names": [
+        "Panic attack",
+        "Anaphylaxis",
+        "Acute laryngitis"
+      ],
+      "symptom_lists": [
+        "Myasthenia gravis",
+        "Guillain-Barr\u00e9 syndrome",
+        "Croup"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 8.155102040816326,
+      "mean_words": 90.46530612244898
+    },
+    "Acute laryngitis": {
+      "notes": [
+        "Viral pharyngitis",
+        "URTI",
+        "Epiglottitis"
+      ],
+      "names": [
+        "Epiglottitis",
+        "Acute rhinosinusitis",
+        "Croup"
+      ],
+      "symptom_lists": [
+        "Viral pharyngitis",
+        "URTI",
+        "Epiglottitis"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 16.13807531380753,
+      "mean_words": 89.81171548117155
+    },
+    "Acute otitis media": {
+      "notes": [
+        "Viral pharyngitis",
+        "Acute rhinosinusitis",
+        "Acute laryngitis"
+      ],
+      "names": [
+        "Acute pulmonary edema",
+        "Acute laryngitis",
+        "Acute rhinosinusitis"
+      ],
+      "symptom_lists": [
+        "URTI",
+        "Bronchitis",
+        "Viral pharyngitis"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 12.256704980842912,
+      "mean_words": 78.0
+    },
+    "Acute pulmonary edema": {
+      "notes": [
+        "Unstable angina",
+        "Pulmonary embolism",
+        "Possible NSTEMI / STEMI"
+      ],
+      "names": [
+        "Localized edema",
+        "Pulmonary embolism",
+        "Acute otitis media"
+      ],
+      "symptom_lists": [
+        "Pulmonary embolism",
+        "Localized edema",
+        "Stable angina"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 30.155440414507773,
+      "mean_words": 176.0621761658031
+    },
+    "Acute rhinosinusitis": {
+      "notes": [
+        "Chronic rhinosinusitis",
+        "Viral pharyngitis",
+        "URTI"
+      ],
+      "names": [
+        "Chronic rhinosinusitis",
+        "Allergic sinusitis",
+        "Acute laryngitis"
+      ],
+      "symptom_lists": [
+        "Chronic rhinosinusitis",
+        "Stable angina",
+        "Unstable angina"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 24.698529411764707,
+      "mean_words": 128.16176470588235
+    },
+    "Allergic sinusitis": {
+      "notes": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Larygospasm",
+        "Croup"
+      ],
+      "names": [
+        "Acute rhinosinusitis",
+        "Chronic rhinosinusitis",
+        "Anaphylaxis"
+      ],
+      "symptom_lists": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Bronchiolitis",
+        "Larygospasm"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 7.212290502793296,
+      "mean_words": 62.899441340782126
+    },
+    "Anaphylaxis": {
+      "notes": [
+        "SLE",
+        "HIV (initial infection)",
+        "Scombroid food poisoning"
+      ],
+      "names": [
+        "Allergic sinusitis",
+        "Panic attack",
+        "Sarcoidosis"
+      ],
+      "symptom_lists": [
+        "HIV (initial infection)",
+        "SLE",
+        "Pneumonia"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 34.340425531914896,
+      "mean_words": 197.7304964539007
+    },
+    "Anemia": {
+      "notes": [
+        "Panic attack",
+        "PSVT",
+        "Chagas"
+      ],
+      "names": [
+        "HIV (initial infection)",
+        "Ebola",
+        "Chagas"
+      ],
+      "symptom_lists": [
+        "Boerhaave",
+        "Chagas",
+        "Cluster headache"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 21.50098231827112,
+      "mean_words": 127.4499017681729
+    },
+    "Atrial fibrillation": {
+      "notes": [
+        "Larygospasm",
+        "Tuberculosis",
+        "Possible NSTEMI / STEMI"
+      ],
+      "names": [
+        "Panic attack",
+        "Ebola",
+        "Guillain-Barr\u00e9 syndrome"
+      ],
+      "symptom_lists": [
+        "Tuberculosis",
+        "Acute COPD exacerbation / infection",
+        "PSVT"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 9.9,
+      "mean_words": 74.78571428571429
+    },
+    "Boerhaave": {
+      "notes": [
+        "GERD",
+        "Chagas",
+        "Panic attack"
+      ],
+      "names": [
+        "Larygospasm",
+        "GERD",
+        "Anaphylaxis"
+      ],
+      "symptom_lists": [
+        "Cluster headache",
+        "Chagas",
+        "Spontaneous rib fracture"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 19.206451612903226,
+      "mean_words": 97.60645161290323
+    },
+    "Bronchiectasis": {
+      "notes": [
+        "Acute COPD exacerbation / infection",
+        "Bronchospasm / acute asthma exacerbation",
+        "Larygospasm"
+      ],
+      "names": [
+        "Bronchitis",
+        "Bronchiolitis",
+        "Croup"
+      ],
+      "symptom_lists": [
+        "Acute COPD exacerbation / infection",
+        "Tuberculosis",
+        "Bronchospasm / acute asthma exacerbation"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 8.675824175824175,
+      "mean_words": 55.510989010989015
+    },
+    "Bronchiolitis": {
+      "notes": [
+        "Croup",
+        "Whooping cough",
+        "Larygospasm"
+      ],
+      "names": [
+        "Bronchitis",
+        "Pneumonia",
+        "Croup"
+      ],
+      "symptom_lists": [
+        "Croup",
+        "Tuberculosis",
+        "Acute COPD exacerbation / infection"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 9.666666666666666,
+      "mean_words": 57.666666666666664
+    },
+    "Bronchitis": {
+      "notes": [
+        "Pulmonary neoplasm",
+        "Viral pharyngitis",
+        "Acute laryngitis"
+      ],
+      "names": [
+        "Bronchiolitis",
+        "Croup",
+        "Bronchiectasis"
+      ],
+      "symptom_lists": [
+        "Acute laryngitis",
+        "Viral pharyngitis",
+        "URTI"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 17.54307116104869,
+      "mean_words": 104.19101123595506
+    },
+    "Bronchospasm / acute asthma exacerbation": {
+      "notes": [
+        "Allergic sinusitis",
+        "Larygospasm",
+        "Acute COPD exacerbation / infection"
+      ],
+      "names": [
+        "Acute COPD exacerbation / infection",
+        "Larygospasm",
+        "Croup"
+      ],
+      "symptom_lists": [
+        "Allergic sinusitis",
+        "Larygospasm",
+        "Bronchiectasis"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 9.987878787878788,
+      "mean_words": 78.65454545454546
+    },
+    "Chagas": {
+      "notes": [
+        "Boerhaave",
+        "URTI",
+        "Influenza"
+      ],
+      "names": [
+        "Tuberculosis",
+        "Ebola",
+        "Whooping cough"
+      ],
+      "symptom_lists": [
+        "Cluster headache",
+        "Boerhaave",
+        "Spontaneous rib fracture"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 19.9875,
+      "mean_words": 107.1
+    },
+    "Chronic rhinosinusitis": {
+      "notes": [
+        "Acute rhinosinusitis",
+        "URTI",
+        "Viral pharyngitis"
+      ],
+      "names": [
+        "Acute rhinosinusitis",
+        "Allergic sinusitis",
+        "Bronchitis"
+      ],
+      "symptom_lists": [
+        "Acute rhinosinusitis",
+        "Stable angina",
+        "Acute laryngitis"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 23.45098039215686,
+      "mean_words": 123.8970588235294
+    },
+    "Cluster headache": {
+      "notes": [
+        "Acute rhinosinusitis",
+        "URTI",
+        "Panic attack"
+      ],
+      "names": [
+        "Panic attack",
+        "Unstable angina",
+        "Guillain-Barr\u00e9 syndrome"
+      ],
+      "symptom_lists": [
+        "Chagas",
+        "Boerhaave",
+        "Spontaneous rib fracture"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 18.11904761904762,
+      "mean_words": 91.36190476190477
+    },
+    "Croup": {
+      "notes": [
+        "Bronchiolitis",
+        "Larygospasm",
+        "Whooping cough"
+      ],
+      "names": [
+        "Bronchitis",
+        "Bronchiolitis",
+        "Larygospasm"
+      ],
+      "symptom_lists": [
+        "Bronchiolitis",
+        "Larygospasm",
+        "Whooping cough"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 7.115384615384615,
+      "mean_words": 50.38461538461539
+    },
+    "Ebola": {
+      "notes": [
+        "Tuberculosis",
+        "Myasthenia gravis",
+        "Anemia"
+      ],
+      "names": [
+        "HIV (initial infection)",
+        "Chagas",
+        "Influenza"
+      ],
+      "symptom_lists": [
+        "Tuberculosis",
+        "Bronchiolitis",
+        "Bronchiectasis"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 8.714285714285714,
+      "mean_words": 75.14285714285714
+    },
+    "Epiglottitis": {
+      "notes": [
+        "Acute laryngitis",
+        "Viral pharyngitis",
+        "GERD"
+      ],
+      "names": [
+        "Acute laryngitis",
+        "Pericarditis",
+        "Larygospasm"
+      ],
+      "symptom_lists": [
+        "Acute laryngitis",
+        "Viral pharyngitis",
+        "Bronchitis"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 20.34659090909091,
+      "mean_words": 120.01704545454545
+    },
+    "GERD": {
+      "notes": [
+        "Possible NSTEMI / STEMI",
+        "Boerhaave",
+        "Unstable angina"
+      ],
+      "names": [
+        "Bronchitis",
+        "Boerhaave",
+        "Larygospasm"
+      ],
+      "symptom_lists": [
+        "Boerhaave",
+        "Cluster headache",
+        "Spontaneous rib fracture"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 21.155893536121674,
+      "mean_words": 121.81749049429658
+    },
+    "Guillain-Barr\u00e9 syndrome": {
+      "notes": [
+        "Myasthenia gravis",
+        "Myocarditis",
+        "Ebola"
+      ],
+      "names": [
+        "Myasthenia gravis",
+        "Acute laryngitis",
+        "Epiglottitis"
+      ],
+      "symptom_lists": [
+        "Myasthenia gravis",
+        "Croup",
+        "Acute dystonic reactions"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 6.647668393782383,
+      "mean_words": 71.42487046632124
+    },
+    "HIV (initial infection)": {
+      "notes": [
+        "Influenza",
+        "SLE",
+        "Anaphylaxis"
+      ],
+      "names": [
+        "Ebola",
+        "Anemia",
+        "Chagas"
+      ],
+      "symptom_lists": [
+        "Anaphylaxis",
+        "Pneumonia",
+        "Influenza"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 32.68384879725086,
+      "mean_words": 191.22680412371133
+    },
+    "Influenza": {
+      "notes": [
+        "HIV (initial infection)",
+        "SLE",
+        "Pneumonia"
+      ],
+      "names": [
+        "URTI",
+        "Pneumonia",
+        "Viral pharyngitis"
+      ],
+      "symptom_lists": [
+        "SLE",
+        "Sarcoidosis",
+        "Inguinal hernia"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 29.08712121212121,
+      "mean_words": 162.71212121212122
+    },
+    "Inguinal hernia": {
+      "notes": [
+        "Pancreatic neoplasm",
+        "HIV (initial infection)",
+        "Pneumonia"
+      ],
+      "names": [
+        "Pericarditis",
+        "Cluster headache",
+        "Epiglottitis"
+      ],
+      "symptom_lists": [
+        "SLE",
+        "Sarcoidosis",
+        "Influenza"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 22.44878048780488,
+      "mean_words": 145.6390243902439
+    },
+    "Larygospasm": {
+      "notes": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Croup",
+        "Atrial fibrillation"
+      ],
+      "names": [
+        "Croup",
+        "Bronchospasm / acute asthma exacerbation",
+        "Epiglottitis"
+      ],
+      "symptom_lists": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Croup",
+        "Whooping cough"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 4.4655172413793105,
+      "mean_words": 38.10344827586207
+    },
+    "Localized edema": {
+      "notes": [
+        "Acute pulmonary edema",
+        "Pulmonary embolism",
+        "Chagas"
+      ],
+      "names": [
+        "Acute pulmonary edema",
+        "Pulmonary embolism",
+        "Ebola"
+      ],
+      "symptom_lists": [
+        "Acute pulmonary edema",
+        "Chagas",
+        "Pulmonary embolism"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 27.679856115107913,
+      "mean_words": 157.07553956834533
+    },
+    "Myasthenia gravis": {
+      "notes": [
+        "Guillain-Barr\u00e9 syndrome",
+        "Acute dystonic reactions",
+        "Myocarditis"
+      ],
+      "names": [
+        "Guillain-Barr\u00e9 syndrome",
+        "Myocarditis",
+        "Larygospasm"
+      ],
+      "symptom_lists": [
+        "Guillain-Barr\u00e9 syndrome",
+        "Acute dystonic reactions",
+        "Croup"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 7.593939393939394,
+      "mean_words": 65.27272727272727
+    },
+    "Myocarditis": {
+      "notes": [
+        "Pericarditis",
+        "Spontaneous pneumothorax",
+        "Pulmonary neoplasm"
+      ],
+      "names": [
+        "Pericarditis",
+        "Myasthenia gravis",
+        "Chagas"
+      ],
+      "symptom_lists": [
+        "Pericarditis",
+        "Spontaneous pneumothorax",
+        "Acute laryngitis"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 15.127272727272727,
+      "mean_words": 102.06363636363636
+    },
+    "PSVT": {
+      "notes": [
+        "Panic attack",
+        "Boerhaave",
+        "Anemia"
+      ],
+      "names": [
+        "Possible NSTEMI / STEMI",
+        "Unstable angina",
+        "Stable angina"
+      ],
+      "symptom_lists": [
+        "Acute otitis media",
+        "Pericarditis",
+        "Myocarditis"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 14.906593406593407,
+      "mean_words": 92.4010989010989
+    },
+    "Pancreatic neoplasm": {
+      "notes": [
+        "Inguinal hernia",
+        "HIV (initial infection)",
+        "Pneumonia"
+      ],
+      "names": [
+        "Pulmonary neoplasm",
+        "Pneumonia",
+        "Tuberculosis"
+      ],
+      "symptom_lists": [
+        "Inguinal hernia",
+        "Influenza",
+        "Sarcoidosis"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 23.796875,
+      "mean_words": 140.51041666666666
+    },
+    "Panic attack": {
+      "notes": [
+        "Possible NSTEMI / STEMI",
+        "Boerhaave",
+        "GERD"
+      ],
+      "names": [
+        "Anaphylaxis",
+        "Acute dystonic reactions",
+        "Cluster headache"
+      ],
+      "symptom_lists": [
+        "Myocarditis",
+        "Epiglottitis",
+        "Acute laryngitis"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 24.932539682539684,
+      "mean_words": 155.56349206349208
+    },
+    "Pericarditis": {
+      "notes": [
+        "Myocarditis",
+        "Spontaneous pneumothorax",
+        "Pulmonary embolism"
+      ],
+      "names": [
+        "Myocarditis",
+        "Epiglottitis",
+        "Acute laryngitis"
+      ],
+      "symptom_lists": [
+        "Myocarditis",
+        "Boerhaave",
+        "Stable angina"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 16.278260869565216,
+      "mean_words": 100.65652173913044
+    },
+    "Pneumonia": {
+      "notes": [
+        "Influenza",
+        "SLE",
+        "HIV (initial infection)"
+      ],
+      "names": [
+        "Bronchiolitis",
+        "Bronchitis",
+        "Pulmonary neoplasm"
+      ],
+      "symptom_lists": [
+        "HIV (initial infection)",
+        "Influenza",
+        "Anaphylaxis"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 35.874524714828894,
+      "mean_words": 209.7148288973384
+    },
+    "Possible NSTEMI / STEMI": {
+      "notes": [
+        "Stable angina",
+        "Unstable angina",
+        "GERD"
+      ],
+      "names": [
+        "Stable angina",
+        "Unstable angina",
+        "PSVT"
+      ],
+      "symptom_lists": [
+        "Unstable angina",
+        "Stable angina",
+        "Boerhaave"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 28.916666666666668,
+      "mean_words": 146.05555555555554
+    },
+    "Pulmonary embolism": {
+      "notes": [
+        "Acute pulmonary edema",
+        "Pericarditis",
+        "Spontaneous pneumothorax"
+      ],
+      "names": [
+        "Acute pulmonary edema",
+        "Pulmonary neoplasm",
+        "Pneumonia"
+      ],
+      "symptom_lists": [
+        "Acute pulmonary edema",
+        "Stable angina",
+        "Unstable angina"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 25.51824817518248,
+      "mean_words": 159.16423357664235
+    },
+    "Pulmonary neoplasm": {
+      "notes": [
+        "Bronchitis",
+        "Myocarditis",
+        "Spontaneous pneumothorax"
+      ],
+      "names": [
+        "Pancreatic neoplasm",
+        "Pneumonia",
+        "Pulmonary embolism"
+      ],
+      "symptom_lists": [
+        "Acute otitis media",
+        "Spontaneous pneumothorax",
+        "GERD"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 16.237762237762237,
+      "mean_words": 98.44755244755245
+    },
+    "SLE": {
+      "notes": [
+        "Sarcoidosis",
+        "HIV (initial infection)",
+        "Anaphylaxis"
+      ],
+      "names": [
+        "Sarcoidosis",
+        "Guillain-Barr\u00e9 syndrome",
+        "GERD"
+      ],
+      "symptom_lists": [
+        "Inguinal hernia",
+        "Sarcoidosis",
+        "Influenza"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 24.663793103448278,
+      "mean_words": 143.8706896551724
+    },
+    "Sarcoidosis": {
+      "notes": [
+        "SLE",
+        "HIV (initial infection)",
+        "Influenza"
+      ],
+      "names": [
+        "SLE",
+        "Tuberculosis",
+        "Anaphylaxis"
+      ],
+      "symptom_lists": [
+        "SLE",
+        "Inguinal hernia",
+        "Influenza"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 24.083333333333332,
+      "mean_words": 143.84722222222223
+    },
+    "Scombroid food poisoning": {
+      "notes": [
+        "Anaphylaxis",
+        "SLE",
+        "Pneumonia"
+      ],
+      "names": [
+        "Larygospasm",
+        "Epiglottitis",
+        "Cluster headache"
+      ],
+      "symptom_lists": [
+        "HIV (initial infection)",
+        "Anaphylaxis",
+        "Pneumonia"
+      ],
+      "overlap5": 0.0,
+      "mean_evidences": 18.14054054054054,
+      "mean_words": 117.10810810810811
+    },
+    "Spontaneous pneumothorax": {
+      "notes": [
+        "Spontaneous rib fracture",
+        "Pericarditis",
+        "Myocarditis"
+      ],
+      "names": [
+        "Spontaneous rib fracture",
+        "Croup",
+        "Acute pulmonary edema"
+      ],
+      "symptom_lists": [
+        "Spontaneous rib fracture",
+        "Chagas",
+        "Boerhaave"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 17.52,
+      "mean_words": 101.97
+    },
+    "Spontaneous rib fracture": {
+      "notes": [
+        "Spontaneous pneumothorax",
+        "Pericarditis",
+        "Panic attack"
+      ],
+      "names": [
+        "Spontaneous pneumothorax",
+        "Croup",
+        "Boerhaave"
+      ],
+      "symptom_lists": [
+        "Boerhaave",
+        "Cluster headache",
+        "Chagas"
+      ],
+      "overlap5": 0.2,
+      "mean_evidences": 20.448275862068964,
+      "mean_words": 112.08620689655173
+    },
+    "Stable angina": {
+      "notes": [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Acute pulmonary edema"
+      ],
+      "names": [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Chronic rhinosinusitis"
+      ],
+      "symptom_lists": [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Pulmonary embolism"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 25.463276836158194,
+      "mean_words": 142.34463276836158
+    },
+    "Tuberculosis": {
+      "notes": [
+        "Whooping cough",
+        "Bronchiectasis",
+        "Atrial fibrillation"
+      ],
+      "names": [
+        "Chagas",
+        "Sarcoidosis",
+        "Whooping cough"
+      ],
+      "symptom_lists": [
+        "Bronchiolitis",
+        "Bronchiectasis",
+        "Ebola"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 8.32258064516129,
+      "mean_words": 46.76129032258064
+    },
+    "URTI": {
+      "notes": [
+        "Viral pharyngitis",
+        "Acute rhinosinusitis",
+        "Chronic rhinosinusitis"
+      ],
+      "names": [
+        "Influenza",
+        "Croup",
+        "Bronchiolitis"
+      ],
+      "symptom_lists": [
+        "Viral pharyngitis",
+        "Acute laryngitis",
+        "Bronchitis"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 19.178461538461537,
+      "mean_words": 110.30923076923077
+    },
+    "Unstable angina": {
+      "notes": [
+        "Stable angina",
+        "Possible NSTEMI / STEMI",
+        "Acute pulmonary edema"
+      ],
+      "names": [
+        "Stable angina",
+        "Possible NSTEMI / STEMI",
+        "Larygospasm"
+      ],
+      "symptom_lists": [
+        "Stable angina",
+        "Possible NSTEMI / STEMI",
+        "Pulmonary embolism"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 27.91588785046729,
+      "mean_words": 160.7289719626168
+    },
+    "Viral pharyngitis": {
+      "notes": [
+        "Acute laryngitis",
+        "URTI",
+        "Acute rhinosinusitis"
+      ],
+      "names": [
+        "Acute laryngitis",
+        "Influenza",
+        "Pneumonia"
+      ],
+      "symptom_lists": [
+        "Acute laryngitis",
+        "URTI",
+        "Bronchitis"
+      ],
+      "overlap5": 0.4,
+      "mean_evidences": 17.822580645161292,
+      "mean_words": 98.25967741935484
+    },
+    "Whooping cough": {
+      "notes": [
+        "Bronchiolitis",
+        "Larygospasm",
+        "Tuberculosis"
+      ],
+      "names": [
+        "Croup",
+        "Tuberculosis",
+        "Bronchitis"
+      ],
+      "symptom_lists": [
+        "Larygospasm",
+        "Bronchiolitis",
+        "Croup"
+      ],
+      "overlap5": 0.6,
+      "mean_evidences": 5.390243902439025,
+      "mean_words": 45.707317073170735
+    }
+  },
   "closest_name_pairs": [
     [
       "Stable angina",
@@ -79,6 +1121,231 @@
       0.9619883894920349
     ]
   ],
+  "cases": {
+    "Stable angina": {
+      "mean_evidences": 25.463276836158194,
+      "neighbours": [
+        [
+          "Unstable angina",
+          0.994621753692627,
+          0.9878685466552991
+        ],
+        [
+          "Possible NSTEMI / STEMI",
+          0.9797351360321045,
+          0.9537756435935977
+        ],
+        [
+          "Acute pulmonary edema",
+          0.9362491369247437,
+          0.8363233833766257
+        ],
+        [
+          "GERD",
+          0.9221601486206055,
+          0.7532849279764091
+        ],
+        [
+          "Pericarditis",
+          0.9048050045967102,
+          0.8809338302314434
+        ],
+        [
+          "Panic attack",
+          0.9017072319984436,
+          0.7461296365588403
+        ]
+      ],
+      "shared_evidences": [
+        [
+          "Unstable angina",
+          [
+            "pain",
+            "pain radiation",
+            "the character of the pain",
+            "pain intensity"
+          ]
+        ],
+        [
+          "Possible NSTEMI / STEMI",
+          [
+            "pain",
+            "pain radiation",
+            "the character of the pain",
+            "pain intensity"
+          ]
+        ],
+        [
+          "Acute pulmonary edema",
+          [
+            "pain",
+            "pain radiation",
+            "the character of the pain",
+            "pain intensity"
+          ]
+        ],
+        [
+          "GERD",
+          [
+            "pain",
+            "the character of the pain",
+            "pain radiation",
+            "pain intensity"
+          ]
+        ],
+        [
+          "Pericarditis",
+          [
+            "pain",
+            "pain radiation",
+            "the character of the pain",
+            "pain intensity"
+          ]
+        ],
+        [
+          "Panic attack",
+          [
+            "pain",
+            "the character of the pain",
+            "pain radiation",
+            "pain intensity"
+          ]
+        ]
+      ],
+      "symptom_list_neighbours": [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Pulmonary embolism",
+        "Acute rhinosinusitis",
+        "Pericarditis",
+        "Chronic rhinosinusitis"
+      ]
+    },
+    "Inguinal hernia": {
+      "mean_evidences": 22.44878048780488,
+      "neighbours": [
+        [
+          "Pancreatic neoplasm",
+          0.9445871710777283,
+          0.8572708178722515
+        ],
+        [
+          "HIV (initial infection)",
+          0.9355816841125488,
+          0.818445569307929
+        ],
+        [
+          "Pneumonia",
+          0.925935685634613,
+          0.792260137722046
+        ],
+        [
+          "Anaphylaxis",
+          0.9174250364303589,
+          0.7964353803176064
+        ],
+        [
+          "Sarcoidosis",
+          0.9147631525993347,
+          0.9126424123698276
+        ],
+        [
+          "Influenza",
+          0.9114454984664917,
+          0.901178278070161
+        ]
+      ],
+      "shared_evidences": [
+        [
+          "Pancreatic neoplasm",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ],
+        [
+          "HIV (initial infection)",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ],
+        [
+          "Pneumonia",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ],
+        [
+          "Anaphylaxis",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ],
+        [
+          "Sarcoidosis",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ],
+        [
+          "Influenza",
+          [
+            "pain",
+            "the affected skin region",
+            "the character of the pain",
+            "pain radiation"
+          ]
+        ]
+      ],
+      "symptom_list_neighbours": [
+        "SLE",
+        "Sarcoidosis",
+        "Influenza",
+        "Pancreatic neoplasm",
+        "HIV (initial infection)",
+        "Anaphylaxis"
+      ]
+    }
+  },
+  "short_note_block": {
+    "members": [
+      "Acute COPD exacerbation / infection",
+      "Acute dystonic reactions",
+      "Allergic sinusitis",
+      "Atrial fibrillation",
+      "Bronchiectasis",
+      "Bronchiolitis",
+      "Bronchospasm / acute asthma exacerbation",
+      "Croup",
+      "Ebola",
+      "Guillain-Barr\u00e9 syndrome",
+      "Larygospasm",
+      "Myasthenia gravis",
+      "Tuberculosis",
+      "Whooping cough"
+    ],
+    "n": 14,
+    "block_mean_evidences": 7.97347372002507,
+    "rest_mean_evidences": 22.503548371537534,
+    "block_mean_words": 62.851234915662936,
+    "rest_mean_words": 130.14178806472054,
+    "block_mean_age": 34.5193362989043,
+    "rest_mean_age": 39.891567940418014
+  },
   "confusions": {
     "n_errors": 542,
     "share_to_top3_neighbour": 65.31365313653137,

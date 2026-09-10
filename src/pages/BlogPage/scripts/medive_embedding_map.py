@@ -10,9 +10,9 @@ Run from anywhere with the experiment repo's environment:
     uv run --project ~/code/repos/medive-mvp python medive_embedding_map.py [--medive PATH] [--out DIR]
 
 Outputs, into src/assets/blog/medive/ by default:
-    fig_embedding_map.png     two panels: clean notes and typo notes, one joint t-SNE map
-    fig_embedding_drift.png   each patient's displacement drawn on the map, and its distribution
-    fig_embedding_cost.png    M1 and B1 accuracy against the number of corrupted words
+    fig_embedding_map.png     the clean notes on the joint t-SNE map, one panel
+    fig_embedding_drift.png   the typo notes on the same map, beside each patient's displacement drawn as a line
+    fig_embedding_cost.png    the displacement as a histogram, beside M1 and B1 accuracy against corrupted words
     embedding_stats.json      every number quoted in the post, so none is typed by hand
 """
 
@@ -112,7 +112,41 @@ def main() -> None:
             }
         )
 
+    # One worked example for the post: a heart-attack patient (DDXPlus: "Possible NSTEMI / STEMI") from the test split,
+    # chosen by rule so it is not cherry-picked by hand: a woman of 45 or under who smokes but is not overweight, taking
+    # the one whose reference differential gives the heart attack the largest share (shortest note, then lowest id, on
+    # ties). The post also quotes how many heart-attack patients carry those risk words at all, and quotes the note,
+    # its typo version and the truth.
+    SAMPLE_LABEL = "Possible NSTEMI / STEMI"
+    RISK_WORDS = ("overweight", "smoker", "smokes", "cigarette")
+    same = [r for r in rows0 if r["label"] == SAMPLE_LABEL]
+    with_risk = [r for r in same if any(w in r["text"].lower() for w in RISK_WORDS)]
+    cands = [
+        r
+        for r in same
+        if r["sex"] == "F"
+        and r["age"] <= 45
+        and "overweight" not in r["text"].lower()
+        and any(w in r["text"].lower() for w in ("smoker", "smokes"))
+    ]
+    pick = sorted(cands, key=lambda r: (-dict(r["differential"])[r["label"]], r["n_words"], r["id"]))[0]
+    pick3 = next(r for r in rows3 if r["id"] == pick["id"])
+    sample = {
+        "id": pick["id"],
+        "n_same_label": len(same),
+        "n_same_label_with_risk_words": len(with_risk),
+        "age": pick["age"],
+        "sex": "female" if pick["sex"] == "F" else "male",
+        "label": pick["label"],
+        "n_evidences": len(pick["evidences"]),
+        "n_words": pick["n_words"],
+        "text_clean": pick["text"],
+        "text_typos": pick3["text"],
+        "differential": [[name, float(prob)] for name, prob in pick["differential"]],
+    }
+
     stats = {
+        "sample": sample,
         "n_test": int(n),
         "seed": SEED,
         "drift_mean": float(drift.mean()),
@@ -133,8 +167,9 @@ def main() -> None:
         from transformers import AutoTokenizer
 
         tok = AutoTokenizer.from_pretrained("cambridgeltl/SapBERT-from-PubMedBERT-fulltext", local_files_only=True)
-        pieces0 = np.array([len(tok.tokenize(r["text"])) for r in rows0])
-        pieces3 = np.array([len(tok.tokenize(r["text"])) for r in rows3])
+        # Count like the encoder does: [CLS] and [SEP] are added and count toward max_length (matches stats.py --tokenizer).
+        pieces0 = np.array([len(tok(r["text"], add_special_tokens=True)["input_ids"]) for r in rows0])
+        pieces3 = np.array([len(tok(r["text"], add_special_tokens=True)["input_ids"]) for r in rows3])
         stats["wordpiece"] = {
             "pieces_mean_clean": float(pieces0.mean()),
             "pieces_mean_typos": float(pieces3.mean()),
@@ -178,74 +213,78 @@ def main() -> None:
 
     def scatter(ax, zz, title):
         rest = ~np.isin(yy, top)
-        ax.scatter(zz[rest, 0], zz[rest, 1], s=5, c=GREY, alpha=0.35, linewidths=0, label="_")
+        ax.scatter(zz[rest, 0], zz[rest, 1], s=7, c=GREY, alpha=0.35, linewidths=0, label="_")
         for c in top:
             m = yy == c
-            ax.scatter(zz[m, 0], zz[m, 1], s=8, color=colour_of[c], alpha=0.85, linewidths=0, label=labels[c])
+            ax.scatter(zz[m, 0], zz[m, 1], s=13, color=colour_of[c], alpha=0.85, linewidths=0, label=labels[c])
         ax.set_title(title, fontsize=13)
         frame(ax)
 
-    # ---- figure 1: the map, clean and typos side by side --------------------------------------------------------
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6.8), dpi=170)
+    # The blog column is 62ch wide: the clean map gets a full-width panel, the two follow-up figures are side-by-side pairs
+    # with large fonts so they survive being shrunk.
+    plt.rcParams.update({"font.size": 12})
+    legend_kw = dict(ncol=4, fontsize=10.5, frameon=False, markerscale=2.2, handletextpad=0.3, columnspacing=1.2)
+
+    # ---- figure 1: the clean map on its own ----------------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(10, 9.4), dpi=170)
     fig.patch.set_facecolor("white")
-    scatter(axes[0], z0, "Tier 0, clean text")
-    scatter(axes[1], z3, "Tier 3, typos (same patients, same map)")
-    handles, names = axes[0].get_legend_handles_labels()
-    fig.legend(handles, names, loc="lower center", ncol=5, fontsize=9.5, frameon=False, markerscale=2.5, bbox_to_anchor=(0.5, -0.03))
-    fig.suptitle(
-        f"Frozen SapBERT vectors of {N_MAP:,} test patients. {method}\n({TOP_CLASSES} most frequent pathologies coloured, the other 39 in grey)",
-        fontsize=11.5,
-    )
-    fig.tight_layout(rect=(0, 0.07, 1, 0.94))
+    scatter(ax, z0, f"Tier 0, clean text: {N_MAP:,} test patients, frozen SapBERT, {method}")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.01), **legend_kw)
+    ax.text(0.01, 0.01, f"{TOP_CLASSES} most frequent pathologies coloured, the other 39 in grey", transform=ax.transAxes, fontsize=10, color="#666666")
+    fig.tight_layout()
     fig.savefig(out / "fig_embedding_map.png", bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
-    # ---- figure 2: the displacement, drawn and measured ----------------------------------------------------------
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6), dpi=170, gridspec_kw={"width_ratios": [1.15, 1]})
+    # ---- figure 2: the typo map beside where each patient moved -------------------------------------------------------
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8.6), dpi=170)
     fig.patch.set_facecolor("white")
-    ax = axes[0]
-    ax.scatter(z0[:, 0], z0[:, 1], s=3, c=GREY, alpha=0.25, linewidths=0)
+    scatter(axes[0], z3, "Tier 3, typos: the same patients on the same map")
+    axes[0].legend(loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=3, fontsize=11.5, frameon=False, markerscale=2.2, handletextpad=0.3, columnspacing=1.2)
+
+    ax = axes[1]
+    ax.scatter(z0[:, 0], z0[:, 1], s=4, c=GREY, alpha=0.25, linewidths=0)
     li = rng.choice(N_MAP, size=N_DRIFT_LINES, replace=False)
     for i in li:
         c = RED if not ok[i] else BLUE
-        ax.plot([z0[i, 0], z3[i, 0]], [z0[i, 1], z3[i, 1]], color=c, lw=0.8, alpha=0.55 if ok[i] else 0.95)
-    ax.plot([], [], color=BLUE, lw=1.5, label="M1 still right at rank 1")
-    ax.plot([], [], color=RED, lw=1.5, label="M1 wrong after typos")
-    ax.legend(loc="lower left", fontsize=9, frameon=True)
-    ax.set_title(f"Where {N_DRIFT_LINES} patients move, clean → typos", fontsize=12)
+        ax.plot([z0[i, 0], z3[i, 0]], [z0[i, 1], z3[i, 1]], color=c, lw=1.1, alpha=0.55 if ok[i] else 0.95)
+    ax.plot([], [], color=BLUE, lw=2, label="M1 still right at rank 1")
+    ax.plot([], [], color=RED, lw=2, label="M1 wrong after typos")
+    ax.legend(loc="lower left", fontsize=12, frameon=True)
+    ax.set_title(f"Where {N_DRIFT_LINES} of them move, clean → typos (grey: clean positions)", fontsize=14)
     frame(ax)
+    fig.tight_layout(w_pad=3)
+    fig.savefig(out / "fig_embedding_drift.png", bbox_inches="tight", facecolor="white")
+    plt.close(fig)
 
-    ax = axes[1]
+    # ---- figure 3: the movement measured, beside what it costs ------------------------------------------------------
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6.4), dpi=170)
+    fig.patch.set_facecolor("white")
+    ax = axes[0]
     hi = np.percentile(drift, 99.5)
     b = np.linspace(0, hi, 45)
     ax.hist(drift[m1_ok], bins=b, color=BLUE, alpha=0.75, label=f"M1 right at rank 1 (n = {m1_ok.sum():,})")
     ax.hist(drift[~m1_ok], bins=b, color=RED, alpha=0.75, label=f"M1 wrong (n = {(~m1_ok).sum():,})")
-    ax.axvline(drift[m1_ok].mean(), color=BLUE, ls="--", lw=1.2)
-    ax.axvline(drift[~m1_ok].mean(), color=RED, ls="--", lw=1.2)
+    ax.axvline(drift[m1_ok].mean(), color=BLUE, ls="--", lw=1.4)
+    ax.axvline(drift[~m1_ok].mean(), color=RED, ls="--", lw=1.4)
     ax.set_xlabel("Cosine distance between a patient's clean vector and its typo vector")
     ax.set_ylabel("Patients")
-    ax.set_title("How far each vector moves, all 10,000 patients (dashed: group means)", fontsize=12)
-    ax.legend(fontsize=9)
+    ax.set_title("How far each vector moves, all 10,000 patients\n(dashed: group means)", fontsize=14)
+    ax.legend(fontsize=12)
     ax.grid(axis="y", alpha=0.3)
-    fig.tight_layout()
-    fig.savefig(out / "fig_embedding_drift.png", bbox_inches="tight", facecolor="white")
-    plt.close(fig)
 
-    # ---- figure 3: what the drift costs ---------------------------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(11, 4), dpi=170)
-    fig.patch.set_facecolor("white")
+    ax = axes[1]
     xs = np.arange(len(acc_rows))
-    ax.plot(xs, [r["m1_acc1"] for r in acc_rows], marker="o", color=M1_COLOUR, lw=2.2, label="M1 SapBERT text-only")
-    ax.plot(xs, [r["b1_acc1"] for r in acc_rows], marker="s", color=B1_COLOUR, lw=2.2, label="B1 TF-IDF + LR")
+    ax.plot(xs, [r["m1_acc1"] for r in acc_rows], marker="o", ms=7, color=M1_COLOUR, lw=2.6, label="M1 SapBERT text-only")
+    ax.plot(xs, [r["b1_acc1"] for r in acc_rows], marker="s", ms=7, color=B1_COLOUR, lw=2.6, label="B1 TF-IDF + LR")
     ax.set_xticks(xs)
-    ax.set_xticklabels([f"{r['words']}\n(n = {r['n']:,})" for r in acc_rows], fontsize=8.5)
+    ax.set_xticklabels([f"{r['words']}\n(n = {r['n']:,})" for r in acc_rows], fontsize=10.5)
     ax.set_xlabel("Corrupted words in the note")
     ax.set_ylabel("Acc@1 at tier 3 (%)")
     ax.set_ylim(80, 101)
-    ax.set_title("Acc@1 under typos against how many words were corrupted, seed 0", fontsize=12)
-    ax.legend(fontsize=9, loc="lower left")
+    ax.set_title("Acc@1 under typos against how many words\nwere corrupted, seed 0", fontsize=14)
+    ax.legend(fontsize=12, loc="lower left")
     ax.grid(alpha=0.3)
-    fig.tight_layout()
+    fig.tight_layout(w_pad=3)
     fig.savefig(out / "fig_embedding_cost.png", bbox_inches="tight", facecolor="white")
     plt.close(fig)
 

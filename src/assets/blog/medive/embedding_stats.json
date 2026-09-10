@@ -1,4 +1,42 @@
 {
+  "sample": {
+    "id": "test_18798",
+    "n_same_label": 216,
+    "n_same_label_with_risk_words": 212,
+    "age": 33,
+    "sex": "female",
+    "label": "Possible NSTEMI / STEMI",
+    "n_evidences": 26,
+    "n_words": 125,
+    "text_clean": "33-year-old female patient. Presents with nausea and the urge to vomit. Pain intensity 8/10. The pain appeared with a speed of 10/10. Feels constantly fatigued; sleep is not restful. The pain is described as tedious, heavy, sickening and scary. The pain radiates to the right biceps, the left biceps, the thyroid cartilage, the thoracic spine and the right shoulder. The pain location is precise 8/10. Reports pain. Pain is located in the lower chest, the right side of the chest, the upper chest, the right breast and the epigastrium. Former smoker. Travel out of the country in the last 4 weeks: no. Has high cholesterol or takes medication to treat it. Has high blood pressure or takes medication to treat it. Is HIV positive. Smoker.",
+    "text_typos": "33-year-old female patient. Presents with anusea and the ueg to vomit. The pain appeared with a speed of 10/10. The pain is described as tdeious, hevay, sickenint and scay. Reports pani. The pain radiates to the right biecp, the left cbieps, teh thyroid cartliage, thd thoracci spine and the right lhoudler. Pain is located in the lower chsx, the rigbt sfie of the chest, the upper cekt, the rigth berast and teh peigastrium. Reports constant fatkgue nd non-resful slee. Pain intensity 8/10. The pain location is precise 8/10. Travel out of the country in the last 4 weeks: on. Has high blood pressure or takes medication to treat it. Former smoker. Smokes cigarettes. Is HIV positive. Has high cholesterol or takes medication to treat it.",
+    "differential": [
+      [
+        "Possible NSTEMI / STEMI",
+        0.32336436489590625
+      ],
+      [
+        "Chagas",
+        0.17469063119130812
+      ],
+      [
+        "Anemia",
+        0.17469063119130812
+      ],
+      [
+        "Anaphylaxis",
+        0.15309164931340366
+      ],
+      [
+        "Pericarditis",
+        0.0997385363703213
+      ],
+      [
+        "Scombroid food poisoning",
+        0.07442418703775244
+      ]
+    ]
+  },
   "n_test": 10000,
   "seed": 0,
   "drift_mean": 0.059464793652296066,
@@ -70,10 +108,10 @@
     }
   ],
   "wordpiece": {
-    "pieces_mean_clean": 160.9139,
-    "pieces_mean_typos": 185.4557,
-    "share_over_128_clean": 71.91,
-    "share_over_128_typos": 81.49,
+    "pieces_mean_clean": 162.9139,
+    "pieces_mean_typos": 187.4557,
+    "share_over_128_clean": 73.42999999999999,
+    "share_over_128_typos": 82.15,
     "examples": {
       "significantly": [
         "significantly"
