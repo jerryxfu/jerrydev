@@ -2,6 +2,7 @@
 Figures for MEDIVE devlog #1: what frozen SapBERT's space looks like, beyond the patient map.
 
     fig_disease_maps.png     the 49 pathologies as note centroids (left) and as embedded names (right), PCA
+    fig_disease_names.png    the names panel on its own, for the reference sheet
     fig_disease_heatmap.png  49 x 49 cosine similarity of the note centroids, clustered, with M1's rank-1 confusions marked
     fig_phrase_map.png       canonical symptom phrases and their lay paraphrases (tier 2), UMAP, lines joining each pair
     fig_word_typos.png       how far a single word's vector moves per character edit
@@ -17,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -75,6 +77,9 @@ def main() -> None:
     a = p.parse_args()
     root, out = Path(a.medive), Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
+    sys.path.insert(0, str(root))  # experiments/ is a package at the repo root, not under src/
+    from experiments.viz import pathology_colours  # one fixed colour per pathology, shared with the essay figures
+
     rng = np.random.default_rng(SEED)
     stats: dict = {"seed": SEED, "model": MODEL}
 
@@ -101,23 +106,32 @@ def main() -> None:
     counts = np.bincount(y, minlength=n_classes)
     names = embed(labels)
 
-    fig, axes = plt.subplots(1, 2, figsize=(17, 8.2), dpi=170)
-    fig.patch.set_facecolor("white")
-    for ax, vecs, title in [
-        (axes[0], centroids, "From the notes: mean vector of each pathology's test patients"),
-        (axes[1], names, "From the names: SapBERT on the 49 pathology names alone"),
-    ]:
+    study = pathology_colours(labels)
+    cols = [study[name] for name in labels]
+
+    def draw_view(ax, vecs, title, sizes):
         z = PCA(n_components=2, random_state=SEED).fit_transform(unit(vecs))
-        size = 18 + 4 * np.sqrt(counts) if vecs is centroids else 40
-        ax.scatter(z[:, 0], z[:, 1], s=size, color=BLUE, alpha=0.75, linewidths=0)
+        ax.scatter(z[:, 0], z[:, 1], s=sizes, c=cols, alpha=0.9, linewidths=0.4, edgecolors="white")
         for i, name in enumerate(labels):
-            ax.annotate(name, (z[i, 0], z[i, 1]), fontsize=6.8, color=INK, xytext=(3, 2), textcoords="offset points")
+            ax.annotate(name, (z[i, 0], z[i, 1]), fontsize=7, color=INK, xytext=(4, 2), textcoords="offset points")
         ax.set_title(title, fontsize=12)
         clean_axes(ax)
+
+    fig, axes = plt.subplots(1, 2, figsize=(17, 8.2), dpi=170)
+    fig.patch.set_facecolor("white")
+    draw_view(axes[0], centroids, "From the notes: mean vector of each pathology's test patients", 22 + 4 * np.sqrt(counts))
+    draw_view(axes[1], names, "From the names: SapBERT on the 49 pathology names alone", 46)
     axes[0].text(0.01, 0.01, "dot size: number of test patients", transform=axes[0].transAxes, fontsize=8, color="#666666")
-    fig.suptitle("Two views of the same 49 pathologies in SapBERT's space (PCA to two dimensions)", fontsize=13)
+    fig.suptitle("Two views of the same 49 pathologies in SapBERT's space (PCA to two dimensions, one fixed colour per pathology)", fontsize=13)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(out / "fig_disease_maps.png", bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(11, 8), dpi=170)
+    fig.patch.set_facecolor("white")
+    draw_view(ax, names, "The 49 DDXPlus pathology names as SapBERT embeds them (PCA to two dimensions)", 52)
+    fig.tight_layout()
+    fig.savefig(out / "fig_disease_names.png", bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
     # Do the two views agree? For each pathology, overlap of its 5 nearest neighbours in the two spaces.
@@ -160,6 +174,10 @@ def main() -> None:
     ax.set_yticks(range(n_classes))
     ax.set_xticklabels([labels[c] for c in order], rotation=90, fontsize=6.5)
     ax.set_yticklabels([labels[c] for c in order], fontsize=6.5)
+    for tick, c in zip(ax.get_xticklabels(), order):
+        tick.set_color(study[labels[c]])
+    for tick, c in zip(ax.get_yticklabels(), order):
+        tick.set_color(study[labels[c]])
     ax.set_xlabel("predicted at rank 1 (for the red circles)", fontsize=9)
     ax.set_ylabel("true pathology", fontsize=9)
     ax.set_title(

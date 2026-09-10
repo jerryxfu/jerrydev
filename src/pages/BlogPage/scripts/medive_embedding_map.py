@@ -7,11 +7,12 @@ Reads the caches of the experiment repo (git-ignored there, so this script lives
     experiments/predictions/{m1_text,b1_tfidf}_s0_t3.npy   seed-0 probabilities at tier 3
 
 Run from anywhere with the experiment repo's environment:
-    uv run --with umap-learn --project ~/code/repos/medive-mvp python medive_embedding_map.py [--medive PATH] [--out DIR]
+    uv run --project ~/code/repos/medive-mvp python medive_embedding_map.py [--medive PATH] [--out DIR]
 
 Outputs, into src/assets/blog/medive/ by default:
-    fig_embedding_map.png     three panels: clean (UMAP), typos projected into the same map, and each patient's drift
-    fig_embedding_drift.png   how far vectors move and what it costs, M1 against B1
+    fig_embedding_map.png     two panels: clean notes and typo notes, one joint t-SNE map
+    fig_embedding_drift.png   each patient's displacement drawn on the map, and its distribution
+    fig_embedding_cost.png    M1 and B1 accuracy against the number of corrupted words
     embedding_stats.json      every number quoted in the post, so none is typed by hand
 """
 
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -54,6 +56,8 @@ def main() -> None:
     a = p.parse_args()
     root, out = Path(a.medive), Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
+    sys.path.insert(0, str(root))  # experiments/ is a package at the repo root, not under src/
+    from experiments.viz import pathology_colours  # one fixed colour per pathology, shared with the essay figures
 
     # ---- load -------------------------------------------------------------------------------------------------------
     x0 = np.load(root / "data/processed/embeddings/sapbert/test/tier0.npy")
@@ -149,82 +153,69 @@ def main() -> None:
     # ---- the map ---------------------------------------------------------------------------------------------------
     rng = np.random.default_rng(SEED)
     idx = np.sort(rng.choice(n, size=N_MAP, replace=False))
-    # UMAP is fitted on the clean notes only, and the typo notes are dropped into that fixed map, so a patient's
-    # movement is measured against a map that did not see the typos. Falls back to a joint t-SNE if umap is absent
-    # (run with `uv run --with umap-learn ...` to have it).
-    pca = PCA(n_components=50, random_state=SEED).fit(x0[idx])
-    try:
-        import umap
-
-        reducer = umap.UMAP(n_neighbors=30, min_dist=0.1, metric="cosine", random_state=SEED)
-        z0 = reducer.fit_transform(pca.transform(x0[idx]))
-        z3 = reducer.transform(pca.transform(x3[idx]))
-        method = "UMAP fitted on the clean notes, typo notes projected into it"
-    except ImportError:
-        both = np.vstack([x0[idx], x3[idx]])
-        z = TSNE(n_components=2, perplexity=40, init="pca", random_state=SEED, max_iter=1000).fit_transform(pca.transform(both))
-        z0, z3 = z[:N_MAP], z[N_MAP:]
-        method = "t-SNE of the clean and typo notes together"
+    # Joint t-SNE of the clean and typo notes: both versions of every patient are embedded together, so the two
+    # panels share one map and a patient's displacement can be drawn. (UMAP with fit-on-clean / transform-typos was
+    # tried first; it scattered the map into tiny islands and read worse. t-SNE keeps the clusters legible.)
+    both = np.vstack([x0[idx], x3[idx]])
+    z50 = PCA(n_components=50, random_state=SEED).fit_transform(both)
+    z = TSNE(n_components=2, perplexity=40, init="pca", random_state=SEED, max_iter=1000).fit_transform(z50)
+    z0, z3 = z[:N_MAP], z[N_MAP:]
+    method = "t-SNE of the clean and typo notes together"
     stats["map_method"] = method
     (out / "embedding_stats.json").write_text(json.dumps(stats, indent=2))
 
     top = [c for c, _ in Counter(y[idx].tolist()).most_common(TOP_CLASSES)]
-    cmap = plt.get_cmap("tab10")
-    colour_of = {c: cmap(i) for i, c in enumerate(top)}
+    study = pathology_colours(labels)
+    colour_of = {c: study[labels[c]] for c in top}
     yy = y[idx]
     ok = m1_ok[idx]
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5.6), dpi=170)
-    fig.patch.set_facecolor("white")
-
-    def scatter(ax, zz, title):
-        rest = ~np.isin(yy, top)
-        ax.scatter(zz[rest, 0], zz[rest, 1], s=4, c=GREY, alpha=0.35, linewidths=0, label="_")
-        for c in top:
-            m = yy == c
-            ax.scatter(zz[m, 0], zz[m, 1], s=6, color=colour_of[c], alpha=0.8, linewidths=0, label=labels[c])
-        ax.set_title(title, fontsize=13)
+    def frame(ax):
         ax.set_xticks([])
         ax.set_yticks([])
         for s in ax.spines.values():
             s.set_color("#cccccc")
 
-    scatter(axes[0], z0, "Tier 0, clean text")
-    scatter(axes[1], z3, "Tier 3, typos (same patients)")
+    def scatter(ax, zz, title):
+        rest = ~np.isin(yy, top)
+        ax.scatter(zz[rest, 0], zz[rest, 1], s=5, c=GREY, alpha=0.35, linewidths=0, label="_")
+        for c in top:
+            m = yy == c
+            ax.scatter(zz[m, 0], zz[m, 1], s=8, color=colour_of[c], alpha=0.85, linewidths=0, label=labels[c])
+        ax.set_title(title, fontsize=13)
+        frame(ax)
 
-    ax = axes[2]
+    # ---- figure 1: the map, clean and typos side by side --------------------------------------------------------
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6.8), dpi=170)
+    fig.patch.set_facecolor("white")
+    scatter(axes[0], z0, "Tier 0, clean text")
+    scatter(axes[1], z3, "Tier 3, typos (same patients, same map)")
+    handles, names = axes[0].get_legend_handles_labels()
+    fig.legend(handles, names, loc="lower center", ncol=5, fontsize=9.5, frameon=False, markerscale=2.5, bbox_to_anchor=(0.5, -0.03))
+    fig.suptitle(
+        f"Frozen SapBERT vectors of {N_MAP:,} test patients. {method}\n({TOP_CLASSES} most frequent pathologies coloured, the other 39 in grey)",
+        fontsize=11.5,
+    )
+    fig.tight_layout(rect=(0, 0.07, 1, 0.94))
+    fig.savefig(out / "fig_embedding_map.png", bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+    # ---- figure 2: the displacement, drawn and measured ----------------------------------------------------------
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6), dpi=170, gridspec_kw={"width_ratios": [1.15, 1]})
+    fig.patch.set_facecolor("white")
+    ax = axes[0]
     ax.scatter(z0[:, 0], z0[:, 1], s=3, c=GREY, alpha=0.25, linewidths=0)
     li = rng.choice(N_MAP, size=N_DRIFT_LINES, replace=False)
     for i in li:
         c = RED if not ok[i] else BLUE
-        ax.plot([z0[i, 0], z3[i, 0]], [z0[i, 1], z3[i, 1]], color=c, lw=0.7, alpha=0.55 if ok[i] else 0.9)
+        ax.plot([z0[i, 0], z3[i, 0]], [z0[i, 1], z3[i, 1]], color=c, lw=0.8, alpha=0.55 if ok[i] else 0.95)
     ax.plot([], [], color=BLUE, lw=1.5, label="M1 still right at rank 1")
     ax.plot([], [], color=RED, lw=1.5, label="M1 wrong after typos")
     ax.legend(loc="lower left", fontsize=9, frameon=True)
-    ax.set_title(f"Where {N_DRIFT_LINES} patients move, clean → typos", fontsize=13)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    for s in ax.spines.values():
-        s.set_color("#cccccc")
+    ax.set_title(f"Where {N_DRIFT_LINES} patients move, clean → typos", fontsize=12)
+    frame(ax)
 
-    handles, names = axes[0].get_legend_handles_labels()
-    fig.legend(
-        handles, names, loc="lower center", ncol=5, fontsize=9, frameon=False, markerscale=2.5,
-        bbox_to_anchor=(0.5, -0.02),
-    )
-    fig.suptitle(
-        f"Frozen SapBERT vectors of {N_MAP:,} test patients. {method} ({TOP_CLASSES} most frequent pathologies coloured)",
-        fontsize=12,
-    )
-    fig.tight_layout(rect=(0, 0.08, 1, 0.95))
-    fig.savefig(out / "fig_embedding_map.png", bbox_inches="tight", facecolor="white")
-    plt.close(fig)
-
-    # ---- drift and cost --------------------------------------------------------------------------------------------
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), dpi=170)
-    fig.patch.set_facecolor("white")
-
-    ax = axes[0]
+    ax = axes[1]
     hi = np.percentile(drift, 99.5)
     b = np.linspace(0, hi, 45)
     ax.hist(drift[m1_ok], bins=b, color=BLUE, alpha=0.75, label=f"M1 right at rank 1 (n = {m1_ok.sum():,})")
@@ -233,11 +224,16 @@ def main() -> None:
     ax.axvline(drift[~m1_ok].mean(), color=RED, ls="--", lw=1.2)
     ax.set_xlabel("Cosine distance between a patient's clean vector and its typo vector")
     ax.set_ylabel("Patients")
-    ax.set_title("How far each vector moves (dashed: group means)", fontsize=12)
+    ax.set_title("How far each vector moves, all 10,000 patients (dashed: group means)", fontsize=12)
     ax.legend(fontsize=9)
     ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(out / "fig_embedding_drift.png", bbox_inches="tight", facecolor="white")
+    plt.close(fig)
 
-    ax = axes[1]
+    # ---- figure 3: what the drift costs ---------------------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(11, 4), dpi=170)
+    fig.patch.set_facecolor("white")
     xs = np.arange(len(acc_rows))
     ax.plot(xs, [r["m1_acc1"] for r in acc_rows], marker="o", color=M1_COLOUR, lw=2.2, label="M1 SapBERT text-only")
     ax.plot(xs, [r["b1_acc1"] for r in acc_rows], marker="s", color=B1_COLOUR, lw=2.2, label="B1 TF-IDF + LR")
@@ -245,13 +241,12 @@ def main() -> None:
     ax.set_xticklabels([f"{r['words']}\n(n = {r['n']:,})" for r in acc_rows], fontsize=8.5)
     ax.set_xlabel("Corrupted words in the note")
     ax.set_ylabel("Acc@1 at tier 3 (%)")
-    ax.set_ylim(0, 102)
-    ax.set_title("What the drift costs, seed 0", fontsize=12)
+    ax.set_ylim(80, 101)
+    ax.set_title("Acc@1 under typos against how many words were corrupted, seed 0", fontsize=12)
     ax.legend(fontsize=9, loc="lower left")
     ax.grid(alpha=0.3)
-
     fig.tight_layout()
-    fig.savefig(out / "fig_embedding_drift.png", bbox_inches="tight", facecolor="white")
+    fig.savefig(out / "fig_embedding_cost.png", bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
     print(json.dumps({k: v for k, v in stats.items() if k != "acc_by_corrupted_words"}, indent=2))

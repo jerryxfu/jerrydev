@@ -3,6 +3,7 @@ import _figTypoDrop from "@/assets/blog/medive/fig_typo_drop.png";
 import _figDdrHeadroom from "@/assets/blog/medive/fig_ddr_headroom.png";
 import _figEmbeddingMap from "@/assets/blog/medive/fig_embedding_map.png";
 import _figEmbeddingDrift from "@/assets/blog/medive/fig_embedding_drift.png";
+import _figEmbeddingCost from "@/assets/blog/medive/fig_embedding_cost.png";
 import stats from "@/assets/blog/medive/embedding_stats.json"; // written by scripts/medive_embedding_map.py
 import _figDiseaseMaps from "@/assets/blog/medive/fig_disease_maps.png";
 import _figDiseaseHeatmap from "@/assets/blog/medive/fig_disease_heatmap.png";
@@ -10,32 +11,32 @@ import _figPhraseMap from "@/assets/blog/medive/fig_phrase_map.png";
 import _figWordTypos from "@/assets/blog/medive/fig_word_typos.png";
 import space from "@/assets/blog/medive/sapbert_space_stats.json"; // written by scripts/medive_sapbert_space.py
 
-Devlog #0 ended with "the next devlog should have the first real numbers in it". It does. The baselines and the text-only model have run, the first supervisor meeting on results is done, and one of those numbers turned out to be wrong for a reason worth a whole section.
+Devlog #0 ended with "the next devlog should have the first real numbers in it". Here they are. The baselines and the text-only model have run, I've had a first supervisor meeting about results, and one of those numbers turned out to be wrong for a reason that gets its own section. (It's a good one. Or a bad one. Depends how you look at it.)
 
-Before the numbers, a quick tour of what they are numbers *of*. The full definitions now live in the [MEDIVE reference sheet](/blog/medive-reference), which is the documentation for the experiment and stays put while the devlogs move. This post only reminds you of the shape.
+Before the numbers, a quick tour of what they're numbers *of*. The full definitions now live in the [MEDIVE reference sheet](/blog/medive-reference), which is the documentation for the experiment -- it stays put while the devlogs move on. This post only reminds you of the shape, then gets to the fun part.
 
 ## What got decided since devlog #0
 
-A few things were settled in the two weeks since the plan, and all of them happened before the hybrid model existed, on purpose.
+A few things got settled in the two weeks since the plan. All of them before the hybrid model exists, and that's on purpose.
 
-- **M4, attention fusion, is dropped.** One fusion method, concatenation, is enough for one essay. The attention version goes back on the shelf for a later personal project.
+- **M4, attention fusion, is dropped.** One way of fusing the two vectors (concatenation) is enough for one essay. The attention version goes back on the shelf for a later personal project.
 - **Two training goals, reported separately.** A model can learn to put the one true disease on top, or to reproduce the whole reference differential. The second is called soft-target, and every hybrid result will be reported under both.
-- **DDR@10 joins the scores** as a secondary metric, because the reference differential has about nine entries and five slots cannot hold it.
-- **Two comparisons are locked:** the hybrid against the text-only model, and the hybrid against TF-IDF, each on clean text, lay language and typos. Locking them early stops me from picking whichever comparison looks best afterwards.
+- **DDR@10 joins the scores** as a secondary metric, because the reference differential has about nine entries and five slots can't hold it.
+- **Two comparisons are locked:** hybrid vs text-only, and hybrid vs TF-IDF, each on clean text, lay language and typos. Locking them now stops me from picking whichever comparison happens to look best later.
 - **Everything runs on the MacBook Air.** The desktop GPU is reserved for the optional fine-tuning run, if it ever happens.
 - **SapBERT now reads the whole note.** The plan had set a limit of 128 word pieces per note, before any note existed. Measured after the fact, that cut the end off most notes. The limit is now 512, which covers everything, and the text-only model was re-run. The story of how I found out is below.
 
 ## The shape of the experiment, in three paragraphs
 
-**The models.** Seven ways to turn a patient note into a ranked list of 49 diseases. Three baselines: B0 matches keywords from a fixed list, B1 counts words (TF-IDF), and B2 is an oracle that reads the true symptom codes and never the text, so it marks the top of the scale. Then the learned ones: M1 is a frozen biomedical language model, SapBERT, with a small classifier on top. M2 will read only the medical concept codes extracted from the text. M3, the one the question is about, joins M1's vector and M2's vector end to end. [Details and the reasoning behind each →](/blog/medive-reference#the-models)
+**The models.** Seven ways to turn a patient note into a ranked list of 49 diseases. Three baselines: B0 matches keywords from a fixed list, B1 counts words (TF-IDF), and B2 is an oracle that reads the true symptom codes and never the text, so it marks the top of the scale. Then the learned ones: M1 is a frozen biomedical language model, SapBERT, with a small classifier on top. M2 will read only the medical concept codes extracted from the text. M3, the one the whole question is about, glues M1's vector and M2's vector end to end. [Details and the reasoning behind each →](/blog/medive-reference#the-models)
 
-**The four versions of the text.** The test patients never change, only the words do. Tier 0 is the clean templated note. Tier 1 swaps symptom names for medical synonyms (optional). Tier 2 swaps them for everyday wording, as a patient would say it. Tier 3 adds typos. Models train on tier 0 only, and tier 2 is the one that carries the argument. [The tiers →](/blog/medive-reference#the-four-tiers)
+**The four versions of the text.** The test patients never change, only the words do. Tier 0 is the clean templated note. Tier 1 swaps symptom names for medical synonyms (optional). Tier 2 swaps them for everyday wording, the way a patient would actually say it. Tier 3 adds typos. Models train on tier 0 only, and tier 2 is the one that carries the argument. [The tiers →](/blog/medive-reference#the-four-tiers)
 
-**The scores.** Against the true disease: Acc@k (is it in the top k), MRR (how high up is it), macro-F1 (rare diseases count equally). Against the reference differential: DDR@5, how much of the reference list the top five recovers, and DDP@5, how much of the top five is justified. DDR@5 has a ceiling of 65.7 percent on this test set, because a list of five cannot hold nine diseases. Every condition runs on five seeds, and every table is mean ± standard deviation. [Formulas, the ceiling, a worked example →](/blog/medive-reference#the-scores)
+**The scores.** Against the true disease: Acc@k (is it in the top k?), MRR (how high up is it?), macro-F1 (rare diseases count as much as common ones). Against the reference differential: DDR@5, how much of the reference list the top five recovers, and DDP@5, how much of the top five is justified. DDR@5 has a ceiling of 65.7 percent on this test set, because a list of five can't hold nine diseases. Every condition runs on five seeds, and every table is mean ± standard deviation. [Formulas, the ceiling, a worked example →](/blog/medive-reference#the-scores)
 
 ## First numbers
 
-These are Stage 1 numbers, regenerated from the result files after the 512-piece re-run on 9 September. The hybrid does not exist yet, so nothing here answers the question. What these do is set the floor and the yardsticks.
+These are Stage 1 numbers, regenerated from the result files after the 512-piece re-run on 9 September. The hybrid doesn't exist yet, so nothing here answers the question. What these do is set the floor and the yardsticks.
 
 **Clean text, tier 0.** Mean ± sd over five seeds, in percent.
 
@@ -49,17 +50,17 @@ These are Stage 1 numbers, regenerated from the result files after the 512-piece
 
 Three things fall out of this table and the typo tier.
 
-### 1. Clean text is too easy to separate the models
+### 1. Clean text is too easy to tell the models apart
 
-The oracle scores 99.7 at rank 1 and the cheap baselines are within a point of it. Every model puts the true disease in its top three every single time. Since even the oracle, which sees the true evidences, sits at the ceiling, the ceiling belongs to the task and the dataset, not to my rendering. The first sub-question, relevance on clean text, will read as a tie. The plan said so in advance.
+The oracle scores 99.7 at rank 1 and the cheap baselines are within a point of it. Every model puts the true disease in its top three every single time. Since even the oracle, which sees the true evidences, sits at the ceiling, the ceiling belongs to the task and the dataset, not to my rendering. The first sub-question, relevance on clean text, is going to read as a tie. The plan said so in advance, so at least that's not a surprise.
 
 ### 2. The differential list is where the room is
 
-Every standard model recovers between a third and forty percent of the reference list, against a ceiling of 65.7. The soft-target run shows why. Trained on the full list instead of the single true disease, the *same features* reach 59.3, at the cost of Acc@1 dropping to 75.8. So the quality of the list follows what we ask the model to learn, not what it reads. This is why the hybrid will be tested under both training goals.
+Every standard model recovers somewhere between a third and forty percent of the reference list, against a ceiling of 65.7. The soft-target run shows why. Trained on the full list instead of the single true disease, the *same features* reach 59.3 -- at the cost of Acc@1 dropping to 75.8. So the quality of the list follows what we ask the model to learn, not what it reads. That's why the hybrid will be tested under both training goals.
 
 <img className="diagram" src={_figDdrHeadroom} alt="DDR@5 on clean text per condition, with the achievable ceiling of 65.7 percent as a dashed line" />
 
-### 3. The language model is still the one that minds typos, but far less than I first thought
+### 3. The language model is still the one that minds typos, just a lot less than I first thought
 
 The plan expected the keyword matcher to suffer most from noise. The reverse happened, and on the first run it looked dramatic.
 
@@ -72,11 +73,11 @@ The plan expected the keyword matcher to suffer most from noise. The reverse hap
 
 <img className="diagram" src={_figTypoDrop} alt="Acc@1 and DDR@5 per condition, clean versus typos, with the SapBERT conditions dropping the most" />
 
-Word counting still sees the other hundred words in the record. Fuzzy keyword matching forgives the spelling by construction. SapBERT does neither: it loses about four points at rank 1 where the baselines lose half a point or nothing. That is the finding as it stands now. The first version of this table, from a run a few days earlier, had M1 at 83.6 under typos, a fifteen-point drop. Here is what happened to the other eleven points.
+Word counting still sees the other hundred words in the record. Fuzzy keyword matching forgives spelling by construction. SapBERT does neither, and loses about four points at rank 1 where the baselines lose half a point or nothing. That's the finding as it stands now. The first version of this table, from a run a few days earlier, had M1 at 83.6 under typos -- a fifteen-point drop. Here's what happened to the other eleven points.
 
 ### Looking inside the language model
 
-BERT-family models do not read words. They read *word pieces*. A tokeniser called WordPiece carries a fixed vocabulary of about thirty thousand pieces, and any word not in it is split into the longest pieces it does know. A clean medical word is usually one piece. A misspelled one is not. Here is SapBERT's own tokeniser on words from patient `test_12`, clean on the left, tier 3 on the right:
+BERT-family models don't read words. They read *word pieces*. A tokeniser called WordPiece carries a fixed vocabulary of about thirty thousand pieces, and any word that isn't in it gets split into the longest pieces it does know. A clean medical word is usually one piece. A misspelled one isn't. Here's SapBERT's own tokeniser on words from patient `test_12`, clean on the left, tier 3 on the right:
 
 | Clean | Pieces | Typo | Pieces |
 | --- | --- | --- | --- |
@@ -85,7 +86,7 @@ BERT-family models do not read words. They read *word pieces*. A tokeniser calle
 | symptoms | `symptoms` | sypmtoms | `sy` `##pm` `##to` `##ms` |
 | heavy | `heavy` | hevay | `hev` `##ay` |
 
-The `##` marks a piece that continues the previous one. Those fragments were never learned as "significantly" or "cough". M1 averages every piece's vector into one vector per patient, so every corrupted word pulls the average a little off course. That was my whole explanation, and it is true as far as it goes.
+The `##` marks a piece that continues the previous one. Those fragments were never learned as "significantly" or "cough". M1 averages every piece's vector into one vector per patient, so every corrupted word pulls the average a bit off course. That was my whole explanation, and it's true as far as it goes.
 
 Then I counted the pieces. The fragments make the note longer: {stats.wordpiece.pieces_mean_clean.toFixed(0)} pieces on average at tier 0, {stats.wordpiece.pieces_mean_typos.toFixed(0)} at tier 3. And the plan had told SapBERT to read only the first 128. That cut landed on {stats.wordpiece.share_over_128_clean.toFixed(0)} percent of clean notes and on {stats.wordpiece.share_over_128_typos.toFixed(0)} percent of typo notes. The notes are written symptoms first, history last, so what fell off the end was the patient's history: smoking, asthma, travel, contact with sick people. And typos, by making the note longer, pushed even more of it past the edge.
 
@@ -93,29 +94,31 @@ Then I counted the pieces. The fragments make the note longer: {stats.wordpiece.
     The limit of 128 was a guess written into the plan before a single note had been rendered, with a note to "justify from the 95th percentile" that nobody went back to. The 95th percentile turned out to be 264. Raising the limit to 512, so that every note is read whole, moved M1 under typos from 83.6 to 95.0 at rank 1. Most of the "collapse" was the cut, not the tokeniser. The tokeniser accounts for the four points that remain.
 </Callout>
 
-That is the kind of mistake the essay's methodology section exists to catch, and it is going in there as a corrected assumption rather than being quietly fixed. It also changes what tier 3 measures: it is now a test of the tokeniser and the pooling, as intended, instead of a test of which sentences happened to be cut.
+That's exactly the kind of mistake the methodology section exists to catch, and it's going in there as a corrected assumption rather than being quietly fixed. It also changes what tier 3 measures: it's now a test of the tokeniser and the pooling, as intended, instead of a test of which sentences happened to get cut.
 
 ### The map
 
-The picture I had been wanting to see since the project started. Each dot is one test patient's frozen SapBERT vector, squashed from 768 dimensions to two with UMAP. The map is fitted on the clean notes only, and the typo versions of the same notes are then placed into it, so a patient's movement is measured against a map that never saw the typos.
+This is the picture I've wanted to see since the project started. Each dot is one test patient's frozen SapBERT vector, squashed from 768 dimensions to two with t-SNE. The clean and typo versions of every patient are embedded together, so both panels share one map and you can follow a patient from one to the other.
 
-<img className="diagram" src={_figEmbeddingMap} alt="Three panels: SapBERT vectors of test patients on clean text, the same patients with typos placed in the same map, and lines showing how far each patient moved" />
+<img className="diagram" src={_figEmbeddingMap} alt="Two panels: SapBERT vectors of test patients on clean text, and the same patients with typos, in one shared t-SNE map" />
 
-Left: on clean text, patients cluster tightly by pathology, before any classifier is trained. The ten most frequent pathologies are coloured. Middle: the same patients with typos. The clusters are still there, a little looser. Right: the line each patient travels from its clean position to its typo position, red when M1 no longer puts the true disease first. Most lines are too short to see. The few long ones are the failures.
+Left: on clean text, patients cluster by pathology, before any classifier has been trained. The ten most frequent pathologies are coloured -- and those are the colours every figure in this project uses for them from now on. Right: the same patients with typos. The clusters are still there, a little looser, with a few strays.
 
-<img className="diagram" src={_figEmbeddingDrift} alt="Left: histogram of the cosine distance between each patient's clean and typo vectors, split by whether M1 stayed right. Right: M1 and B1 accuracy against the number of corrupted words in the note" />
+<img className="diagram" src={_figEmbeddingDrift} alt="Left: a line from each patient's clean position to its typo position, red where M1 lost the top answer. Right: histogram of the cosine distance between each patient's clean and typo vectors, split by whether M1 stayed right" />
 
-The left panel measures the movement, cosine distance between a patient's clean vector and its typo vector. It is small: a mean of {stats.drift_mean.toFixed(3)}, and {stats.nn_same_patient_share.toFixed(0)} percent of typo vectors still sit closest to their own clean vector. Patients M1 gets wrong moved a bit further on average, {stats.drift_mean_m1_wrong.toFixed(3)} against {stats.drift_mean_m1_right.toFixed(3)}, but the two groups overlap almost entirely, so distance alone does not decide it.
+Left: the line each patient travels from its clean position to its typo position, red when M1 no longer puts the true disease first. Most lines are too short to see. The long ones are the failures. Right: the same movement as a number -- cosine distance between a patient's clean vector and its typo vector, for all ten thousand patients. It's small: a mean of {stats.drift_mean.toFixed(3)}, and {stats.nn_same_patient_share.toFixed(0)} percent of typo vectors still sit closest to their own clean vector. Patients M1 gets wrong moved a bit further on average ({stats.drift_mean_m1_wrong.toFixed(3)} vs {stats.drift_mean_m1_right.toFixed(3)}), but the two groups overlap almost entirely, so distance alone doesn't decide it.
 
-The right panel is more interesting than I expected. A note at tier 3 has about {stats.corrupted_words_mean.toFixed(0)} corrupted words on average. For B1, TF-IDF, accuracy is flat no matter how many words are broken. For M1 it dips to about {stats.acc_by_corrupted_words[5].m1_acc1.toFixed(0)} percent in the middle bins and then *recovers* on the notes with the most corrupted words. That is not typos helping. The notes with the most corrupted words are the longest notes, the ones with the most evidence, and now that the model reads all of it, they are the easy ones. On the first run, before the limit was raised, this curve fell steadily to 74 percent and never came back, because those long notes were the ones being cut the most.
+<img className="diagram" src={_figEmbeddingCost} alt="M1 and B1 accuracy under typos against the number of corrupted words in the note" />
+
+This one is more interesting than I expected. A note at tier 3 has about {stats.corrupted_words_mean.toFixed(0)} corrupted words on average. For B1 (TF-IDF), accuracy is flat no matter how many words are broken. For M1 it dips to about {stats.acc_by_corrupted_words[5].m1_acc1.toFixed(0)} percent in the middle bins and then *recovers* on the notes with the most corrupted words. That's not typos helping. The notes with the most corrupted words are the longest notes, the ones with the most evidence, and now that the model reads all of it, they're the easy ones. On the first run, before the limit was raised, this curve fell steadily to 74 percent and never came back -- because those long notes were the ones being cut the most.
 
 <Callout kind="note">
-    One caveat. The renderer draws sentence order and template variants from a generator seeded per tier, so the tier-3 note is not exactly the tier-0 note with typos added: sentences also come in a different order, and some use a different wording template. Bag-of-words models do not notice. A transformer might, a little. So a small part of M1's tier-3 drop may be re-rendering rather than typos. A control run would settle it, and it is on the list.
+    One caveat. The renderer draws sentence order and template variants from a generator seeded per tier, so the tier-3 note isn't exactly the tier-0 note with typos added: sentences also come in a different order, and some use a different wording template. Bag-of-words models don't notice. A transformer might, a little. So a small part of M1's tier-3 drop may be re-rendering rather than typos. A control run would settle it, and it's on the list.
 </Callout>
 
 ## Poking around SapBERT's space
 
-Since this post is the fun one, a few more pictures that are not going in the essay as they stand, but that taught me something about the model I am building on.
+Since this post is the fun one, a few more pictures. None of them are going in the essay as they stand, but they taught me something about the model I'm building on.
 
 ### The 49 diseases, two ways
 
@@ -123,7 +126,7 @@ SapBERT has never been told what the 49 pathologies are. But it can still place 
 
 <img className="diagram" src={_figDiseaseMaps} alt="Two scatter plots of the 49 pathologies: one from the mean note vector per pathology, one from the embedded pathology names" />
 
-The two views disagree more than I expected. On average only {(space.views_agree.mean_neighbour_overlap * 100).toFixed(0)} percent of a pathology's five nearest neighbours are the same in both. The note view groups diseases by what patients say: the whole respiratory-infection family piles up in one spot, and the cardiac chest-pain family in another. The name view groups them by how they are spelled: "stable angina" next to "unstable angina", "bronchitis" next to "bronchiolitis", the two rhinosinusitis next to each other. The first is what the classifier gets to use. The second is the ontology's view creeping in through the words themselves.
+The two views disagree more than I expected. On average only {(space.views_agree.mean_neighbour_overlap * 100).toFixed(0)} percent of a pathology's five nearest neighbours are the same in both. The note view groups diseases by what patients say: the whole respiratory-infection family piles up in one spot, the cardiac chest-pain family in another. The name view groups them by how they're spelled: "stable angina" next to "unstable angina", "bronchitis" next to "bronchiolitis", the two rhinosinusitis next to each other. The first is what the classifier gets to use. The second is the ontology's view sneaking in through the words themselves.
 
 ### Are confusions between neighbours?
 
@@ -131,17 +134,21 @@ Same 49 centroids, as a similarity matrix, sorted so that similar pathologies si
 
 <img className="diagram" src={_figDiseaseHeatmap} alt="Clustered heatmap of cosine similarity between the 49 pathology centroids, with M1's top confusions circled" />
 
-The bright squares are the rhinosinusitis pair and the angina family, and that is where the circles land. Across all of M1's rank-1 errors on this tier, {space.confusions.share_to_top5_neighbour.toFixed(0)} percent go to one of the true pathology's five nearest centroids. So when the model is wrong, it is mostly wrong in the direction the space already leans. Whether those neighbours are clinically adjacent is the question the error analysis will have to answer, and that part is mine to write.
+The bright squares are the rhinosinusitis pair and the angina family, and that's where the circles land. Across all of M1's rank-1 errors on this tier, {space.confusions.share_to_top5_neighbour.toFixed(0)} percent go to one of the true pathology's five nearest centroids. So when the model is wrong, it's mostly wrong in the direction the space already leans. Whether those neighbours are clinically adjacent is a question for the error analysis, and that part is mine to write.
 
 ### The lay phrases, before any model runs on them
 
-The tier 2 hypothesis is that SapBERT can bridge "the runs" to "diarrhea" without being told. That can be checked on the phrases alone, before a single model is trained on tier 2. Blue dots are the {space.phrases.n_canonical} canonical symptom phrases the templates use; green dots are the {space.phrases.n_lay} lay paraphrases I wrote for them; a line joins each paraphrase to the phrase it replaces.
+The tier 2 hypothesis is that SapBERT can bridge "the runs" to "diarrhea" without being told. That can be checked on the phrases alone, before a single model is trained on tier 2. Blue dots are the {space.phrases.n_canonical} canonical symptom phrases the templates use; green dots are the {space.phrases.n_lay} lay paraphrases written for them; a line joins each paraphrase to the phrase it replaces.
 
 <img className="diagram" src={_figPhraseMap} alt="UMAP of canonical symptom phrases and their lay paraphrases, each pair joined by a line" />
 
-Short lines are the easy cases: "coughing up a bit of blood" lands on top of "coughing up blood". Long lines are the ones the language model does not get for free. If I ask, for each lay phrase, whether the *closest* canonical phrase in SapBERT's space is the right one, the answer is yes for {space.phrases.lay_nn_accuracy.toFixed(0)} percent of them. The three it misses by the widest margin are all idioms, like "the runs" and "the heart thumping all over the place".
+Short lines are the easy cases: "coughing up a bit of blood" lands right on top of "coughing up blood". Long lines are the ones the language model doesn't get for free. If I ask, for each lay phrase, whether the *closest* canonical phrase in SapBERT's space is the right one, the answer is yes for {space.phrases.lay_nn_accuracy.toFixed(0)} percent of them. The ones it misses by the widest margin are idioms, phrases that share no word at all with the medical wording.
 
 The surprising row: doing the same test with the canonical phrases *typo'd* instead of paraphrased, SapBERT finds the right phrase {space.phrases.typo_nn_accuracy.toFixed(0)} percent of the time. At the level of a single phrase, typos are less of a problem than lay wording. That fits the corrected tier-3 result above: once the whole note is read, typos cost a few points, not fifteen.
+
+<Callout kind="note">
+    A word on the phrases themselves, since I wrote them (from AI drafts) and I'm the one reviewing them. The rule is realism only: would a patient plausibly say this? Not: can SapBERT handle it? Nothing gets dropped or reworded because a model struggles with it, and the list is frozen before any model is scored on tier 2. The full list will be in the essay's appendix, with a count of how many phrases share no word with the medical wording, so nobody has to take my word for how idiomatic it is.
+</Callout>
 
 ### One word, one edit at a time
 
@@ -149,10 +156,10 @@ The cleanest version of the WordPiece story. Take a symptom word, apply one rand
 
 <img className="diagram" src={_figWordTypos} alt="Left: cosine distance of a word from its clean form against the number of character edits. Right: number of word pieces the tokeniser produces" />
 
-The first edit does most of the damage: a mean distance of {space.word_typos.distance_after_1_edit_mean.toFixed(2)} after one edit, {space.word_typos.distance_after_3_edits_mean.toFixed(2)} after three. The right panel is why. A clean word is one piece. One edit turns it into two, three or four pieces that have nothing to do with the original. After that, more edits barely matter, because the word is already gone. Compare that to the note-level drift of about {stats.drift_mean.toFixed(2)}: a single word is wrecked, but a note has a hundred other words to average it against.
+The first edit does most of the damage: a mean distance of {space.word_typos.distance_after_1_edit_mean.toFixed(2)} after one edit, {space.word_typos.distance_after_3_edits_mean.toFixed(2)} after three. The right panel is why. A clean word is one piece. One edit turns it into two, three or four pieces that have nothing to do with the original. After that, more edits barely matter -- the word is already gone. Compare that to the note-level drift of about {stats.drift_mean.toFixed(2)}: a single word gets wrecked, but a note has a hundred other words to average it against.
 
 ## What's next
 
 In order: I review the 192 lay-language phrases, tier 2 gets scored, concept extraction runs, M2 and M3 get built, and the two locked comparisons decide the answer. Gates on 20 September, 4 October, 18 October (no new experiments after that), and 1 November (draft to the supervisor).
 
-The next devlog is about tier 2, which is the one I have been waiting for.
+The next devlog is about tier 2, which is the one I've been waiting for.

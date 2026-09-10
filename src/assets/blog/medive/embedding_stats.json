@@ -110,5 +110,5 @@
       ]
     }
   },
-  "map_method": "UMAP fitted on the clean notes, typo notes projected into it"
+  "map_method": "t-SNE of the clean and typo notes together"
 }
