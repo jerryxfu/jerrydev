@@ -258,7 +258,8 @@ export const posts: Post[] = [
         description: "Devlog #1: Fhe first numbers from the baselines, and presentation of the models.",
         date: postDate("2026-09-09"),
         tags: ["ai", "devlog", "med"],
-        lang: "en"
+        lang: "en",
+        draft: true
     },
     {
         slug: "medive-reference",
