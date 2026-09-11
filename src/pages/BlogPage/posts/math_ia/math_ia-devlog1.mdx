@@ -1,0 +1,190 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // load-bearing, see hello-blog
+import _fig6 from "@/assets/blog/math_ia/fig6_cosine_by_gap.png";
+import _fig4 from "@/assets/blog/math_ia/fig4_lastdigit_wheel.png";
+import _fig2 from "@/assets/blog/math_ia/fig2_dims_peek.png";
+import _fig3 from "@/assets/blog/math_ia/fig3_numberline.png";
+import _fig5 from "@/assets/blog/math_ia/fig5_ve_by_model.png";
+import _fig7 from "@/assets/blog/math_ia/fig7_structure_vs_depth.png";
+import _fig8 from "@/assets/blog/math_ia/fig8_wheel_by_layer.png";
+import _fig1 from "@/assets/blog/math_ia/fig1_wpe_validation.png";
+import _fig9 from "@/assets/blog/math_ia/fig9_helix3d.png";
+
+{/* Draft. Figures from the first baseline run of math-mvp (11 Sep 2026), each regenerated from experiments/results/*.json by experiments/viz.py. Every number below is copied from ia/tables/ (Tables 1 to 4) or from a figure legend; none is typed from memory. */}
+
+Devlog #0 asked one question: do the numbers inside GPT-2 have a geometric structure, and if so, which one? This post has the first real pictures. They come from a pipeline I can now run end to end on my laptop in about half a minute, which is a good feeling after two weeks of planning.
+
+Before the pictures, a short tour of what they are pictures *of*. If you already know what an embedding is, skip to [the first result](#numbers-with-the-same-last-digit-look-alike).
+
+## A quick tour
+
+### A number is a list of 768 values
+
+GPT-2 does not read letters or words. It reads *tokens*, pieces of text from a fixed list of 50,257 entries. Most small integers happen to be one token each: "42" is a token, "137" is a token. For each token the model stores a list of 768 numbers. That list is called the token's *embedding*, and the table holding all 50,257 lists is the model's dictionary. Nothing else is stored about "42": no rule, no meaning, just those 768 values, learned by reading a lot of text.
+
+The trick that makes this a mathematics project rather than a computer-science one is to treat that list as a *point*. A list of two values is a point on a plane. A list of three is a point in space. A list of 768 is a point in a space with 768 dimensions, which nobody can picture, but the geometry works exactly the same way: points have distances, directions and angles. So the question becomes: where did GPT-2 put the points for 0, 1, 2, 3 and so on? On a straight line, in order? On a curve? Around circles?
+
+Not every integer is a single token, which sets the range of the study. In the bare form ("42" on its own) the integers 0 to 520 are all single tokens and after that there are holes. With a space in front (" 42", which is how a number appears inside a sentence) the run stops at 361. So I work with 0 to 520 for the bare form and 0 to 361 for the space form, and never with a range that has holes in it.
+
+### Centring: removing what all numbers share
+
+The points for numbers all sit in roughly the same corner of the space, because they share a lot: they are all numbers, they all appear in similar places in text. That shared part would dominate every measurement, so it is removed first. Take the average point, subtract it from every point. What remains is only what makes the numbers *different* from each other. Every figure below is drawn after this step.
+
+### Variance explained: how much of the spread a rule accounts for
+
+The points are spread out. To describe the spread, I propose a simple rule of n and ask how much of the spread it accounts for. For instance, "the point moves along one fixed direction as n grows" is the straight-line rule. "It moves along a fixed direction as ln(n + 1) grows" is the log rule: fast at first, then slower and slower, like how 10 feels far from 1 but 110 feels close to 101. A circle rule says "the point goes round a fixed circle once every T numbers".
+
+Each rule is fitted by ordinary least squares, the same regression as in the syllabus, once per coordinate. The score is one number, the **variance explained**: the share of the total spread that the rule accounts for. 100 % would mean the rule places every point exactly. 0 % would mean the rule tells you nothing.
+
+The rules were fixed before I looked at any data. They are: straight line, log, a control that only knows how many digits n has, one circle each for the periods 2, 5, 10 and 100, and two combined "helix" rules (straight line plus all four circles, and log plus all four circles). The four periods come from how we write numbers in base 10. The last digit repeats every 10, the second-to-last every 100, "even or odd" every 2, "ends in 0 or 5" every 5. Fixing the list in advance matters: with enough tries, some period always fits by accident.
+
+### The luck baseline
+
+Any rule explains *something*, even of random points, just by having knobs to turn. So every score is compared with what the same rule scores by luck. To measure luck, I shuffle the labels, so that the point of 42 might be relabelled 7, refit the rule, and record the score. Two hundred shuffles give a distribution of "luck scores". A rule counts as real only if it beats the top 1 % of them.
+
+<Callout kind="note">
+    There is a formula for the luck score too. For a rule with k knobs fitted to m numbers, the expected luck score is about k divided by (m minus 1). One circle
+    has two knobs, so on 100 numbers it explains about 2 % by luck alone. The combined helix has eight knobs, so about 8 %. This is why a combined rule always
+    looks "better" than a single circle, and why the shuffle test is not optional. The run checked the formula against the shuffles: they agree to about a
+    percent of each other in the typical case.
+</Callout>
+
+### Why anyone would expect circles
+
+This is the part of the project that is pure mathematics, and it will get its own section in the IA. The short version: if numbers sit on a circle with period 10, then adding 3 to a number is the same as turning the circle by three tenths of a turn. Turning is something a network can do with multiplications and additions, using the compound-angle identities from the syllabus. So a circle is a *useful* way to store the last digit. Nothing in that argument says the period must be 10 rather than 7. The list 2, 5, 10, 100 comes from base-10 writing, a separate fact about the text GPT-2 read.
+
+Now the pictures.
+
+## Numbers with the same last digit look alike
+
+<img className="diagram" src={_fig6} alt="Mean cosine similarity between the embeddings of n and n plus g, against the gap g, with spikes at every multiple of 10" />
+
+This is the picture that made me sure the project would work, and it involves no fitting at all. Take two numbers that differ by a gap g, for example 17 and 27 when g is 10, and measure how similar their two points are. The measure is the cosine of the angle between them: 1 if they point the same way, 0 if they are unrelated. Average that over every pair with the same gap. Then plot the average against the gap, from 1 to about 100.
+
+Two things happen at once. The curve falls: neighbours are similar, and the similarity fades as the gap grows, which is what any "number line" would give. And on top of that there are sharp spikes at 10, 20, 30, all the way to 100. Numbers that differ by a multiple of 10, which is to say numbers with the *same last digit*, are noticeably more similar than numbers that differ by 9 or 11. The thick line is the bare form and the thin line the space form; both have the spikes.
+
+Nothing about the number 10 went into this plot. It came out.
+
+## The last digit sits on a clock
+
+<img className="diagram" src={_fig4} alt="Four scatter plots of the numbers 0 to 99 projected on the fitted plane of a circle of period 2, 5, 10 and 100" />
+
+If the spikes come from a circle, it should be possible to draw it. For each period T, I fit one circle rule to the numbers 0 to 99. A circle lives in a plane, and the fit finds that plane inside the 768 dimensions. Then every number is drawn as a dot in that plane, coloured by n mod T. For T = 10 the colour is simply the last digit. Each coloured line goes from the centre to the average position of one colour.
+
+Start with the bottom-left panel, T = 10. The ten lines go round in order: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, and back to 0. Numbers ending in 3 sit between numbers ending in 2 and numbers ending in 4. This is a clock face for the last digit. It is exactly the arrangement the "why circles" argument needs. The dots scatter around their line rather than sitting on it, which fits the modest score in the title: this circle explains 4.8 % of the spread of 0 to 99. Small, but well above the luck level, and the order is unmistakable.
+
+T = 5 (top right) gives the same picture with five hands, again in order. T = 2 (top left) is even numbers on one side and odd numbers on the other; a period-2 circle only has two positions, so the "plane" is really a line. T = 100 (bottom right) runs smoothly around once, but with only 100 numbers a period of 100 is a single lap, so that panel shows a slow curve through the numbers rather than a repeating circle. Its higher score has to be read with that in mind, and the tables flag it.
+
+## Looking at one coordinate at a time
+
+<img className="diagram" src={_fig2} alt="Four coordinates of the GPT-2 token embedding plotted against n, two log-shaped and two period-10-shaped" />
+
+Before any fitting, this is what raw coordinates look like. Each of the 768 values in a number's list is one coordinate. Pick one, plot it against n for all 521 numbers from 0 to 520, and you get one panel.
+
+The top row shows the two coordinates that look most like a logarithm. They change fast between 0 and about 100 and then go nearly flat, so this coordinate cares a lot about the difference between 3 and 30 and barely at all about the difference between 300 and 330. Notice the step at n = 100, marked with a dotted line. Several coordinates jump there, when a number goes from two digits to three. I first saw that jump in an early exploration and it changed the plan, as the next section explains.
+
+The bottom row shows the two coordinates that look most like a wave repeating every 10, zoomed to 0 to 60. The bumps are there, roughly every ten numbers, but they are noisy. The repeating pattern is spread thinly over many coordinates rather than concentrated in a few, which is why the wheel above looks scattered even though the clock order is clear.
+
+## The number line
+
+<img className="diagram" src={_fig3} alt="Projection of number embeddings on the fitted magnitude direction against n, with linear and log fits" />
+
+Is there a "bigger number, further along" direction? The straight-line rule finds the single direction along which the points move as n grows. Here every number is placed on that line and plotted against n, so the vertical axis is "how far along the line". Round dots use the direction found with n, square dots the direction found with ln(n + 1). The straight line and the curve are the two fitted rules, and the legend gives their scores.
+
+On the left, for 0 to 99, the dots climb steadily. The straight line and the log curve fit about equally well: 13.4 % against 12.5 %. The only place they disagree is at the very start, where the dots for 0, 1, 2 and 3 sit a little below the straight line and closer to the curve. On the right, for the whole range 0 to 520, the dots still climb, but there is a jump at 100 and the climb slows after it. Both rules explain about 6.5 % here, less than on the left, because neither a line nor a log curve can describe a jump.
+
+So there is a real number line inside GPT-2. It carries a small share of the spread, and the data do not settle whether it is straight or compressed. In every table the difference between the two is under one point.
+
+## Every rule against luck
+
+<img className="diagram" src={_fig5} alt="Grouped bars of variance explained per model and band for the bare and space token forms, with the null's 99th percentile marked" />
+
+This is the whole study in one picture. One bar per rule. The height is the variance explained; the short black line across each bar is the luck level (the top 1 % of the shuffled scores). Plain bars use the full range, hatched bars only 10 to 99, dotted bars 100 and above. Left is the bare form, right the space form.
+
+The same numbers, for the bare form, copied from the table the bars are drawn from:
+
+| Rule | Full range 0 to 520 | Luck level | Inside 10 to 99 | Luck level |
+| --- | --- | --- | --- | --- |
+| Straight line | 6.5 | 0.3 | 13.9 | 2.1 |
+| Log | 6.3 | 0.3 | 13.2 | 2.0 |
+| Digit count (control) | 8.4 | 0.5 | | |
+| Circle, period 2 | 1.8 | 0.3 | 3.1 | 1.9 |
+| Circle, period 5 | 3.5 | 0.5 | 6.5 | 3.4 |
+| Circle, period 10 | 2.9 | 0.5 | 5.5 | 3.3 |
+| Circle, period 100 | 3.6 | 0.5 | 20.0 (one lap) | 3.5 |
+| Helix: line + four circles | 18.4 | 1.8 | 40.2 | 11.2 |
+| Helix: log + four circles | 18.2 | 1.8 | 40.1 | 11.2 |
+
+A few things to notice.
+
+#### 1. Every bar clears its luck line
+
+Every rule explains more than luck would. That sounds like great news, and it is partly a feature of the setting: with 768 coordinates, the luck scores hardly vary from shuffle to shuffle, so the bar sits very close to the formula and even a 2 % circle clears it. What separates the rules is not whether they beat luck but by how much.
+
+#### 2. The combined rule is far ahead
+
+The two helix bars, straight line or log plus the four circles, explain 18.4 % on the full range against a luck level of 1.8 %. Inside 10 to 99 they reach 40 %. No single piece comes close. The size axis is the biggest single piece, and the circles add to it.
+
+#### 3. The control wins on the full range
+
+The grey bar is a rule that only knows whether n has one, two or three digits. It is a staircase with three steps, not a shape anyone predicted. On the full range it beats both the straight line and the log: 8.4 % against 6.5 % and 6.3 %. That is the jump at 100 from the coordinate plots, measured. It is why the hatched bars exist: inside 10 to 99 every number has two digits, the staircase is flat, and whatever survives there is about size, not about how many characters the token has.
+
+<Callout kind="important">
+    The step at 100 is the reason the "log" story needs care. A log curve is one way to describe "fast change at the start, slow change later". A staircase that
+    jumps at 10 and at 100 is another. On the full range the staircase describes GPT-2 better. So when I say the number line looks compressed, part of that
+    is the model telling one-digit, two-digit and three-digit tokens apart.
+</Callout>
+
+## Does the structure grow as the model reads?
+
+<img className="diagram" src={_fig7} alt="Variance explained against layer for each model and two templates, full range and the 10 to 99 band" />
+
+Everything above used the dictionary: the stored point of each number, before the model has read anything. But GPT-2 is twelve layers of processing, and a number inside a sentence gets transformed by every one of them. Is the structure stored, or is it built while reading?
+
+To find out, I put each number inside a short sentence, "The number 42" (round markers) or "x = 42" (faint square markers), run the model, and read the point at the number's position after each of the 13 stages. Layer 0 is the stored point plus a small "you are the third token" vector. Layer 12 is the final output. The same rules are fitted at each stage. Each line is one rule, coloured as in the bar chart; the grey band at the bottom is the luck level.
+
+Every line rises from left to right. The model adds structure while it processes the number. The helix goes from 27.8 % at layer 0 to 38.6 % at layer 10. The digit-count staircase climbs from 13.7 % to 24.6 %. The log rule starts below the straight line and overtakes it around layer 9. At layer 12 most lines fall back, because the model applies one last normalisation there before producing its answer. The single circles stay low and flat the whole way.
+
+On the right, inside 10 to 99, the climb is steadier and there is no drop at the end: the helix goes from 49.2 % to 59.8 %. The two sentences give the same shape of curve, with "x = 42" a few points lower everywhere.
+
+So the answer is: mostly stored, then strengthened. The dictionary already has the structure, and the layers add about ten points to it rather than building it from nothing.
+
+<Callout kind="note">
+    Layer 0 is a built-in check. After centring, the point at layer 0 should be exactly the stored dictionary point, because the position vector is the same
+    for every number and centring removes it. The code checks this every run, and the two agree to about a hundred-millionth. If they ever disagreed, the
+    whole sentence experiment would be suspect.
+</Callout>
+
+## The wheel through the layers
+
+<img className="diagram" src={_fig8} alt="The period-10 wheel of the numbers 0 to 99 at seven layers of GPT-2" />
+
+The same clock as before, redrawn at layers 0, 2, 4, 6, 8, 10 and 12 for the sentence "The number n". The ten hands keep the same clockwise order at every layer, and the circle's score only moves between 5 % and 7 %. At layer 12 the picture looks squashed because a few numbers land far from the others after the final normalisation, and the axes stretch to include them. The last-digit circle is there from the start and the layers neither build it nor destroy it.
+
+## Checking the ruler on a known helix
+
+<img className="diagram" src={_fig1} alt="Validation on the positional embedding matrix: variance explained against period, the ring in the fitted plane, and the projection on the drift axis" />
+
+One question I would ask if I were reading this: how do you know the method would find a helix if there were one? This figure is the answer, and it was actually the first thing the pipeline ran.
+
+GPT-2 has a second table with one row per *position* in a text, positions 0 to 1023. It exists so the model knows word order. A blog post by Adam Yedidia showed that those 1024 points form a helix, and that is a documented fact I can test against. Panel (a) tries every period from 4 to 2048 and asks how much of that table is explained by "a straight drift plus one circle of that period". The score is flat at about 25 % for small periods (that is the drift alone) and then shoots up to a peak at 576 positions per turn, where the helix explains 83.9 % of the spread. The dashed line at 91.1 % is the best that *any* three-column description could do, so the regression recovers nearly all of it. Panel (b) shows the positions in the plane of that circle, going round in a ring, dark early positions on the inner loop and yellow late positions on the outer one. Panel (c) shows the drift axis. Together they are the helix.
+
+There is a second check hiding here. The number periods 2, 5, 10 and 100 explain almost nothing of the position table (between 0.0 and 0.3 %). Word order has no reason to care about base 10, and it does not. The circles I find in the numbers are about numbers.
+
+## A three-dimensional look
+
+<img className="diagram" src={_fig9} alt="Three-dimensional scatter of the numbers 0 to 99 on the magnitude axis and the period-10 plane" />
+
+The size axis and the last-digit plane drawn together for the numbers 0 to 99, coloured by last digit. Moving along the long axis means the number grows. Going round the small circle means the last digit changes. Together they trace a rough coil, a helix, which is the shape the bigger models in the literature are known for. It is rough because the circle explains only a few percent of the spread. This is a visualisation, not a measurement; nothing in the tables comes from it.
+
+## What got decided since devlog #0
+
+- **The plan is approved.** My supervisor's one reminder: this must stay a mathematics essay. The regressions, the variance explained, the luck formula and the circle-rotation derivation are the work. Pulling vectors out of the model is plumbing and goes in an appendix.
+- **The rules are locked.** The nine rules, the four periods, the two sentence templates and the ranges were written down before the run. Anything I explore beyond them stays out of the essay.
+- **Every number comes from a file.** The tables and every figure above are regenerated from result files by one command. I do not type numbers into the essay by hand; that is the only way I trust myself not to fool myself.
+- **A control joined the protocol.** The digit-count staircase, and the re-run inside 10 to 99, were added after the step at 100 showed up in an early look at the coordinates. They were added *before* the real run, and it turned out to matter.
+
+## What's next
+
+The next step is reading these tables slowly and deciding what the headline is. The candidates: the last-digit clock (clear, small, and exactly what the theory wants), the "stored, then strengthened" curve through the layers, and the honest finding that straight and compressed cannot be told apart in a model this small. Then the theory section, which is the part I have been looking forward to: why a circle turns addition into rotation, starting from the r·cis θ form we use in class.
+
+The next devlog is the mathematics.

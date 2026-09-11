@@ -50,6 +50,15 @@ export const posts: Post[] = [
         tags: ["ai", "devlog"],
         lang: "en"
     },
+    {
+        slug: "math_ia-devlog1",
+        title: "Math IA Devlog #1: First figures",
+        description: "Devlog #1: The figures of the first baseline run. Circles, a number line, and the 12 layers.",
+        date: postDate("2026-09-11"),
+        tags: ["ai", "devlog"],
+        lang: "en",
+        draft: true
+    },
     // Robotics course. All drafts until each lesson is actually written; the topic page lists them either way, so the syllabus is visible from day one.
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.
     {

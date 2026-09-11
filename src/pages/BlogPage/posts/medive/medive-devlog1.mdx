@@ -125,50 +125,6 @@ The graph on the right explains this well. Looking at the differential scores, e
 
 So the rank-1 pick is quite sensitive, not the list used for differential diagnosis.
 
-Here's where M1's four points go.
-
-### Looking inside the language model
-
-BERT-family models and basically every Large Language Model (LLM) read *word pieces*, not words. The tokeniser used by SapBERT is called WordPiece, and it carries a fixed vocabulary of about thirty thousand pieces. Any word that isn't in it gets split into the longest pieces it does know. A clean medical word is usually one piece. A misspelled one won't be recognized. Here's SapBERT's own tokeniser on words from patient `test_12`, clean on the left, tier 3 on the right:
-
-| Clean | Pieces | Typo | Pieces |
-| --- | --- | --- | --- |
-| significantly | `significantly` | signifcantly | `sign` `##if` `##can` `##tl` `##y` |
-| cough | `cough` | couhg | `cou` `##hg` |
-| symptoms | `symptoms` | sypmtoms | `sy` `##pm` `##to` `##ms` |
-| heavy | `heavy` | hevay | `hev` `##ay` |
-
-The `##` marks a piece that continues the previous one. Those fragments were never learned as "significantly" or "cough". M1 averages every piece's vector into one vector per patient. So every corrupted word pulls the average a bit off course.
-
-The fragments also make the note longer: {stats.wordpiece.pieces_mean_clean.toFixed(0)} pieces on average at tier 0, {stats.wordpiece.pieces_mean_typos.toFixed(0)} at tier 3. SapBERT reads all of it, so nothing is lost. The whole cost of a typo is that one word's vector goes wrong, and a note has a hundred other words to average it against. That's why the damage is four points and not a collapse. Tier 3 is a test of the tokeniser and the averaging, and nothing else.
-
-### The map
-
-This is the picture I've wanted to see since the project started. Each dot is one test patient's frozen SapBERT vector, squashed from 768 dimensions down to two with t-SNE. The clean and typo versions of every patient are embedded together. So the next three pictures share one map, and you can follow a patient from one to the other.
-
-<img className="diagram" src={_figEmbeddingMap}
-     alt="SapBERT vectors of 4,000 test patients on clean text, on a t-SNE map, the ten most frequent pathologies coloured" />
-
-On clean text, patients cluster by pathology, before any classifier has been trained. The ten most frequent pathologies are coloured -- and those are the colours every figure in this project uses for them from now on. Some clusters are tight, like anemia on the left. Others are wide, like URTI and viral pharyngitis in the middle, which overlap and bleed into each other. Keep those two in mind for the confusion heatmap further down.
-
-<img className="diagram" src={_figEmbeddingDrift}
-     alt="Left: the same patients with typos, on the same t-SNE map. Right: a line from each patient's clean position to its typo position, red where M1 lost the top answer" />
-
-Left: the same patients with typos. The clusters are still there, a little looser, with a few strays. Right: the line each patient travels from its clean position to its typo position. It's red when M1 no longer puts the true disease first. Most lines are too short to see. The long ones are the failures, and they sit in the crowded middle of the map, not out at the edges.
-
-<img className="diagram" src={_figEmbeddingCost}
-     alt="Left: histogram of the cosine distance between each patient's clean and typo vectors, split by whether M1 stayed right. Right: M1 and B1 accuracy under typos against the number of corrupted words in the note" />
-
-Left: the same movement as a number. It's the cosine distance between a patient's clean vector and its typo vector, for all ten thousand patients. It's small: a mean of {stats.drift_mean.toFixed(3)}. And {stats.nn_same_patient_share.toFixed(0)} percent of typo vectors still sit closest to their own clean vector. Patients M1 gets wrong moved a bit further on average ({stats.drift_mean_m1_wrong.toFixed(3)} vs {stats.drift_mean_m1_right.toFixed(3)}). But the two groups overlap almost entirely, so distance alone doesn't decide it.
-
-Right: this one is more interesting than I expected. A note at tier 3 has about {stats.corrupted_words_mean.toFixed(0)} corrupted words on average. For B1 (TF-IDF), accuracy is flat, no matter how many words are broken. For M1 it dips to about {stats.acc_by_corrupted_words[5].m1_acc1.toFixed(0)} percent in the middle bins, and then *recovers* on the notes with the most corrupted words. That's not typos helping. The notes with the most corrupted words are the longest notes, the ones with the most evidence. The model reads all of it, so they're the easy ones: plenty of intact words to outvote the broken ones.
-
-<Callout kind="note">
-    One caveat. The renderer draws sentence order and template variants from a generator seeded per tier. So the tier-3 note isn't exactly the tier-0 note with
-    typos added: sentences also come in a different order, and some use a different wording template. Bag-of-words models don't notice. A transformer might, a
-    little. So a small part of M1's tier-3 drop may be re-rendering rather than typos. A control run would settle it, and it's on the list.
-</Callout>
-
 ## Poking around SapBERT's space
 
 Since this post is the fun one, a few more pictures. None of them are going in the essay as they stand. But they taught me something about the model I'm building on.
@@ -182,7 +138,7 @@ SapBERT has never been told what the 49 pathologies are. But it can still place 
 
 Names that share a word sit together: "stable angina" next to "unstable angina", the two rhinosinusitis, bronchitis next to bronchiolitis, the two neoplasms off on their own. This is SapBERT doing what it was built for.
 
-The second way is to average each pathology's patient notes into one vector. That's the view the classifier actually works with. To put both views on one map, I rotated the cloud of note vectors onto the cloud of name vectors as well as it can be (the technique is called Procrustes: centre both, scale both, find the best rotation), and drew the result through the same PCA as the names. The left panel is the notes on the name map. The right panel is the same idea as the typo lines earlier: one line per pathology, from where its name sits to where its patients sit.
+The second way is to average each pathology's patient notes into one vector. That's the view the classifier actually works with. To put both views on one map, I rotated the cloud of note vectors onto the cloud of name vectors as well as it can be (the technique is called Procrustes: centre both, scale both, find the best rotation), and drew the result through the same PCA as the names. The left panel is the notes on the name map. The right panel is the same idea as the typo lines in the next part: one line per pathology, from where its name sits to where its patients sit.
 
 <img className="diagram" src={_figDiseaseMaps}
      alt="Left: the 49 note centroids rotated onto the name map. Right: a line per pathology from its name position to its note position, the ten longest labelled" />
@@ -206,6 +162,15 @@ PSVT is the clearest case. By the notes, it sits next to panic attack: both pres
 
 So the note view is what the classifier gets to use: symptoms, with the template washed out. The name view is the ontology's view, sneaking in through the words themselves. It's also roughly the kind of structure the concept pathway is meant to add, since a concept code is closer to a name than to a note. Whether that helps M3 is the whole question, and I don't get to answer it in this post.
 
+### The map
+
+Now, looking into how the model puts the notes ??? rewrite this. Each dot is one test patient's frozen SapBERT vector, reduced from 768 dimensions down to two dimensions using t-SNE.
+
+<img className="diagram" src={_figEmbeddingMap}
+     alt="SapBERT vectors of 4,000 test patients on clean text, on a t-SNE map, the ten most frequent pathologies coloured" />
+
+On clean text (above), patients cluster by pathology. The ten most frequent pathologies are colored. Some clusters are tight, like anemia on the left and other are wide, like URTI and viral pharyngitis in the middle, which overlap on each other. Keep those two in mind for the confusion heatmap further down.
+
 ### Two cases: one that reads medically, one that doesn't
 
 Before I trust the word "neighbour", I want to know what it's made of. So here are two pathologies and their six nearest neighbours by the notes. The solid bar is SapBERT's similarity. The hatched bar is a second, model-free measure: how much the two diseases' DDXPlus symptom lists overlap. If SapBERT's neighbourhood is just the dataset's symptom overlap, the two bars should agree.
@@ -219,17 +184,6 @@ Before I trust the word "neighbour", I want to know what it's made of. So here a
 
 That's the general pattern. Across all pairs of pathologies, SapBERT's similarity tracks the symptom-list overlap with a correlation of {space.what_drives_similarity.corr_with_symptom_list_overlap.toFixed(2)}. Whether the *symptom lists* are medically right is a question about DDXPlus, not about the model, and it's one I'll want a clinician's eye on rather than mine.
 
-### A region that shouldn't exist
-
-Back on the heatmap below, there's a block of {space.short_note_block.n} pathologies in the bottom-right corner that stick together and away from everything else. The members are {space.short_note_block.members.join(", ")}. Some of those belong together: croup, bronchiolitis, whooping cough and laryngospasm are all airway diseases, mostly in children. But atrial fibrillation next to Ebola next to Guillain-Barré? Nothing medical joins those. So I looked for what else they had in common.
-
-<img className="diagram" src={_figDiseaseRegion}
-     alt="Scatter of the 49 pathologies: mean evidences per patient on the x axis, mean similarity to the other 48 pathologies on the y axis, showing two separate bands" />
-
-It's note length. Patients in that block have about {space.short_note_block.block_mean_evidences.toFixed(0)} evidences each, against {space.short_note_block.rest_mean_evidences.toFixed(0)} for everyone else. Their notes run about {space.short_note_block.block_mean_words.toFixed(0)} words instead of {space.short_note_block.rest_mean_words.toFixed(0)}. A short note is mostly template: the age line, "presents with", a couple of clauses. Averaged into one vector, those notes look like each other more than they look like any long note, whatever the disease. The plot shows it as two bands with nothing in between, and the block sits in the lower one. Age isn't it, by the way: mean age in the block is {space.short_note_block.block_mean_age.toFixed(0)} against {space.short_note_block.rest_mean_age.toFixed(0)}, and across all pairs the correlation between similarity and age gap is only {space.what_drives_similarity.corr_with_age_gap.toFixed(2)}, against {space.what_drives_similarity.corr_with_evidence_count_gap.toFixed(2)} for the gap in note length.
-
-This is worth knowing for two reasons. It's a property of mean pooling, so it'll be in M1's features no matter what classifier sits on top. And it means some of the "confusions between neighbours" in the next section are between diseases that are neighbours only because their notes are short.
-
 ### Are confusions between neighbours?
 
 Same 49 centroids, as a similarity matrix, sorted so that similar pathologies sit together. The red circles are M1's most frequent rank-1 mistakes on the typo tier. Each one is drawn at the row of the true pathology and the column of what M1 answered.
@@ -239,7 +193,74 @@ Same 49 centroids, as a similarity matrix, sorted so that similar pathologies si
 
 The bright squares are the rhinosinusitis pair and the angina family, and that's where the circles land. Across all of M1's rank-1 errors on this tier, {space.confusions.share_to_top5_neighbour.toFixed(0)} percent go to one of the true pathology's five nearest centroids. So when the model is wrong, it's mostly wrong in the direction the space already leans. Whether those neighbours are clinically adjacent is a question for the error analysis. That part is mine to write.
 
-### The lay phrases, before any model runs on them
+So why do these pairs overlap? Here's my lay reading of it. I'm reading the dataset's symptom lists, not giving a clinical opinion.
+
+- **Chronic and acute rhinosinusitis**, the biggest one, and it goes both ways. Same illness: inflamed sinuses, so a blocked nose, facial pain or pressure, discharge, a dulled sense of smell. What separates them is *duration*, weeks versus months, and a snapshot note has no duration in it. No amount of careful reading fixes that. The information isn't in the text.
+- **Stable angina, unstable angina, NSTEMI/STEMI.** The same chest pain from the heart's blood supply, at three levels of urgency. What tells them apart is *when* the pain comes (on exertion and settling with rest, versus at rest or getting worse) and whether heart muscle is actually being damaged, which takes an ECG and a blood test. None of that is in a symptom note. Clinicians don't separate these from the history alone either. That's what the tests are for.
+- **Bronchitis, spontaneous pneumothorax, and GERD.** GERD is acid reflux, and its symptom list is chest pain, a burning feeling and, often, a cough. Bronchitis is cough plus chest discomfort. Pneumothorax is sudden chest pain and breathlessness. GERD is one of the ten most frequent classes in the test set, so it's the model's safe bet when the chest words are there and the rest is scrambled.
+- **Boerhaave and GERD.** Boerhaave is a torn oesophagus after violent vomiting. GERD is the same organ, much milder. Both notes carry vomiting and pain in the chest or upper belly.
+- **Acute laryngitis, viral pharyngitis, URTI.** Three names for a viral infection of the same few inches of throat: sore throat, hoarse voice, cough, a bit of fever. Real triage lumps them together too.
+
+The pattern: a confused pair is either the same disease at two stages, or two neighbouring organs sharing the template's pain block. In both cases the deciding fact, a duration, a test result, one precise location, is either absent from the note or lives in a single clause. And a single clause is exactly what a few typos erase. Whether these count as "reasonable" confusions is the error-analysis question for the essay, and it wants a clinician's eye on it, not mine.
+
+### A region that shouldn't exist
+
+Back on the heatmap above, there's a block of {space.short_note_block.n} pathologies in the bottom-right corner that stick together and away from everything else. The members are {space.short_note_block.members.join(", ")}. Some of those belong together: croup, bronchiolitis, whooping cough and laryngospasm are all airway diseases, mostly in children. But atrial fibrillation next to Ebola next to Guillain-Barré? Nothing medical joins those. So I looked for what else they had in common.
+
+<img className="diagram" src={_figDiseaseRegion}
+     alt="Scatter of the 49 pathologies: mean evidences per patient on the x axis, mean similarity to the other 48 pathologies on the y axis, showing two separate bands" />
+
+It's note length. Patients in that block have about {space.short_note_block.block_mean_evidences.toFixed(0)} evidences each, against {space.short_note_block.rest_mean_evidences.toFixed(0)} for everyone else. Their notes run about {space.short_note_block.block_mean_words.toFixed(0)} words instead of {space.short_note_block.rest_mean_words.toFixed(0)}. A short note is mostly template: the age line, "presents with", a couple of clauses. Averaged into one vector, those notes look like each other more than they look like any long note, whatever the disease. The plot shows it as two bands with nothing in between, and the block sits in the lower one. Age isn't it, by the way: mean age in the block is {space.short_note_block.block_mean_age.toFixed(0)} against {space.short_note_block.rest_mean_age.toFixed(0)}, and across all pairs the correlation between similarity and age gap is only {space.what_drives_similarity.corr_with_age_gap.toFixed(2)}, against {space.what_drives_similarity.corr_with_evidence_count_gap.toFixed(2)} for the gap in note length.
+
+This is worth knowing for two reasons. It's a property of mean pooling, so it'll be in M1's features no matter what classifier sits on top. And it means some of the "confusions between neighbours" in the section above are between diseases that are neighbours only because their notes are short.
+
+## Where M1's four points go
+
+### Looking inside the language model
+
+BERT-family models and basically every Large Language Model (LLM) read *word pieces*, not words. The tokeniser used by SapBERT is called WordPiece, and it carries a fixed vocabulary of about thirty thousand pieces. Any word that isn't in it gets split into the longest pieces it does know. A clean medical word is usually one piece. A misspelled one won't be recognized. Here's SapBERT's own tokeniser on words from patient `test_12`, clean on the left, tier 3 on the right:
+
+| Clean | Pieces | Typo | Pieces |
+| --- | --- | --- | --- |
+| significantly | `significantly` | signifcantly | `sign` `##if` `##can` `##tl` `##y` |
+| cough | `cough` | couhg | `cou` `##hg` |
+| symptoms | `symptoms` | sypmtoms | `sy` `##pm` `##to` `##ms` |
+| heavy | `heavy` | hevay | `hev` `##ay` |
+
+The `##` marks a token that continues the previous one. Those fragments were never learned combined as "significantly" or "cough". When M1 averages every token's vector into one vector per patient, and every corrupted word pulls the average a bit off course.
+
+### One word, one edit at a time
+
+The cleanest version of the WordPiece story. Take a symptom word and apply one random character edit, then another, and so on. After each edit, measure how far its vector has moved from the clean word. The result is averaged over {space.word_typos.trials} random edit paths.
+
+<img className="diagram" src={_figWordTypos}
+     alt="Left: cosine distance of a word from its clean form against the number of character edits. Right: number of word pieces the tokeniser produces" />
+
+The first edit does most of the damage: a mean distance of {space.word_typos.distance_after_1_edit_mean.toFixed(2)} after one edit, {space.word_typos.distance_after_3_edits_mean.toFixed(2)} after three. The right panel is why. A clean word is one piece. One edit turns it into two, three or four pieces that have nothing to do with the original. After that, more edits barely matter -- the word is already gone. Compare that to the note-level drift in the next section, about {stats.drift_mean.toFixed(2)}. A single word gets wrecked, but a note has a hundred other words to average it against.
+
+### The same patients, with typos
+
+This is the patient map from the space part, drawn again with the tier-3 notes.
+
+<img className="diagram" src={_figEmbeddingDrift}
+     alt="Left: the same patients with typos, on the same t-SNE map. Right: a line from each patient's clean position to its typo position, red where M1 lost the top answer" />
+
+Left: the same patients with typos. The clusters are still there, a little looser, with a few strays. Right: the line each patient travels from its clean position to its typo position. It's red when M1 no longer puts the true disease first. Most lines are too short to see. The long ones are the failures, and they sit in the crowded middle of the map, not out at the edges.
+
+<img className="diagram" src={_figEmbeddingCost}
+     alt="Left: histogram of the cosine distance between each patient's clean and typo vectors, split by whether M1 stayed right. Right: M1 and B1 accuracy under typos against the number of corrupted words in the note" />
+
+Left: the same movement as a number. It's the cosine distance between a patient's clean vector and its typo vector, for all ten thousand patients. It's small: a mean of {stats.drift_mean.toFixed(3)}. And {stats.nn_same_patient_share.toFixed(0)} percent of typo vectors still sit closest to their own clean vector. Patients M1 gets wrong moved a bit further on average ({stats.drift_mean_m1_wrong.toFixed(3)} vs {stats.drift_mean_m1_right.toFixed(3)}). But the two groups overlap almost entirely, so distance alone doesn't decide it.
+
+Right: this one is more interesting than I expected. A note at tier 3 has about {stats.corrupted_words_mean.toFixed(0)} corrupted words on average. For B1 (TF-IDF), accuracy is flat, no matter how many words are broken. For M1 it dips to about {stats.acc_by_corrupted_words[5].m1_acc1.toFixed(0)} percent in the middle bins, and then *recovers* on the notes with the most corrupted words. That's not typos helping. The notes with the most corrupted words are the longest notes, the ones with the most evidence. The model reads all of it, so they're the easy ones: plenty of intact words to outvote the broken ones.
+
+<Callout kind="note">
+    One caveat. The renderer draws sentence order and template variants from a generator seeded per tier. So the tier-3 note isn't exactly the tier-0 note with
+    typos added: sentences also come in a different order, and some use a different wording template. Bag-of-words models don't notice. A transformer might, a
+    little. So a small part of M1's tier-3 drop may be re-rendering rather than typos. A control run would settle it, and it's on the list.
+</Callout>
+
+## The lay phrases, before any model runs on them
 
 The tier 2 hypothesis is that SapBERT can bridge "a belly that feels blown up like a balloon" to "a bloated, distended abdomen" without being told. That can be checked on the phrases alone, before a single model is trained on tier 2. Blue dots are the {space.phrases.n_canonical} canonical symptom phrases the templates use. Green dots are the {space.phrases.n_lay} lay paraphrases written for them. A line joins each paraphrase to the phrase it replaces.
 
@@ -255,15 +276,6 @@ The surprising row: do the same test with the canonical phrases *typo'd* instead
     on tier 2. The full list will be in the essay's appendix, with a count of how many phrases share no word with the medical wording. That way nobody has to
     take my word for how idiomatic it is.
 </Callout>
-
-### One word, one edit at a time
-
-The cleanest version of the WordPiece story. Take a symptom word and apply one random character edit, then another, and so on. After each edit, measure how far its vector has moved from the clean word. The result is averaged over {space.word_typos.trials} random edit paths.
-
-<img className="diagram" src={_figWordTypos}
-     alt="Left: cosine distance of a word from its clean form against the number of character edits. Right: number of word pieces the tokeniser produces" />
-
-The first edit does most of the damage: a mean distance of {space.word_typos.distance_after_1_edit_mean.toFixed(2)} after one edit, {space.word_typos.distance_after_3_edits_mean.toFixed(2)} after three. The right panel is why. A clean word is one piece. One edit turns it into two, three or four pieces that have nothing to do with the original. After that, more edits barely matter -- the word is already gone. Compare that to the note-level drift of about {stats.drift_mean.toFixed(2)}. A single word gets wrecked, but a note has a hundred other words to average it against.
 
 ## What got decided since devlog #0
 

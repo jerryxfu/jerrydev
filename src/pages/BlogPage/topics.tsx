@@ -36,7 +36,8 @@ export const TOPICS: Record<TopicId, Topic> = {
         name: "Math IA (LLMs)",
         description: "Do the numbers inside GPT-2 have a geometric structure, and if so, which one? IBDP Internal Assessment (IA) in Math AA HL.",
         posts: [
-            "math_ia-devlog0"
+            "math_ia-devlog0",
+            "math_ia-devlog1"
         ]
     },
     "guides": {
