@@ -1,0 +1,20 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // load-bearing, see hello-blog
+import _figPhraseMap from "@/assets/blog/medive/fig_phrase_map.png";
+import space from "@/assets/blog/medive/sapbert_space_stats.json"; // written by scripts/medive_sapbert_space.py
+
+## The lay phrases, before any model runs on them
+
+The tier 2 hypothesis is that SapBERT can bridge "a belly that feels blown up like a balloon" to "a bloated, distended abdomen" without ever being told that they're the same thing. And that can be checked on the phrases alone, before a single model is trained on tier 2. Blue dots are the {space.phrases.n_canonical} canonical symptom phrases the templates use, green dots are the {space.phrases.n_lay} lay paraphrases I wrote for them, and a line joins each paraphrase to the phrase it replaces. The layout this time is UMAP, which unlike PCA is allowed to bend the space to keep close pairs close, so read the lines and not the distances.
+
+<img className="diagram" src={_figPhraseMap} alt="UMAP of canonical symptom phrases and their lay paraphrases, each pair joined by a line" />
+
+Short lines are the easy cases, where "coughing up a bit of blood" lands right on top of "coughing up blood". The long lines are the ones the language model doesn't get for free. Here's a simple test on that. For each lay phrase, is the *closest* canonical phrase in SapBERT's space the right one? The answer is yes for {space.phrases.lay_nn_accuracy.toFixed(0)} percent of them, and the ones it misses by the widest margin are the idioms, meaning the phrases that share no word at all with the medical wording.
+
+The surprising row: do the same test with the canonical phrases *typo'd* instead of paraphrased, and SapBERT finds the right phrase {space.phrases.typo_nn_accuracy.toFixed(0)} percent of the time. At the level of a single phrase, typos are less of a problem than lay wording. That fits the tier-3 result from [devlog #1](/blog/medive-devlog1): typos cost a few points, not a collapse.
+
+<Callout kind="note">
+    A word on the phrases themselves, since I wrote them (from AI drafts) and I'm the one reviewing them. The rule is realism only: would a patient plausibly
+    say this? Not: can SapBERT handle it? Nothing gets dropped or reworded because a model struggles with it. And the list is frozen before any model is scored
+    on tier 2. The full list will be in the essay's appendix, with a count of how many phrases share no word with the medical wording. That way nobody has to
+    take my word for how idiomatic it is.
+</Callout>
