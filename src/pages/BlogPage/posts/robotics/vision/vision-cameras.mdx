@@ -39,7 +39,7 @@ montage suivant : une boîte fermée, un petit trou sur une face, un capteur au 
 qui passe par le trou et touche le capteur à un seul endroit. Le résultat est une *projection perspective* : les objets
 lointains paraissent petits, les lignes parallèles se rejoignent à l'horizon. Exactement comme vos yeux.
 
-<img src={_pinhole_camera} alt="Une caméra sténopé : une boîte fermée, un trou sur une face, un capteur au fond" />
+<img className="diagram" src={_pinhole_camera} alt="Une caméra sténopé : une boîte fermée, un trou sur une face, un capteur au fond" />
 
 Dans le repère de la caméra (origine au centre optique, $Z$ vers l'avant), un point $(X, Y, Z)$ tombe sur le capteur en :
 
@@ -231,6 +231,13 @@ Chaque flèche entre deux repères est une rotation plus une translation. Les co
 pointe où, selon WPILib et selon les Limelight) sont dans [Repères, unités et conventions](/blog/cheatsheet-coordinates).
 
 <img className="diagram" src={_figure_frames} alt="Schéma des quatre repères" />
+
+<Callout kind="warning">
+    Le schéma suit les conventions de WPILib, où le $Y$ du repère robot pointe vers la **gauche**. Dans l'interface
+    Limelight, le repère robot a son $Y$ vers la **droite**. C'est le piège le plus coûteux du cours : quand vous entrez la
+    pose d'une caméra dans le Limelight, c'est la convention Limelight qui s'applique. Les deux sont côte à côte dans
+    [Repères, unités et conventions](/blog/cheatsheet-coordinates).
+</Callout>
 
 ---
 

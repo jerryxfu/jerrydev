@@ -4,36 +4,25 @@ Tout ce qu'on a vu jusqu'ici reste de la théorie tant que la caméra est mal r�
 calibration bâclée ou une pose de caméra entrée à l'œil, et le plus beau des pipelines de localisation produit des
 chiffres qui ne veulent rien dire. Cette leçon, c'est la partie pratique du cours : dans quel ordre régler un Limelight
 pour les AprilTags, ce que chaque réglage change vraiment, et comment savoir qu'on a fini.
-L'[aide-mémoire](/blog/cheatsheet-limelight) reprend toutes les valeurs sans les explications — c'est lui que vous
+L'[aide-mémoire](/blog/cheatsheet-limelight) reprend toutes les valeurs sans les explications. C'est lui que vous
 ouvrirez en compétition.
-
-<Callout kind="note" label="Dans cette leçon">
-
-- Se connecter à un Limelight et s'y retrouver dans l'interface
-- L'onglet *Input* : exposition, gain, niveau de noir, résolution
-- Le pipeline AprilTag : famille, taille, *downscale*, filtres
-- La calibration, la carte du terrain et la pose de la caméra sur le robot
-- Régler selon l'endroit : atelier, gymnase, compétition
-- Sauvegarder et ne rien perdre
-
-</Callout>
 
 ## 1. Avant de toucher aux réglages
 
 <Callout kind="important" label="TODO">
-Comment se connecter (adresse, port de l'interface, port du flux vidéo), comment nos caméras sont nommées, laquelle fait
-quoi sur le robot. Captures d'écran de l'interface à jour.
+    Comment se connecter (adresse, port de l'interface, port du flux vidéo), comment nos caméras sont nommées, laquelle fait
+    quoi sur le robot. Captures d'écran de l'interface à jour.
 </Callout>
 
 Un Limelight organise ses réglages en *pipelines* : jusqu'à dix configurations complètes, numérotées de 0 à 9, entre
 lesquelles le code du robot peut basculer. Une pipeline a un type (AprilTags, réseau de neurones, couleur, Python) et ses
-propres réglages d'image. Pour la localisation, c'est une pipeline de type AprilTag, et par convention c'est la
+propres réglages d'image. Pour la localisation, c'est une pipeline de type AprilTag, et par convention, c'est la
 pipeline 0.
 
 <Callout kind="tip">
-L'interface permet de travailler sur une image enregistrée (*snapshot*) plutôt que sur le flux en direct. Prenez des
-snapshots dans les conditions réelles — le gymnase, le terrain de pratique, la compétition — et réglez au calme. C'est
-beaucoup plus efficace que de tourner des sliders pendant que tout le monde attend le robot.
+    L'interface permet de travailler sur une image enregistrée (*snapshot*) plutôt que sur le flux en direct. Prenez des
+    snapshots dans les conditions réelles (le gymnase, le terrain de pratique, la compétition) et réglez au calme. C'est
+    beaucoup plus efficace que de tourner des sliders pendant que tout le monde attend le robot.
 </Callout>
 
 ---
@@ -42,20 +31,33 @@ beaucoup plus efficace que de tourner des sliders pendant que tout le monde atte
 
 C'est ici que se règle l'image elle-même, avant toute détection. L'objectif est simple à dire : une image nette où le
 noir du tag est franchement noir et le blanc franchement blanc, *même quand le robot tourne*. La
-[leçon sur les caméras](/blog/vision-cameras) explique le pourquoi de chaque réglage; voici le comment.
+[leçon sur les caméras](/blog/vision-cameras) explique le pourquoi de chaque réglage. Voici le comment.
 
 | Réglage | Ce qu'il fait | Pour les AprilTags |
 | --- | --- | --- |
 | Exposure | Temps d'exposition, par pas de 0,01 ms | Aussi court que possible : le flou de mouvement est l'ennemi numéro un |
-| Sensor Gain | Amplifie le signal du capteur | Élevé pour compenser l'exposition courte; du bruit est acceptable, du flou non |
+| Sensor Gain | Amplifie le signal du capteur | Au maximum, pour compenser l'exposition courte. Du bruit est acceptable, du flou non |
 | Black Level Offset | Décale le point noir | 0 |
 | Red / Blue Balance | Balance des blancs | Sans importance pour un tag noir et blanc |
 | Resolution | Taille de l'image et cadence associée | Plus haut pour la portée, plus bas pour la cadence |
 | Crop | Ignore une partie de l'image | Pour gagner du temps de calcul quand les tags sont toujours dans la même zone |
 
+Dans l'ordre, pour une pipeline AprilTag :
+
+1. Niveau de noir à zéro.
+2. Gain au maximum.
+3. Exposition à zéro, puis on la monte petit à petit, jusqu'à ce que les tags soient suivis correctement dans les
+conditions réelles. Pas plus haut : chaque pas d'exposition en plus, c'est du flou en plus quand le robot tourne.
+4. On vérifie en faisant pivoter le robot devant un tag. Si le tag disparaît pendant la rotation, l'exposition est
+encore trop longue.
+
+Le [détecteur](/blog/vision-apriltags) travaille avec le contraste local, pas avec la luminosité absolue. Une image qui
+vous paraît sombre est souvent parfaitement lisible pour lui, tant que le noir du tag reste plus sombre que son blanc.
+Ne réglez donc pas l'exposition pour que l'image soit belle, réglez-la pour que les tags soient suivis.
+
 <Callout kind="important" label="TODO">
-Nos valeurs par caméra, et pourquoi. Les modes de résolution disponibles dépendent du modèle de Limelight; mettre ceux
-des nôtres.
+    Nos valeurs par caméra, et pourquoi. Les modes de résolution disponibles dépendent du modèle de Limelight; mettre ceux
+    des nôtres.
 </Callout>
 
 ---
@@ -65,39 +67,39 @@ des nôtres.
 Une fois l'image correcte, les réglages du détecteur :
 
 - **Family** : AprilTag Classic 36h11, la seule utilisée en FRC.
-- **Marker Size** : la taille du tag en millimètres — 165,1 mm pour les tags FRC actuels. Une mauvaise valeur ici et
+- **Marker Size** : la taille du tag en millimètres, soit 165,1 mm pour les tags FRC actuels. Une mauvaise valeur ici et
 toutes vos distances sont fausses d'un facteur constant. Vérifiez-la avant de blâmer quoi que ce soit d'autre.
 - **Detector Downscale** : le facteur de réduction pour la détection. Le monter augmente beaucoup la cadence pour une
-perte de portée modeste; c'est le premier levier quand la latence est un problème.
+perte de portée modeste. C'est le premier levier quand la latence est un problème.
 - **ID Filters** : la liste des identifiants à considérer. Les tags qui ne servent pas au jeu n'ont pas à exister pour
 nous.
 - **Multi-Target Sorting and Grouping** : les filtres sur les cibles, dont une surface minimale pour ignorer les tags
-trop petits — donc trop lointains pour être fiables.
+trop petits, donc trop lointains pour être fiables.
 - **3D / Full 3D** : active le calcul de pose. Sans lui, pas de `botpose`, pas de localisation.
 
 <Callout kind="important" label="TODO">
-Captures d'écran de chaque réglage, et nos valeurs.
+    Captures d'écran de chaque réglage, et nos valeurs.
 </Callout>
 
 ---
 
 ## 4. Calibration, carte du terrain et pose de la caméra
 
-Trois choses à faire une fois — et à refaire après chaque changement mécanique. Les trois se cochent dans l'ordre, et si
+Trois choses à faire une fois, et à refaire après chaque changement mécanique. Les trois se cochent dans l'ordre, et si
 la localisation donne n'importe quoi, c'est presque toujours une des trois qui manque :
 
-1. **Calibrer la caméra** (voir [Caméras et images](/blog/vision-cameras#4-la-calibration)) : sans calibration, les
+1. **Calibrer la caméra** (voir [Caméras et images](/blog/vision-cameras#4-la-calibration)). Sans calibration, les
 poses sont approximatives. Visez sous 1 pixel d'erreur de reprojection.
-2. **Charger la carte du terrain** (le fichier `.fmap` de la saison) : c'est elle qui permet au Limelight de publier la
+2. **Charger la carte du terrain**, le fichier `.fmap` de la saison. C'est elle qui permet au Limelight de publier la
 pose du robot directement dans le repère du terrain.
 3. **Entrer la pose de la caméra sur le robot** : sa position (avant, côté, hauteur) et son orientation (*roll*,
-*pitch*, *yaw*) par rapport au centre du robot. Mesurez, ne devinez pas : un degré d'erreur, c'est plusieurs
+*pitch*, *yaw*) par rapport au centre du robot. Mesurez, ne devinez pas. Un degré d'erreur, c'est plusieurs
 centimètres à quelques mètres.
 
 <Callout kind="warning">
-La pose de la caméra dans l'interface Limelight suit les conventions d'axes du Limelight, qui ne sont pas exactement
-celles de WPILib. Ouvrez [Repères, unités et conventions](/blog/cheatsheet-coordinates) avant d'entrer des valeurs, pas
-après avoir passé une heure à chercher pourquoi le robot se croit dans le mur.
+    La pose de la caméra dans l'interface Limelight suit les conventions d'axes du Limelight, qui ne sont pas exactement
+    celles de WPILib. Ouvrez [Repères, unités et conventions](/blog/cheatsheet-coordinates) avant d'entrer des valeurs, pas
+    après avoir passé une heure à chercher pourquoi le robot se croit dans le mur.
 </Callout>
 
 ---
@@ -105,9 +107,9 @@ après avoir passé une heure à chercher pourquoi le robot se croit dans le mur
 ## 5. Régler selon l'endroit
 
 <Callout kind="important" label="TODO">
-Ce qui change entre l'atelier, un gymnase et une compétition (éclairage, reflets, distance aux tags), et la routine de
-l'équipe à l'arrivée sur un terrain : snapshots, vérifier la détection depuis les positions clés, ajuster l'exposition,
-valider la pose contre une position mesurée au ruban.
+    Ce qui change entre l'atelier, un gymnase et une compétition (éclairage, reflets, distance aux tags), et la routine de
+    l'équipe à l'arrivée sur un terrain : snapshots, vérifier la détection depuis les positions clés, ajuster l'exposition,
+    valider la pose contre une position mesurée au ruban.
 </Callout>
 
 ---
@@ -115,9 +117,9 @@ valider la pose contre une position mesurée au ruban.
 ## 6. Sauvegarder et ne rien perdre
 
 <Callout kind="important" label="TODO">
-Exporter les pipelines et la calibration, où on les garde (dépôt du code?), comment on restaure un Limelight remplacé en
-urgence, et comment on note quelle caméra a quelle configuration. Le scénario à couvrir : caméra morte le matin d'un
-match.
+    Exporter les pipelines et la calibration, où on les garde (dépôt du code?), comment on restaure un Limelight remplacé en
+    urgence, et comment on note quelle caméra a quelle configuration. Le scénario à couvrir : caméra morte le matin d'un
+    match.
 </Callout>
 
 ---
@@ -125,8 +127,8 @@ match.
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-Comment le code choisit la pipeline, lit la pose, et ce qu'il fait des LED. Renvoyer à l'aide-mémoire pour les clés et
-les appels.
+    Comment le code choisit la pipeline, lit la pose, et ce qu'il fait des LED. Renvoyer à l'aide-mémoire pour les clés et
+    les appels.
 </Callout>
 
 ---

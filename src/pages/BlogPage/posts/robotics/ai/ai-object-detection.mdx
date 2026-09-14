@@ -2,35 +2,24 @@ import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligat
 
 <Callout kind="note" label="For the curious">
     Third lesson of the optional chapter, and the only one that touches the robot: a Limelight can run an object detector.
-    Still, none of this is needed for AprilTag localization — tags don't use any learning at all.
+    Still, none of this is needed for AprilTag localization, because tags don't use any learning at all.
 </Callout>
 
-AprilTags are designed to be found; a game piece is not. Nobody printed a convenient black-and-white code on it, it can
+AprilTags are designed to be found. A game piece is not. Nobody printed a convenient black-and-white code on it, it can
 be anywhere in the image, half-hidden, badly lit, next to three others. For that problem, hand-written rules collapse
 (that was [lesson one's](/blog/ai-basics) whole point), so we learn the rules instead. This lesson explains how a neural
-network goes from a grid of pixels to a list of boxes, each with a label and a score — and what that looks like running
-on our hardware.
-
-<Callout kind="note" label="In this lesson">
-
-    - Classification, detection, segmentation: three tasks, three outputs
-    - The convolution: a filter that learns
-    - How a detector produces boxes
-    - Measuring a detector: IoU, precision, recall, mAP
-    - The data: labeling and augmentation
-    - What this looks like on a Limelight or a coprocessor
-
-</Callout>
+network goes from a grid of pixels to a list of boxes, each with a label and a score, and what that looks like running on
+our hardware.
 
 ## 1. Classification, detection, segmentation
 
-Three vision tasks, sorted by how much they tell you — and how much they cost:
+Three vision tasks, sorted by how much they tell you, and by how much they cost:
 
 - **Classification**: one label for the whole image. "This photo contains a note." Where? No idea.
-- **Detection**: an axis-aligned bounding box around each object, with a label and a confidence score. "Note here
+- **Detection**: an *axis aligned bounding box* around each object, with a label and a confidence score. "Note here
 (94%), note there (81%)." This is the task that matters for a robot, because a box in the image is something you can
 aim at.
-- **Segmentation**: a label for every single pixel — the exact outline. Beautiful, expensive, and overkill for finding
+- **Segmentation**: a label for every single pixel, so the exact outline. Beautiful, expensive, and overkill for finding
 a game piece.
 
 <Callout kind="important" label="TODO">
@@ -41,18 +30,23 @@ a game piece.
 
 ## 2. The convolution: a filter that learns
 
-How do you even feed an image to a network? Naively, you'd wire every pixel to every neuron — millions of weights for a
-tiny image, and a network that has to re-learn "what an edge looks like" separately for every location. Terrible idea.
+How do you even feed an image to a network? Naively, you'd wire every pixel to every neuron. That's millions of weights
+for a tiny image, and a network that has to re-learn "what an edge looks like" separately for every location. Terrible
+idea.
 
 The fix is the **convolution**: a small grid of weights (say $3 \times 3$) that *slides* across the image, computing a
-weighted sum at each position. The output is a new image highlighting wherever the pattern appears — an edge, a corner,
+weighted sum at each position. The output is a new image that lights up wherever the pattern appears: an edge, a corner,
 a blob of orange. One filter, applied everywhere. In a convolutional network (CNN), the filter weights are learned like
 any other parameter, and layers stack: early filters find edges, middle layers find textures and parts, deep layers find
-whole objects. Nobody designs that hierarchy; it falls out of training.
+whole objects. Nobody designs that hierarchy. It falls out of training.
 
-Notice what this buys us: the same filter applies at every position, so an object is recognized wherever it sits in the
-frame. Remember the *factors of variation* that killed hand-written rules? Convolutions handle the biggest one —
-position — for free, by construction. That one idea is most of why deep learning conquered vision.
+Notice what this buys us. The same filter applies at every position, so an object is recognized wherever it sits in the
+frame. Remember the *factors of variation* that killed hand-written rules? Convolutions handle the biggest one, position,
+for free, by construction. That one idea is most of why deep learning conquered vision.
+
+If this sounds familiar, it should. The AprilTag detector's [adaptive threshold](/blog/vision-apriltags) also slides a
+small window across the image and computes something at each position. The difference is that the AprilTag window was
+designed by a person, and a convolution's window is learned.
 
 <Callout kind="important" label="TODO">
     Animation or figure of a $3 \times 3$ convolution sliding over an image, plus a real filter's output.
@@ -63,15 +57,15 @@ position — for free, by construction. That one idea is most of why deep learni
 ## 3. How a detector produces boxes
 
 Classification says "there's a note somewhere". How do you get *boxes* out of a network? The family to know is
-**YOLO** — *You Only Look Once* — whose name is the whole idea: instead of scanning the image region by region, one
-single network pass predicts everything at once.
+**YOLO**, for *You Only Look Once*, and the name is the whole idea: instead of scanning the image region by region, one
+single pass of the network predicts everything at once.
 
-Conceptually: the image is divided into a grid, and each cell predicts a few candidate boxes — position, size, a
+Conceptually, the image is divided into a grid, and each cell predicts a few candidate boxes: position, size, a
 confidence score, and class probabilities. One forward pass, hundreds of candidates, real-time speed. The raw output is
-messy (the same object gets found by several neighboring cells), so a cleanup step called **non-maximum suppression**
-(NMS) keeps the highest-scoring box and deletes overlapping duplicates.
+messy, because the same object gets found by several neighboring cells. So a cleanup step called **non-maximum
+suppression** (NMS) keeps the highest-scoring box and deletes the overlapping duplicates.
 
-The specific architectures evolve every year — versions, forks, anchor-free variants, transformer hybrids — and chasing
+The specific architectures evolve every year (versions, forks, anchor-free variants, transformer hybrids), and chasing
 them is a hobby in itself. The grid-of-predictions picture has survived a decade of that churn, so that's the part worth
 storing in your head.
 
@@ -89,7 +83,7 @@ $$
 $$
 
 **Precision** asks: of the boxes I predicted, how many were real? **Recall** asks: of the real objects, how many did I
-find? They fight each other — lower your confidence threshold and recall rises while precision falls. **mAP** (mean
+find? They fight each other. Lower your confidence threshold and recall rises while precision falls. **mAP** (mean
 average precision) sweeps the threshold across the whole range and condenses the trade-off into one number, which is why
 every detector paper leads with it.
 
@@ -102,14 +96,14 @@ network never trained on. A detector scored on its own training photos is just a
 
 Here's the part no tutorial dwells on: the model is the easy 10%. The real work is the dataset.
 
-Labeling means a human draws the boxes — hundreds of images, by hand, ideally from real competition footage. Tools like
+Labeling means a human draws the boxes. Hundreds of images, by hand, ideally from real competition footage. Tools like
 Roboflow make the drawing tolerable and the exporting painless. A few hundred well-chosen images can be enough for one
-game piece; more variety beats more volume.
+game piece, and more variety beats more volume.
 
-Then **augmentation** stretches what you have: random rotations, brightness shifts, blur, crops — each labeled image
+Then **augmentation** stretches what you have: random rotations, brightness shifts, blur, crops. Each labeled image
 becomes ten slightly different ones, teaching the network the factors of variation you couldn't photograph.
 
-The classic trap deserves its own sentence: if every photo was taken in your shop, under your shop's lights, you have
+The classic trap deserves its own sentence. If every photo was taken in your shop, under your shop's lights, you have
 trained a shop-detector. It will meet arena lighting for the first time during a match, and it will lose. Photograph
 where you'll play, or augment until it hurts.
 
@@ -117,18 +111,18 @@ where you'll play, or augment until it hurts.
 
 ## 6. On a Limelight or a coprocessor
 
-A Limelight can run two kinds of neural pipelines: a **Neural Detector** (boxes around game pieces — everything this
+A Limelight can run two kinds of neural pipelines: a **Neural Detector** (boxes around game pieces, everything this
 lesson described) and a **Neural Classifier** (a label for the whole frame). Inference runs on an accelerator rather
 than the main processor, and Limelight ships pretrained models for the season's game pieces, plus a documented path for
 training and uploading your own.
 
-One caution before you fall in love: the output is a box *in the image* — an angle to the object and an apparent size —
-not a field position. Getting from a box to "the note is 2.3 m away at 15°" is a geometry problem, not a learning
+One caution before you fall in love: the output is a box *in the image*, meaning an angle to the object and an apparent
+size, not a field position. Getting from a box to "the note is 2.3 m away at 15°" is a geometry problem, not a learning
 problem, and it's a genuinely hard one. Know exactly why you want a detector before spending build-season time on it.
 
 <Callout kind="important" label="TODO">
     Our actual setup if we ever field one: which Limelight, which accelerator, framerate achieved, and how the model was
-    trained. Re-check the hardware requirements against the current docs every season — this moves a lot.
+    trained. Re-check the hardware requirements against the current docs every season, because this moves a lot.
 </Callout>
 
 ---

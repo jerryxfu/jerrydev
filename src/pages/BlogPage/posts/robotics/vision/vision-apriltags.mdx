@@ -1,128 +1,290 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+import _figure_tag_anatomy from "@/assets/blog/robotics/figure_tag_anatomy.png";
+import _figure_detector_debug_1 from "@/assets/blog/robotics/figure_detector_debug_1.png";
+import _figure_detector_debug_2 from "@/assets/blog/robotics/figure_detector_debug_2.png";
+import _figure_detector_debug_3 from "@/assets/blog/robotics/figure_detector_debug_3.png";
+import _figure_detector_debug_4 from "@/assets/blog/robotics/figure_detector_debug_4.png";
+import _figure_detector_debug_5 from "@/assets/blog/robotics/figure_detector_debug_5.png";
+import _figure_detector_debug_6 from "@/assets/blog/robotics/figure_detector_debug_6.png";
 
 Des codes QR géants! C'est la première impression que tout le monde a des AprilTags, et elle n'est pas si loin de la
-vérité. Un AprilTag est un motif carré conçu pour une seule chose : être trouvé par une caméra, vite, de loin, sous un
-mauvais éclairage — et donner en prime ses quatre coins avec une précision inférieure au pixel. Cette leçon explique ce
-qu'un tag encode, comment le détecteur le retrouve dans une grille de nombres, et pourquoi ces quatre coins sont
-exactement ce qu'il faut pour se localiser.
-
-<Callout kind="note" label="Dans cette leçon">
-
-- Ce qu'est un AprilTag et ce que veut dire « 36h11 »
-- Pourquoi des marqueurs plutôt que de reconnaître le terrain
-- Les étapes du détecteur, de l'image brute au code décodé
-- Ce qu'on obtient à la sortie : $t_x$, $t_y$, $t_a$ et les coins
-- Ce qui fait rater une détection
-
-</Callout>
+vérité. Un AprilTag est un motif carré conçu pour une seule chose : être trouvé par une caméra, vite, de loin, et sous un
+mauvais éclairage. En prime, le détecteur nous donne la position de ses quatre coins avec une précision plus fine que le
+pixel. Dans cette leçon, on regarde ce qu'un tag encode, comment le détecteur le retrouve dans une grille de nombres, et
+pourquoi ces quatre coins sont exactement ce qu'il nous faut pour se localiser.
 
 ## 1. C'est quoi un AprilTag
 
-Un AprilTag est un *fiducial marker* (marqueur de repère) : un motif imprimé dont la seule fonction est d'être reconnu
-par une caméra. Il est fait d'une bordure noire, d'une bordure blanche autour, et d'une grille de cases noires et blanches
-au centre qui encodent un nombre — l'identifiant du tag.
+Un AprilTag est un *fiducial marker* (marqueur de repère) : un motif imprimé dont la seule fonction est d'être reconnu par
+une caméra. Si on le regarde case par case, il est fait de trois choses :
 
-Contrairement à un code QR, un tag ne contient presque rien : pas d'adresse web, pas de texte, juste un numéro. Et c'est
-voulu. Moins il y a de bits à lire, plus on peut les lire de loin et les protéger contre les erreurs.
+- **Une bordure blanche** tout autour. Elle fait partie du tag, même si on l'oublie souvent. C'est elle qui garantit que
+la bordure noire a du blanc autour, peu importe le mur sur lequel le tag est collé.
+- **Une bordure noire** d'une case d'épaisseur. C'est elle que le détecteur cherche en premier.
+- **Une grille de 6 × 6 cases** noires et blanches au centre. Chaque case est un bit, alors 36 cases donnent 36 bits, et
+ces 36 bits encodent un nombre : l'identifiant du tag.
 
-Les tags viennent en *familles*. La FRC utilise la famille **36h11** : chaque tag encode 36 bits (une grille de
-$6 \times 6$ cases), et deux codes valides de la famille diffèrent toujours d'au moins 11 bits (*distance de Hamming* de
-11). C'est cette marge qui rend le décodage robuste : quelques cases mal lues ne transforment pas un tag en un autre. La
-famille compte 587 codes, dont la FRC n'utilise qu'une poignée.
+{/* Fond blanc opaque, volontairement : pas de className="diagram", sinon le tag s'affiche à l'envers sur les thèmes sombres. */}
+<img src={_figure_tag_anatomy} alt="Un tag 36h11 annoté : bordure blanche, bordure noire, grille de données 6 × 6, et la taille de 165,1 mm mesurée sur le carré noir" />
 
-Sur le terrain, chaque tag a un identifiant, une taille (6,5 pouces, soit 165,1 mm de côté pour la partie noire) et une
-position exacte, publiées chaque année dans la *field layout* de WPILib et dans le fichier `.fmap` qu'on charge dans le
-Limelight. Retenez ça : **la position de chaque tag est connue d'avance**. C'est le détail qui rend toute la localisation
-possible.
+Contrairement à un code QR, un tag ne contient presque rien. Pas d'adresse web, pas de texte, juste un numéro. Et c'est
+voulu : moins il y a de bits à lire, plus on peut les lire de loin, et plus on peut les protéger contre les erreurs de
+lecture.
+
+Sur le terrain, chaque tag a trois propriétés qui sont connues d'avance :
+
+1. **Un identifiant.** Une trentaine de tags sont installés sur le terrain chaque saison.
+2. **Une taille.** Les tags FRC font 6,5 po de côté, soit 165,1 mm, mesurés sur le carré noir. Comme le carré noir fait
+8 cases de large, chaque case fait à peu près 2 cm.
+3. **Une position exacte sur le terrain**, publiée chaque année par FIRST. Elle est dans la *field layout* de WPILib et
+dans le fichier `.fmap` qu'on charge dans le Limelight.
+
+Retenez surtout le troisième point : **la position de chaque tag est connue d'avance**. C'est ce détail qui rend toute la
+localisation possible. La caméra voit un tag, elle sait où ce tag est sur le terrain, donc elle peut déduire où elle est
+elle-même.
 
 <Callout kind="important" label="TODO">
-Image d'un tag 36h11 annoté (bordures, grille, orientation), et la carte des tags du terrain de la saison en cours.
+    La carte des tags du terrain de la saison en cours, avec ceux qu'on vise et ceux qu'on filtre.
 </Callout>
 
 ---
 
 ## 2. Pourquoi des tags et pas autre chose?
 
-On pourrait se localiser en reconnaissant des éléments du terrain — après tout, vous le faites, vous, sans coller des
-codes QR sur les murs de l'école. Mais un tag fait mieux sur tous les points qui comptent pour un robot :
+On pourrait se localiser en reconnaissant des éléments du terrain. Après tout, c'est ce que vous faites, vous, sans coller
+des codes QR sur les murs de l'école. Mais un tag fait mieux sur tous les points qui comptent pour un robot :
 
-- **Il est fait pour ça.** Contraste maximal, forme simple, code redondant : le détecteur n'a rien à apprendre.
-- **Il dit qui il est.** L'identifiant lève toute ambiguïté sur *quel* repère on regarde, donc sur où on est.
+- **Il est fait pour ça.** Contraste maximal, forme simple, code redondant. Le détecteur n'a rien à apprendre, il n'a
+qu'à chercher un carré noir avec du blanc autour.
+- **Il dit qui il est.** L'identifiant enlève toute ambiguïté sur *quel* repère on regarde, donc sur où on est. Deux
+coins du terrain qui se ressemblent n'ont pas le même tag.
 - **Sa taille est connue.** Quatre coins dont on connaît l'écartement réel, c'est tout ce qu'il faut pour retrouver une
-distance et une orientation.
-- **Ses coins sont précis.** Le détecteur affine leur position au sous-pixel. Aucune détection d'objet ne donne ça.
+distance et une orientation. On l'a vu dans la [leçon sur les caméras](/blog/vision-cameras) : sans taille connue, pas
+de distance.
+- **Ses coins sont précis.** Le détecteur affine leur position au sous-pixel (*sub-pixel*), c'est-à-dire plus finement
+que la grille de pixels. Aucun détecteur d'objets ne donne ça.
 
 ---
 
 ## 3. Comment le détecteur trouve un tag
 
-C'est ici que ça devient intéressant. Le détecteur utilisé partout en FRC descend des travaux d'Edwin Olson à
-l'Université du Michigan. La version 2 (2016) a fixé la structure encore utilisée aujourd'hui; la version 3 (2019) l'a
-rendue plus rapide. Suivez les étapes dans l'ordre — chacune réduit énormément le travail de la suivante.
+C'est ici que ça devient intéressant. Le détecteur utilisé partout en FRC vient du laboratoire d'Edwin Olson à
+l'Université du Michigan. La version 2 (2016) a fixé la structure encore utilisée aujourd'hui, et la version 3 (2019)
+l'a rendue plus rapide. Le Limelight, PhotonVision et WPILib utilisent tous ce même code.
 
-### Seuillage adaptatif (*adaptive thresholding*)
+Avant d'entrer dans les étapes, il faut voir le problème du point de vue du processeur. Une image de $640 \times 480$ px,
+c'est 307 200 pixels. Le détecteur doit y trouver un tag qui en occupe peut-être quelques centaines, et il doit le faire
+une trentaine de fois par seconde, sur un petit ordinateur embarqué. Impossible d'examiner chaque pixel en détail. Toute
+la stratégie du détecteur consiste donc à **réduire le travail à chaque étape** : partir de centaines de milliers de
+pixels, n'en garder que quelques milliers, puis quelques centaines, puis quelques candidats, et ne faire les calculs
+coûteux que sur ces candidats-là.
 
-L'image est convertie en noir et blanc, mais pas avec un seul seuil global : elle est découpée en tuiles de $4 \times 4$
-pixels, et chaque pixel est comparé à la moyenne du minimum et du maximum observés dans les tuiles voisines. Pourquoi?
-Parce qu'un seuil global se fait avoir par la première ombre venue, alors qu'un seuil local résiste aux dégradés
-d'éclairage — et de l'éclairage bizarre, en compétition, il y en a toujours.
+Voici les étapes, dans l'ordre. Sous chaque étape, la même planche de six images montre ce que le vrai détecteur
+a produit à ce moment-là, sur une image d'exemple. Les étapes qui restent à faire sont estompées.
 
-### Segmentation en composantes
+### Étape 1 : réduire l'image (*downscale*)
 
-Les pixels noirs adjacents sont regroupés en régions, de même pour les blancs, avec un algorithme *union-find*. Le bord
-d'un tag, c'est là où une région noire touche une région blanche.
+Avant tout, le détecteur peut travailler sur une version réduite de l'image. Avec un facteur de 2, il y a quatre fois
+moins de pixels à traiter, et les premières étapes vont quatre fois plus vite. Dans l'interface Limelight, c'est le
+réglage *Detector Downscale*.
 
-### Segmentation des contours
+Le prix à payer, c'est de la portée : un tag lointain, qui n'occupait déjà que quelques pixels, devient trop petit pour
+être lu. Par contre, la précision des coins n'est pas perdue, car la dernière étape retourne dans l'image en pleine
+résolution. C'est le premier réglage à toucher quand la latence est trop grande.
 
-Plutôt que de chercher des lignes n'importe où dans l'image, le détecteur ne garde que les frontières entre une
-composante noire et une composante blanche précises. C'est l'idée qui a rendu la version 2 tellement plus rapide que la
-première : beaucoup moins de candidats à examiner.
+Sur les images de cette leçon, le facteur est 2, comme la valeur par défaut de la bibliothèque : l'image de départ
+fait 320 × 240 pixels, et les étapes 2 à 5 travaillent sur sa version réduite de 160 × 120 pixels.
 
-### Ajustement de quadrilatères (*quad fitting*)
+{/* Fond blanc opaque, volontairement : pas de className="diagram", sinon le noir et le blanc s'inversent sur les thèmes sombres. */}
+<img src={_figure_detector_debug_1} alt="Étape 1 : l'image réduite; les cinq étapes suivantes sont estompées" />
 
-Pour chaque frontière, les points sont triés par angle autour de leur centre, les coins candidats sont trouvés là où une
-droite ajustée cesse de coller, et le détecteur essaie les combinaisons de quatre coins jusqu'à trouver un quadrilatère
-convaincant.
+### Étape 2 : le seuillage adaptatif (*adaptive thresholding*)
 
-### Décodage
+La première vraie étape transforme l'image en niveaux de gris en une image à trois valeurs seulement : noir, blanc, ou
+« inconnu ».
 
-Le quadrilatère donne une *homography* (homographie) : la transformation qui envoie le carré idéal du tag sur sa version
-déformée dans l'image. Elle permet d'aller lire la valeur de chaque case de la grille. Le code lu est comparé à la
-famille — et tous les codes à au plus deux bits d'erreur d'un code valide sont précalculés dans une table, donc cette
-recherche est instantanée.
+Pourquoi pas juste noir et blanc, avec un seul seuil pour toute l'image? Prenons un exemple. Supposons que la moitié
+gauche de l'image est dans l'ombre : là, le noir d'un tag vaut 20 et son blanc vaut 90. La moitié droite est au soleil :
+le noir y vaut 80 et le blanc 250. Un seul seuil à 128 classerait tout ce qui est à gauche comme noir, blanc du tag
+compris. Le tag de gauche disparaît.
 
-### Raffinement des coins (*edge refinement*)
+La solution consiste à choisir un seuil différent pour chaque région de l'image. Le détecteur découpe l'image en tuiles
+de $4 \times 4$ pixels, et note pour chaque tuile son pixel le plus sombre et son pixel le plus clair. Ensuite, pour
+chaque tuile, il regarde aussi ses 8 voisines, et prend le minimum et le maximum sur ce bloc de $3 \times 3$ tuiles
+(donc $12 \times 12$ pixels). Le seuil de la tuile, c'est la moyenne des deux. Un pixel plus sombre que ce seuil devient
+noir, un pixel plus clair devient blanc.
 
-Enfin, les bords du quadrilatère sont réajustés sur les gradients de l'image *originale*, pas de la version seuillée, ce
-qui ramène les coins au sous-pixel. Ce sont ces coins-là qui partent vers l'estimation de pose. Tout le reste du système
-hérite de leur précision.
+Il y a un troisième cas. Si dans un bloc, le maximum et le minimum sont trop proches (un mur gris uniforme, par
+exemple), il n'y a pas assez de contraste pour décider quoi que ce soit. Ces pixels sont marqués « inconnu » et ignorés
+pour la suite. C'est la première grosse réduction : tout ce qui n'a pas de contraste disparaît du problème.
 
-<Callout kind="note" label="Le downscale">
-Le détecteur peut travailler sur une image réduite (« detector downscale » dans le Limelight) pour les premières étapes,
-puis revenir à la pleine résolution pour raffiner les coins. On y gagne beaucoup d'images par seconde pour une perte de
-portée modeste. C'est le premier réglage à toucher quand la latence est trop grande.
+Autrement dit, le détecteur ne se demande pas « ce pixel est-il noir? », mais « ce pixel est-il plus sombre que ce qu'il
+y a autour? ». C'est pour ça qu'un tag dans l'ombre et un tag au soleil sont traités exactement de la même façon. C'est
+aussi pour ça que ce qui compte pour la caméra, c'est le contraste local, pas la luminosité absolue. On y revient dans la
+[leçon sur le réglage des Limelight](/blog/vision-limelight-tuning).
+
+<img src={_figure_detector_debug_2} alt="Étape 2 : l'image seuillée en noir, blanc et gris; les étapes suivantes sont estompées" />
+
+### Étape 3 : regrouper les pixels en composantes (*connected components*)
+
+Bien, on a une image en noir, blanc et inconnu. Ensuite, les pixels noirs qui se touchent sont regroupés en régions, et
+pareil pour les blancs. Une région s'appelle une composante connexe (*connected component*).
+
+Le regroupement se fait avec un algorithme classique qui s'appelle *union-find*. L'idée est simple. Au départ, chaque
+pixel est seul dans son propre groupe. On parcourt l'image, et chaque fois que deux pixels voisins ont la même couleur,
+on fusionne leurs deux groupes. À la fin, chaque pixel connaît le groupe auquel il appartient. Ce qui rend *union-find*
+intéressant, c'est que fusionner deux groupes coûte presque rien, même s'ils contiennent des milliers de pixels. L'étape
+entière se fait donc en un seul passage sur l'image.
+
+Sur un tag, ça donne une grande composante noire (la bordure noire, plus les cases noires qui la touchent), une
+composante blanche autour (la bordure blanche, souvent avec le mur derrière), et plusieurs petites composantes pour les
+cases à l'intérieur. Les composantes trop petites, quelques pixels de bruit, sont jetées tout de suite.
+
+<img src={_figure_detector_debug_3} alt="Étape 3 : les composantes connexes, une couleur par composante; les étapes suivantes sont estompées" />
+
+### Étape 4 : les frontières entre noir et blanc
+
+C'est l'idée qui a rendu la version 2 tellement plus rapide que la première, alors elle mérite une explication.
+
+Le détecteur ne cherche pas des lignes n'importe où dans l'image. Il cherche les endroits où une composante noire
+précise touche une composante blanche précise. Pour chaque pixel noir qui a un voisin blanc, il note un point à la
+frontière entre les deux, et il classe ce point selon la paire « composante noire, composante blanche » à laquelle il
+appartient.
+
+Pourquoi c'est malin? Parce que le bord d'un tag, c'est exactement là où *sa* bordure noire touche *sa* bordure blanche.
+Tous les points de ce bord partagent la même paire de composantes, alors ils se retrouvent automatiquement dans le même
+paquet, sans que le détecteur ait à deviner quels points vont ensemble. Chaque paquet est un candidat : peut-être le
+contour d'un tag, peut-être le contour d'une ombre ou d'une affiche. Les paquets de moins de quelques dizaines de points
+sont ignorés.
+
+Remarquez que les cases à l'intérieur du tag donnent aussi des frontières (une case blanche qui touche la bordure noire,
+par exemple). Elles deviennent des candidats elles aussi. Ce n'est pas grave : elles seront éliminées plus loin, au
+décodage, parce qu'elles ne contiennent pas de code valide.
+
+<img src={_figure_detector_debug_4} alt="Étape 4 : les frontières entre une composante noire et une composante blanche, une couleur par paire; les étapes suivantes sont estompées" />
+
+### Étape 5 : ajuster un quadrilatère (*quad fitting*)
+
+On a maintenant des paquets de points, et chaque paquet dessine, en gros, le contour d'une forme. Il faut décider si
+cette forme est un quadrilatère, et si oui, trouver ses quatre coins.
+
+Le problème, c'est que les points d'un paquet sont dans le désordre, car *union-find* ne se soucie pas de l'ordre. La
+première chose à faire est donc de les trier par angle autour de leur centre, pour pouvoir « faire le tour » de la forme
+dans l'ordre, comme si on suivait le contour avec un crayon.
+
+Ensuite, on cherche les coins. Le détecteur fait glisser une petite fenêtre le long du contour trié, et à chaque
+position, il ajuste une droite sur les points de la fenêtre. Sur un côté du tag, les points sont bien alignés et la
+droite colle parfaitement. À un coin, la fenêtre contient des points de deux côtés différents, et aucune droite ne peut
+passer par tout le monde : l'erreur grimpe. Les coins sont les endroits où cette erreur atteint un maximum. Le détecteur
+retient les quatre meilleurs, vérifie que le quadrilatère obtenu est convexe et assez grand, et rejette le reste. Un
+disque, par exemple, n'a pas de coins nets : l'erreur reste moyenne partout, et le quadrilatère qu'on force dessus colle
+mal aux points.
+
+<img src={_figure_detector_debug_5} alt="Étape 5 : les quadrilatères candidats; la dernière étape est estompée" />
+
+### Étape 6 : le décodage
+
+Enfin, on peut lire le tag. Il reste un problème : le tag est vu de biais, alors la grille de cases n'est pas carrée dans
+l'image, c'est un trapèze déformé. Comment savoir quel pixel correspond à quelle case?
+
+La réponse s'appelle une *homography* (homographie). C'est la transformation qui envoie les quatre coins du tag parfait,
+tel qu'il a été imprimé, sur les quatre coins trouvés dans l'image. Quatre coins suffisent pour la calculer au complet.
+Une fois qu'on l'a, on peut prendre n'importe quel point du tag imprimé (le centre de la case en ligne 3, colonne 5, par
+exemple) et calculer exactement où il tombe dans l'image. Le détecteur fait ça pour les 36 cases : il calcule où tombe le
+centre de chaque case et va lire la valeur du pixel à cet endroit. Notez qu'il lit dans l'image d'origine, en niveaux de
+gris, pas dans la version seuillée.
+
+Pour décider si une case est noire ou blanche, le détecteur se sert du tag lui-même comme référence. Il échantillonne
+aussi la bordure noire et la bordure blanche, ce qui lui donne « le noir de ce tag-ci » et « le blanc de ce tag-ci » à
+cet endroit de l'image, et il coupe au milieu. Si le candidat n'a pas de bordure noire (une affiche blanche, par
+exemple), il est rejeté ici.
+
+À la sortie, on a 36 bits. Ils sont comparés à la liste des codes de la famille (la section suivante explique ce que
+c'est). Le tag peut être vu tourné, alors le détecteur essaie les quatre rotations. Cette recherche est instantanée, car
+tous les codes valides, ainsi que tous les codes qui sont à un ou deux bits d'un code valide, sont précalculés dans une
+table au démarrage. Si le code lu est dans la table, c'est un tag, et on connaît son identifiant. Sinon, le candidat est
+jeté. Au passage, la rotation qui a marché nous dit quel coin est lequel, ce qui va compter pour l'estimation de pose.
+
+<img src={_figure_detector_debug_6} alt="Étape 6 : les cases échantillonnées dans l'image en pleine résolution, et le tag reconnu" />
+
+### Étape 7 : raffiner les coins (*edge refinement*)
+
+Le quadrilatère de l'étape 5 a été trouvé sur l'image seuillée, où chaque pixel est soit noir, soit blanc. Ses coins
+sont donc précis au pixel près, pas mieux. Pour la localisation, ce n'est pas assez : à quelques mètres, un pixel
+d'erreur sur un coin, c'est déjà plusieurs centimètres d'erreur sur la position du robot.
+
+La dernière étape retourne donc dans l'image d'origine, en pleine résolution. Le long de chaque côté du quadrilatère, le
+détecteur regarde de part et d'autre du bord et cherche l'endroit exact où le gris passe du sombre au clair. Cet endroit
+tombe en général *entre* deux pixels, et comme on a le dégradé, on peut l'estimer à une fraction de pixel près. Une
+droite est ensuite ajustée sur ces points pour chacun des quatre côtés, et les coins sont les intersections de ces
+droites. Voilà les coins au sous-pixel.
+
+Ce sont ces quatre coins-là qui partent vers l'estimation de pose. Tout le reste du système hérite de leur précision.
+C'est aussi pour ça que le flou est l'ennemi numéro un : un bord flou n'a plus de transition nette à trouver.
+
+<Callout kind="note">
+    Les six panneaux sous chaque étape sont la vraie sortie du détecteur AprilTag : son code de référence sait les
+    écrire quand on active son mode debug. L'image de départ, par contre, je l'ai fabriquée (un tag vu de biais, un éclairage
+    inégal, du bruit, et deux intrus). Deux choses à remarquer. D'abord, le fond devient du poivre et sel au seuillage,
+    parce que le seuil de contraste minimal du détecteur est très bas et que le bruit du capteur suffit à le dépasser.
+    Ce sont les composantes minuscules de l'étape 3, et elles sont jetées tout de suite. Ensuite, le disque et le
+    rectangle produisent bel et bien des candidats, et les cases intérieures du tag aussi. Au panneau 6, le détecteur
+    a même échantillonné le disque. Un seul candidat a survécu au décodage.
 </Callout>
 
 <Callout kind="important" label="TODO">
-Une figure par étape sur la même image (brute, seuillée, composantes, contours, quads, tag décodé). Le code de référence
-AprilTag peut produire ces images intermédiaires.
+    Refaire la figure sur une capture de nos Limelight : `figure_detector_debug.py` prend n'importe quelle image en
+    argument.
 </Callout>
 
 ---
 
-## 4. Le code : familles et distance de Hamming
+## 4. Les familles et la distance de Hamming
 
-Petit détour élégant. Une famille est construite pour que ses codes soient aussi différents que possible les uns des
-autres — y compris quand un tag est vu tourné de 90, 180 ou 270 degrés : les quatre rotations d'un code sont toutes à
-bonne distance de tous les autres codes. Les motifs trop simples (tout noir, des rayures) sont écartés, parce qu'ils
-apparaissent trop facilement par hasard dans une scène normale.
+Il reste à expliquer ce que veut dire « 36h11 », parce que c'est là que se cache la robustesse du décodage.
 
-La notation « 36h11 » résume tout : 36 bits, distance minimale de 11. Plus la distance est grande, moins il y a de codes
-dans la famille, mais plus on tolère d'erreurs de lecture. 36h11 est le compromis retenu par la FRC.
+Un tag encode 36 bits. Il y a donc $2^{36}$ motifs possibles, soit environ 69 milliards. Une *famille* est un petit
+sous-ensemble de ces motifs, choisi avec soin, et seuls les motifs de la famille sont des tags valides. La famille 36h11
+en compte 587. La FRC n'en utilise qu'une trentaine par saison.
+
+Comment les 587 sont-ils choisis? Pour que deux codes valides soient aussi différents que possible l'un de l'autre. La
+*Hamming distance* (distance de Hamming) entre deux codes est le nombre de bits qui diffèrent. Dans 36h11, deux codes
+valides diffèrent toujours d'au moins 11 bits. C'est le « h11 ». Et cette contrainte tient aussi quand on tourne un tag
+de 90, 180 ou 270 degrés : les quatre rotations d'un code sont toutes à bonne distance de tous les autres codes, sinon un
+tag vu à l'envers pourrait passer pour un autre. Les motifs trop simples (tout noir, des rayures) sont écartés, parce
+qu'ils apparaissent trop facilement par hasard dans une scène normale.
+
+Pourquoi c'est important? Parce que le détecteur peut se tromper en lisant une case (un reflet, une case trop petite, du
+bruit). Supposons qu'il lise deux bits de travers. Le code lu est à 2 bits du bon code. Mais il est à au moins
+$11 - 2 = 9$ bits de tout autre code valide. Il n'y a donc aucune confusion possible : le code valide le plus proche est
+le bon, et le détecteur corrige l'erreur tout seul. C'est exactement ce que fait la table de l'étape 6, qui contient
+chaque code valide et tous ses voisins à un ou deux bits.
+
+<details>
+    <summary>Pourquoi s'arrêter à deux bits d'erreur?</summary>
+
+    Avec une distance de 11, on pourrait en théorie corriger jusqu'à 5 bits : à 5 bits d'un code, on est encore à au
+    moins 6 bits de tout autre code. Mais plus on accepte d'erreurs, plus un motif quelconque de la scène (une fenêtre,
+    une grille de ventilation, un logo) a de chances de tomber « proche » d'un code valide et d'être pris pour un tag.
+    C'est un *false positive* (faux positif). Pour un robot qui se localise, c'est bien pire qu'un tag manqué, car une
+    position complètement fausse entre dans le système. Le code de référence s'arrête donc à 2 bits par défaut.
+
+    Il y a une deuxième raison, plus terre à terre : la table grossit vite. Un code de 36 bits a 36 voisins à 1 bit et
+    630 voisins à 2 bits, donc la table de 36h11 contient environ 587 × 667 ≈ 390 000 entrées. Pour aller à 3 bits, il
+    faudrait ajouter 7 140 voisins par code, et la table passerait à plus de 4 millions d'entrées.
+
+    ---
+</details>
+
+Ce compromis a une histoire en FRC. En 2023, les tags du terrain étaient de la famille 16h5 : 16 bits, distance de 5,
+seulement 30 codes. Avec si peu de bits, un morceau de terrain quelconque avait trop souvent l'air d'un tag valide, et
+les équipes ont passé la saison à filtrer des faux positifs. En 2024, FIRST est passé à 36h11, et le problème a en bonne
+partie disparu. Plus de bits, c'est un peu moins de portée à résolution égale, parce que les cases sont plus petites,
+mais c'est beaucoup plus de fiabilité.
 
 <Callout kind="tip">
-Exercice de cinq minutes : prenez deux tags de la famille et comptez les cases qui diffèrent. Vous devriez en trouver au
-moins 11.
+    Exercice de cinq minutes : prenez deux tags de la famille et comptez les cases qui diffèrent. Vous devriez en trouver
+    au moins 11.
 </Callout>
 
 ---
@@ -132,36 +294,47 @@ moins 11.
 Une fois le tag décodé, le Limelight nous offre deux niveaux d'information.
 
 **En 2D**, sans aucune notion de distance : l'identifiant, l'angle horizontal et vertical entre l'axe de la caméra et le
-centre du tag ($t_x$, $t_y$, en degrés), et la surface qu'il occupe dans l'image ($t_a$, en pourcentage). C'est suffisant
-pour *viser* un tag, et c'est très robuste parce que ça ne dépend presque pas de la calibration.
+centre du tag ($t_x$ et $t_y$, en degrés), et la surface qu'il occupe dans l'image ($t_a$, en pourcentage de l'image).
+C'est suffisant pour *viser* un tag, et c'est très robuste, parce que ça ne dépend presque pas de la calibration. Ces
+valeurs correspondent aux clés `tx`, `ty` et `ta` de l'[aide-mémoire Limelight](/blog/cheatsheet-limelight).
 
-**En 3D**, en combinant les quatre coins, la taille réelle du tag et la calibration : la position et l'orientation
-complètes du robot sur le terrain — le fameux `botpose`. Comment quatre coins deviennent une pose? Pour l'instant,
-acceptez que ça marche : la [prochaine leçon](/blog/vision-localization) montre ce que le robot en fait, et
+**En 3D**, en combinant les quatre coins, la taille réelle du tag et la calibration de la caméra : la position et
+l'orientation complètes du robot sur le terrain, le fameux `botpose`. Comment quatre coins deviennent-ils une pose? Pour
+l'instant, acceptez que ça marche. La [prochaine leçon](/blog/vision-localization) montre ce que le robot en fait, et
 [celle d'après](/blog/vision-pose-estimation) ouvre la boîte noire.
 
 ---
 
 ## 6. Ce qui fait rater une détection
 
-<Callout kind="important" label="TODO">
-Compléter avec les cas qu'on a réellement vécus, idéalement avec une capture pour chacun.
-</Callout>
+Maintenant qu'on connaît les étapes, on peut dire *où* chaque problème fait échouer le détecteur.
 
-- **Le flou de mouvement** : une exposition trop longue pendant une rotation, et les bords du tag se diluent.
-- **La distance** : passé une certaine taille en pixels, la grille n'est plus lisible. Plus de résolution ou moins de
-*downscale* repoussent cette limite.
-- **L'angle** : un tag vu très de biais devient un trapèze étroit dont les cases se confondent.
-- **L'éclairage** : reflets (les tags FRC sont mats pour cette raison), contre-jour, image trop sombre.
-- **L'occlusion** : un tag partiellement caché n'est pas détecté du tout. Le détecteur ne devine pas. TODO: confirm
+- **Le flou de mouvement.** Une exposition trop longue pendant une rotation, et les bords du tag se diluent. Le seuillage
+donne des bords en dents de scie, et le raffinement des coins ne trouve plus de transition nette. C'est le problème
+numéro un, et la [leçon sur les caméras](/blog/vision-cameras) explique pourquoi on préfère le bruit au flou.
+- **La distance.** Passé une certaine distance, chaque case du tag ne fait plus qu'un ou deux pixels de large. Le
+décodage lit alors le centre d'une case et attrape en fait un peu du voisin. Plus de résolution, ou moins de
+*downscale*, repoussent cette limite.
+- **L'angle.** Un tag vu très de biais devient un trapèze étroit dont les cases se confondent. Le quadrilatère est
+trouvé, mais les bits ne sont plus lisibles.
+- **L'éclairage.** Un reflet sur la bordure noire y crée une tache blanche, ce qui coupe la composante noire en deux : il
+n'y a plus de contour fermé à ajuster. C'est pour ça que les tags FRC sont imprimés sur un matériau mat. Une image trop
+sombre ou en contre-jour, elle, n'a pas assez de contraste, et tout tombe dans la catégorie « inconnu » dès le seuillage.
+- **L'occlusion.** Un tag partiellement caché est en général perdu : si la bordure noire est coupée, il n'y a plus de
+quadrilatère fermé à trouver. La seule exception, c'est une case ou deux de la grille cachées, que la correction
+d'erreurs peut rattraper.
+
+<Callout kind="important" label="TODO">
+    Compléter avec les cas qu'on a réellement vécus, idéalement avec une capture pour chacun.
+</Callout>
 
 ---
 
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-Quels tags comptent pour le jeu de cette saison (ceux qu'on vise, ceux qu'on filtre), les réglages du pipeline AprilTag
-sur nos Limelight, et les portées réelles mesurées avec nos caméras.
+    Quels tags comptent pour le jeu de cette saison (ceux qu'on vise, ceux qu'on filtre), les réglages du pipeline AprilTag
+    sur nos Limelight, et les portées réelles mesurées avec nos caméras.
 </Callout>
 
 ---

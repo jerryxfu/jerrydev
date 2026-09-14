@@ -263,8 +263,8 @@ export const posts: Post[] = [
     },
     {
         slug: "medive-devlog2",
-        title: "MEDIVE Devlog #2: Lay language",
-        description: "Devlog #2: Tier 2, the lay-language phrases. Placeholder, not written yet.",
+        title: "MEDIVE Devlog #2: ",
+        description: "",
         date: postDate("2026-09-12"),
         tags: ["ai", "devlog", "med"],
         lang: "en",
