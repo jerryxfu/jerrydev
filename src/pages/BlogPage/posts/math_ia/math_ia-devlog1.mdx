@@ -11,15 +11,39 @@ import _fig9 from "@/assets/blog/math_ia/fig9_helix3d.png";
 
 {/* Draft. Figures from the first baseline run of math-mvp (11 Sep 2026), each regenerated from experiments/results/*.json by experiments/viz.py. Every number below is copied from ia/tables/ (Tables 1 to 4) or from a figure legend; none is typed from memory. */}
 
-Devlog #0 asked one question: do the numbers inside GPT-2 have a geometric structure, and if so, which one? This post has the first real pictures. They come from a pipeline I can now run end to end on my laptop in about half a minute, which is a good feeling after two weeks of planning.
+<Callout kind="caution">
+    **NOTE AUX SUPERVISEURS.**
 
-Before the pictures, a short tour of what they are pictures *of*. If you already know what an embedding is, skip to [the first result](#numbers-with-the-same-last-digit-look-alike).
+    SI VOUS ÊTES UN SUPERVISEUR POUR L'EXPLO MATH: Ce document sera modifié dans les prochains jours.Il y aura ensuite un post/devlog #2 la semaine prochaine (semaine du mémoire) qui contient plus de mathématiques. Mon blog supporte le rendering du LaTeX alors je peux écrire des formules ici.
+
+    La semaine prochaine, je vais également entamer la rédaction dans Word, qui sera récrite <u>entièrement</u>, plus formellement dans le format d'explo, car il y a des choses que je montre ici qui ne sont pas pertinent dans l'explo. Ce blog est plutôt pour le "fun" et partager mes passions.
+</Callout>
+
+Devlog #0 asked one question: do the numbers inside GPT-2 have a geometric structure, and if so, which one? Well, this post has the first pictures, and they are very interesting.
+
+Before the pictures, a short tour of what they are about. If you already know what an embedding is, skip to [the first result](#numbers-with-the-same-last-digit-look-alike).
 
 ## A quick tour
 
 ### A number is a list of 768 values
 
-GPT-2 does not read letters or words. It reads *tokens*, pieces of text from a fixed list of 50,257 entries. Most small integers happen to be one token each: "42" is a token, "137" is a token. For each token the model stores a list of 768 numbers. That list is called the token's *embedding*, and the table holding all 50,257 lists is the model's dictionary. Nothing else is stored about "42": no rule, no meaning, just those 768 values, learned by reading a lot of text.
+GPT-2 does not read letters or words. It reads *tokens*, pieces of text from a fixed list of 50,257 entries. Most small integers happen to be one token each: "42" is a token, "137" is a token. For each token the model stores a list of 768 numbers. That list is called the token's *embedding*, and the table holding all 50,257 lists is the model's dictionary. Nothing else is stored about "42"; there are no rules and no "meaning", just those 768 values, learned by reading a lot of text.
+
+A word is not always one token, and fruit shows it best. Here is what GPT-2 does with four bits of text on their own, with no space in front:
+
+{/* Token IDs from GPT-2's own tokeniser (openai-community/gpt2), not typed from memory: AutoTokenizer.from_pretrained("openai-community/gpt2").encode(text) */}
+
+| Text | Tokens | Token IDs | What GPT-2 looks up |
+| --- | --- | --- | --- |
+| apple | `apple` | 18040 | 1 list of 768 numbers |
+| pineapple | `pine` `apple` | 23908, 18040 | 2 lists of 768 numbers |
+| banana | `ban` `ana` | 3820, 2271 | 2 lists of 768 numbers |
+| 42 | `42` | 3682 | 1 list of 768 numbers |
+| 521 | `5` `21` | 20, 2481 | 2 lists of 768 numbers |
+
+The first two rows are the clearest pair. "apple" is token 18040 on its own, and the second half of "pineapple" is that same token 18040, so the model looks up the apple entry and a `pine` entry and has nothing that means the fruit itself.
+
+The split has nothing to do with meaning, then. It is about which strings were common enough in the training text to earn their own entry among the 50,257. "apple" and "42" earned one, "521" did not, and neither did "banana". The same word can also change form: with a space in front, " apple", " banana" and " pineapple" become one token each (17180, 25996 and 45540), because that is how they appear inside a sentence.
 
 The trick that makes this a mathematics project rather than a computer-science one is to treat that list as a *point*. A list of two values is a point on a plane. A list of three is a point in space. A list of 768 is a point in a space with 768 dimensions, which nobody can picture, but the geometry works exactly the same way: points have distances, directions and angles. So the question becomes: where did GPT-2 put the points for 0, 1, 2, 3 and so on? On a straight line, in order? On a curve? Around circles?
 
@@ -175,13 +199,6 @@ There is a second check hiding here. The number periods 2, 5, 10 and 100 explain
 <img className="diagram" src={_fig9} alt="Three-dimensional scatter of the numbers 0 to 99 on the magnitude axis and the period-10 plane" />
 
 The size axis and the last-digit plane drawn together for the numbers 0 to 99, coloured by last digit. Moving along the long axis means the number grows. Going round the small circle means the last digit changes. Together they trace a rough coil, a helix, which is the shape the bigger models in the literature are known for. It is rough because the circle explains only a few percent of the spread. This is a visualisation, not a measurement; nothing in the tables comes from it.
-
-## What got decided since devlog #0
-
-- **The plan is approved.** My supervisor's one reminder: this must stay a mathematics essay. The regressions, the variance explained, the luck formula and the circle-rotation derivation are the work. Pulling vectors out of the model is plumbing and goes in an appendix.
-- **The rules are locked.** The nine rules, the four periods, the two sentence templates and the ranges were written down before the run. Anything I explore beyond them stays out of the essay.
-- **Every number comes from a file.** The tables and every figure above are regenerated from result files by one command. I do not type numbers into the essay by hand; that is the only way I trust myself not to fool myself.
-- **A control joined the protocol.** The digit-count staircase, and the re-run inside 10 to 99, were added after the step at 100 showed up in an early look at the coordinates. They were added *before* the real run, and it turned out to matter.
 
 ## What's next
 
