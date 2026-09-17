@@ -14,7 +14,7 @@ import _fig9 from "@/assets/blog/math_ia/fig9_helix3d.png";
 <Callout kind="caution">
     **NOTE AUX SUPERVISEURS.**
 
-    SI VOUS ÊTES UN SUPERVISEUR POUR L'EXPLO MATH: Ce document sera modifié dans les prochains jours.Il y aura ensuite un post/devlog #2 la semaine prochaine (semaine du mémoire) qui contient plus de mathématiques. Mon blog supporte le rendering du LaTeX alors je peux écrire des formules ici.
+    SI VOUS ÊTES UN SUPERVISEUR POUR L'EXPLO MATH: Cette page sera modifiée dans les prochains jours. Il y aura ensuite un post/devlog #2 la semaine prochaine (semaine du mémoire) qui contient plus de mathématiques. Mon blog supporte le rendering du LaTeX alors je peux écrire des formules ici.
 
     La semaine prochaine, je vais également entamer la rédaction dans Word, qui sera récrite <u>entièrement</u>, plus formellement dans le format d'explo, car il y a des choses que je montre ici qui ne sont pas pertinent dans l'explo. Ce blog est plutôt pour le "fun" et partager mes passions.
 </Callout>
@@ -82,7 +82,26 @@ Now the pictures.
 
 <img className="diagram" src={_fig6} alt="Mean cosine similarity between the embeddings of n and n plus g, against the gap g, with spikes at every multiple of 10" />
 
-This is the picture that made me sure the project would work, and it involves no fitting at all. Take two numbers that differ by a gap g, for example 17 and 27 when g is 10, and measure how similar their two points are. The measure is the cosine of the angle between them: 1 if they point the same way, 0 if they are unrelated. Average that over every pair with the same gap. Then plot the average against the gap, from 1 to about 100.
+This is the picture that made me sure the project would work, and it involves no fitting. Take two numbers that differ by a gap g, for example 17 and 27 where g is 10, and measure how similar their two points are. The measure is the cosine of the angle between them: 1 if they point the same way, 0 if they are unrelated.
+
+$$
+\cos\theta_{a,b} = \frac{\mathbf{v}_a \cdot \mathbf{v}_b}{\|\mathbf{v}_a\| \, \|\mathbf{v}_b\|}
+$$
+
+<p style={{fontSize: "var(--fs-sm)", color: "var(--text-4)"}}>The top multiplies the two lists position by position and adds the results up, so it is large when both lists are large in the same places. The bottom is the two lengths, and dividing by them throws the sizes away and leaves only direction. That is the same dot product identity as in two dimensions, with 768 terms instead of 2.</p>
+
+Average that over every pair with the same gap.
+
+$$
+\begin{aligned}
+P_g &= \{(a,b) : b - a = g\} \\
+C(g) &= \frac{1}{\lvert P_g \rvert} \sum_{(a,b) \in P_g} \cos\theta_{a,b}
+\end{aligned}
+$$
+
+<p style={{fontSize: "var(--fs-sm)", color: "var(--text-4)"}}>The first line names a collection: every pair of numbers whose difference is exactly g. For a gap of 10 that is 0 and 10, then 1 and 11, then 2 and 12, on to the end of the range. Under the sigma, the belonging symbol says to walk through that collection one pair at a time and add up the cosine of each. The bars count how many pairs were collected, so dividing by them turns the total into an average.</p>
+
+Then plot the average against the gap, from 1 to about 100.
 
 Two things happen at once. The curve falls: neighbours are similar, and the similarity fades as the gap grows, which is what any "number line" would give. And on top of that there are sharp spikes at 10, 20, 30, all the way to 100. Numbers that differ by a multiple of 10, which is to say numbers with the *same last digit*, are noticeably more similar than numbers that differ by 9 or 11. The thick line is the bare form and the thin line the space form; both have the spikes.
 
