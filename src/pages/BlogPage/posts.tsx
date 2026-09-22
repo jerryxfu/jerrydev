@@ -82,8 +82,7 @@ export const posts: Post[] = [
         description: "Ce qu'est un AprilTag, comment le détecteur en trouve un dans l'image, et pourquoi quatre coins suffisent à se repérer.",
         date: postDate("2026-08-30"),
         tags: ["robotics", "vision"],
-        lang: "fr",
-        draft: true,
+        lang: "fr"
     },
     {
         slug: "vision-pose-estimation",

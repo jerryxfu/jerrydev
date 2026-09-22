@@ -352,7 +352,7 @@ export default function Projects() {
             <SectionTitle
                 text={"Projects"}
                 description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
-                    " Many cards have clickable images or a floating link that opens to the project or a write-up for it."}
+                    " Many cards have clickable images or a floating link and some cards may have both for different destinations!"}
             />
             <div className="projects-grid">
                 {themedProjects.map((project) => (

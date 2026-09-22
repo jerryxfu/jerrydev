@@ -36,9 +36,9 @@ The scores against the true pathology (ACC) ask whether the models put "{stats.s
 
 Every model gets the same note and returns a ranked list of the 49 diseases. The difference is in how they process the text. Models names: **B** is a baseline, a cheap or theoretically perfect reference. **M** is a model with a learned representation. [More details on the models →](/blog/medive-reference#the-models)
 
-**B-class: the baselines.** Each one turns the note into a bag of simple features and hands it to logistic regression, one weight per feature per disease.
+**B-class: the baselines.** Each one turns the note into a bag of simple features (TODO: change this so its friendly to non-experts. bag of features might sound odd.) and hands it to logistic regression, one weight per feature per disease.
 
-- **B0, keyword match.** Knows a fixed list of symptom names and scans the note for a close match to each. RapidFuzz tolerates typos. The output is a yes-or-no per name. This is the basic symptom checker the project argues against: the model will completely miss a patient who says the same thing in other words.
+- **B0, keyword match.** Knows a fixed list of symptom names and scans the note for a close match to each. RapidFuzz tolerates typos. The output is a yes-or-no per name. This is the basic symptom checker the project argues against: the model would miss a patient who says the same thing in other words.
 - **B1, TF-IDF.** Counts every word and every pair of neighbouring words, weighted so that words found in most notes count for little. This is the standard strong baseline for any text task. It has no idea what words mean, but it can still find patterns.
 - **B2, the oracle.** Does not read the note. It gets the true evidences straight from the dataset, essentially reading from the answer sheet. It marks the top of the ruler, so whatever it can't do, the other models can't do either.
 
@@ -51,7 +51,7 @@ Every model gets the same note and returns a ranked list of the 49 diseases. The
 
 ### The four versions of the text
 
-The test patients never change. Only the words do. Models train on tier 0 only, so tiers 1 to 3 are wording they never saw. [The tiers →](/blog/medive-reference#the-four-tiers)
+The test patients never change. Only the words do. Models train on tier 0 only, so tiers 1 to 3 are wording they never saw (we test if they are robust against variations). [The tiers →](/blog/medive-reference#the-four-tiers)
 
 - **Tier 0, clean.** The templated note as written above.
 - **Tier 1, synonyms.** Symptom names swapped for UMLS's own alternative names. Optional, and a bit circular since the concept pathway uses the same vocabulary.
@@ -124,7 +124,7 @@ The right panel of the graph above explains this well. Looking at the differenti
 
 So the rank-1 pick is quite sensitive, not the list used for differential diagnosis.
 
-## Poking around SapBERT's space
+## Exploring SapBERT's embedding space
 
 Here are a few more interesting pictures, because why not. These probably won't go in the essay, but each of them taught me something about the model I'm building on.
 

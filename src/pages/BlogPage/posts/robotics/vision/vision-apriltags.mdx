@@ -21,7 +21,7 @@ une caméra. Si on le regarde case par case, il est fait de trois choses :
 - **Une bordure blanche** tout autour. Elle fait partie du tag, même si on l'oublie souvent. C'est elle qui garantit que
 la bordure noire a du blanc autour, peu importe le mur sur lequel le tag est collé.
 - **Une bordure noire** d'une case d'épaisseur. C'est elle que le détecteur cherche en premier.
-- **Une grille de 6 × 6 cases** noires et blanches au centre. Chaque case est un bit, alors 36 cases donnent 36 bits, et
+- **Une grille de $6 \times 6$ cases** noires et blanches au centre. Chaque case est un bit, alors 36 cases donnent 36 bits, et
 ces 36 bits encodent un nombre : l'identifiant du tag.
 
 {/* Fond blanc opaque, volontairement : pas de className="diagram", sinon le tag s'affiche à l'envers sur les thèmes sombres. */}
@@ -33,11 +33,11 @@ lecture.
 
 Sur le terrain, chaque tag a trois propriétés qui sont connues d'avance :
 
-1. **Un identifiant.** Une trentaine de tags sont installés sur le terrain chaque saison.
+1. **Un identifiant.** Selon le jeu, il y a entre une quinzaine et une trentaine de tags sur le terrain.
 2. **Une taille.** Les tags FRC font 6,5 po de côté, soit 165,1 mm, mesurés sur le carré noir. Comme le carré noir fait
 8 cases de large, chaque case fait à peu près 2 cm.
 3. **Une position exacte sur le terrain**, publiée chaque année par FIRST. Elle est dans la *field layout* de WPILib et
-dans le fichier `.fmap` qu'on charge dans le Limelight.
+dans le fichier `.fmap` qu'on charge dans la Limelight.
 
 Retenez surtout le troisième point : **la position de chaque tag est connue d'avance**. C'est ce détail qui rend toute la
 localisation possible. La caméra voit un tag, elle sait où ce tag est sur le terrain, donc elle peut déduire où elle est
@@ -70,10 +70,11 @@ que la grille de pixels. Aucun détecteur d'objets ne donne ça.
 
 C'est ici que ça devient intéressant. Le détecteur utilisé partout en FRC vient du laboratoire d'Edwin Olson à
 l'Université du Michigan. La version 2 (2016) a fixé la structure encore utilisée aujourd'hui, et la version 3 (2019)
-l'a rendue plus rapide. Le Limelight, PhotonVision et WPILib utilisent tous ce même code.
+l'a rendue plus rapide. WPILib et PhotonVision utilisent directement ce code, et la Limelight fonctionne sur le même
+principe.
 
 Avant d'entrer dans les étapes, il faut voir le problème du point de vue du processeur. Une image de $640 \times 480$ px,
-c'est 307 200 pixels. Le détecteur doit y trouver un tag qui en occupe peut-être quelques centaines, et il doit le faire
+c'est $307\,200$ pixels. Le détecteur doit y trouver un tag qui en occupe peut-être quelques centaines, et il doit le faire
 une trentaine de fois par seconde, sur un petit ordinateur embarqué. Impossible d'examiner chaque pixel en détail. Toute
 la stratégie du détecteur consiste donc à **réduire le travail à chaque étape** : partir de centaines de milliers de
 pixels, n'en garder que quelques milliers, puis quelques centaines, puis quelques candidats, et ne faire les calculs
@@ -89,11 +90,11 @@ moins de pixels à traiter, et les premières étapes vont quatre fois plus vite
 réglage *Detector Downscale*.
 
 Le prix à payer, c'est de la portée : un tag lointain, qui n'occupait déjà que quelques pixels, devient trop petit pour
-être lu. Par contre, la précision des coins n'est pas perdue, car la dernière étape retourne dans l'image en pleine
+être lu. Par contre, la précision des coins n'est pas perdue, car l'étape 7 retourne dans l'image en pleine
 résolution. C'est le premier réglage à toucher quand la latence est trop grande.
 
 Sur les images de cette leçon, le facteur est 2, comme la valeur par défaut de la bibliothèque : l'image de départ
-fait 320 × 240 pixels, et les étapes 2 à 5 travaillent sur sa version réduite de 160 × 120 pixels.
+fait $320 \times 240$ px, et les étapes 2 à 5 travaillent sur sa version réduite de $160 \times 120$ px.
 
 {/* Fond blanc opaque, volontairement : pas de className="diagram", sinon le noir et le blanc s'inversent sur les thèmes sombres. */}
 <img src={_figure_detector_debug_1} alt="Étape 1 : l'image réduite; les cinq étapes suivantes sont estompées" />
@@ -133,7 +134,7 @@ pareil pour les blancs. Une région s'appelle une composante connexe (*connected
 Le regroupement se fait avec un algorithme classique qui s'appelle *union-find*. L'idée est simple. Au départ, chaque
 pixel est seul dans son propre groupe. On parcourt l'image, et chaque fois que deux pixels voisins ont la même couleur,
 on fusionne leurs deux groupes. À la fin, chaque pixel connaît le groupe auquel il appartient. Ce qui rend *union-find*
-intéressant, c'est que fusionner deux groupes coûte presque rien, même s'ils contiennent des milliers de pixels. L'étape
+intéressant, c'est que fusionner deux groupes ne coûte presque rien, même s'ils contiennent des milliers de pixels. L'étape
 entière se fait donc en un seul passage sur l'image.
 
 Sur un tag, ça donne une grande composante noire (la bordure noire, plus les cases noires qui la touchent), une
@@ -142,7 +143,7 @@ cases à l'intérieur. Les composantes trop petites, quelques pixels de bruit, s
 
 <img src={_figure_detector_debug_3} alt="Étape 3 : les composantes connexes, une couleur par composante; les étapes suivantes sont estompées" />
 
-### Étape 4 : les frontières entre noir et blanc
+### Étape 4 : les frontières entre noir et blanc (*boundary segmentation*)
 
 C'est l'idée qui a rendu la version 2 tellement plus rapide que la première, alors elle mérite une explication.
 
@@ -151,7 +152,7 @@ précise touche une composante blanche précise. Pour chaque pixel noir qui a un
 frontière entre les deux, et il classe ce point selon la paire « composante noire, composante blanche » à laquelle il
 appartient.
 
-Pourquoi c'est malin? Parce que le bord d'un tag, c'est exactement là où *sa* bordure noire touche *sa* bordure blanche.
+Pourquoi c'est une bonne idée? Parce que le bord d'un tag, c'est exactement là où *sa* bordure noire touche *sa* bordure blanche.
 Tous les points de ce bord partagent la même paire de composantes, alors ils se retrouvent automatiquement dans le même
 paquet, sans que le détecteur ait à deviner quels points vont ensemble. Chaque paquet est un candidat : peut-être le
 contour d'un tag, peut-être le contour d'une ombre ou d'une affiche. Les paquets de moins de quelques dizaines de points
@@ -176,9 +177,13 @@ Ensuite, on cherche les coins. Le détecteur fait glisser une petite fenêtre le
 position, il ajuste une droite sur les points de la fenêtre. Sur un côté du tag, les points sont bien alignés et la
 droite colle parfaitement. À un coin, la fenêtre contient des points de deux côtés différents, et aucune droite ne peut
 passer par tout le monde : l'erreur grimpe. Les coins sont les endroits où cette erreur atteint un maximum. Le détecteur
-retient les quatre meilleurs, vérifie que le quadrilatère obtenu est convexe et assez grand, et rejette le reste. Un
-disque, par exemple, n'a pas de coins nets : l'erreur reste moyenne partout, et le quadrilatère qu'on force dessus colle
-mal aux points.
+garde une dizaine de ces maximums, essaie les combinaisons de quatre, et garde celle qui colle le mieux au contour. Il
+vérifie ensuite que le quadrilatère obtenu est convexe, assez grand, et sans angle trop aigu. Sinon, le candidat est
+rejeté.
+
+Ce test n'est pas parfait. Un disque, par exemple, n'a pas de coins nets, mais le détecteur arrive quand même à y
+forcer un quadrilatère acceptable. On le voit sur l'image plus bas : le disque passe cette étape. Ce n'est pas grave,
+car c'est le décodage qui va l'éliminer.
 
 <img src={_figure_detector_debug_5} alt="Étape 5 : les quadrilatères candidats; la dernière étape est estompée" />
 
@@ -213,11 +218,14 @@ Le quadrilatère de l'étape 5 a été trouvé sur l'image seuillée, où chaque
 sont donc précis au pixel près, pas mieux. Pour la localisation, ce n'est pas assez : à quelques mètres, un pixel
 d'erreur sur un coin, c'est déjà plusieurs centimètres d'erreur sur la position du robot.
 
-La dernière étape retourne donc dans l'image d'origine, en pleine résolution. Le long de chaque côté du quadrilatère, le
+Cette étape retourne donc dans l'image d'origine, en pleine résolution. Le long de chaque côté du quadrilatère, le
 détecteur regarde de part et d'autre du bord et cherche l'endroit exact où le gris passe du sombre au clair. Cet endroit
 tombe en général *entre* deux pixels, et comme on a le dégradé, on peut l'estimer à une fraction de pixel près. Une
 droite est ensuite ajustée sur ces points pour chacun des quatre côtés, et les coins sont les intersections de ces
 droites. Voilà les coins au sous-pixel.
+
+Petite précision : dans le code, cette étape est faite juste avant le décodage, pour que la lecture des cases profite
+aussi des coins précis. Je la présente en dernier parce que c'est elle qui compte pour la suite du cours.
 
 Ce sont ces quatre coins-là qui partent vers l'estimation de pose. Tout le reste du système hérite de leur précision.
 C'est aussi pour ça que le flou est l'ennemi numéro un : un bord flou n'a plus de transition nette à trouver.
@@ -227,9 +235,10 @@ C'est aussi pour ça que le flou est l'ennemi numéro un : un bord flou n'a plus
     écrire quand on active son mode debug. L'image de départ, par contre, je l'ai fabriquée (un tag vu de biais, un éclairage
     inégal, du bruit, et deux intrus). Deux choses à remarquer. D'abord, le fond devient du poivre et sel au seuillage,
     parce que le seuil de contraste minimal du détecteur est très bas et que le bruit du capteur suffit à le dépasser.
-    Ce sont les composantes minuscules de l'étape 3, et elles sont jetées tout de suite. Ensuite, le disque et le
-    rectangle produisent bel et bien des candidats, et les cases intérieures du tag aussi. Au panneau 6, le détecteur
-    a même échantillonné le disque. Un seul candidat a survécu au décodage.
+    Ce sont les composantes minuscules de l'étape 3, et elles sont jetées tout de suite. Ensuite, les deux intrus
+    produisent bel et bien des frontières à l'étape 4, tout comme les cases intérieures du tag. Le rectangle s'arrête à
+    l'étape 5, mais le disque passe, et le détecteur l'échantillonne même au décodage (panneau 6). Un seul candidat a
+    survécu au décodage.
 </Callout>
 
 <Callout kind="important" label="TODO">
@@ -245,7 +254,7 @@ Il reste à expliquer ce que veut dire « 36h11 », parce que c'est là que se c
 
 Un tag encode 36 bits. Il y a donc $2^{36}$ motifs possibles, soit environ 69 milliards. Une *famille* est un petit
 sous-ensemble de ces motifs, choisi avec soin, et seuls les motifs de la famille sont des tags valides. La famille 36h11
-en compte 587. La FRC n'en utilise qu'une trentaine par saison.
+en compte 587. La FRC n'en utilise qu'une petite partie : une trentaine au plus par saison.
 
 Comment les 587 sont-ils choisis? Pour que deux codes valides soient aussi différents que possible l'un de l'autre. La
 *Hamming distance* (distance de Hamming) entre deux codes est le nombre de bits qui diffèrent. Dans 36h11, deux codes
@@ -270,7 +279,7 @@ chaque code valide et tous ses voisins à un ou deux bits.
     position complètement fausse entre dans le système. Le code de référence s'arrête donc à 2 bits par défaut.
 
     Il y a une deuxième raison, plus terre à terre : la table grossit vite. Un code de 36 bits a 36 voisins à 1 bit et
-    630 voisins à 2 bits, donc la table de 36h11 contient environ 587 × 667 ≈ 390 000 entrées. Pour aller à 3 bits, il
+    630 voisins à 2 bits, donc la table de 36h11 contient environ $587 \times 667 \approx 390\,000$ entrées. Pour aller à 3 bits, il
     faudrait ajouter 7 140 voisins par code, et la table passerait à plus de 4 millions d'entrées.
 
     ---
@@ -291,10 +300,10 @@ mais c'est beaucoup plus de fiabilité.
 
 ## 5. Ce qu'on obtient à la sortie
 
-Une fois le tag décodé, le Limelight nous offre deux niveaux d'information.
+Une fois le tag décodé, la Limelight nous offre deux niveaux d'information.
 
-**En 2D**, sans aucune notion de distance : l'identifiant, l'angle horizontal et vertical entre l'axe de la caméra et le
-centre du tag ($t_x$ et $t_y$, en degrés), et la surface qu'il occupe dans l'image ($t_a$, en pourcentage de l'image).
+**En 2D**, sans aucune notion de distance : l'identifiant, l'angle horizontal et vertical entre le réticule (*crosshair*) de la
+caméra et le centre du tag ($t_x$ et $t_y$, en degrés), et la surface qu'il occupe dans l'image ($t_a$, en pourcentage de l'image).
 C'est suffisant pour *viser* un tag, et c'est très robuste, parce que ça ne dépend presque pas de la calibration. Ces
 valeurs correspondent aux clés `tx`, `ty` et `ta` de l'[aide-mémoire Limelight](/blog/cheatsheet-limelight).
 
@@ -317,8 +326,8 @@ décodage lit alors le centre d'une case et attrape en fait un peu du voisin. Pl
 *downscale*, repoussent cette limite.
 - **L'angle.** Un tag vu très de biais devient un trapèze étroit dont les cases se confondent. Le quadrilatère est
 trouvé, mais les bits ne sont plus lisibles.
-- **L'éclairage.** Un reflet sur la bordure noire y crée une tache blanche, ce qui coupe la composante noire en deux : il
-n'y a plus de contour fermé à ajuster. C'est pour ça que les tags FRC sont imprimés sur un matériau mat. Une image trop
+- **L'éclairage.** Un reflet sur la bordure noire y crée une tache blanche. Si la tache traverse la bordure, elle coupe
+la composante noire en deux, et il n'y a plus de contour fermé à ajuster. C'est pour ça que les tags FRC sont imprimés sur un matériau mat. Une image trop
 sombre ou en contre-jour, elle, n'a pas assez de contraste, et tout tombe dans la catégorie « inconnu » dès le seuillage.
 - **L'occlusion.** Un tag partiellement caché est en général perdu : si la bordure noire est coupée, il n'y a plus de
 quadrilatère fermé à trouver. La seule exception, c'est une case ou deux de la grille cachées, que la correction
@@ -333,7 +342,7 @@ d'erreurs peut rattraper.
 ## Sur le robot
 
 <Callout kind="important" label="TODO">
-    Quels tags comptent pour le jeu de cette saison (ceux qu'on vise, ceux qu'on filtre), les réglages du pipeline AprilTag
+    Quels tags comptent pour le jeu de cette saison (ceux qu'on vise, ceux qu'on filtre), les réglages de la pipeline AprilTag
     sur nos Limelight, et les portées réelles mesurées avec nos caméras.
 </Callout>
 

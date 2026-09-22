@@ -60,7 +60,7 @@ l'endroit où l'axe optique traverse l'image (à peu près son centre).
     - Le petit triangle va jusqu'au plan image (base $f$, hauteur $x$)
     - Le grand triangle va jusqu'à l'objet (base $Z$, hauteur $X$).
 
-    Puisque le petit est emboîté dans le grand, ils sont semblables alors le rapport de leur coté est le même:
+    Puisque le petit est emboîté dans le grand, ils sont semblables alors le rapport de leurs côtés est le même :
 
     $$
     \frac{x}{f} = \frac{X}{Z} \qquad \Longrightarrow \qquad x = f \frac{X}{Z}
@@ -82,8 +82,8 @@ l'endroit où l'axe optique traverse l'image (à peu près son centre).
     <summary>Les coordonnées homogènes</summary>
 
     Afin de faciliter les calculs, il est souvent avantageux de regrouper les valeurs en matrice, car les matrices se composent bien,
-    c'est à dire qu'on peut facilement enchaîner des opérations comme une rotation, une translation, une projection en les multipliant.
-    Le problème c'est que on ne peut pas faire de division de matrices, mais notre projection implique une division par $Z$.
+    c'est-à-dire qu'on peut facilement enchaîner des opérations comme une rotation, une translation, une projection en les multipliant.
+    Le problème, c'est qu'on ne peut pas faire de division de matrices, mais notre projection implique une division par $Z$.
 
     La solution consiste à utiliser les *homogeneous coordinates* (coordonnées homogènes). On ajoute une composante de plus au vecteur,
     et on accepte une nouvelle règle : un vecteur peut être multiplié par n'importe quel facteur non nul sans changer le point
@@ -113,7 +113,7 @@ l'endroit où l'axe optique traverse l'image (à peu près son centre).
     $$
 
     On retombe exactement sur les équations du début. Ainsi, la matrice n'a rien ajouté. Elle a seulement rangé la même chose
-    dans une forme qui se compose bien avec d'autres transformations. Cette même astuce sera utilisé en 4 dimensions, pour enchaîner les repères (voir la [boîte
+    dans une forme qui se compose bien avec d'autres transformations. Cette même astuce sera utilisée en 4 dimensions, pour enchaîner les repères (voir la [boîte
     à outils](/blog/cheatsheet-math)).
 
     ---
@@ -134,7 +134,7 @@ On modélise cette courbure avec quelques coefficients supplémentaires, mesuré
 caméra les utilise pour corriger les positions avant de nous retourner l'image.
 
 <Callout kind="important" label="TODO">
-    Figure : la même grille vue sans et avec distorsion. Idéalement une vraie image prise par un de nos Limelight.
+    Figure : la même grille vue sans et avec distorsion. Idéalement une vraie image prise par une de nos Limelight.
 </Callout>
 
 ---
@@ -154,7 +154,7 @@ Il est donc préférable de garder l'exposition courte, et on compense la noirce
 l'image sans allonger l'exposition, au prix de bruit.
 
 Le bruit (*noise*), c'est le grain qu'on voit sur les photos prises surtout dans le noir. Il vient du fait qu'un capteur
-compte des photons (particule de lumière) et que ce comptage est aléatoire. Deux pixels côte à côte qui sont exposés à la même lumière vont rapporter des valeurs un peu différentes.
+compte des photons (des particules de lumière) et que ce comptage est aléatoire. Deux pixels côte à côte qui sont exposés à la même lumière vont rapporter des valeurs un peu différentes.
 Quand l'image est sombre, cette incertitude relative devient énorme :
 
 - Supposons qu'en plein jour un pixel reçoit par exemple 10 000 photons. Une variation de $\pm$ 100 photons correspond à une différence de 1%.
@@ -168,7 +168,7 @@ En général, on tolère plus le bruit que le flou, parce que le détecteur d'Ap
 et blanches. Un peu de grésillement dans les zones grises ne va pas l'empêcher de trouver un tag, mais un flou qui mélange le noir et le blanc va le rendre illisible.
 
 **Le niveau de noir** (*black level offset*) décale la valeur que le capteur considère comme du noir pur. Une caméra ne peut pas représenter une infinité de couleurs,
-elle compresse ce qu'elle reçoit sur une échelle limitée (0 à 255 par canal, pour une image 8 bits). Il y a donc inévitablement une perte de précision dû à l'arrondissement.
+elle compresse ce qu'elle reçoit sur une échelle limitée (0 à 255 par canal, pour une image 8 bits). Il y a donc inévitablement une perte de précision due à l'arrondissement.
 Si une photo contient à la fois des zones très sombres et très claires, on perd les détails dans les extrêmes : tout ce qui passe sous le seuil tombe à 0
 et tout ce qui le dépasse sature à 255. L'écart entre la plus faible et la plus forte luminosité qu'une caméra arrive encore à distinguer dans une même image s'appelle le
 *dynamic range*.
@@ -235,7 +235,7 @@ pointe où, selon WPILib et selon les Limelight) sont dans [Repères, unités et
 <Callout kind="warning">
     Le schéma suit les conventions de WPILib, où le $Y$ du repère robot pointe vers la **gauche**. Dans l'interface
     Limelight, le repère robot a son $Y$ vers la **droite**. C'est le piège le plus coûteux du cours : quand vous entrez la
-    pose d'une caméra dans le Limelight, c'est la convention Limelight qui s'applique. Les deux sont côte à côte dans
+    pose d'une caméra dans la Limelight, c'est la convention Limelight qui s'applique. Les deux sont côte à côte dans
     [Repères, unités et conventions](/blog/cheatsheet-coordinates).
 </Callout>
 
