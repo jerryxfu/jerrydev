@@ -38,10 +38,10 @@ export default function Blog() {
                 <div className="blog-section_feed">
                     <span className="text-label blog-section_feed-label">Recent posts</span>
                     <Suspense fallback={
-                                   <ol className="blogfeed_skeleton" aria-hidden="true">
-                                      {Array.from({length: SKELETON_ROWS}, (_, i) => <li key={i} />)}
-                                  </ol>
-                              }>
+                        <ol className="blogfeed_skeleton" aria-hidden="true">
+                            {Array.from({length: SKELETON_ROWS}, (_, i) => <li key={i} />)}
+                        </ol>
+                    }>
                         <BlogFeed />
                     </Suspense>
                 </div>

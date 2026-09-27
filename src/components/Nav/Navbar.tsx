@@ -87,15 +87,18 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
         if (isShrunk) return;
 
         // The compact state is a class toggled at a threshold. The shape change is ruled by CSS.
-        const setScrolled = (on: boolean) => nav.classList.toggle("is-scrolled", on);
+        const update = () => nav.classList.toggle("is-scrolled", window.scrollY > SHRINK_AT);
 
         ScrollTrigger.create({
             start: SHRINK_AT,
             end: () => Math.max(ScrollTrigger.maxScroll(window), SHRINK_AT + 1),
-            onToggle: (self) => setScrolled(self.isActive),
+            onEnter: update,
+            onLeave: update,
+            onEnterBack: update,
+            onLeaveBack: update,
         });
 
-        setScrolled(window.scrollY > SHRINK_AT);
+        update();
     });
 
     // Escape closes the drawer.

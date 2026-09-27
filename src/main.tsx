@@ -34,7 +34,6 @@ const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
 const LazyPost = lazy(() => import("./pages/BlogPage/PostPage.tsx"));
 const LazyTopic = lazy(() => import("./pages/BlogPage/TopicPage.tsx"));
-const LazyTechNexusPrivacy = lazy(() => import("./pages/technexus/Privacy.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 
@@ -121,7 +120,6 @@ root.render(
                         <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
                         <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
                         <Route path="/cheatsheet/waveform">{renderLazy(<LazyWaveform />)}</Route>
-                        <Route path="/technexus/privacy">{renderLazy(<LazyTechNexusPrivacy />)}</Route>
                         <Route><NotFoundPage /></Route>
                     </Switch>
                 </ThemeProvider>
