@@ -59,7 +59,7 @@ const projects: CardProps[] = [
         image: _technexus,
         chipText: "🟢 Stable",
         dateDisplay: formatDate(new Date("2026-04-08T00:00:00")),
-        url: "https://github.com/jerryxfu/matchtimer",
+        url: "https://technexus.jerryxf.net",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for FIRST Robotics competition team members.",
         footer: "iOS & Android"
     },
