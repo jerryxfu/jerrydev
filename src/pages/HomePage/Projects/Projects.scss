@@ -7,6 +7,37 @@
     flex-direction: row;
     width: 100%;
 
+    // A grid rather than flex-wrap, so the columns share the row instead of leaving the remainder as one empty strip on
+    // the right. At 1440px wrapped 19.2rem cards fit three to a row and left 346px bare: with their 0.9rem margins each
+    // took 336px, and the fourth missed the 1340px row by 4px. The padding is the inset those margins used to give the
+    // first and last column; the 1.5rem gap is what brings the fourth one back at 1440.
+    @media screen and (min-width: 769px) {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(19.2rem, 1fr));
+        gap: 1.5rem;
+        padding: 0.9rem;
+        box-sizing: border-box;
+
+        > .card {
+            width: auto;
+            margin: 0;
+            // At least the old fixed height, so a row of short cards looks as it did. A wider card's image grows
+            // taller, so the card may grow too; the grid keeps every card in a row the height of the tallest.
+            height: auto;
+            min-height: 24.5rem;
+        }
+
+        // 172.8px was exactly 16:9 at the old 19.2rem width. Held as a ratio, a column that widens keeps the frame
+        // the screenshots were cut for, instead of letterboxing them inside a strip.
+        // min-height: 0 because a box sized by aspect-ratio otherwise grows to fit its content: the portrait
+        // screenshots (TechNexus, Conditioner) stretched their frames to 351 and 454px at 1280.
+        .card_image_section {
+            height: auto;
+            min-height: 0;
+            aspect-ratio: 16 / 9;
+        }
+    }
+
     @media screen and (max-width: 768px) {
         flex-direction: column;
         align-items: center;
