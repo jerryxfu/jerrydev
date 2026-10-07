@@ -1,6 +1,7 @@
 .hero {
     display: flex;
     position: relative;
+    isolation: isolate; // the stars under all of it, still over the mesh
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
@@ -12,6 +13,19 @@
     @media screen and (max-width: 480px) {
         padding-left: 5%;
     }
+}
+
+// StarDive.tsx's canvas: the whole hero, over the mesh and under everything else, the lines in the flow included,
+// hence the hero's own stacking context and the negative z-index. A canvas doesn't stretch to its insets, hence the
+// size.
+.hero_stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
 // The letters and words SplitText cuts the hero's lines into. Inline blocks, so the slide-in transforms apply.
