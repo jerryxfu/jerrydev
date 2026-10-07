@@ -8,6 +8,7 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
 import HeroCards from "./HeroCards.tsx";
+import Sky from "./Sky.tsx";
 import {GRADIENT_MESHES} from "./meshes.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
@@ -180,6 +181,7 @@ export default function Hero() {
         <>
             <div className={`${themeGradientClass} hero_mesh`} />
             {/*<div className="gradient-mesh-default" />*/}
+            <Sky />
             <div className="hero">
                 <div className="hero_container">
                     <div className="hero_title">

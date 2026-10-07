@@ -1,0 +1,25 @@
+// Sky.tsx: over the hero's mesh (the same box), under the hero's words (.hero is z-index 1). No z-index of its own: a
+// stacking context here would keep the dusk's multiply from reaching the mesh.
+.sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+// Multiplied with the mesh, so it gets deeper without going grey.
+.sky_dusk {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: multiply;
+    transition: opacity 3s ease, background 450ms;
+}
+
+.sky_stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+}
