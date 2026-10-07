@@ -1,0 +1,18 @@
+// Squares.tsx: a little room under the hero, and the canvas over the whole hero, behind its words.
+.squares {
+    position: relative;
+    z-index: 0; // over the mesh; the hero's words are over it (z-index 1 below)
+    height: 8vh;
+    pointer-events: none;
+
+    canvas {
+        position: absolute;
+        left: 0;
+        bottom: 0; // its top is the hero's top: Squares.tsx makes it the hero's height plus this element's
+        display: block;
+    }
+}
+
+html[data-seam="squares"] .hero {
+    z-index: 1;
+}

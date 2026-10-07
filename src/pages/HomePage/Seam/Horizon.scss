@@ -1,0 +1,33 @@
+// Horizon.tsx: a little room under the hero, the canvas over the lower half of the hero (and that room), and the stars
+// over the whole hero; all of it over the mesh, behind the hero's words.
+html[data-seam="horizon"] .hero {
+    z-index: 1;
+}
+
+.horizon_sky {
+    position: relative;
+    z-index: 0;
+    height: 0;
+    pointer-events: none;
+
+    canvas {
+        position: absolute;
+        top: -100vh;
+        left: 0;
+        display: block;
+    }
+}
+
+.horizon {
+    position: relative;
+    z-index: 0;
+    height: 8vh;
+    pointer-events: none;
+
+    canvas {
+        position: absolute;
+        left: 0;
+        bottom: 0; // its top is halfway up the hero: Horizon.tsx sizes it
+        display: block;
+    }
+}
