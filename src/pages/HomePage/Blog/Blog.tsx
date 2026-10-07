@@ -14,16 +14,14 @@ const BlogFeed = lazy(() => import("./BlogFeed.tsx"));
 const SKELETON_ROWS = 7;
 
 export default function Blog() {
-    // Through the same dynamic import as the feed, so the kicker can say how fresh the blog is once the posts are in.
+    // Through the same dynamic import as the feed, so the description can say how fresh the blog is once the posts are in.
     const latest = useLatestPost();
 
     return (
         <div className="section blog-section">
             <SectionTitle
                 text={"Blog"}
-                index={5}
-                kicker={latest ? `Updated ${latest.age}` : "Field notes"}
-                description={"Where the longer explanations go."}
+                description={`Where the longer explanations go.${latest ? ` Updated ${latest.age}.` : ""}`}
             />
 
             <div className="blog-section_container">

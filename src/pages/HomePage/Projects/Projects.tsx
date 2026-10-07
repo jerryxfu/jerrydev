@@ -170,10 +170,8 @@ export default function Projects() {
         <div className="section projects">
             <SectionTitle
                 text={"Projects"}
-                index={3}
-                kicker={`${projects.length} projects since ${firstYear}`}
                 description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
-                    " Hover over a card, or tap it, to see more."}
+                    ` Hover over a card, or tap it, to see more. ${projects.length} projects since ${firstYear}.`}
             />
 
             <div className="projects_controls">
