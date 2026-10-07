@@ -125,8 +125,8 @@ export default function Hero() {
         // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
         // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            gsap.fromTo(glowRef.current, {"--glow-at": "-50%"}, {
-                "--glow-at": "150%",
+            gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
+                "--glow-at": "175%",
                 duration: 2.6,
                 ease: "sine.inOut",
                 repeat: -1,
