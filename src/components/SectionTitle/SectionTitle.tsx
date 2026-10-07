@@ -1,16 +1,17 @@
 import React from "react";
 import "./SectionTitle.scss";
-import BlockReveal from "./BlockReveal.tsx";
+import Rise from "./Rise.tsx";
 
-// The title arrives behind its block of ink (BlockReveal, from TechNexus's landing page).
+// The title's words rise into place as it comes on screen (Rise). It used to arrive behind a block of ink (BlockReveal,
+// from TechNexus's landing page), which Jerry wasn't sure suited the section titles; that component stays for now.
 const SectionTitle: React.FC<{ text: string; description?: string }> = ({text, description}) => {
     const id = text.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
 
     return (
         <>
-            <BlockReveal className="section-title-text" id={id}>
+            <Rise className="section-title-text" id={id}>
                 {text}
-            </BlockReveal>
+            </Rise>
             {description && <p className="section-title-description">{description}</p>}
         </>
     );
