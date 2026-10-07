@@ -55,6 +55,7 @@ export default function Hero() {
     const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
 
     const dividerRef = useRef(null);
+    const glowRef = useRef<HTMLSpanElement>(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
@@ -121,6 +122,15 @@ export default function Hero() {
             duration: 1,
         }, opening_delay);
 
+        // Once it has expanded, a brighter stretch runs along it every few seconds, fading in at the start and out at
+        // the end. Not with reduced motion: it loops for as long as the page is open.
+        if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            gsap.timeline({repeat: -1, repeatDelay: 2.8, delay: 1.6})
+                .fromTo(glowRef.current, {left: "0%", xPercent: -100}, {left: "100%", xPercent: 0, duration: 1.8, ease: "power1.inOut"}, 0)
+                .fromTo(glowRef.current, {opacity: 0}, {opacity: 1, duration: 0.3, ease: "power1.out"}, 0)
+                .to(glowRef.current, {opacity: 0, duration: 0.35, ease: "power1.in"}, 1.45);
+        }
+
         // Slide up "Hello"
         tl.from([titleRef.current], {
             yPercent: 100,
@@ -179,7 +189,9 @@ export default function Hero() {
                         <h1 ref={titleRef} className="hero_title">Hello</h1>
                     </div>
 
-                    <div className="hero_glowing-separator" ref={dividerRef} />
+                    <div className="hero_glowing-separator" ref={dividerRef}>
+                        <span className="hero_separator-glow" ref={glowRef} />
+                    </div>
 
                     <div>
                         <h2 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h2>
