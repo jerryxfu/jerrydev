@@ -8,8 +8,9 @@
 
     padding-left: 8%;
 
+    // On a phone, in line with the sections below (.section in index.scss).
     @media screen and (max-width: 480px) {
-        padding-left: 4%;
+        padding-left: 5%;
     }
 }
 

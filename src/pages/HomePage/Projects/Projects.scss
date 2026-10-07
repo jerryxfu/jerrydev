@@ -71,11 +71,12 @@
     position: relative;
 }
 
-// As many columns of at least 23rem as fit: three at 1440px, four at 1920px, two on a tablet, one on a phone. The
-// padding is the inset the old cards' margins gave the grid.
+// As many columns of at least 22rem as fit: three at 1280px and 1440px, four at 1920px, two on a tablet, one on a
+// phone. 22rem rather than 23rem since the sections' sides grew to 5%: three still fit at 1280. The padding is the
+// inset the old cards' margins gave the grid.
 .projects_grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 23rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
     gap: 1rem;
     margin: 0;
     padding: 0.9rem;
