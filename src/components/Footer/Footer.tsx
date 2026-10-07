@@ -41,7 +41,6 @@ export default function Footer() {
             content: [
                 {text: "Blog", url: "https://jerryxf.net/blog", decorator: <>📝</>},
                 {text: "Curriculum Vitae", url: "https://cv.jerryxf.net", decorator: <> <ExternalLink size={16} /></>},
-                {text: "Status Page", url: "https://status.jerryxf.net", decorator: <></>},
                 // {text: "Unveil Technologies", url: "https://unveiltechnologies.com", decorator: <img src={unveilIcon} alt="Unveil icon" />}
 
             ]
