@@ -164,15 +164,16 @@
     }
 }
 
-// Open: Card.tsx's layout. The picture on top, at least 16:9 and taller when the rows it spans leave room, with the
-// status over its top right corner; then the title, the subtitle, the description, and a footer with the tags, the
-// credits and the date. Three columns, as closed: the first is the tags' width.
+// Open: Card.tsx's layout. The picture on top, at least 16:9 and taller when the rows it spans leave room; then the
+// title with the status at the end of its line, the subtitle, the description, and a footer with the tags, the
+// credits and the date. Three columns, as closed, so the status and the credits don't share one: the first is the
+// tags' width, the last the status'.
 .projects-item.is-open .projects-card {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-rows: minmax(56.25cqw, 1fr) auto auto auto auto;
     grid-template-areas:
         "media media media"
-        "title title title"
+        "title title chip"
         "sub   sub   sub"
         "more  more  more"
         "tags  foot  foot";
@@ -376,29 +377,19 @@
     }
 }
 
-// The status: on the bottom line closed; over the picture's top right corner open, as on Card.tsx. Over the picture
-// while it moves, too.
+// The status, transparent: on the bottom line closed, at the end of the title's line open. It moves off the picture,
+// where Card.tsx has it, because without its fill it would be unreadable there.
 .projects-card_chip {
-    z-index: 2;
     align-self: end;
     justify-self: end;
     grid-area: chip;
     margin: 0 0.8rem 0.6rem 0.5rem;
+    color: var(--text-3);
     pointer-events: none;
 
-    .chip {
-        background-color: color-mix(in srgb, var(--accent-lt) 60%, transparent);
-    }
-
     .projects-item.is-open & {
-        z-index: 3;
-        align-self: start;
-        grid-area: media;
-        margin: 8px;
-
-        .chip {
-            background-color: color-mix(in srgb, var(--accent-lt) 78%, transparent);
-        }
+        align-self: center;
+        margin: 0.8rem 0.9rem 0 0.5rem;
     }
 }
 
@@ -448,7 +439,7 @@
     transition: transform 0.15s ease;
 }
 
-// Top left of the open card's picture; the status takes the other corner.
+// Top left of the open card's picture.
 .projects-card_close {
     display: none;
     z-index: 3;
