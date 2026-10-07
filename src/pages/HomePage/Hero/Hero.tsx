@@ -185,7 +185,7 @@ export default function Hero() {
 
     return (
         <>
-            <div className={themeGradientClass} />
+            <div className={`${themeGradientClass} hero_mesh`} />
             {/*<div className="gradient-mesh-default" />*/}
             <div className="hero">
                 <div className="hero_container">

@@ -1,0 +1,60 @@
+// Clouds.tsx: a little room between the hero and About, where the clouds settle, and the layers reaching up into the
+// hero from it.
+.clouds {
+    position: relative;
+    z-index: 2; // over the hero (z-index 1 below), under About (3)
+    height: 16vh;
+    pointer-events: none;
+}
+
+html[data-seam="clouds"] {
+    .hero {
+        z-index: 1; // over the stars, under the clouds
+    }
+
+    .about {
+        position: relative;
+        z-index: 3;
+    }
+}
+
+// Over the hero's mesh, behind its words (z-index 0, the hero's is 1): the canvas sits where the hero is, a screen above.
+.clouds_sky {
+    position: relative;
+    z-index: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.clouds_stars {
+    position: absolute;
+    top: -100vh;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+}
+
+// Each layer: its band of puffs (a canvas two periods wide, drifting) and its body below, in one box that rises.
+// Placed by Clouds.tsx (top) so its crest is where it should be.
+.clouds_layer {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    overflow: hidden; // the band is twice as wide as the screen
+
+    canvas {
+        display: block;
+        will-change: transform;
+    }
+}
+
+.clouds_body {
+    height: 30vh;
+    margin-top: -1px; // no hairline between the band and the body
+    background: var(--body);
+
+    // The nearest layer's body is the page's background: long enough to cover the hero's edge until About is in.
+    .clouds_layer:last-child > & {
+        height: 100vh;
+    }
+}
