@@ -1,7 +1,6 @@
 .hero {
     display: flex;
     position: relative;
-    z-index: 1; // over the dive's black and stars (Dive.scss), which cover only the mesh
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
