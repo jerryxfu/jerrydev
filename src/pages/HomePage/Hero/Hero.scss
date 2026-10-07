@@ -94,18 +94,46 @@
     }
 }
 
-.hero_glowing-separator {
-    margin: 0.75rem 0;
-    width: 0;
-    opacity: 0;
-    box-shadow: inset 0 0 8px 8px var(--hero-glow),
-    0 0 8px 8px var(--hero-glow),
-    inset 0 0 0 3px var(--hero-glow),
-    0 0 0 3px var(--hero-glow);
+// HeartbeatLine.tsx, where the glowing separator was: 130% of the title block, like it, and in its glow. The negative
+// margins give back the trace's height, so "I'm Jerry!" sits where it did under the old 0-high bar.
+.hero_heartbeat {
+    position: relative;
+    width: 130%;
+    height: 34px;
+    margin: -0.3rem 0 -0.4rem;
+
+    // Out of the flow, so it never counts toward the title block's width. In the flow it did, and the loop ran away:
+    // the block grew to fit the drawing, the line is 130% of the block, the drawing grew to fit the line.
+    svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        overflow: visible;
+    }
+
+    path {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
 
     @media screen and (max-width: 480px) {
-        margin: 0.50rem 0;
+        margin: -0.4rem 0 -0.5rem;
     }
+}
+
+.hero_heartbeat-line {
+    stroke: color-mix(in srgb, white 80%, transparent);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 3px var(--hero-glow)) drop-shadow(0 0 9px var(--hero-glow));
+}
+
+// The bright stretch that runs along it. Hidden until it runs, so with reduced motion there's only the line.
+.hero_heartbeat-pulse {
+    stroke: white;
+    stroke-width: 3.5;
+    opacity: 0;
+    filter: drop-shadow(0 0 4px white) drop-shadow(0 0 12px var(--hero-glow));
 }
 
 .hero_about-container {
