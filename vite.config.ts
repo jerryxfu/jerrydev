@@ -186,8 +186,7 @@ export default defineConfig({
 
                     if (
                         id.includes("/gsap/") ||
-                        id.includes("/@gsap/") ||
-                        id.includes("/split-type/")
+                        id.includes("/@gsap/")
                     ) {
                         return "gsap-vendor";
                     }

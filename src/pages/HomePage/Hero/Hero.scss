@@ -13,6 +13,11 @@
     }
 }
 
+// The letters and words SplitText cuts the hero's lines into. Inline blocks, so the slide-in transforms apply.
+.hero_split {
+    display: inline-block;
+}
+
 .hero_container {
     position: relative;
     display: flex;
