@@ -123,10 +123,11 @@ export default function Hero() {
         }, opening_delay);
 
         // Once it has expanded, a brighter stretch runs along it every few seconds, fading in at the start and out at
-        // the end. Not with reduced motion: it loops for as long as the page is open.
+        // the end, from one end of the separator to the other and never past them. Not with reduced motion: it loops
+        // for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
             gsap.timeline({repeat: -1, repeatDelay: 2.8, delay: 1.6})
-                .fromTo(glowRef.current, {left: "0%", xPercent: -100}, {left: "100%", xPercent: 0, duration: 1.8, ease: "power1.inOut"}, 0)
+                .fromTo(glowRef.current, {left: "0%", xPercent: 0}, {left: "100%", xPercent: -100, duration: 1.8, ease: "power1.inOut"}, 0)
                 .fromTo(glowRef.current, {opacity: 0}, {opacity: 1, duration: 0.3, ease: "power1.out"}, 0)
                 .to(glowRef.current, {opacity: 0, duration: 0.35, ease: "power1.in"}, 1.45);
         }
