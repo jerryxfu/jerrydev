@@ -1,98 +1,31 @@
 .projects {
 }
 
-// ---- The favourites ----
+// ---- The tags ----
 
-// Three across where there's room for them at a size worth featuring, one under the other below that. The padding
-// is the inset the cards' own margins used to give the old grid.
-.projects_featured {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-    padding: 0.9rem;
-    box-sizing: border-box;
-
-    @media screen and (max-width: 1000px) {
-        grid-template-columns: minmax(0, 1fr);
-        max-width: 34rem;
-    }
-
-    @media screen and (max-width: 768px) {
-        padding: 0.9rem 0;
-    }
-
-    > .card {
-        width: auto;
-        height: auto;
-        margin: 0;
-    }
-
-    // A featured card keeps its screenshot at 16:9 at any width, on a phone too, where a regular card crops to a strip.
-    // min-height: 0 because a box sized by aspect-ratio otherwise grows to fit a taller picture.
-    .card_image_section {
-        height: auto;
-        min-height: 0;
-        aspect-ratio: 16 / 9;
-    }
-
-    .card_image img,
-    .card_image video {
-        object-fit: contain;
-    }
-
-    .card_header_content h3 {
-        font-size: var(--fs-xl);
-    }
-
-    // The credit can push the date onto a line of its own; it stays on the right there too.
-    .card_footer {
-        flex-wrap: wrap;
-        gap: 0.15rem 0.75rem;
-    }
-
-    .card_date {
-        margin-left: auto;
-    }
-}
-
-// ---- Everything else ----
-
-.projects-index {
-    margin-top: 1.25rem;
-    padding: 0 0.9rem;
-
-    @media screen and (max-width: 768px) {
-        padding: 0;
-    }
-}
-
-.projects-index_head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.6rem;
-}
-
-.projects-index_count {
-    font-size: var(--fs-xs);
-    font-variant-numeric: tabular-nums;
-    color: var(--text-5);
-}
-
-.projects-index_controls {
+.projects_controls {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem 1.5rem;
-    margin-bottom: 0.9rem;
+    margin: 0.4rem 0.9rem 0;
+
+    @media screen and (max-width: 768px) {
+        margin: 0.4rem 0 0;
+    }
 }
 
-.projects-index_filters {
+.projects_filters {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+}
+
+.projects_count {
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
 }
 
 // The blog's tag chips (BlogPage.scss, .blog_tag), so filtering looks the same wherever it happens. Restated rather
@@ -129,199 +62,238 @@
     color: var(--text-5);
 }
 
-.projects-index_retired {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--fs-sm);
-    color: var(--text-4);
-    cursor: pointer;
-    user-select: none;
+// ---- The grid ----
 
-    input {
-        margin: 0;
-        accent-color: var(--secondary);
-        cursor: pointer;
-    }
+// The positioning box for the full card, which opens over the grid.
+.projects_wrap {
+    position: relative;
 }
 
-// One line per project, like the blog feed's rows: a fixed gutter for the date, the name, then whatever the row has
-// room for. The line under each is the feed's hairline.
-.projects-index_list {
+// As many columns of at least 23rem as fit: three at 1440px, four at 1920px, two on a tablet, one on a phone. The
+// padding is the inset the old cards' margins gave the grid.
+.projects_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 23rem), 1fr));
+    gap: 1rem;
     margin: 0;
-    padding: 0;
+    padding: 0.9rem;
     list-style: none;
-    border-top: 1px solid var(--border-lt);
+
+    @media screen and (max-width: 768px) {
+        gap: 0.75rem;
+        padding: 0.9rem 0;
+    }
+
+    > li {
+        display: flex;
+    }
 }
 
-.projects-index_row {
+// A whole card is one button: it opens the full card.
+.projects-tile {
     display: flex;
-    align-items: center;
-    gap: 0.9rem;
-    min-height: 2.75rem;
-    padding: 0.35rem 0.5rem;
-    border-bottom: 1px solid var(--border-lt);
-    text-decoration: none;
-    color: inherit;
-    transition: background-color 0.15s ease;
-
-    &:hover {
-        background-color: var(--surface-lt);
-
-        .projects-index_title {
-            text-decoration-color: var(--secondary);
-        }
-    }
-
-    // Two lines on a phone: the name and the status, then the line about it.
-    @media screen and (max-width: 600px) {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 0.1rem 0.75rem;
-        padding: 0.55rem 0.25rem;
-    }
-}
-
-.projects-index_stamp {
-    flex: 0 0 5rem;
-    font-size: var(--fs-xs);
-    font-variant-numeric: tabular-nums;
-    color: var(--text-5);
-    white-space: nowrap;
-
-    @media screen and (max-width: 600px) {
-        display: none;
-    }
-}
-
-.projects-index_name {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    flex: 0 0 auto;
-    min-width: 0;
-}
-
-.projects-index_title {
-    font-size: var(--fs-base);
-    font-weight: 500;
-    color: var(--text-2);
-    white-space: nowrap;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: transparent;
-    transition: text-decoration-color 0.15s ease;
-}
-
-.projects-index_credit {
-    font-size: var(--fs-xs);
-    color: var(--text-5);
-    white-space: nowrap;
-}
-
-// The only part of the row allowed to shrink, and the only part that truncates.
-.projects-index_sub {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--fs-sm);
-    color: var(--text-4);
-
-    @media screen and (max-width: 600px) {
-        grid-column: 1 / -1;
-        grid-row: 2;
-    }
-}
-
-.projects-index_tags {
-    display: flex;
-    gap: 0.35rem;
-    flex: 0 0 auto;
-    font-size: var(--fs-xs);
-    color: var(--text-6);
-
-    // The first thing to go when the row runs out of room, as in the blog feed.
-    @media screen and (max-width: 1100px) {
-        display: none;
-    }
-}
-
-// A fixed width so the statuses line up in a column whatever their label.
-.projects-index_status {
-    flex: 0 0 auto;
-    min-width: 6.5rem;
-    justify-content: center;
-    background-color: color-mix(in srgb, var(--accent-lt) 60%, transparent) !important;
-
-    @media screen and (max-width: 600px) {
-        min-width: 0;
-        grid-column: 2;
-        grid-row: 1;
-    }
-}
-
-.projects-index_empty {
-    margin: 1rem 0.5rem;
-    font-size: var(--fs-sm);
-    color: var(--text-4);
-}
-
-// ---- The preview beside the pointer ----
-
-.projects-preview {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 400; // under the navbar (500)
-    width: 21rem;
+    align-items: stretch;
+    width: 100%;
+    min-height: 7.5rem;
+    padding: 0;
     overflow: hidden;
     border: 1px solid var(--border-da);
-    border-radius: var(--r-md);
+    border-radius: var(--r-sm);
     background-color: var(--bg-lt);
-    box-shadow: 0 24px 48px -24px var(--shadow-daa), 0 4px 12px -6px var(--shadow-da);
-    pointer-events: none;
-    visibility: hidden;
-    opacity: 0;
-    transform-origin: 50% 50%;
+    box-shadow: 0 5px 10px -6px var(--shadow-da);
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.2s ease, transform 0.2s ease;
 
-    // Only where a pointer hovers; on a phone a row is a tap.
-    @media (hover: none), (pointer: coarse) {
-        display: none;
+    &:hover {
+        border-color: var(--text-6);
+        box-shadow: 0 12px 22px -12px var(--shadow-daa);
+        transform: translateY(-2px);
+    }
+
+    // While its full card is open.
+    &[aria-expanded="true"] {
+        border-color: var(--secondary);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: border-color 0.15s ease, box-shadow 0.2s ease;
+
+        &:hover {
+            transform: none;
+        }
     }
 }
 
-.projects-preview_media {
-    aspect-ratio: 16 / 9;
-    border-bottom: 1px solid var(--border);
-    background-color: var(--surface);
+// The picture: a column on the left, as tall as the card. Both images are out of the flow, so a portrait screenshot
+// can't make its card taller than its text does.
+.projects-tile_media {
+    position: relative;
+    flex: 0 0 38%;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+    background-color: var(--surface-da);
 
     img,
     video {
+        position: absolute;
+        inset: 0;
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+    }
+
+    video {
+        object-fit: contain;
+    }
+
+    @media screen and (max-width: 480px) {
+        flex-basis: 34%;
     }
 }
 
-.projects-preview_body {
-    padding: 0.6rem 0.75rem 0.65rem;
+// The same picture, cropped to fill the frame and blurred, behind the whole one.
+.projects-tile_backdrop {
+    object-fit: cover;
+    filter: blur(14px) saturate(1.25);
+    transform: scale(1.25);
+    opacity: 0.6;
 }
 
-.projects-preview_text {
+.projects-tile_img {
+    object-fit: contain;
+}
+
+// Title, subtitle, then the tags and the status along the bottom: what it is, what it does, where it stands. On the
+// bottom line, the statuses of a row of cards line up with each other.
+.projects-tile_body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+    min-width: 0;
+    padding: 0.65rem 0.8rem 0.6rem;
+}
+
+.projects-tile_title {
+    font-size: var(--fs-lg);
+    font-weight: 470;
+    line-height: 1.2;
+    color: var(--text-strong);
+}
+
+.projects-tile_sub {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 3;
     overflow: hidden;
     font-size: var(--fs-sm);
     line-height: 1.45;
     color: var(--text-3);
 }
 
-.projects-preview_meta {
-    margin-top: 0.4rem;
+.projects-tile_meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.45rem;
+}
+
+.projects-tile_tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.4rem;
+    min-width: 0;
     font-size: var(--fs-xs);
     color: var(--text-5);
+}
+
+.projects-tile_status {
+    flex: none;
+    background-color: color-mix(in srgb, var(--accent-lt) 60%, transparent) !important;
+}
+
+// ---- The full card ----
+
+// Card.tsx, opened over the small card. Its size comes from here instead of from its fixed 19.2 by 24.5rem: the
+// width from Projects.tsx, the height from its content, with the screenshot at 16:9 and never cropped.
+.projects-peek {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 60; // over the grid, under the navbar (500)
+    border-radius: var(--r-md);
+    background-color: var(--bg-lt);
+    box-shadow: 0 30px 60px -28px var(--shadow-daa), 0 10px 24px -12px var(--shadow-da);
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 2px;
+    }
+
+    .card {
+        width: 100%;
+        height: auto;
+        margin: 0;
+        box-shadow: none;
+        border-radius: var(--r-md);
+    }
+
+    .card_image_section {
+        height: auto;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+        background-color: var(--surface);
+    }
+
+    .card_image img,
+    .card_image video {
+        object-fit: contain;
+    }
+
+    .card_header_content h3 {
+        font-size: var(--fs-xl);
+    }
+
+    // The status chip sits top right of the picture, so the close button takes the other corner.
+    .card_footer {
+        flex-wrap: wrap;
+        gap: 0.15rem 0.75rem;
+    }
+
+    .card_date {
+        margin-left: auto;
+    }
+}
+
+// Only once the card stays open: a hover-opened one closes by itself when the pointer leaves.
+.projects-peek_close {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3; // over the picture and its banner
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    background-color: color-mix(in srgb, var(--bg-lt) 85%, transparent);
+    color: var(--text-2);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-strong);
+        border-color: var(--border-da);
+    }
+
+    .projects-peek.is-pinned & {
+        display: inline-flex;
+    }
 }

@@ -2,7 +2,7 @@ import {useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
-import {featuredProjects, isRetired, listedProjects} from "../Projects/projects.ts";
+import {isArchived, sortedProjects} from "../Projects/projects.ts";
 import "./Board.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -20,9 +20,9 @@ const STATUS_COLOUR: Record<string, string> = {
     Concept: "var(--pink)",
 };
 
-// The featured ones first, then the rest newest first; the retired ones stay off the board.
-const ROW = [...featuredProjects, ...listedProjects]
-    .filter((project) => !isRetired(project))
+// Newest first, as in the projects section; the archived ones stay off the board.
+const ROW = sortedProjects
+    .filter((project) => !isArchived(project))
     .map((project) => {
         // "🟢 Stable" to "Stable": the label is whatever follows the emoji.
         const status = (project.chipText ?? "").replace(/^\S+\s*/u, "");

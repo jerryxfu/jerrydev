@@ -1,5 +1,4 @@
 import type {CardProps} from "@/components/Card/Card.tsx";
-import {FRIENDS} from "@/components/Friends/friends.ts";
 import _llmvsllm from "@/assets/projects/llmvsllm.jpeg";
 import _baputils from "@/assets/projects/baputils.jpeg";
 import _expedite from "@/assets/projects/expedite.jpeg";
@@ -28,16 +27,21 @@ import _hiddengarden from "@/assets/projects/hiddengarden.jpeg";
 import _guides from "@/assets/projects/guides.jpeg";
 import _stats from "@/assets/projects/stats.jpeg";
 
-// The projects, as data. Projects.tsx renders the featured ones as cards and the rest as a list you can filter; the
-// status board under the hero reads the same list, so a status changes in one place.
+// The projects, as data. Projects.tsx renders them as a grid of small cards you can filter by tag, each opening into
+// the full card; the status board under the hero reads the same list, so a status changes in one place.
+//
+// subTitle is what the small card says under the title, up to three lines; description is for the full card. Credits
+// and clients go in footer, as on any card: "For Maria", "With Raphaël & Samy".
 
-// The filters, in the order their chips render. A project can sit under several.
+// The tags, in the order their filter chips render. A project can carry several. "archived" is what used to hide
+// a project behind a checkbox: it now sorts last and has its own chip, and keeps it off the status board.
 export const CATEGORIES = {
     web: "Web",
     tools: "Tools",
     ai: "AI & medicine",
     robotics: "Robotics & hardware",
     mods: "Bots & mods",
+    archived: "Archived",
 } as const;
 
 export type Category = keyof typeof CATEGORIES;
@@ -49,17 +53,13 @@ export type Project = Omit<CardProps, "dateDisplay"> & {
     // "18-05-2026 (141 days ago)". Local midnight, see the T00:00:00 note in BlogPage/posts.tsx.
     date: Date;
     categories: Category[];
-    // Shown as a full card above the list, at most three or four of them.
-    featured?: boolean;
     // For the dark themes, when the image only reads on a light background.
     imageDark?: string;
 };
 
 const day = (iso: `${number}-${number}-${number}`): Date => new Date(`${iso}T00:00:00`);
 
-// Out of the list until "show archived" is ticked. Finished projects aren't archived: they still work.
-const RETIRED = ["📦 Archived", "🗑️ Obsolete", "⚠️ Deprecated", "❌Abandoned"];
-export const isRetired = (project: Project): boolean => RETIRED.includes(project.chipText ?? "");
+export const isArchived = (project: Project): boolean => project.categories.includes("archived");
 
 export const projects: Project[] = [
     {
@@ -70,10 +70,8 @@ export const projects: Project[] = [
         date: day("2026-04-08"),
         url: "https://technexus.jerryxf.net",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for FIRST Robotics competition team members.",
-        footer: "iOS & Android",
-        collaborators: [FRIENDS.raphael, FRIENDS.samy],
+        footer: "iOS & Android · With Raphaël & Samy",
         categories: ["robotics"],
-        featured: true,
     },
     {
         title: "MEDIVE",
@@ -86,7 +84,6 @@ export const projects: Project[] = [
         description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
         footer: "IB Extended Essay",
         categories: ["ai"],
-        featured: true,
     },
     {
         title: "Home Island",
@@ -98,7 +95,6 @@ export const projects: Project[] = [
         description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
         footer: "Click image for links",
         categories: ["web"],
-        featured: true,
     },
     {
         title: "Expedite",
@@ -119,7 +115,7 @@ export const projects: Project[] = [
         description: "HiddenGarden is a flower shop founded by Maria. This is their website built by me, featuring many flower options and online ordering.",
         url: "https://hiddengarden.pages.dev",
         date: day("2026-06-12"),
-        client: "Maria",
+        footer: "For Maria",
         categories: ["web"],
     },
     {
@@ -248,7 +244,7 @@ export const projects: Project[] = [
         date: day("2024-07-11"),
         url: "https://doublestartyre.ca",
         description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
-        client: "Dodo Wheels",
+        footer: "For Dodo Wheels",
         categories: ["web"],
     },
     {
@@ -260,7 +256,7 @@ export const projects: Project[] = [
         url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
         description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
         footer: "RSEQ Montreal",
-        categories: ["robotics", "web"],
+        categories: ["robotics", "web", "archived"],
     },
     {
         title: "Conditioner",
@@ -270,7 +266,7 @@ export const projects: Project[] = [
         date: day("2025-07-24"),
         url: "/#:~:text=MEDIVE",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE.",
-        categories: ["ai"],
+        categories: ["ai", "archived"],
     },
     {
         title: "RPI Pico weather station",
@@ -300,7 +296,7 @@ export const projects: Project[] = [
         date: day("2024-03-23"), // MotionLens creation
         description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
         url: "https://github.com/jerryxfu/auto-scout",
-        categories: ["robotics"],
+        categories: ["robotics", "archived"],
     },
     {
         title: "LLM vs LLM",
@@ -310,7 +306,7 @@ export const projects: Project[] = [
         url: "https://github.com/jerryxfu/llmvsllm",
         date: day("2024-05-18"),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
-        categories: ["ai"],
+        categories: ["ai", "archived"],
     },
     {
         title: "Time",
@@ -329,11 +325,9 @@ export const projects: Project[] = [
     // MegaCSV (/megacsv, 🌀 Concept), Itinerary (public transit, 🌀 Concept)
 ];
 
-// Featured first in the order above, everything else newest first.
-export const featuredProjects = projects.filter((project) => project.featured);
-export const listedProjects = projects
-    .filter((project) => !project.featured)
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
+// Newest first, the archived ones after everything else, so "All" opens on what's alive.
+export const sortedProjects = [...projects].sort((a, b) =>
+    Number(isArchived(a)) - Number(isArchived(b)) || b.date.getTime() - a.date.getTime());
 
 export const firstYear = Math.min(...projects.map((project) => project.date.getFullYear()));
 
