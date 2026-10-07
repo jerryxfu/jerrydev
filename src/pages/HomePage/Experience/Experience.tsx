@@ -65,6 +65,8 @@ export default function Experience() {
         <div className="section experience">
             <SectionTitle
                 text={"Experience & Extras"}
+                index={4}
+                kicker={`Since ${Math.min(...experiences.map(({date}) => date.getFullYear()))}`}
                 description={"The notable extracurriculars and stuff beyond my own projects."}
             />
 

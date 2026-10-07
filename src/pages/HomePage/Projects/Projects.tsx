@@ -351,6 +351,7 @@ export default function Projects() {
         <div className="section projects">
             <SectionTitle
                 text={"Projects"}
+                index={3}
                 description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
                     " Many cards have clickable images or a floating link and some cards may have both for different destinations!"}
             />

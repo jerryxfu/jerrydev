@@ -1,0 +1,13 @@
+// Morph.tsx. The letters' own box, so the ones leaving can stand where they were, absolutely, while the new ones flow
+// in behind them. One line, never wrapped: a wrap could fall between any two letters.
+.morph_letters {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+// Each letter its own box, so it can blur and move; `pre` keeps a space's width.
+.morph_char {
+    display: inline-block;
+    white-space: pre;
+}

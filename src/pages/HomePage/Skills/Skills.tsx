@@ -84,6 +84,8 @@ export default function Skills() {
         <div className="section skills">
             <SectionTitle
                 text={"Tools & Languages"}
+                index={2}
+                kicker={`${tech_stack.length} tools, honestly rated`}
                 description={"The stuff I build my projects with, with a thoroughly unscientific rating of how good I am at each."}
             />
 
