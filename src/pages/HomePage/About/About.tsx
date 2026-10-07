@@ -6,7 +6,8 @@ import Friends from "@/components/Friends/Friends.tsx";
 export default function About() {
     return (
         <div className="section about">
-            <SectionTitle text={"About Me"} description={"Based in Montréal."} />
+            {/* Revealed later than the others, once the dive's black has lifted (Dive.tsx). */}
+            <SectionTitle text={"About Me"} description={"Based in Montréal."} start="top 45%" />
             <div className="layout-row about_intro">
                 <p className="text-body">
                     Hi, I'm Jerry and I do things. Here are some things I find worth sharing.

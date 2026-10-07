@@ -1,4 +1,7 @@
+// Over the dive's black and stars (Dive.scss), which About's content rises out of.
 .about {
+    position: relative;
+    z-index: 2;
 }
 
 // The measure that used to sit on .about itself. Moved down to the prose so the contact block below it
