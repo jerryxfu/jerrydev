@@ -1,49 +1,327 @@
 .projects {
 }
 
-.projects-grid {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width: 100%;
+// ---- The favourites ----
 
-    // A grid rather than flex-wrap, so the columns share the row instead of leaving the remainder as one empty strip on
-    // the right. At 1440px wrapped 19.2rem cards fit three to a row and left 346px bare: with their 0.9rem margins each
-    // took 336px, and the fourth missed the 1340px row by 4px. The padding is the inset those margins used to give the
-    // first and last column; the 1.5rem gap is what brings the fourth one back at 1440.
-    @media screen and (min-width: 769px) {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(19.2rem, 1fr));
-        gap: 1.5rem;
-        padding: 0.9rem;
-        box-sizing: border-box;
+// Three across where there's room for them at a size worth featuring, one under the other below that. The padding
+// is the inset the cards' own margins used to give the old grid.
+.projects_featured {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    padding: 0.9rem;
+    box-sizing: border-box;
 
-        > .card {
-            width: auto;
-            margin: 0;
-            // At least the old fixed height, so a row of short cards looks as it did. A wider card's image grows
-            // taller, so the card may grow too; the grid keeps every card in a row the height of the tallest.
-            height: auto;
-            min-height: 24.5rem;
-        }
-
-        // 172.8px was exactly 16:9 at the old 19.2rem width. Held as a ratio, a column that widens keeps the frame
-        // the screenshots were cut for, instead of letterboxing them inside a strip.
-        // min-height: 0 because a box sized by aspect-ratio otherwise grows to fit its content: the portrait
-        // screenshots (TechNexus, Conditioner) stretched their frames to 351 and 454px at 1280.
-        .card_image_section {
-            height: auto;
-            min-height: 0;
-            aspect-ratio: 16 / 9;
-        }
+    @media screen and (max-width: 1000px) {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 34rem;
     }
 
     @media screen and (max-width: 768px) {
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        //gap: 1rem;
-        //margin: 0;
-        //padding: 0;
+        padding: 0.9rem 0;
     }
+
+    > .card {
+        width: auto;
+        height: auto;
+        margin: 0;
+    }
+
+    // A featured card keeps its screenshot at 16:9 at any width, on a phone too, where a regular card crops to a strip.
+    // min-height: 0 because a box sized by aspect-ratio otherwise grows to fit a taller picture.
+    .card_image_section {
+        height: auto;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
+
+    .card_image img,
+    .card_image video {
+        object-fit: contain;
+    }
+
+    .card_header_content h3 {
+        font-size: var(--fs-xl);
+    }
+
+    // The credit can push the date onto a line of its own; it stays on the right there too.
+    .card_footer {
+        flex-wrap: wrap;
+        gap: 0.15rem 0.75rem;
+    }
+
+    .card_date {
+        margin-left: auto;
+    }
+}
+
+// ---- Everything else ----
+
+.projects-index {
+    margin-top: 1.25rem;
+    padding: 0 0.9rem;
+
+    @media screen and (max-width: 768px) {
+        padding: 0;
+    }
+}
+
+.projects-index_head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.projects-index_count {
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
+}
+
+.projects-index_controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    margin-bottom: 0.9rem;
+}
+
+.projects-index_filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+// The blog's tag chips (BlogPage.scss, .blog_tag), so filtering looks the same wherever it happens. Restated rather
+// than imported: that stylesheet belongs to the blog's own chunk.
+.projects-filter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background-color: var(--bg-lt);
+    font-family: inherit;
+    font-size: var(--fs-smm);
+    color: var(--text-3);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        border-color: var(--border-da);
+        color: var(--text);
+    }
+
+    &.active {
+        border-color: var(--secondary);
+        background-color: color-mix(in srgb, var(--secondary) 12%, var(--bg));
+        color: var(--text-strong);
+    }
+}
+
+.projects-filter_count {
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
+}
+
+.projects-index_retired {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+    cursor: pointer;
+    user-select: none;
+
+    input {
+        margin: 0;
+        accent-color: var(--secondary);
+        cursor: pointer;
+    }
+}
+
+// One line per project, like the blog feed's rows: a fixed gutter for the date, the name, then whatever the row has
+// room for. The line under each is the feed's hairline.
+.projects-index_list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-lt);
+}
+
+.projects-index_row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--border-lt);
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: var(--surface-lt);
+
+        .projects-index_title {
+            text-decoration-color: var(--secondary);
+        }
+    }
+
+    // Two lines on a phone: the name and the status, then the line about it.
+    @media screen and (max-width: 600px) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.1rem 0.75rem;
+        padding: 0.55rem 0.25rem;
+    }
+}
+
+.projects-index_stamp {
+    flex: 0 0 5rem;
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
+    white-space: nowrap;
+
+    @media screen and (max-width: 600px) {
+        display: none;
+    }
+}
+
+.projects-index_name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.projects-index_title {
+    font-size: var(--fs-base);
+    font-weight: 500;
+    color: var(--text-2);
+    white-space: nowrap;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.15s ease;
+}
+
+.projects-index_credit {
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+    white-space: nowrap;
+}
+
+// The only part of the row allowed to shrink, and the only part that truncates.
+.projects-index_sub {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+
+    @media screen and (max-width: 600px) {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
+.projects-index_tags {
+    display: flex;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    color: var(--text-6);
+
+    // The first thing to go when the row runs out of room, as in the blog feed.
+    @media screen and (max-width: 1100px) {
+        display: none;
+    }
+}
+
+// A fixed width so the statuses line up in a column whatever their label.
+.projects-index_status {
+    flex: 0 0 auto;
+    min-width: 6.5rem;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--accent-lt) 60%, transparent) !important;
+
+    @media screen and (max-width: 600px) {
+        min-width: 0;
+        grid-column: 2;
+        grid-row: 1;
+    }
+}
+
+.projects-index_empty {
+    margin: 1rem 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+}
+
+// ---- The preview beside the pointer ----
+
+.projects-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 400; // under the navbar (500)
+    width: 21rem;
+    overflow: hidden;
+    border: 1px solid var(--border-da);
+    border-radius: var(--r-md);
+    background-color: var(--bg-lt);
+    box-shadow: 0 24px 48px -24px var(--shadow-daa), 0 4px 12px -6px var(--shadow-da);
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform-origin: 50% 50%;
+
+    // Only where a pointer hovers; on a phone a row is a tap.
+    @media (hover: none), (pointer: coarse) {
+        display: none;
+    }
+}
+
+.projects-preview_media {
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid var(--border);
+    background-color: var(--surface);
+
+    img,
+    video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.projects-preview_body {
+    padding: 0.6rem 0.75rem 0.65rem;
+}
+
+.projects-preview_text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text-3);
+}
+
+.projects-preview_meta {
+    margin-top: 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
 }

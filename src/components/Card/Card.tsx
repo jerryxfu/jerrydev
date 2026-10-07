@@ -1,6 +1,7 @@
-import {memo, type ReactElement} from "react";
+import {Fragment, memo, type ReactElement} from "react";
 import {Link} from "wouter";
 import Chip from "../../components/Chip/Chip.tsx";
+import type {Friend} from "../Friends/friends.ts";
 import "./Card.scss";
 
 export interface CardProps {
@@ -37,10 +38,17 @@ export interface CardProps {
     color?: string | undefined;
     footer?: string | undefined;
     dateDisplay?: string;
+    // The people it was built with, credited in the footer with a link to their site: "with Raphaël & Samy".
+    collaborators?: Friend[];
+    // Who it was built for, when it was for someone: "for Dodo Wheels". Shown when there are no collaborators.
+    client?: string;
 }
 
+// "Raphaël & Samy", "A, B & C".
+const joiner = (i: number, count: number) => (i === 0 ? "" : i === count - 1 ? " & " : ", ");
+
 const Card = memo(function Card(props: CardProps) {
-    const {image, title, subTitle, description, chipText, specialLink, specialLinkText, url, color, footer, dateDisplay} = props;
+    const {image, title, subTitle, description, chipText, specialLink, specialLinkText, url, color, footer, dateDisplay, collaborators, client} = props;
 
     // Guard the string branch before touching string methods — .toLowerCase() on an element throws at render.
     const isAsset = typeof image === "string";
@@ -102,7 +110,21 @@ const Card = memo(function Card(props: CardProps) {
 
             <div className="card_footer">
                 <p className="card_stats">
-                    {/*<span className="stat-item"></span>*/}
+                    {collaborators && collaborators.length > 0 ? (
+                        <span className="card_credits">
+                            with{" "}
+                            {collaborators.map((friend, i) => (
+                                <Fragment key={friend.url}>
+                                    {joiner(i, collaborators.length)}
+                                    <a href={friend.url} target="_blank" rel="noopener noreferrer">
+                                        <img src={friend.icon} alt="" />{friend.name}
+                                    </a>
+                                </Fragment>
+                            ))}
+                        </span>
+                    ) : client ? (
+                        <span className="card_credits">for {client}</span>
+                    ) : null}
                 </p>
                 <p className="card_date">
                     {footer && `${footer} | `}

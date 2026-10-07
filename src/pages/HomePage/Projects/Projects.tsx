@@ -1,365 +1,251 @@
-import {useMemo} from "react";
+import {type PointerEventHandler, type ReactNode, useMemo, useRef, useState} from "react";
+import {Link} from "wouter";
+import {gsap} from "gsap";
+import {useGSAP} from "@gsap/react";
 import "./Projects.scss";
-import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
-import Card, {type CardProps} from "../../../components/Card/Card.tsx";
-import _llmvsllm from "../../../assets/projects/llmvsllm.jpeg";
-import _baputils from "../../../assets/projects/baputils.jpeg";
-import _expedite from "../../../assets/projects/expedite.jpeg";
-import _jerrybot from "../../../assets/projects/jerrybot.jpeg";
-import _jerryxf from "../../../assets/projects/jerryxf.jpeg";
-import _conditioner from "../../../assets/projects/conditioner.jpeg";
-import _kahootBot from "../../../assets/projects/kahootbot.mp4";
-import _weatherStation from "../../../assets/projects/weather_station.jpeg";
-import _endPortal from "../../../assets/projects/end_portal.jpg";
-import _supericu from "../../../assets/projects/supericu.jpeg";
-import _doublestartyre from "../../../assets/projects/doublestartyre.jpeg";
-import _scorekeeper from "../../../assets/projects/scorekeeper.jpeg";
-import _scheduler from "../../../assets/projects/scheduler.jpeg";
-import _autoscout from "../../../assets/projects/autoscout.jpeg";
-import _medive from "../../../assets/projects/medive.jpeg";
-import _unveil_dark from "../../../assets/projects/unveil/unveil_dark.png";
-import _unveil_light from "../../../assets/projects/unveil/unveil_light.png";
-import _homeisland from "../../../assets/projects/home-island.jpeg";
-import _technexus from "../../../assets/projects/technexus.png";
-import _rendezvous from "../../../assets/projects/rendezvous.jpeg";
-import _tools_light from "../../../assets/projects/tools_light.jpeg";
-import _tools_dark from "../../../assets/projects/tools_dark.jpeg";
-import _vite_light from "../../../assets/projects/vite_light.jpeg";
-import _vite_dark from "../../../assets/projects/vite_dark.jpeg";
-import _hiddengarden from "../../../assets/projects/hiddengarden.jpeg";
-import _guides from "../../../assets/projects/guides.jpeg";
-import _stats from "../../../assets/projects/stats.jpeg";
+import SectionTitle from "@/components/SectionTitle/SectionTitle.tsx";
+import Card from "@/components/Card/Card.tsx";
+import Chip from "@/components/Chip/Chip.tsx";
 import {formatDate} from "@/utils.ts";
 import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
+import useMediaQuery from "@/hooks/useMediaQuery.ts";
+import {CATEGORIES, type Category, categoryIds, featuredProjects, firstYear, imageFor, isRetired, listedProjects, type Project, projects} from "./projects.ts";
 
-const projects: CardProps[] = [
-    {
-        title: "Home Island",
-        subTitle: "Custom browser start page",
-        image: _homeisland,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-02-05T00:00:00")),
-        url: "https://github.com/jerryxfu/home-island",
-        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
-        footer: "Click image for links"
-    },
-    {
-        title: "Expedite",
-        subTitle: "Share files and text snippets instantly!",
-        image: _expedite,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-05-18T00:00:00")),
-        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
-        url: "/expedite",
-        footer: "Same-day shipping!"
-    },
-    {
-        title: "TechNexus",
-        subTitle: "A companion app for FRC",
-        image: _technexus,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-04-08T00:00:00")),
-        url: "https://technexus.jerryxf.net",
-        description: "A mobile app that provides dynamic schedule updates and useful tools & information for FIRST Robotics competition team members.",
-        footer: "iOS & Android"
-    },
-    {
-        title: "MEDIVE",
-        subTitle: "Research project",
-        image: _medive,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2025-08-14T00:00:00")),
-        url: "https://github.com/jerryxfu/medive",
-        specialLink: "/blog/medive-devlog0",
-        description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
-        footer: "IB Extended Essay"
-    },
-    {
-        title: "HiddenGarden",
-        subTitle: "A florist's website",
-        image: _hiddengarden,
-        chipText: "🟢 Stable",
-        description: "HiddenGarden is a flower shop founded by Maria. This is their website built by me, featuring many flower options and online ordering.",
-        url: "https://hiddengarden.pages.dev",
-        dateDisplay: formatDate(new Date("2026-06-12T00:00:00"))
-    },
-    {
-        title: "BapUtils",
-        subTitle: "A Hypixel Skyblock Minecraft mod",
-        image: _baputils,
-        chipText: "🚧 WIP",
-        dateDisplay: formatDate(new Date("2023-06-24T00:00:00")),
-        url: "https://github.com/jerryxfu/BapUtils",
-        description: "BapUtils is a lightweight Minecraft Fabric mod for Hypixel Skyblock that provides various quality of life utilities. The update to Minecraft version 26.2 is underway",
-        footer: "/bap"
-    },
-    {
-        title: "Scheduler",
-        subTitle: "A schedule visualizer and comparer",
-        image: _scheduler,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2025-08-27T00:00:00")),
-        description: "A web app to visualize and compare daily/weekly schedules.",
-    },
-    {
-        title: "Rendezvous",
-        subTitle: "A tool to help schedule group events",
-        image: _rendezvous,
-        chipText: "🟢 Stable",
-        description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
-        url: "/rendezvous",
-        dateDisplay: formatDate(new Date("2026-05-22T00:00:00"))
-    },
-    // {
-    //     title: "Unveil Technologies",
-    //     subTitle: "Building what's next",
-    //     image: _unveil_dark,
-    //     chipText: "Founder",
-    //     dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-    //     url: "https://unveiltechnologies.com",
-    //     description: "A defense-software company building the operational intelligence layer that turns raw, multi-source data into live, explainable decisions. Unveil builds ORCA and everything that follows."
-    // },
-    {
-        title: "Kahoot! bot",
-        subTitle: "",
-        image: _kahootBot,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2024-07-01T00:00:00")),
-        url: "https://github.com/jerryxfu/kahoot-bot",
-        description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
-    },
-    {
-        title: "Guide",
-        subTitle: "Guides about various stuff",
-        image: _guides,
-        specialLink: "/blog/topics/guides",
-        specialLinkText: "Open",
-        description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
-        url: "/blog/topics/guides",
-        dateDisplay: formatDate(new Date("2026-08-21T00:00:00")),
-    },
-    {
-        title: "*.jerryxf.net",
-        subTitle: "This website, right here!",
-        image: _jerryxf,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2022-07-25T00:00:00")), // aspectofjerry.dev registration date
-        description: "This portfolio website, the blog, as well as the API that empowers other projects.",
-        specialLink: "/blog/hello-blog",
-    },
-    {
-        title: "Vite + React + TS template",
-        subTitle: "A modern website template",
-        image: _vite_light,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-05-22T00:00:00")), // first commit
-        url: "https://github.com/jerryxfu/vite-react-ts",
-        specialLink: "https://github.com/jerryxfu/vite-react-ts",
-        specialLinkText: "View on GitHub",
-        description: "An opinionated starter for React projects. Ships TypeScript in strict mode, Vite, SCSS with light/dark custom properties, wouter routing, an error boundary, an ESLint flat config, and an offline-capable PWA.",
-    },
-    {
-        title: "stats.jerryxf",
-        subTitle: "Cool live data feeds",
-        image: _stats,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-07-22T00:00:00")),
-        url: "https://stats.jerryxf.net",
-        description: "A collection of diverse live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices."
-    },
-    {
-        title: "JerryBot",
-        subTitle: "A comprehensive discord bot",
-        image: _jerrybot,
-        chipText: "🟢 Stable",
-        url: "https://github.com/jerryxfu/jerrybot-discord",
-        dateDisplay: formatDate(new Date("2021-09-01T00:00:00")),
-        description: "JerryBot is a comprehensive all purpose Discord bot that provides various utilities and fun features.",
-    },
-    {
-        title: "SuperICU",
-        subTitle: "A tool to preview ICU monitor data",
-        image: _supericu,
-        chipText: "✅ Completed",
-        dateDisplay: formatDate(new Date("2025-08-19T00:00:00")),
-        url: "/supericu",
-        description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface."
-    },
-    {
-        title: "Doublestartyre CA",
-        subTitle: "",
-        image: _doublestartyre,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2024-07-11T00:00:00")),
-        url: "https://doublestartyre.ca",
-        description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
-        footer: "For Dodo Wheels"
-    },
-    {
-        title: "FRC Scorekeeper interface",
-        subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
-        image: _scorekeeper,
-        chipText: "📦 Archived",
-        dateDisplay: formatDate(new Date("2025-05-09T00:00:00")),
-        url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
-        description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
-        footer: "RSEQ Montreal"
-    },
-    {
-        title: "Conditioner",
-        subTitle: "A rule based diagnostic app",
-        image: _conditioner,
-        chipText: "🗑️ Obsolete",
-        dateDisplay: formatDate(new Date("2025-07-24T00:00:00")),
-        url: "/#:~:text=MEDIVE",
-        description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE."
-    },
-    {
-        title: "RPI Pico weather station",
-        subTitle: "A small indoor weather station",
-        image: _weatherStation,
-        chipText: "✅ Completed",
-        dateDisplay: formatDate(new Date("2025-02-08T00:00:00")),
-        description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
-    },
-    {
-        title: "Tools",
-        subTitle: "A repo with random utility scripts",
-        image: _tools_light,
-        chipText: "🟢 Stable",
-        dateDisplay: formatDate(new Date("2026-06-15T00:00:00")),
-        url: "https://github.com/jerryxfu/tools",
-        description: "A repository with random utility scripts that I use here and there.",
-    },
-    {
-        title: "FRC AutoScout",
-        subTitle: "Autonomous scouting for FRC",
-        image: _autoscout,
-        chipText: "🗑️ Obsolete",
-        dateDisplay: formatDate(new Date("2024-03-23T00:00:00")), // MotionLens creation
-        description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
-        url: "https://github.com/jerryxfu/auto-scout"
-    },
-    {
-        title: "LLM vs LLM",
-        subTitle: "Two LLMs debate on a given topic",
-        image: _llmvsllm,
-        chipText: "📦 Archived",
-        url: "https://github.com/jerryxfu/llmvsllm",
-        dateDisplay: formatDate(new Date("2024-05-18T00:00:00")),
-        description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
-    },
-    {
-        title: "Time",
-        subTitle: "Date/time tools",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        dateDisplay: formatDate(new Date("2026-06-10T00:00:00")),
-        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
-        url: "/time",
-    },
-    {
-        title: "...",
-        subTitle: "More projects to come...",
-        image: _endPortal,
-        chipText: "🌀 Concept",
-        // dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
-        description: "",
-    },
-    // {
-    //     title: "ORCA",
-    //     subTitle: "Uncover the unseen",
-    //     image: _endPortal,
-    //     chipText: "🧩 MVP",
-    //     dateDisplay: formatDate(new Date("2025-10-01T00:00:00")),
-    //     url: "https://unveiltechnologies.com",
-    //     description: "A tactical intelligence platform that turns battlefield data into live, actionable insight — through AI-driven multimodal fusion, anomaly detection, and explainable intel assessments.",
-    //     footer: "TRL-3"
-    // },
-    // {
-    //     title: "Cyclic",
-    //     subTitle: "Sleep cycle calculator and periods tracker",
-    //     image: _endPortal,
-    //     chipText: "🌀 Concept",
-    //     dateDisplay: formatDate(new Date("2025-12-28T00:00:00")),
-    //     description: "A mobile app for optimising sleep cycles and tracking periods, built with privacy at its core.",
-    //     footer: "iOS & Android"
-    // },
-    // {
-    //     title: "Pulse",
-    //     subTitle: "Screen time micro-session limiter",
-    //     image: _endPortal,
-    //     chipText: "🌀 Concept",
-    //     dateDisplay: formatDate(new Date("2026-04-20T00:00:00")),
-    //     url: "",
-    //     description: "A screen time app with micro-sessions. Open any app freely, get a short window to use it, and get cut off when time's up.",
-    //     footer: "iOS & Android"
-    // },
-    // {
-    //     title: "Cheatsheet",
-    //     subTitle: "A collection of useful cheatsheets",
-    //     image: _endPortal,
-    //     chipText: "🧩 MVP",
-    //     dateDisplay: "awaiting",
-    //     url: "/cheatsheet",
-    //     description: "A collection of useful cheatsheets for various topics.",
-    // },
-    // {
-    //     title: "TechDashboard",
-    //     subTitle: "Pit dashboard for FRC",
-    //     image: _endPortal,
-    //     chipText: "🌀 Concept",
-    //     dateDisplay: "awaiting",
-    //     description: "A pit display for FIRST Robotics competitions, integrating robot telemetry, battery tracker, self-tests, slack messaging, and more.",
-    // },
-    // {
-    //     title: "MegaCSV",
-    //     subTitle: "Preview large CSV files",
-    //     image: _endPortal,
-    //     chipText: "🌀 Concept",
-    //     dateDisplay: "awaiting",
-    //     description: "Preview large CSV files without crashing your computer.",
-    //     url: "/megacsv"
-    // },
-    // {
-    //     title: "Itinerary",
-    //     subTitle: "Optimize travel by public transit",
-    //     image: _endPortal,
-    //     chipText: "🌀 Concept",
-    //     dateDisplay: "awaiting",
-    //     description: "description."
-    // }
-];
+// The favourites as full cards, then everything else as a list you can filter, newest first, one line each like the
+// blog feed. The list keeps the screenshots out of the way until you want one: on a mouse, hovering a row brings its
+// picture and description along beside the pointer.
+
+const RETIRED_COUNT = listedProjects.filter(isRetired).length;
+
+const MONTH = new Intl.DateTimeFormat("en-CA", {month: "short", year: "numeric"});
+const isoDay = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const isVideo = (src: unknown): src is string => typeof src === "string" && /\.(mp4|webm|ogg|mov)$/i.test(src);
+
+// The credit beside a row's title. Plain text: the row is itself a link, and links can't nest.
+const creditOf = (project: Project): string | null => {
+    const people = project.collaborators?.map((friend) => friend.name);
+    if (people?.length) return `with ${people.length > 1 ? `${people.slice(0, -1).join(", ")} & ${people.at(-1)}` : people[0]}`;
+    return project.client ? `for ${project.client}` : null;
+};
 
 export default function Projects() {
     const {currentTheme} = useTheme();
-
-    const themedProjects = useMemo(() => projects.map((project) => {
-        if (project.title === "Unveil Technologies") {
-            return {...project, image: isDarkTheme(currentTheme) ? _unveil_light : _unveil_dark};
-        }
-        if (project.title === "Tools") {
-            return {...project, image: isDarkTheme(currentTheme) ? _tools_dark : _tools_light};
-        }
-        if (project.title === "Vite + React + TS template") {
-            return {...project, image: isDarkTheme(currentTheme) ? _vite_dark : _vite_light};
-        }
-        return project;
-    }), [currentTheme]);
+    const dark = isDarkTheme(currentTheme);
 
     return (
         <div className="section projects">
             <SectionTitle
                 text={"Projects"}
                 index={3}
+                kicker={`${projects.length} projects since ${firstYear}`}
                 description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
-                    " Many cards have clickable images or a floating link and some cards may have both for different destinations!"}
+                    " The ones I'd show you first are up top, and everything else is listed below, newest first."}
             />
-            <div className="projects-grid">
-                {themedProjects.map((project) => (
-                    <Card key={project.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()} {...project} />
+
+            <div className="projects_featured">
+                {featuredProjects.map((project) => (
+                    <Card
+                        key={project.title}
+                        {...project}
+                        image={imageFor(project, dark)}
+                        dateDisplay={formatDate(project.date)}
+                    />
                 ))}
             </div>
+
+            <ProjectIndex dark={dark} />
         </div>
     );
 };
+
+function ProjectIndex({dark}: { dark: boolean }) {
+    const [category, setCategory] = useState<Category | "all">("all");
+    const [showRetired, setShowRetired] = useState(false);
+
+    const pool = useMemo(() => listedProjects.filter((project) => showRetired || !isRetired(project)), [showRetired]);
+    const shown = useMemo(() => pool.filter((project) => category === "all" || project.categories.includes(category)), [pool, category]);
+    const counts = useMemo(
+        () => new Map(categoryIds.map((id) => [id, pool.filter((project) => project.categories.includes(id)).length])),
+        [pool],
+    );
+
+    const list = useRef<HTMLOListElement>(null);
+    const preview = useRef<HTMLDivElement>(null);
+    // The project in the preview, kept while it fades out so the picture doesn't vanish first.
+    const [peek, setPeek] = useState<Project | null>(null);
+    const [peeking, setPeeking] = useState(false);
+    const finePointer = useMediaQuery("(hover: hover) and (pointer: fine)");
+
+    // A changed filter brings the rows in, a few at a time. Not on the first render: the list is just there.
+    const lastFilter = useRef(`${category}|${showRetired}`);
+    useGSAP(() => {
+        const key = `${category}|${showRetired}`;
+        if (key === lastFilter.current || !list.current) return;
+        lastFilter.current = key;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        gsap.from(list.current.children, {
+            opacity: 0, y: 8, duration: 0.4, ease: "power2.out", stagger: 0.025, clearProps: "opacity,transform",
+        });
+    }, {dependencies: [category, showRetired]});
+
+    // The preview follows the pointer, a little behind it, on whichever side of it has room.
+    useGSAP(() => {
+        const rows = list.current;
+        const card = preview.current;
+        if (!rows || !card || !finePointer) return;
+
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const xTo = gsap.quickTo(card, "x", {duration: reduce ? 0 : 0.5, ease: "power3"});
+        const yTo = gsap.quickTo(card, "y", {duration: reduce ? 0 : 0.5, ease: "power3"});
+        const spot = (event: PointerEvent) => {
+            const gap = 28;
+            const right = event.clientX + gap + card.offsetWidth < window.innerWidth - 8;
+            return {
+                x: right ? event.clientX + gap : event.clientX - gap - card.offsetWidth,
+                y: Math.min(Math.max(8, event.clientY - card.offsetHeight / 2), window.innerHeight - card.offsetHeight - 8),
+            };
+        };
+
+        let preloaded = false;
+        const onEnter = (event: PointerEvent) => {
+            // Lands under the pointer the first time instead of flying in from the corner.
+            gsap.set(card, spot(event));
+            if (preloaded) return;
+            preloaded = true;
+            for (const project of listedProjects) {
+                const src = imageFor(project, dark);
+                if (typeof src === "string" && !isVideo(src)) new Image().src = src;
+            }
+        };
+        const onMove = (event: PointerEvent) => {
+            const {x, y} = spot(event);
+            xTo(x);
+            yTo(y);
+        };
+        rows.addEventListener("pointerenter", onEnter);
+        rows.addEventListener("pointermove", onMove);
+        return () => {
+            rows.removeEventListener("pointerenter", onEnter);
+            rows.removeEventListener("pointermove", onMove);
+        };
+    }, {dependencies: [finePointer, dark]});
+
+    useGSAP(() => {
+        if (!preview.current) return;
+        gsap.to(preview.current, {
+            autoAlpha: peeking ? 1 : 0,
+            scale: peeking ? 1 : 0.94,
+            duration: peeking ? 0.35 : 0.2,
+            ease: peeking ? "power3.out" : "power2.in",
+            overwrite: "auto",
+        });
+    }, {dependencies: [peeking]});
+
+    const peekAt = (project: Project) => () => {
+        if (!finePointer) return;
+        setPeek(project);
+        setPeeking(true);
+    };
+
+    const media = peek ? imageFor(peek, dark) : null;
+
+    return (
+        <div className="projects-index">
+            <div className="projects-index_head">
+                <span className="text-label">Everything else</span>
+                <span className="projects-index_count">{shown.length} of {listedProjects.length}</span>
+            </div>
+
+            <div className="projects-index_controls">
+                <div className="projects-index_filters" role="group" aria-label="Filter projects by kind">
+                    <FilterChip active={category === "all"} onClick={() => setCategory("all")} label="All" count={pool.length} />
+                    {categoryIds.map((id) => (
+                        <FilterChip
+                            key={id}
+                            active={category === id}
+                            onClick={() => setCategory(id)}
+                            label={CATEGORIES[id]}
+                            count={counts.get(id) ?? 0}
+                        />
+                    ))}
+                </div>
+                <label className="projects-index_retired">
+                    <input type="checkbox" checked={showRetired} onChange={(event) => setShowRetired(event.target.checked)} />
+                    Show archived ({RETIRED_COUNT})
+                </label>
+            </div>
+
+            <ol className="projects-index_list" ref={list} onPointerLeave={() => setPeeking(false)}>
+                {shown.map((project) => {
+                    const credit = creditOf(project);
+                    return (
+                        <li key={project.title} className="projects-index_item">
+                            <RowLink project={project} onPointerEnter={peekAt(project)}>
+                                <time className="projects-index_stamp" dateTime={isoDay(project.date)}>{MONTH.format(project.date)}</time>
+                                <span className="projects-index_name">
+                                    <span className="projects-index_title">{project.title}</span>
+                                    {credit && <span className="projects-index_credit">{credit}</span>}
+                                </span>
+                                <span className="projects-index_sub">{project.subTitle}</span>
+                                <span className="projects-index_tags">
+                                    {project.categories.map((id) => <span key={id}>#{id}</span>)}
+                                </span>
+                                {project.chipText && <Chip className="projects-index_status" size="sm">{project.chipText}</Chip>}
+                            </RowLink>
+                        </li>
+                    );
+                })}
+            </ol>
+            {shown.length === 0 && <p className="projects-index_empty">Only archived projects here. Tick the box to see them.</p>}
+
+            {/* Fixed to the viewport and out of the reading order: a picture of what the row already says. */}
+            <div className="projects-preview" ref={preview} aria-hidden="true">
+                {peek && (
+                    <>
+                        <div className="projects-preview_media">
+                            {isVideo(media) ? (
+                                <video key={media} src={media} autoPlay loop muted playsInline disablePictureInPicture />
+                            ) : typeof media === "string" ? (
+                                <img src={media} alt="" decoding="async" />
+                            ) : media}
+                        </div>
+                        <div className="projects-preview_body">
+                            <p className="projects-preview_text">{peek.description}</p>
+                            <p className="projects-preview_meta">
+                                {peek.footer && `${peek.footer} · `}{formatDate(peek.date)}
+                            </p>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function FilterChip({active, onClick, label, count}: { active: boolean; onClick: () => void; label: string; count: number }) {
+    return (
+        <button type="button" className={`projects-filter${active ? " active" : ""}`} aria-pressed={active} onClick={onClick}>
+            {label}
+            <span className="projects-filter_count">{count}</span>
+        </button>
+    );
+}
+
+// The whole row is the link: to the project, or to its post when that's all it has. A row with neither is still a
+// row, for the preview.
+function RowLink({project, onPointerEnter, children}: { project: Project; onPointerEnter: PointerEventHandler; children: ReactNode }) {
+    const href = project.url || project.specialLink;
+    if (!href) return <div className="projects-index_row" onPointerEnter={onPointerEnter}>{children}</div>;
+    // A scheme or "//" leaves the site; "/#..." is a jump on this page that wouter would swallow.
+    if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) {
+        return (
+            <a className="projects-index_row" href={href} target="_blank" rel="noopener noreferrer" onPointerEnter={onPointerEnter}>
+                {children}
+            </a>
+        );
+    }
+    if (href.startsWith("/#")) return <a className="projects-index_row" href={href} onPointerEnter={onPointerEnter}>{children}</a>;
+    return <Link className="projects-index_row" href={href} onPointerEnter={onPointerEnter}>{children}</Link>;
+}

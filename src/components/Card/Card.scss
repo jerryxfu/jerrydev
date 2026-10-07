@@ -233,6 +233,36 @@
     }
 }
 
+// "with Raphaël & Samy": each name links to their site, behind their own icon, the way Samy's site credits its
+// projects. Quieter than the links in prose: it's a footnote, and it sits in the footer's own grey.
+.card_credits {
+    color: var(--text-5);
+    white-space: nowrap;
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--text-3);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        text-decoration-color: var(--border-da);
+        transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+        &:hover {
+            color: var(--text-strong);
+            text-decoration-color: var(--text-4);
+        }
+    }
+
+    img {
+        width: 14px;
+        height: 14px;
+        border-radius: var(--r-xs);
+        object-fit: cover;
+    }
+}
+
 .card_date {
     color: var(--text-5);
 }
