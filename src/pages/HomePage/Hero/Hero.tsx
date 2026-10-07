@@ -122,14 +122,17 @@ export default function Hero() {
             duration: 1,
         }, opening_delay);
 
-        // Once it has expanded, a brighter stretch runs along it every few seconds, its brightest point from one end of
-        // the line to the other. Its track hides what's past the ends, so it seems to come in from beyond the left end
-        // and go out past the right one. Not with reduced motion: it loops for as long as the page is open.
+        // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
+        // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            gsap.timeline({repeat: -1, repeatDelay: 2.8, delay: 1.6})
-                .fromTo(glowRef.current, {left: "0%", xPercent: -50}, {left: "100%", xPercent: -50, duration: 1.8, ease: "power1.inOut"}, 0)
-                .fromTo(glowRef.current, {opacity: 0}, {opacity: 1, duration: 0.15, ease: "power1.out"}, 0)
-                .to(glowRef.current, {opacity: 0, duration: 0.2, ease: "power1.in"}, 1.6);
+            gsap.fromTo(glowRef.current, {"--glow-at": "-50%"}, {
+                "--glow-at": "150%",
+                duration: 2.6,
+                ease: "sine.inOut",
+                repeat: -1,
+                repeatDelay: 2,
+                delay: 1.6,
+            });
         }
 
         // Slide up "Hello"
@@ -191,11 +194,7 @@ export default function Hero() {
                     </div>
 
                     <div className="hero_glowing-separator" ref={dividerRef}>
-                        <span className="hero_separator-track">
-                            <span className="hero_separator-rail">
-                                <span className="hero_separator-glow" ref={glowRef} />
-                            </span>
-                        </span>
+                        <span className="hero_separator-glow" ref={glowRef} />
                     </div>
 
                     <div>

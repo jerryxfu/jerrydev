@@ -95,7 +95,7 @@
 }
 
 .hero_glowing-separator {
-    position: relative; // for the glow that runs along it
+    position: relative; // for the glow that runs through it
     margin: 0.75rem 0;
     width: 0;
     opacity: 0;
@@ -109,44 +109,23 @@
     }
 }
 
-// Where the glow can be seen: the separator's line and 12px past each end, where the glow fades out as the line's own
-// light does, and tall enough that its light is never cut above or below. So the glow can set off with its brightest
-// point on the left end and the rest of it hidden, as if coming from further along.
-.hero_separator-track {
-    position: absolute;
-    top: -40px;
-    right: -15px;
-    left: -15px;
-    height: 80px;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
-    pointer-events: none;
-}
-
-// The line itself, from end to end (its shadow adds 3px at each), at the track's middle: the glow's centre runs along
-// this, from 0% to 100%.
-.hero_separator-rail {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    left: 12px;
-}
-
-// A brighter stretch of the separator, run from one end to the other by Hero.tsx, centred on the point it's at. The bar
-// itself is 0px high, its light all box-shadow, so this centres on that line. Hidden until it runs.
+// The glow that runs through the separator: the same line again, brighter, seen through a soft window a third as wide
+// as this box. Hero.tsx slides the window (--glow-at) from -50%, just before the box, to 150%, just past it. Being the
+// line's own shape, the glow can't go outside it.
 .hero_separator-glow {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 80px;
-    height: 4px;
-    // Half its height, as a margin: GSAP owns this element's transform, and resets the translate property.
-    margin-top: -2px;
-    border-radius: var(--r-full);
-    background: linear-gradient(90deg, transparent, white 35%, white 65%, transparent);
-    filter: drop-shadow(0 0 4px white) drop-shadow(0 0 12px var(--hero-glow));
-    opacity: 0;
+    inset: -24px; // room for the line's light, which reaches 16px past it (8px spread, 8px blur)
+    -webkit-mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -50%) 0 / calc(100% / 3) 100% no-repeat;
+    mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -50%) 0 / calc(100% / 3) 100% no-repeat;
     pointer-events: none;
+
+    // The line, back where the separator draws it
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 24px;
+        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.5), 0 0 0 3px white;
+    }
 }
 
 .hero_about-container {
