@@ -11,9 +11,12 @@ import Footer from "../../components/Footer/Footer.tsx";
 import Projects from "./Projects/Projects.tsx";
 import Experience from "./Experience/Experience.tsx";
 import Blog from "./Blog/Blog.tsx";
+import useReveals from "./useReveals.ts";
 // import OpeningAnimation from "../../components/OpeningAnimation/OpeningAnimation.tsx";
 
 export default function HomePage() {
+    useReveals();
+
     return (
         <div className="homepage">
             {/*<OpeningAnimation/>*/}
