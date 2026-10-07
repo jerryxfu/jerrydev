@@ -42,6 +42,8 @@ const itemsOf = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>(":
 const centre = (r: DOMRect) => [r.left + r.width / 2, r.top + r.height / 2] as const;
 // A scheme or a protocol-relative prefix: the link leaves the site (the same test as Card.tsx's).
 const external = (href: string) => /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href);
+// A project's own link opens in a new tab when it's another site, as on Card.tsx.
+const newTab = (href: string) => (href.startsWith("http") ? {target: "_blank", rel: "noopener noreferrer"} : {});
 
 // The grid cell an item sits in, read from the layout: the grid's resolved tracks (implicit rows included) and the
 // item's offset in it.
@@ -347,7 +349,8 @@ export default function Projects() {
 // One project. Closed, it's a small horizontal card; open, the same elements make the full vertical card (Card.tsx's
 // layout), so each one can travel from its place in one to its place in the other. The whole card is one button, but
 // for the closed picture, a link to the project. Open, the picture only closes the card again: someone clicking twice,
-// to open it and to close it, has the pointer over the picture the second time.
+// to open it and to close it, has the pointer over the picture the second time. The open card's link to the project
+// is in its footer instead.
 function ProjectItem({project, dark, open, onToggle, onClose}: {
     project: Project;
     dark: boolean;
@@ -383,7 +386,7 @@ function ProjectItem({project, dark, open, onToggle, onClose}: {
                             className="projects-card_link"
                             href={project.url}
                             aria-label={`Visit ${project.title}`}
-                            {...(project.url.startsWith("http") ? {target: "_blank", rel: "noopener noreferrer"} : {})}
+                            {...newTab(project.url)}
                         >
                             <ArrowUpRight size={14} strokeWidth={2.25} aria-hidden="true" />
                         </a>
@@ -411,7 +414,13 @@ function ProjectItem({project, dark, open, onToggle, onClose}: {
                     )}
                     <span className="projects-card_foot" data-part>
                         {project.footer && `${project.footer} | `}
-                        {formatDate(project.date)}
+                        <span className="projects-card_date">{formatDate(project.date)}</span>
+                        {project.url && (
+                            <a className="projects-card_visit" href={project.url} aria-label={`Visit ${project.title}`} {...newTab(project.url)}>
+                                Visit
+                                <ArrowUpRight size={13} strokeWidth={2.25} aria-hidden="true" />
+                            </a>
+                        )}
                     </span>
                 </article>
             </div>

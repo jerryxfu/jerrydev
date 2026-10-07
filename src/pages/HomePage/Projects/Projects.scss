@@ -393,7 +393,8 @@
     }
 }
 
-// The right part of the footer bar: the credits and the date. Only in the open card.
+// The right part of the footer bar: the credits and the date, then the link to the project. Only in the open card.
+// Plain text, so on a narrow card the lines break between the credits and the date, never inside the date.
 .projects-card_foot {
     display: none;
     grid-area: foot;
@@ -407,6 +408,52 @@
 
     .projects-item.is-open & {
         display: block;
+    }
+}
+
+.projects-card_date {
+    white-space: nowrap;
+}
+
+// In the accent colour, over the toggle, so a click on it follows the link instead of closing the card.
+.projects-card_visit {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin-left: 0.75rem;
+    white-space: nowrap;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--secondary);
+
+    svg {
+        transition: transform 0.15s ease;
+    }
+
+    &:hover {
+        text-decoration: underline;
+
+        svg {
+            transform: translate(1px, -1px);
+        }
+    }
+
+    &:focus-visible {
+        border-radius: var(--r-sm);
+        outline: 2px solid var(--secondary);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        svg {
+            transition: none;
+        }
+
+        &:hover svg {
+            transform: none;
+        }
     }
 }
 
