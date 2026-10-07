@@ -1,6 +1,7 @@
 import {type PointerEventHandler, type ReactNode, useMemo, useRef, useState} from "react";
 import {Link} from "wouter";
 import {gsap} from "gsap";
+import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import "./Projects.scss";
 import SectionTitle from "@/components/SectionTitle/SectionTitle.tsx";
@@ -10,6 +11,8 @@ import {formatDate} from "@/utils.ts";
 import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
 import useMediaQuery from "@/hooks/useMediaQuery.ts";
 import {CATEGORIES, type Category, categoryIds, featuredProjects, firstYear, imageFor, isRetired, listedProjects, type Project, projects} from "./projects.ts";
+
+gsap.registerPlugin(ScrollTrigger);
 
 // The favourites as full cards, then everything else as a list you can filter, newest first, one line each like the
 // blog feed. The list keeps the screenshots out of the way until you want one: on a mouse, hovering a row brings its
@@ -84,6 +87,9 @@ function ProjectIndex({dark}: { dark: boolean }) {
         const key = `${category}|${showRetired}`;
         if (key === lastFilter.current || !list.current) return;
         lastFilter.current = key;
+        // The list changed height, so every scroll trigger below it (the titles' reveals, their kickers) is measured
+        // again; a stale one would hold the Experience title hidden until long after it's on screen.
+        ScrollTrigger.refresh();
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         gsap.from(list.current.children, {
             opacity: 0, y: 8, duration: 0.4, ease: "power2.out", stagger: 0.025, clearProps: "opacity,transform",
