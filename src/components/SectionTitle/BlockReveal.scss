@@ -24,10 +24,10 @@
     color: var(--bg);
 }
 
-// Back to its own colours as the block slides away.
+// Back to its own colours as the block slides away. TechNexus's 0.35s, divided by BlockReveal.tsx's SPEED.
 .block-reveal_line.is-settling .block-reveal_text,
 .block-reveal_line.is-settling .block-reveal_text * {
-    transition: color 0.35s ease;
+    transition: color 0.22s ease;
 }
 
 .block-reveal_block {

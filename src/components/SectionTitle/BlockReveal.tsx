@@ -18,8 +18,10 @@ type Props = {
 };
 
 // The timing, in seconds, per line: the block wiping across, the words held inverted on it, the block sliding away, and
-// the gap before the next line starts.
+// the gap before the next line starts. TechNexus's, played SPEED times faster: at its own pace a title came in a beat
+// late on a page you scroll through. The words' colour fade in BlockReveal.scss follows the same factor.
 const REVEAL = {wipe: 0.4, hold: 0.18, slide: 0.48, stagger: 0.18};
+const SPEED = 1.6;
 
 // A heading that arrives line by line behind a block of ink, from TechNexus's landing page (website/src/pages/Home in
 // that repo): the block wipes across each line, the words show on it in the background's colour, knocked a few pixels
@@ -50,7 +52,7 @@ export default function BlockReveal({children, as: Tag = "h2", className, id, st
             document.fonts.ready.then(contextSafe(() => {
                 if (cancelled) return;
                 split = SplitText.create(el, {type: "lines", linesClass: "block-reveal_line"});
-                const timeline = gsap.timeline({paused: true, onComplete: () => split?.revert()});
+                const timeline = gsap.timeline({paused: true, onComplete: () => split?.revert()}).timeScale(SPEED);
 
                 split.lines.forEach((line, i) => {
                     // The words in a box of their own, so they can move while the block stays.
