@@ -28,13 +28,13 @@ import _guides from "@/assets/projects/guides.jpeg";
 import _stats from "@/assets/projects/stats.jpeg";
 
 // The projects, as data. Projects.tsx renders them as a grid of small cards you can filter by tag, each opening into
-// the full card; the status board under the hero reads the same list, so a status changes in one place.
+// the full card; the status board reads the same list, so a status changes in one place.
 //
 // subTitle is what the small card says under the title, up to three lines; description is for the full card. Credits
 // and clients go in footer, as on any card: "For Maria", "With Raphaël & Samy".
 
 // The tags, in the order their filter chips render. A project can carry several. "archived" is what used to hide
-// a project behind a checkbox: it now sorts last and has its own chip, and keeps it off the status board.
+// a project behind a checkbox: it now has its own chip, and keeps the project off the status board.
 export const CATEGORIES = {
     web: "Web",
     tools: "Tools",
@@ -61,7 +61,30 @@ const day = (iso: `${number}-${number}-${number}`): Date => new Date(`${iso}T00:
 
 export const isArchived = (project: Project): boolean => project.categories.includes("archived");
 
+// Shown in this order, everywhere: the order is the curation.
 export const projects: Project[] = [
+    {
+        title: "Home Island",
+        subTitle: "Custom browser start page",
+        image: _homeisland,
+        chipText: "🟢 Stable",
+        date: day("2026-02-05"),
+        url: "https://github.com/jerryxfu/home-island",
+        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
+        footer: "Click image for links",
+        categories: ["web"],
+    },
+    {
+        title: "Expedite",
+        subTitle: "Share files and text snippets instantly!",
+        image: _expedite,
+        chipText: "🟢 Stable",
+        date: day("2026-05-18"),
+        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
+        url: "/expedite",
+        footer: "Same-day shipping!",
+        categories: ["web", "tools"],
+    },
     {
         title: "TechNexus",
         subTitle: "A companion app for FRC",
@@ -84,28 +107,6 @@ export const projects: Project[] = [
         description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
         footer: "IB Extended Essay",
         categories: ["ai"],
-    },
-    {
-        title: "Home Island",
-        subTitle: "Custom browser start page",
-        image: _homeisland,
-        chipText: "🟢 Stable",
-        date: day("2026-02-05"),
-        url: "https://github.com/jerryxfu/home-island",
-        description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
-        footer: "Click image for links",
-        categories: ["web"],
-    },
-    {
-        title: "Expedite",
-        subTitle: "Share files and text snippets instantly!",
-        image: _expedite,
-        chipText: "🟢 Stable",
-        date: day("2026-05-18"),
-        description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
-        url: "/expedite",
-        footer: "Same-day shipping!",
-        categories: ["web", "tools"],
     },
     {
         title: "HiddenGarden",
@@ -324,10 +325,6 @@ export const projects: Project[] = [
     // Cheatsheet (/cheatsheet, 🧩 MVP), TechDashboard (pit dashboard for FRC, 🌀 Concept),
     // MegaCSV (/megacsv, 🌀 Concept), Itinerary (public transit, 🌀 Concept)
 ];
-
-// Newest first, the archived ones after everything else, so "All" opens on what's alive.
-export const sortedProjects = [...projects].sort((a, b) =>
-    Number(isArchived(a)) - Number(isArchived(b)) || b.date.getTime() - a.date.getTime());
 
 export const firstYear = Math.min(...projects.map((project) => project.date.getFullYear()));
 

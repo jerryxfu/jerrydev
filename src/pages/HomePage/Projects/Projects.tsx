@@ -9,7 +9,7 @@ import Card from "@/components/Card/Card.tsx";
 import Chip from "@/components/Chip/Chip.tsx";
 import {formatDate} from "@/utils.ts";
 import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
-import {CATEGORIES, type Category, categoryIds, firstYear, imageFor, type Project, projects, sortedProjects} from "./projects.ts";
+import {CATEGORIES, type Category, categoryIds, firstYear, imageFor, type Project, projects} from "./projects.ts";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,7 +41,7 @@ export default function Projects() {
     const dark = isDarkTheme(currentTheme);
     const [category, setCategory] = useState<Category | "all">("all");
     const shown = useMemo(
-        () => sortedProjects.filter((project) => category === "all" || project.categories.includes(category)),
+        () => projects.filter((project) => category === "all" || project.categories.includes(category)),
         [category],
     );
 

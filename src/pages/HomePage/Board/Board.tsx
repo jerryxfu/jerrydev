@@ -2,7 +2,7 @@ import {useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
-import {isArchived, sortedProjects} from "../Projects/projects.ts";
+import {isArchived, projects} from "../Projects/projects.ts";
 import "./Board.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -20,8 +20,8 @@ const STATUS_COLOUR: Record<string, string> = {
     Concept: "var(--pink)",
 };
 
-// Newest first, as in the projects section; the archived ones stay off the board.
-const ROW = sortedProjects
+// In the projects section's order; the archived ones stay off the board.
+const ROW = projects
     .filter((project) => !isArchived(project))
     .map((project) => {
         // "🟢 Stable" to "Stable": the label is whatever follows the emoji.
