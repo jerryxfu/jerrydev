@@ -3,7 +3,7 @@
 .horizon {
     position: relative;
     z-index: 0;
-    height: 22vh;
+    height: 36vh; // the cells reach 0.3 of the hero down (BAND in Horizon.tsx), and a little breathing room
     pointer-events: none;
 
     canvas {

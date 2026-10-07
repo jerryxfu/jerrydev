@@ -11,15 +11,13 @@ gsap.registerPlugin(ScrollTrigger);
 
 // The way from the hero into About. The hero is the sky over a planet and the page is the planet: the hero ends on the
 // curve of its horizon, a line of light with an atmosphere's glow above it, and a light runs along it every few seconds
-// like the separator's under "Hello". Nothing on the planet yet. As you scroll down you come down: the horizon flattens,
-// and once it's flat the hero carries on below its edge as small square cells, like GitHub's contribution graph, full
-// where they meet the hero, then fewer and fainter; they keep moving on their own whether you scroll or not (like fire
-// by default; sparkle and crystal to compare, see SquaresStyle).
+// like the separator's under "Hello". Nothing on the planet yet. As you scroll down you come down and the horizon
+// flattens. Once it's flat, the hero carries on below its edge as small square cells, like GitHub's contribution graph:
+// they pour down out of it on their own (not with the scroll), the front of the pour glowing in the horizon's light,
+// then flicker like slow fire, full where they meet the hero, fewer and fainter further down, until the page.
 // The cells are windows in the page's background onto a reflection of the mesh under the hero's edge (the mesh again,
 // upside down, clipped to the room under the hero), so their colours carry on from the hero's, still moving.
 // Drawn on a canvas over the mesh and behind the hero's words, in the page: nothing fixed.
-
-export type SquaresStyle = "fire" | "sparkle" | "crystal";
 
 // Per theme: the atmosphere's glow and the line of light on the horizon.
 const PALETTE: Record<Theme, {glow: RGB; line: RGB}> = {
@@ -29,21 +27,31 @@ const PALETTE: Record<Theme, {glow: RGB; line: RGB}> = {
     burgundy: {glow: [255, 112, 152], line: [255, 196, 214]},
 };
 
-// The curve: how far its middle stands above its ends at rest (hero heights, at most this much of the width), and how
-// far up its glow reaches (px on a 1440px wide screen).
+// The curve: how far its middle stands above its ends at rest (hero heights, at most this much of the width), how far
+// up its glow reaches (px on a 1440px wide screen), and the scroll at which it's flat (hero heights).
 const DIP = 0.13;
 const DIP_OF_WIDTH = 0.09;
 const GLOW = 90;
-// The scroll, in hero heights: flat at FLAT_AT, the cells all out at FORMED_AT.
 const FLAT_AT = 0.36;
-const FORMED_AT = 0.5;
 // The light running along the horizon: how long a pass takes, and the rest between passes (seconds).
 const SWEEP = 3.2;
 const REST = 2.4;
-// The cells: how far down they reach under the hero (hero heights; Horizon.scss leaves room for them), and GitHub's
-// levels, as how much of the mesh a cell lets through: empty, then four steps.
-const BAND = 0.17;
+// The cells: how far down they reach under the hero (hero heights; Horizon.scss leaves room for them), over how many
+// rows the page's background closes in under the hero's edge, and GitHub's levels, as how much of the mesh a cell lets
+// through: empty, then four steps.
+const BAND = 0.3;
+const OPEN_ROWS = 5;
 const LEVELS = [0.07, 0.3, 0.52, 0.76, 1];
+// The pour, once the horizon is flat, and its way back if you scroll up before then (seconds); how much of the pour the
+// rows take to start one after the other, and how long each cell takes to come in (both as shares of the pour).
+const POUR = 1.5;
+const UNPOUR = 0.5;
+const ROWS_START = 0.6;
+const CELL_IN = 0.25;
+// How fast a cell's shown level follows its level, per frame, and how much the horizon's light glows on in the cells
+// furthest from the hero, where the fire lifts them (more in the dark themes).
+const FOLLOW = 0.2;
+const EMBER = {light: 0.35, dark: 0.5};
 
 const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const hash = (x: number, y: number, z: number) => {
@@ -68,26 +76,16 @@ function noise(x: number, y: number, z: number) {
     return lerp(plane(zi), plane(zi + 1), w);
 }
 
-// How each style moves a cell (column c, row r from the hero's edge down, at `depth` 0 at the edge to 1 at the band's
-// end): an offset added to its level, in quarters. Fire: a field flowing up towards the hero, livelier further down
-// where the cells thin out, so flickers rise from there; crystal: slow blocky clusters growing and melting; sparkle:
-// none, see the pulses.
-const MOVE: Record<SquaresStyle, (c: number, r: number, depth: number, t: number) => number> = {
-    fire: (c, r, depth, t) => (noise(c * 0.32, (r + t * 2.4) * 0.42, t * 0.55) - 0.5) * (0.55 + 0.9 * depth)
-        + (noise(c * 0.9, (r + t * 4) * 1.1, t) - 0.5) * 0.2,
-    crystal: (c, r, _depth, t) => (noise(c * 0.2, r * 0.24, t * 0.16) - 0.5) * 1.3,
-    sparkle: () => 0,
-};
-// How fast a cell's shown level follows its level, per frame: quick for fire and sparkle, slow for crystal.
-const FOLLOW: Record<SquaresStyle, number> = {fire: 0.32, sparkle: 0.3, crystal: 0.1};
-// The horizon's light lives on in the cells furthest from the hero: the ones the movement lifts glow in its colour,
-// like embers, more in the dark themes. How much, at most.
-const EMBER = {light: 0.35, dark: 0.5};
+// The fire: what it adds to a cell's level (in quarters), for column c and row r from the hero's edge down, `depth` 0 at
+// the edge to 1 at the band's end, at time t. A field flowing slowly up towards the hero, livelier further down where
+// the cells thin out, so the flickers rise from there.
+const fire = (c: number, r: number, depth: number, t: number) =>
+    (noise(c * 0.3, (r + t * 1.5) * 0.42, t * 0.35) - 0.5) * (0.55 + 0.9 * depth)
+    + (noise(c * 0.9, (r + t * 2.5) * 1.1, t * 0.6) - 0.5) * 0.2;
 
-type Cell = {x: number; y: number; c: number; r: number; noise: number; shown: number; glow: number};
-type Pulse = {cell: number; at: number; by: number};
+type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number; glow: number};
 
-export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
+export default function Horizon() {
     const root = useRef<HTMLDivElement>(null);
     const {currentTheme} = useTheme();
 
@@ -101,11 +99,8 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
         const palette = PALETTE[currentTheme];
         const page = pageBackground();
         const ground = rgba(page);
-        const groundClear = rgba(page, 0);
         // Empty cells barely show on a dark page: a little more of the mesh through them there.
         const levels = isDarkTheme(currentTheme) ? [0.14, ...LEVELS.slice(1)] : LEVELS;
-        const move = MOVE[squares];
-        const follow = FOLLOW[squares];
         const ember = isDarkTheme(currentTheme) ? EMBER.dark : EMBER.light;
 
         // The reflection keeps time with the mesh it reflects, so their colours meet at the hero's edge.
@@ -123,8 +118,6 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
         let pitch = 14;
         let size = 11;
         let cells: Cell[] = [];
-        const pulses: Pulse[] = [];
-        const random = seeded(42);
 
         const resize = () => {
             width = document.documentElement.clientWidth;
@@ -138,23 +131,25 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
             const phone = width < 768;
             pitch = phone ? 11 : 14;
             size = phone ? 8.5 : 11;
-            // The grid, a column past each side, its rows from the hero's bottom edge down.
+            // The grid, a column past each side, its rows from the hero's bottom edge down. Each cell comes in at its
+            // row's turn in the pour, a little earlier or later than its neighbours.
             cells = [];
             const cols = Math.floor(width / pitch) + 2;
             const left = (width - cols * pitch) / 2;
             const rows = Math.ceil((BAND * height) / pitch) + 2;
-            const cellRandom = seeded(7);
+            const random = seeded(7);
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    cells.push({x: left + c * pitch, y: base + r * pitch, c, r, noise: cellRandom() - 0.5, shown: 0, glow: 0});
+                    const delay = clamp((r / rows) * ROWS_START + (random() - 0.5) * 0.12, 0, 1 - CELL_IN);
+                    cells.push({x: left + c * pitch, y: base + r * pitch, c, r, noise: random() - 0.5, delay, shown: 0, glow: 0});
                 }
             }
         };
 
-        // The scroll, smoothed a little, in hero heights.
+        // The scroll, smoothed a little, in hero heights; and how far the pour has got, from 0 to 1.
         let target = 0;
         let progress = -1;
-        let lastPulse = 0;
+        let poured = 0;
 
         const draw = (p: number, time: number) => {
             if (!ctx) return;
@@ -163,9 +158,8 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
             ctx.clearRect(0, 0, width, box);
             const scale = Math.min(1.2, Math.max(0.5, width / 1440));
             const come = smoothstep(0, 1, clamp(p / FLAT_AT));
-            const formed = smoothstep(FLAT_AT, FORMED_AT, p);
             const dip = Math.min(DIP * height, DIP_OF_WIDTH * width) * (1 - come);
-            const lineStrength = (1 - 0.45 * come) * (1 - formed);
+            const lineStrength = (1 - 0.45 * come) * (1 - smoothstep(0, 0.35, poured));
 
             // The planet: a circle through both ends of the hero's bottom edge, its top `dip` above them; flat at the end.
             const half = width / 2;
@@ -196,22 +190,18 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
                 }
             }
 
-            // The ground, the page's own background, over the mesh under the horizon and over its reflection. Once the
-            // cells come out, it lets the reflection through just under the edge and closes over the first rows, so the
-            // hero carries on into them rather than stopping on a line.
-            const band = BAND * height * formed;
+            // The ground, the page's own background, over the mesh under the horizon and over its reflection. As the
+            // cells pour, it opens just under the edge and closes over the first rows, so the hero carries on into them
+            // rather than stopping on a line.
+            ctx.fillStyle = ground;
             if (!flat) {
-                ctx.fillStyle = ground;
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, 0, Math.PI * 2);
                 ctx.fill();
-            } else if (band < 1) {
-                ctx.fillStyle = ground;
-                ctx.fillRect(0, base, width, box - base);
             } else {
-                const ramp = Math.min(pitch * 2.5, band);
+                const ramp = pitch * OPEN_ROWS;
                 const cover = ctx.createLinearGradient(0, base, 0, base + ramp);
-                cover.addColorStop(0, groundClear);
+                cover.addColorStop(0, rgba(page, 1 - smoothstep(0.05, 0.5, poured)));
                 cover.addColorStop(1, ground);
                 ctx.fillStyle = cover;
                 ctx.fillRect(0, base, width, ramp);
@@ -219,44 +209,35 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
                 ctx.fillRect(0, base + ramp, width, box - base - ramp);
             }
 
-            if (band >= 1) {
-                // Sparkle: now and then a cell lights up a level or two and dims again.
-                if (squares === "sparkle") {
-                    while (time - lastPulse > 0.035) {
-                        lastPulse += 0.035;
-                        pulses.push({cell: Math.floor(random() * cells.length), at: lastPulse, by: random() < 0.35 ? 2 : 1});
-                    }
-                    while (pulses.length && time - pulses[0]!.at > 1.2) pulses.shift();
-                }
-                const lit = new Map<number, number>();
-                for (const pulse of pulses) {
-                    const t = (time - pulse.at) / 1.2;
-                    lit.set(pulse.cell, (lit.get(pulse.cell) ?? 0) + pulse.by * (t < 0.12 ? t / 0.12 : 1 - smoothstep(0.12, 1, t)));
-                }
-
+            if (poured > 0) {
+                const band = BAND * height;
                 ctx.globalCompositeOperation = "destination-out";
                 const batches = 16;
                 const windows = Array.from({length: batches + 1}, () => new Path2D());
                 const embers = Array.from({length: batches + 1}, () => new Path2D());
-                cells.forEach((cell, i) => {
+                for (const cell of cells) {
                     const d = (cell.y + pitch / 2 - base) / band; // 0 at the hero's edge, 1 at the band's end
-                    if (d > 1.05) return;
+                    if (d > 1.05) continue;
+                    const arrived = clamp((poured - cell.delay) / CELL_IN);
+                    if (arrived <= 0) continue;
                     const full = 1 - smoothstep(0, 1, d);
-                    const lift = move(cell.c, cell.r, clamp(d), time) + (lit.get(i) ?? 0) / 4;
+                    const lift = fire(cell.c, cell.r, clamp(d), time);
                     const wanted = clamp(Math.round((full + cell.noise * 0.45 + lift) * 4), 0, 4);
-                    // Its shown level follows quickly, or slowly for crystal; it starts from where the band is.
+                    // Its shown level follows slowly; it starts from where the band is.
                     if (!cell.shown) cell.shown = levels[wanted]!;
-                    cell.shown += (levels[wanted]! - cell.shown) * follow;
-                    cell.glow += (clamp(lift * 2.2) * smoothstep(0.3, 0.95, d) - cell.glow) * follow;
-                    const fadeOut = 1 - smoothstep(0.78, 1.04, d);
-                    const alpha = cell.shown * fadeOut;
-                    if (alpha <= 0.01) return;
+                    cell.shown += (levels[wanted]! - cell.shown) * FOLLOW;
+                    cell.glow += (clamp(lift * 2.2) * smoothstep(0.3, 0.95, d) - cell.glow) * FOLLOW;
+                    const fadeOut = 1 - smoothstep(0.7, 1.04, d);
+                    const alpha = cell.shown * fadeOut * arrived;
+                    if (alpha <= 0.01) continue;
                     const x = cell.x + (pitch - size) / 2;
                     const y = cell.y + (pitch - size) / 2;
                     windows[Math.round(alpha * batches)]!.roundRect(x, y, size, size, 2.5);
-                    const glow = cell.glow * ember * fadeOut;
+                    // The front of the pour glows as each cell comes in, then the fire's embers.
+                    const front = 4 * arrived * (1 - arrived);
+                    const glow = clamp((cell.glow * ember + front * 0.4) * fadeOut);
                     if (glow > 0.02) embers[Math.round(glow * batches)]!.roundRect(x, y, size, size, 2.5);
-                });
+                }
                 windows.forEach((path, b) => {
                     if (!b) return;
                     ctx!.globalAlpha = b / batches;
@@ -310,19 +291,23 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
             }
         };
 
-        // Each frame, but only drawing when something shows a change: the scroll moved, the light is running along the
-        // horizon (and a little after, to clear it), or the cells are out (every other frame: they step, 30 a second
-        // is plenty). At rest between two passes of the light, nothing is drawn.
+        // Each frame: the pour goes on (towards all out once the horizon is flat, back otherwise), and something is
+        // drawn only when it shows a change: the scroll moved, the pour moved, the light is running along the horizon
+        // (and a little after, to clear it), or the cells are out (every other frame: they step, 30 a second is plenty).
         let drawnAt = -1;
         let frame = 0;
+        let last = gsap.globalTimeline.time();
         const tick = () => {
             progress = progress < 0 ? target : progress + (target - progress) * 0.25;
             if (Math.abs(target - progress) < 0.0005) progress = target;
             const time = gsap.globalTimeline.time();
-            const formed = smoothstep(FLAT_AT, FORMED_AT, progress);
-            const sweeping = formed < 1 && (time % (SWEEP + REST)) / SWEEP < 1.03;
+            const dt = clamp(time - last, 0, 0.1);
+            last = time;
+            const before = poured;
+            poured = progress >= FLAT_AT ? Math.min(1, poured + dt / POUR) : Math.max(0, poured - dt / UNPOUR);
+            const sweeping = poured < 1 && (time % (SWEEP + REST)) / SWEEP < 1.03;
             frame++;
-            if (progress !== drawnAt || sweeping || (formed > 0 && frame % 2 === 0)) {
+            if (progress !== drawnAt || poured !== before || sweeping || (poured > 0 && frame % 2 === 0)) {
                 draw(progress, time);
                 drawnAt = progress;
             }
@@ -330,8 +315,7 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
 
         resize();
         sync();
-        lastPulse = gsap.globalTimeline.time();
-        draw(0, lastPulse);
+        draw(0, gsap.globalTimeline.time());
         let resizeTimer: number | undefined;
         const onResize = () => {
             window.clearTimeout(resizeTimer);
@@ -355,6 +339,7 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
                 onToggle: (self) => {
                     if (self.isActive) {
                         sync();
+                        last = gsap.globalTimeline.time();
                         gsap.ticker.add(tick);
                     } else {
                         gsap.ticker.remove(tick);
@@ -373,7 +358,7 @@ export default function Horizon({squares = "fire"}: {squares?: SquaresStyle}) {
             window.clearTimeout(resizeTimer);
             mm.revert();
         };
-    }, {scope: root, dependencies: [currentTheme, squares], revertOnUpdate: true});
+    }, {scope: root, dependencies: [currentTheme], revertOnUpdate: true});
 
     return (
         <div className="horizon" ref={root} aria-hidden="true">
