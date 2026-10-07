@@ -109,8 +109,31 @@
     }
 }
 
-// A brighter stretch of the separator, run from one end to the other by Hero.tsx. The bar itself is 0px high, its
-// light all box-shadow, so this centres on that line. Hidden until it runs.
+// Where the glow can be seen: the separator's line and 12px past each end, where the glow fades out as the line's own
+// light does, and tall enough that its light is never cut above or below. So the glow can set off with its brightest
+// point on the left end and the rest of it hidden, as if coming from further along.
+.hero_separator-track {
+    position: absolute;
+    top: -40px;
+    right: -15px;
+    left: -15px;
+    height: 80px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+    pointer-events: none;
+}
+
+// The line itself, from end to end (its shadow adds 3px at each), at the track's middle: the glow's centre runs along
+// this, from 0% to 100%.
+.hero_separator-rail {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    left: 12px;
+}
+
+// A brighter stretch of the separator, run from one end to the other by Hero.tsx, centred on the point it's at. The bar
+// itself is 0px high, its light all box-shadow, so this centres on that line. Hidden until it runs.
 .hero_separator-glow {
     position: absolute;
     top: 0;
