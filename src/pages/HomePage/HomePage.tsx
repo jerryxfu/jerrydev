@@ -25,10 +25,11 @@ export default function HomePage() {
             <Navbar isHero={true} />
             <main id="main">
                 <Hero />
-                <Board />
                 <About />
                 <Skills />
                 <Projects />
+                {/* Under the projects for now, whose statuses it runs through. */}
+                <Board />
                 <Experience />
                 <Blog />
             </main>

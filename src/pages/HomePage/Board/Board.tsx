@@ -7,9 +7,9 @@ import "./Board.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// A departures board of the projects and where each one stands, between the hero and the page: TechNexus's queue
-// board (website/src/pages/Home in that repo), which drifts on its own, runs faster the faster you scroll, and turns
-// round when you scroll back up. The projects section says the same things properly, so screen readers skip this.
+// A departures board of the projects and where each one stands, under the projects section: TechNexus's queue board
+// (website/src/pages/Home in that repo), which drifts on its own, runs faster the faster you scroll, and turns round
+// when you scroll back up. The projects section says the same things properly, so screen readers skip this.
 
 // Each status by the colour of its chip's emoji, from the palette constants in index.scss.
 const STATUS_COLOUR: Record<string, string> = {
