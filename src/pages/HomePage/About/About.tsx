@@ -1,6 +1,7 @@
 import "./About.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Contact from "../Contact/Contact.tsx";
+import Friends from "@/components/Friends/Friends.tsx";
 
 export default function About() {
     return (
@@ -12,6 +13,7 @@ export default function About() {
                 </p>
             </div>
             <Contact />
+            <Friends />
         </div>
     );
 };

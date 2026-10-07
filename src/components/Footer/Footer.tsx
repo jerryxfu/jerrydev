@@ -5,9 +5,7 @@ import {useDebugMode} from "@/hooks/useDebugMode.ts";
 import {isDarkTheme, useTheme} from "../../context/ThemeContext.tsx";
 import _unveil_light from "../../assets/projects/unveil/unveil_icon_light.png";
 import _unveil_dark from "../../assets/projects/unveil/unveil_icon_dark.png";
-// Self-hosted rather than hotlinked: assets.raphdf201.net/favicon.ico started answering 404 and the footer showed alt
-// text for as long as nobody looked. A friend's redesign can't break this page now.
-import _raphdf201 from "../../assets/friends/raphdf201.png";
+import {friendList} from "../Friends/friends.ts";
 import {ExternalLink} from "lucide-react";
 
 const debugLabels = ["Off", "Outlines", "Spacing", "All"];
@@ -45,14 +43,9 @@ export default function Footer() {
             ]
         },
         {
+            // The same people as the friends block in About, from the same list.
             category: "Special mentions",
-            content: [
-                {
-                    text: "raphdf201.net",
-                    url: "https://www.raphdf201.net/",
-                    decorator: <img src={_raphdf201} alt="" />
-                },
-            ]
+            content: friendList.map((friend) => ({text: friend.site, url: friend.url, decorator: <img src={friend.icon} alt="" />})),
         }
     ];
 
