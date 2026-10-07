@@ -1,8 +1,10 @@
-import {useEffect, useMemo, useState} from "react";
+import {useMemo} from "react";
 import {Clock, FileText, Mail} from "lucide-react";
 import "./Contact.scss";
 import SubSectionTitle from "../../../components/SubTitle/SubSectionTitle.tsx";
 import ContactCard from "./components/ContactCard.tsx";
+import Morph from "@/components/Morph/Morph.tsx";
+import useLocalClock from "@/hooks/useLocalClock.ts";
 
 import _discord from "../../../assets/socials/discord_mark.svg";
 import _instagram from "../../../assets/socials/instagram_mark.png";
@@ -42,24 +44,6 @@ const medias = [
     // },
 ];
 
-const MY_ZONE = "America/Toronto";
-
-// Minutes that a zone is ahead of UTC at this instant. Intl gives the wall-clock reading in that zone;
-// treating that reading as if it were UTC and subtracting the real instant yields the offset, DST and
-// half-hour zones included. Rounded to the minute because the parts are only second-accurate.
-function zoneOffsetMinutes(date: Date, timeZone: string): number {
-    const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone, hour12: false,
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-    }).formatToParts(date);
-    // Read by part type rather than through an Object.fromEntries lookup: that returns an index signature, and under noUncheckedIndexedAccess every field off it is string | undefined.
-    const get = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-    // hour is 0-23 under hour12: false, except that some engines emit 24 for midnight.
-    const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
-    return Math.round((asUTC - date.getTime()) / 60000);
-}
-
 export default function Contact() {
     const {currentTheme} = useTheme();
 
@@ -68,30 +52,10 @@ export default function Contact() {
     const unveilIcon = useMemo(() => dark ? _unveil_icon_light : _unveil_icon_dark, [dark]);
     const unveilMark = useMemo(() => dark ? _unveil_mark_light : _unveil_mark_dark, [dark]);
 
-    // Ticks so the clock does not go stale on a tab left open. 30s rather than 1s: the display is only
-    // accurate to the minute, so a per-second interval would re-render 60x for no visible change.
-    const [now, setNow] = useState(() => new Date());
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 30_000);
-        return () => clearInterval(id);
-    }, []);
-    // A named zone rather than a fixed offset, so all of this follows daylight saving on its own. Montreal is EST only from November to March; it is EDT the rest of the year.
-    const clock = useMemo(() => {
-        const parts = new Intl.DateTimeFormat("en-US", {
-            hour: "numeric", minute: "2-digit", timeZone: MY_ZONE, timeZoneName: "short",
-        }).formatToParts(now);
-        const zone = parts.find((p) => p.type === "timeZoneName")?.value ?? "ET";
-        const time = parts.filter((p) => p.type !== "timeZoneName").map((p) => p.value).join("").trim();
-
-        // Positive means this clock is ahead of the reader's. getTimezoneOffset is minutes behind UTC, so it is negated to match the convention used above.
-        const delta = zoneOffsetMinutes(now, MY_ZONE) + now.getTimezoneOffset();
-        const abs = Math.abs(delta);
-        const h = Math.floor(abs / 60), m = abs % 60;
-        const span = m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-        const offset = delta > 0 ? `+${span} ahead` : delta < 0 ? `-${span} behind` : "+0h";
-
-        return {time, zone, offset};
-    }, [now]);
+    // Shared with the hero's Montréal card, ticking on the minute. The digits morph when they change, the way a Live
+    // Activity's do: "8:41" to "8:42" only swaps the 1.
+    const clock = useLocalClock();
+    const offset = clock.delta > 0 ? `+${clock.span} ahead` : clock.delta < 0 ? `-${clock.span} behind` : "+0h";
 
     const themedMedias = useMemo(() => medias.map((media) => {
         if (media.title !== "Github") return media;
@@ -167,7 +131,7 @@ export default function Contact() {
                                 </li>
                                 <li className="contact_detail">
                                     <Clock size={17} aria-hidden="true" />
-                                    <span>{clock.time} my local time ({clock.zone}, {clock.offset})</span>
+                                    <span><Morph text={clock.hm} /> {clock.period} my local time ({clock.zone}, {offset})</span>
                                 </li>
                             </ul>
                         </div>
