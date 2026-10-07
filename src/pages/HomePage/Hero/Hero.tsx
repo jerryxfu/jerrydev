@@ -8,7 +8,6 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
 import HeroCards from "./HeroCards.tsx";
-import HeartbeatLine from "./HeartbeatLine.tsx";
 import {type Theme, useTheme} from "../../../context/ThemeContext.tsx";
 
 import("../../../assets/styles/gradient-mesh-default.scss");
@@ -55,6 +54,7 @@ export default function Hero() {
     const currentText = combinedTexts[textIndex] ?? "";
     const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
 
+    const dividerRef = useRef(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
@@ -113,7 +113,13 @@ export default function Hero() {
 
         const opening_delay = 0.1; // sec
 
-        // The line under "Hello" draws itself (HeartbeatLine.tsx), at the moment the old divider expanded.
+        // Expand divider
+        tl.to(dividerRef.current, {
+            width: "130%",
+            opacity: 1,
+            ease: "nativeEase",
+            duration: 1,
+        }, opening_delay);
 
         // Slide up "Hello"
         tl.from([titleRef.current], {
@@ -173,7 +179,7 @@ export default function Hero() {
                         <h1 ref={titleRef} className="hero_title">Hello</h1>
                     </div>
 
-                    <HeartbeatLine />
+                    <div className="hero_glowing-separator" ref={dividerRef} />
 
                     <div>
                         <h2 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h2>
