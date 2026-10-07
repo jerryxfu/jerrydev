@@ -1,14 +1,16 @@
 import React from "react";
 import "./SectionTitle.scss";
+import BlockReveal from "./BlockReveal.tsx";
 
+// The title arrives behind its block of ink (BlockReveal, from TechNexus's landing page).
 const SectionTitle: React.FC<{ text: string; description?: string }> = ({text, description}) => {
     const id = text.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
 
     return (
         <>
-            <h2 className="section-title-text" id={id}>
+            <BlockReveal className="section-title-text" id={id}>
                 {text}
-            </h2>
+            </BlockReveal>
             {description && <p className="section-title-description">{description}</p>}
         </>
     );

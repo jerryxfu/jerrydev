@@ -13,6 +13,11 @@
     }
 }
 
+// The letters and words SplitText cuts the hero's lines into. Inline blocks, so the slide-in transforms apply.
+.hero_split {
+    display: inline-block;
+}
+
 .hero_container {
     position: relative;
     display: flex;
@@ -90,6 +95,7 @@
 }
 
 .hero_glowing-separator {
+    position: relative; // for the glow that runs through it
     margin: 0.75rem 0;
     width: 0;
     opacity: 0;
@@ -100,6 +106,25 @@
 
     @media screen and (max-width: 480px) {
         margin: 0.50rem 0;
+    }
+}
+
+// The glow that runs through the separator: the same line again, brighter, seen through a soft window 3/7 as wide as
+// this box. Hero.tsx slides the window (--glow-at) from -75%, just before the box, to 175%, just past it. Being the
+// line's own shape, the glow can't go outside it.
+.hero_separator-glow {
+    position: absolute;
+    inset: -24px; // room for the line's light, which reaches 16px past it (8px spread, 8px blur)
+    -webkit-mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
+    mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
+    pointer-events: none;
+
+    // The line, back where the separator draws it
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 24px;
+        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.7), 0 0 0 3px white;
     }
 }
 

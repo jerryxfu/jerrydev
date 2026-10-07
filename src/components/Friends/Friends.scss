@@ -1,0 +1,101 @@
+// Under the contact block in About, with the same margin the contact block keeps from the intro.
+.friends {
+    margin-top: 2.25rem;
+
+    @media screen and (max-width: 768px) {
+        margin-top: 1.5rem;
+    }
+}
+
+.friends_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.25rem;
+    margin: 0;
+    padding: 0.4rem 0.9rem 0;
+    list-style: none;
+
+    @media screen and (max-width: 768px) {
+        padding: 0.4rem 0 0;
+    }
+}
+
+// The contact cards' frame, wider: a friend gets a sentence, not just a handle.
+.friends_card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 24rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background-color: var(--bg-lt);
+    box-shadow: 0 5px 10px -6px var(--shadow-lt);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        border-color: var(--border-da);
+        box-shadow: 0 10px 18px -10px var(--shadow-da);
+
+        .friends_arrow {
+            transform: translate(2px, -2px);
+            color: var(--text-strong);
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 100%;
+    }
+}
+
+.friends_icon {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-md);
+    object-fit: cover;
+}
+
+.friends_text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.friends_name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.friends_site {
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--text-5);
+}
+
+.friends_blurb {
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--text-3);
+}
+
+.friends_arrow {
+    align-self: flex-start;
+    color: var(--text-5);
+    transition: transform 0.15s ease, color 0.15s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+        transform: none !important;
+    }
+}

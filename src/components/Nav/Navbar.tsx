@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
@@ -40,6 +40,77 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
     const logoRef = useRef<HTMLAnchorElement>(null);
     const linkRefs = useRef<(HTMLLIElement | null)[]>([]);
     const actionsRef = useRef<HTMLDivElement>(null);
+    const pillRef = useRef<HTMLSpanElement>(null);
+
+    // On the home page, the link of the section you're reading sits on a pill that slides from link to link. Only
+    // once the bar is the compact island (Navbar.scss): over the hero, the bar stays as it was.
+    const spy = isHero && pathname === "/";
+    const [active, setActive] = useState<string | null>(null);
+
+    // The section the middle of the screen is in: the last one whose top has passed it. Measured on scroll rather than
+    // through ScrollTrigger positions, which would go stale when the projects list is filtered to a different height.
+    useEffect(() => {
+        if (!spy) return;
+        const targets = linksLeft
+            .map((link) => ({
+                href: link.href,
+                el: link.href === "#"
+                    ? document.querySelector<HTMLElement>(".hero")
+                    : document.getElementById(link.href.slice(1))?.closest<HTMLElement>(".section") ?? null,
+            }))
+            .filter((target): target is { href: string; el: HTMLElement } => target.el !== null);
+
+        let frame = 0;
+        const update = () => {
+            frame = 0;
+            const middle = window.innerHeight / 2;
+            let current: string | null = null;
+            for (const {href, el} of targets) if (el.getBoundingClientRect().top <= middle) current = href;
+            setActive(current);
+        };
+        const schedule = () => {
+            if (!frame) frame = requestAnimationFrame(update);
+        };
+        update();
+        window.addEventListener("scroll", schedule, {passive: true});
+        window.addEventListener("resize", schedule);
+        return () => {
+            window.removeEventListener("scroll", schedule);
+            window.removeEventListener("resize", schedule);
+            cancelAnimationFrame(frame);
+        };
+    }, [spy]);
+
+    // Lays the pill under the active link. Measured in the nav's own layout box (offsetLeft/Top, which ignore the
+    // island's scale), again whenever the nav changes size, which it does all through the shrink into the island.
+    const pillPlaced = useRef(false);
+    useLayoutEffect(() => {
+        const pill = pillRef.current;
+        const nav = navRef.current;
+        if (!pill || !nav || !spy) return;
+
+        const place = () => {
+            const index = linksLeft.findIndex((link) => link.href === active);
+            const li = index >= 0 ? linkRefs.current[index] : null;
+            pill.classList.toggle("is-on", Boolean(li && li.offsetWidth));
+            if (!li || !li.offsetWidth) return;
+            // The first placement jumps there; only later moves slide.
+            if (!pillPlaced.current) pill.style.transition = "none";
+            pill.style.width = `${li.offsetWidth + 24}px`;
+            pill.style.height = `${li.offsetHeight + 10}px`;
+            pill.style.transform = `translate(${li.offsetLeft - 12}px, ${li.offsetTop - 5}px)`;
+            if (!pillPlaced.current) {
+                pillPlaced.current = true;
+                requestAnimationFrame(() => pill.style.removeProperty("transition"));
+            }
+        };
+
+        place();
+        const observer = new ResizeObserver(place);
+        observer.observe(nav);
+        void document.fonts?.ready.then(place);
+        return () => observer.disconnect();
+    }, [active, spy]);
 
     useGSAP(() => {
         const nav = navRef.current;
@@ -128,6 +199,7 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
                     <a
                         href={resolveHref(item.href, pathname)}
                         className="text-body text-underline"
+                        aria-current={spy && active === item.href ? "location" : undefined}
                         {...(item.external && {target: "_blank", rel: "noopener noreferrer"})}
                     >
                         {item.label}
@@ -149,6 +221,7 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
                 }
                 ref={navRef}
             >
+                {spy && <span className="navbar_pill" ref={pillRef} aria-hidden="true" />}
                 <div className="navbar_bar">
                     <Link className="navbar_logo" href="/" aria-label="Go to homepage" ref={logoRef}>
                         <img src="/favicon64.png" alt={LOGO_ALT} width={64} height={64} />

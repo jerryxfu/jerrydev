@@ -1,0 +1,59 @@
+// Board.tsx. One line, as wide as it likes, cut off by the screen and faded at both ends like a board's bezel. Set
+// light, like the site's titles.
+.board {
+    overflow: hidden;
+    padding: 1.15rem 0 1.05rem;
+    border-top: 1px solid var(--border-lt);
+    border-bottom: 1px solid var(--border-lt);
+    font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+    font-weight: 350;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: var(--text-strong);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.board_track {
+    display: inline-flex;
+    will-change: transform;
+}
+
+.board_run {
+    display: inline-flex;
+}
+
+.board_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding-right: 1.3em;
+
+    // A separator after each.
+    &::after {
+        content: "✦";
+        margin-left: 0.9em;
+        font-size: 0.4em;
+        color: var(--text-6);
+    }
+}
+
+// The status's colour, glowing a little, like a lamp on a board.
+.board_dot {
+    width: 0.3em;
+    height: 0.3em;
+    margin-left: 0.15em;
+    border-radius: var(--r-full);
+    background-color: currentColor;
+    box-shadow: 0 0 0.45em currentColor;
+}
+
+// Small capitals after the name, like a board's last column.
+.board_status {
+    font-size: 0.34em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-4);
+}

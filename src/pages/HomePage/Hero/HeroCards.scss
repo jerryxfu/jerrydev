@@ -1,0 +1,193 @@
+// HeroCards.tsx. Over the hero's right half, which the mesh fills on its own; under 1100px the hero text needs that
+// room, so the cards go.
+.hero-cards {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+
+    @media screen and (max-width: 1099px) {
+        display: none;
+    }
+}
+
+.hero-card {
+    position: absolute;
+    // The fade as the hero scrolls away, read by the glass. See --pop.
+    --away: 1;
+    will-change: transform;
+}
+
+.hero-card_in {
+    // The fade as the card arrives. Both fades meet on the glass itself, never on an ancestor of it: opacity on an
+    // ancestor would cut the glass off from the mesh it frosts.
+    --pop: 1;
+}
+
+.hero-card--building {
+    left: 55%;
+    top: 20%;
+}
+
+.hero-card--clock {
+    left: 77%;
+    top: 29%;
+}
+
+.hero-card--post {
+    left: 58%;
+    top: 56%;
+
+    // Its title makes it the widest card; nearer 1100px it would reach into the theme card.
+    @media screen and (max-width: 1300px) {
+        left: 52%;
+    }
+}
+
+.hero-card--theme {
+    left: 79%;
+    top: 64%;
+}
+
+// Frosted from the page's lightest surface, so each theme gets its own glass: white over the light mesh, smoke over
+// night, rose over blush, wine over burgundy.
+.hero-card_glass {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 12.5rem;
+    box-sizing: border-box;
+    padding: 0.85rem 1.05rem;
+    border: 1px solid color-mix(in srgb, var(--bg-lt) 60%, transparent);
+    border-radius: var(--r-md);
+    background-color: color-mix(in srgb, var(--bg-lt) 42%, transparent);
+    -webkit-backdrop-filter: saturate(140%) blur(16px);
+    backdrop-filter: saturate(140%) blur(16px);
+    box-shadow: 0 26px 50px -28px var(--shadow-daa), 0 2px 8px -4px var(--shadow-da);
+    color: var(--text);
+    text-decoration: none;
+    opacity: calc(var(--pop, 1) * var(--away, 1));
+    pointer-events: auto;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    .hero-cards.is-away & {
+        pointer-events: none;
+    }
+}
+
+a.hero-card_glass:hover {
+    border-color: color-mix(in srgb, var(--bg-lt) 90%, transparent);
+    background-color: color-mix(in srgb, var(--bg-lt) 58%, transparent);
+}
+
+// The kicker's register: small capitals in the accent.
+.hero-card_label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--secondary);
+}
+
+.hero-card_big {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 2.1rem;
+    font-weight: 350;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--text-strong);
+}
+
+.hero-card_period {
+    font-size: 0.95rem;
+    font-weight: 450;
+    letter-spacing: 0;
+    color: var(--text-3);
+}
+
+.hero-card_status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+// A status dot, pulsing: live. Its colour is TechNexus's status of the moment (--dot).
+.hero-card_dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--r-full);
+    background-color: var(--dot, #bf5af2);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot, #bf5af2) 28%, transparent);
+    transition: background-color 0.4s ease;
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: hero-card-pulse 2s ease-in-out infinite;
+    }
+}
+
+@keyframes hero-card-pulse {
+    50% {
+        box-shadow: 0 0 0 7px color-mix(in srgb, var(--dot, #bf5af2) 0%, transparent);
+    }
+}
+
+.hero-card_sub {
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.hero-card_title {
+    max-width: 15rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text-strong);
+}
+
+.hero-card_themes {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.15rem;
+}
+
+.hero-card_swatch {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--text-strong) 25%, transparent);
+    border-radius: var(--r-full);
+    background-color: var(--swatch);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        transform: scale(1.15);
+    }
+
+    // The ring is the page's own background, then the accent, so it reads on every theme's glass.
+    &.is-on {
+        box-shadow: 0 0 0 2px var(--bg-lt), 0 0 0 3.5px var(--secondary);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+.hero-card_theme-name {
+    margin-left: 0.3rem;
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--text-strong);
+}

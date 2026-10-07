@@ -3,6 +3,7 @@ import {Link} from "wouter";
 import "./Blog.scss";
 import "./BlogFeed.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
+import useLatestPost from "@/hooks/useLatestPost.ts";
 
 // The feed is the only thing here that touches posts.tsx, and posts.tsx drags in the topic manifests and
 // a glob over every .mdx body. Behind lazy() that lands in its own chunk instead of in the home page's
@@ -13,11 +14,14 @@ const BlogFeed = lazy(() => import("./BlogFeed.tsx"));
 const SKELETON_ROWS = 7;
 
 export default function Blog() {
+    // Through the same dynamic import as the feed, so the description can say how fresh the blog is once the posts are in.
+    const latest = useLatestPost();
+
     return (
         <div className="section blog-section">
             <SectionTitle
                 text={"Blog"}
-                description={"Where the longer explanations go."}
+                description={`Where the longer explanations go.${latest ? ` Updated ${latest.age}.` : ""}`}
             />
 
             <div className="blog-section_container">

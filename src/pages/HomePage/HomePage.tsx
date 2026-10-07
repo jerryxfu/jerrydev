@@ -2,6 +2,7 @@ import "./HomePage.scss";
 import {Helmet} from "react-helmet-async";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
+import Board from "./Board/Board.tsx";
 import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";
 import Footer from "../../components/Footer/Footer.tsx";
@@ -27,6 +28,8 @@ export default function HomePage() {
                 <About />
                 <Skills />
                 <Projects />
+                {/* Under the projects for now, whose statuses it runs through. */}
+                <Board />
                 <Experience />
                 <Blog />
             </main>

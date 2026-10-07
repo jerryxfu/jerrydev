@@ -65,7 +65,8 @@ export default function Experience() {
         <div className="section experience">
             <SectionTitle
                 text={"Experience & Extras"}
-                description={"The notable extracurriculars and stuff beyond my own projects."}
+                description={"The notable extracurriculars and stuff beyond my own projects." +
+                    ` Since ${Math.min(...experiences.map(({date}) => date.getFullYear()))}.`}
             />
 
             <div className="experience_container">

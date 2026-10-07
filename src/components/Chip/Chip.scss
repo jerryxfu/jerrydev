@@ -7,6 +7,11 @@
     font-weight: 450;
     line-height: 1;
 
+    &-xs {
+        padding: 0.15rem 0.35rem;
+        font-size: 0.75rem; // 12px, a step under --fs-xs
+    }
+
     &-sm {
         padding: 0.25rem 0.40rem;
         font-size: var(--fs-xs);
@@ -20,5 +25,10 @@
     &-lg {
         padding: 0.40rem 0.80rem;
         font-size: var(--fs-base);
+    }
+
+    &-transparent {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px var(--border-da);
     }
 }

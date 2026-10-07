@@ -1,0 +1,53 @@
+// BlockReveal.tsx: a heading's line while it's revealed, as wide as its words, with the block of ink behind them and the
+// marks around it. All of it is gone once the heading has arrived, the split reverted.
+
+.block-reveal_line {
+    position: relative;
+    width: fit-content;
+    // A centred heading needs its lines centred too: give it `.block-reveal_line { margin-inline: auto; }` under it.
+}
+
+.block-reveal_text {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+}
+
+.block-reveal_line.is-hidden .block-reveal_text,
+.block-reveal_line.is-hidden .block-reveal_text * {
+    color: transparent;
+}
+
+// On the block, in the background's colour: the line inverted.
+.block-reveal_line.is-inverted .block-reveal_text,
+.block-reveal_line.is-inverted .block-reveal_text * {
+    color: var(--bg);
+}
+
+// Back to its own colours as the block slides away. TechNexus's 0.35s, divided by BlockReveal.tsx's SPEED.
+.block-reveal_line.is-settling .block-reveal_text,
+.block-reveal_line.is-settling .block-reveal_text * {
+    transition: color 0.22s ease;
+}
+
+.block-reveal_block {
+    position: absolute;
+    inset: 0.02em -0.1em -0.06em;
+    background: var(--text-strong);
+    transform: scaleX(0);
+    pointer-events: none;
+}
+
+.block-reveal_mark {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--secondary-lt);
+    opacity: 0;
+    pointer-events: none;
+
+    &.is-bar {
+        width: 22px;
+        height: 2px;
+    }
+}

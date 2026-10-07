@@ -214,6 +214,33 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 }
 
+// The pill under the link of the section being read (Navbar.tsx places it). Tinted from --primary-lt like the
+// menu button's hover, so each theme gets its own: pale blue, deep blue, pink, wine. Earlier in the nav than the
+// links, which are positioned, so it paints under them.
+.navbar_pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: var(--r-sm);
+    background-color: color-mix(in srgb, var(--primary-lt) 55%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.45s $ease, width 0.45s $ease, height 0.3s $ease, opacity 0.3s ease;
+
+    .navbar.is-scrolled &.is-on {
+        opacity: 1;
+    }
+
+    // The inline links are gone there; the drawer has the menu.
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: opacity 0.2s ease;
+    }
+}
+
 // ------
 //  Solid mode
 // ------

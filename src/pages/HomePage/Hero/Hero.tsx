@@ -3,10 +3,11 @@ import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
 import {CustomEase} from "gsap/CustomEase";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {SplitText} from "gsap/SplitText";
 import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
-import SplitType from "split-type";
 import {texts} from "./texts.ts";
+import HeroCards from "./HeroCards.tsx";
 import {type Theme, useTheme} from "../../../context/ThemeContext.tsx";
 
 import("../../../assets/styles/gradient-mesh-default.scss");
@@ -24,7 +25,9 @@ let isGsapConfigured = false;
 function configureGsap() {
     if (isGsapConfigured) return;
 
-    gsap.registerPlugin(useGSAP, CustomEase, ScrollTrigger, TextPlugin);
+    // SplitText ships with gsap since 3.13 and BlockReveal already uses it, so the hero splits with it too and
+    // split-type is gone. Made inside useGSAP, a split is reverted with the rest of the hero's animation.
+    gsap.registerPlugin(useGSAP, CustomEase, ScrollTrigger, TextPlugin, SplitText);
     CustomEase.create("nativeEase", "0.250, 0.100, 0.250, 1.000");
     CustomEase.create("customEaseOut", "0.250, 0.100, 0.580, 1.000");
     gsap.defaults({ease: "nativeEase"});
@@ -52,6 +55,7 @@ export default function Hero() {
     const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
 
     const dividerRef = useRef(null);
+    const glowRef = useRef<HTMLSpanElement>(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
@@ -118,6 +122,19 @@ export default function Hero() {
             duration: 1,
         }, opening_delay);
 
+        // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
+        // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
+        if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
+                "--glow-at": "175%",
+                duration: 2.6,
+                ease: "sine.inOut",
+                repeat: -1,
+                repeatDelay: 2,
+                delay: 1.6,
+            });
+        }
+
         // Slide up "Hello"
         tl.from([titleRef.current], {
             yPercent: 100,
@@ -125,7 +142,9 @@ export default function Hero() {
             duration: 1.8
         }, 0.25 + opening_delay);
 
-        const subtitleSplit = subtitleRef.current ? new SplitType(subtitleRef.current, {types: "chars"}) : null;
+        // Spans rather than SplitText's default divs, which aren't allowed inside an h2 or a p. Hero.scss makes them
+        // inline blocks, as split-type's were, since an inline box ignores transforms.
+        const subtitleSplit = subtitleRef.current ? SplitText.create(subtitleRef.current, {type: "chars", tag: "span", charsClass: "hero_split"}) : null;
 
         tl.from(subtitleSplit?.chars ?? [], {
             y: "-100%",
@@ -136,8 +155,8 @@ export default function Hero() {
 
         if (!line1Ref.current || !line2Ref.current) return;
 
-        const line1Split = new SplitType(line1Ref.current, {types: "words"});
-        const line2Split = new SplitType(line2Ref.current, {types: "words"});
+        const line1Split = SplitText.create(line1Ref.current, {type: "words", tag: "span", wordsClass: "hero_split"});
+        const line2Split = SplitText.create(line2Ref.current, {type: "words", tag: "span", wordsClass: "hero_split"});
 
         tl.from(line1Split.words, {
             yPercent: 100,
@@ -174,7 +193,9 @@ export default function Hero() {
                         <h1 ref={titleRef} className="hero_title">Hello</h1>
                     </div>
 
-                    <div className="hero_glowing-separator" ref={dividerRef} />
+                    <div className="hero_glowing-separator" ref={dividerRef}>
+                        <span className="hero_separator-glow" ref={glowRef} />
+                    </div>
 
                     <div>
                         <h2 className="hero_subtitle" ref={subtitleRef}>I'm Jerry!</h2>
@@ -197,6 +218,8 @@ export default function Hero() {
                         {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
                     </p>
                 </div>
+
+                <HeroCards />
             </div>
         </>
     );

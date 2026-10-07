@@ -1,3 +1,4 @@
+import {execSync} from "node:child_process";
 import {fileURLToPath, URL} from "node:url";
 import {defineConfig} from "vite";
 import react from "@vitejs/plugin-react";
@@ -12,7 +13,24 @@ import {VitePWA} from "vite-plugin-pwa";
 
 // use rollup-plugin-visualizer
 
+// The commit this build was made from, for the footer's colophon. Cloudflare Pages hands it over in
+// CF_PAGES_COMMIT_SHA; a build on this machine asks git; anything else says "dev" rather than failing the build.
+const BUILD_COMMIT = (() => {
+    const fromPages = process.env.CF_PAGES_COMMIT_SHA;
+    if (fromPages) return fromPages.slice(0, 7);
+    try {
+        return execSync("git rev-parse --short HEAD", {stdio: ["ignore", "pipe", "ignore"]}).toString().trim();
+    } catch {
+        return "dev";
+    }
+})();
+
 export default defineConfig({
+    // Replaced in the source at build time. Declared for TypeScript in src/types/env.d.ts.
+    define: {
+        __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
+        __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    },
     resolve: {
         alias: {
             "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -186,8 +204,7 @@ export default defineConfig({
 
                     if (
                         id.includes("/gsap/") ||
-                        id.includes("/@gsap/") ||
-                        id.includes("/split-type/")
+                        id.includes("/@gsap/")
                     ) {
                         return "gsap-vendor";
                     }
