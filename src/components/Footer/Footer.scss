@@ -66,19 +66,67 @@
     }
 }
 
+// The colophon: what the site is built with, and which build you're looking at.
+.footer_colophon {
+    // The bottom margin keeps it clear of the debug chip, which sits absolutely in the footer's bottom padding.
+    margin: 1.4rem 0 0.75rem;
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--text-5);
+
+    code {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.95em;
+        color: var(--text-4);
+    }
+}
+
+// A chip with a lamp, quiet until pressed: grey when off, then the accent, orange and red as the modes get louder.
 .footer_debug-button {
     position: absolute;
     bottom: 8px;
     left: 1%;
-
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
     background: transparent;
-    border: none;
     font-family: inherit;
+    font-size: var(--fs-xs);
     color: var(--text-2);
     cursor: pointer;
-    transition: opacity 0.2s;
+    opacity: 1;
+    transition: opacity 0.2s, border-color 0.2s;
+
+    &::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: var(--r-full);
+        background-color: var(--lamp, var(--gray-lt));
+        box-shadow: 0 0 6px var(--lamp, transparent);
+    }
+
+    &[data-mode="0"] {
+        opacity: 0.45;
+    }
+
+    &[data-mode="1"] {
+        --lamp: var(--secondary);
+    }
+
+    &[data-mode="2"] {
+        --lamp: var(--orange);
+    }
+
+    &[data-mode="3"] {
+        --lamp: var(--red);
+    }
 
     &:hover {
-        opacity: 1 !important;
+        opacity: 1;
+        border-color: var(--border-da);
     }
 }
