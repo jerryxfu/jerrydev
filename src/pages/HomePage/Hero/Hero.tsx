@@ -8,17 +8,10 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
 import HeroCards from "./HeroCards.tsx";
-import {type Theme, useTheme} from "../../../context/ThemeContext.tsx";
+import {GRADIENT_MESHES} from "./meshes.ts";
+import {useTheme} from "../../../context/ThemeContext.tsx";
 
 import("../../../assets/styles/gradient-mesh-default.scss");
-
-// One mesh per theme
-const GRADIENT_MESHES: Record<Theme, string> = {
-    light: "gradient-mesh-default",
-    night: "gradient-mesh-night",
-    blush: "gradient-mesh-blush",
-    burgundy: "gradient-mesh-burgundy",
-};
 
 let isGsapConfigured = false;
 

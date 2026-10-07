@@ -1,27 +1,9 @@
-// Horizon.tsx: a little room under the hero, the canvas over the lower half of the hero (and that room), and the stars
-// over the whole hero; all of it over the mesh, behind the hero's words.
-html[data-seam="horizon"] .hero {
-    z-index: 1;
-}
-
-.horizon_sky {
-    position: relative;
-    z-index: 0;
-    height: 0;
-    pointer-events: none;
-
-    canvas {
-        position: absolute;
-        top: -100vh;
-        left: 0;
-        display: block;
-    }
-}
-
+// Horizon.tsx: the room under the hero where its cells carry on, and the canvas over the lower half of the hero and that
+// room, over the mesh and the sky (Sky.tsx), behind the hero's words (.hero is z-index 1).
 .horizon {
     position: relative;
     z-index: 0;
-    height: 8vh;
+    height: 22vh;
     pointer-events: none;
 
     canvas {
@@ -30,4 +12,19 @@ html[data-seam="horizon"] .hero {
         bottom: 0; // its top is halfway up the hero: Horizon.tsx sizes it
         display: block;
     }
+}
+
+// The mesh again, upside down about the hero's bottom edge, seen only in this room (and only through the cells' windows).
+.horizon_reflection {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.horizon_mirror {
+    // The mesh's class makes it absolute and sizes it to this box; Horizon.tsx gives it the hero's height and puts it
+    // over the hero, so the flip lands it in the room.
+    left: 0;
+    transform: scaleY(-1);
+    transform-origin: 50% 100%;
 }

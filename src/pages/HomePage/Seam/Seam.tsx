@@ -1,54 +1,38 @@
-import {useEffect, useState} from "react";
-import Mist from "./Mist.tsx";
-import Squares from "./Squares.tsx";
-import Horizon from "./Horizon.tsx";
+import {useState} from "react";
+import Horizon, {type SquaresStyle} from "./Horizon.tsx";
 import "./Seam.scss";
 
-// The way from the hero into About. Sketches, round twelve, each confined to where the two meet (nothing fixed over the
-// screen); round eleven's clouds, stardust and lift are in 5cf5856:
-// - mist: the hero high up, its top fading into space (stars in the dark themes), its bottom into mist you sink into;
-// - squares: the mesh's lower edge breaks into cells like GitHub's contribution graph, in five levels of its own light;
-// - horizon: the hero ends on the curve of a planet's horizon, a line of light that flattens as you come down.
-// Picked with ?seam=mist, squares or horizon, or with the switcher at the bottom of the screen.
-const SEAMS = ["mist", "squares", "horizon"] as const;
-type SeamName = typeof SEAMS[number];
-const LABEL: Record<SeamName, string> = {mist: "Mist", squares: "Squares", horizon: "Horizon"};
+// The way from the hero into About: the horizon, which flattens and breaks into moving square cells (Horizon.tsx).
+// Round thirteen's switcher compares three ways for the cells to move, picked with ?squares=fire, sparkle or crystal
+// or the pill at the bottom of the screen; it goes once one is picked.
+const STYLES: SquaresStyle[] = ["fire", "sparkle", "crystal"];
+const LABEL: Record<SquaresStyle, string> = {fire: "Fire", sparkle: "Sparkle", crystal: "Crystal"};
 
-const fromUrl = (): SeamName => {
-    const asked = new URLSearchParams(window.location.search).get("seam");
-    return SEAMS.find((name) => name === asked) ?? "mist";
+const fromUrl = (): SquaresStyle => {
+    const asked = new URLSearchParams(window.location.search).get("squares");
+    return STYLES.find((name) => name === asked) ?? "fire";
 };
 
 export default function Seam() {
-    const [seam, setSeam] = useState<SeamName>(fromUrl);
+    const [style, setStyle] = useState<SquaresStyle>(fromUrl);
 
-    // For the styles each way changes outside this component (which layer goes over which).
-    useEffect(() => {
-        document.documentElement.dataset.seam = seam;
-        return () => {
-            delete document.documentElement.dataset.seam;
-        };
-    }, [seam]);
-
-    const pick = (name: SeamName) => {
+    const pick = (name: SquaresStyle) => {
         const url = new URL(window.location.href);
-        url.searchParams.set("seam", name);
+        url.searchParams.set("squares", name);
         window.history.replaceState(window.history.state, "", url);
-        setSeam(name);
+        setStyle(name);
     };
 
     return (
         <>
-            {seam === "mist" && <Mist key="mist" />}
-            {seam === "squares" && <Squares key="squares" />}
-            {seam === "horizon" && <Horizon key="horizon" />}
-            <div className="seam-switcher" role="group" aria-label="Way from the hero into About (prototype)">
-                {SEAMS.map((name) => (
+            <Horizon squares={style} />
+            <div className="seam-switcher" role="group" aria-label="How the squares move (prototype)">
+                {STYLES.map((name) => (
                     <button
                         key={name}
                         type="button"
-                        className={name === seam ? "is-on" : undefined}
-                        aria-pressed={name === seam}
+                        className={name === style ? "is-on" : undefined}
+                        aria-pressed={name === style}
                         onClick={() => pick(name)}
                     >
                         {LABEL[name]}

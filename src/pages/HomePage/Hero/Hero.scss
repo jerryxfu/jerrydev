@@ -1,6 +1,7 @@
 .hero {
     display: flex;
     position: relative;
+    z-index: 1; // over what's drawn on the mesh: the sky (Sky.tsx) and the horizon (Seam/Horizon.tsx)
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;

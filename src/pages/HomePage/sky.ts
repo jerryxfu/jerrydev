@@ -1,4 +1,5 @@
-// What the seam sketches share: colour and number helpers, a seeded random, and the stars.
+// What the hero's sky (Hero/Sky.tsx) and the way down from it (Seam/Horizon.tsx) share: colour and number helpers, a
+// seeded random, and a canvas sized in CSS px.
 
 export type RGB = readonly [number, number, number];
 
@@ -23,35 +24,6 @@ export const seeded = (seed: number) => () => {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
-
-export type Star = {x: number; y: number; r: number; a: number; phase: number; speed: number};
-
-// About one star per `area` px² of the box, most of them faint.
-export function makeStars(width: number, height: number, area: number, seed = 7): Star[] {
-    const random = seeded(seed);
-    return Array.from({length: Math.round((width * height) / area)}, () => ({
-        x: random() * width,
-        y: random() * height,
-        r: 0.5 + random() ** 3 * 1.3,
-        a: 0.25 + random() * 0.7,
-        phase: random() * Math.PI * 2,
-        speed: 0.6 + random() * 1.6,
-    }));
-}
-
-// Each star twinkling on its own beat; `fade` dims them by height (0 at the top of the box, 1 at its bottom).
-export function drawStars(ctx: CanvasRenderingContext2D, stars: Star[], width: number, height: number, time: number,
-                          fade: (y: number) => number, colour = "240, 244, 255") {
-    ctx.clearRect(0, 0, width, height);
-    for (const star of stars) {
-        const alpha = star.a * fade(star.y / height) * (0.72 + 0.28 * Math.sin(time * star.speed + star.phase));
-        if (alpha <= 0.01) continue;
-        ctx.fillStyle = `rgba(${colour}, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
 
 // Sizes a canvas to a box in CSS px, sharp up to twice the pixels, and returns its context drawing in CSS px.
 export function fit(canvas: HTMLCanvasElement, width: number, height: number, maxDpr = 2) {
