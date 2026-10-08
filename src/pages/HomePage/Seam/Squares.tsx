@@ -76,7 +76,8 @@ const fire = (c: number, r: number, depth: number, t: number) =>
 
 type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number; glow: number};
 
-export default function Squares({pourAt = 0.18, children}: {pourAt?: number; children?: ReactNode}) {
+// On its own, the pour starts as soon as you scroll (0.05 of the hero), so the hero's straight edge hardly shows first.
+export default function Squares({pourAt = 0.05, children}: {pourAt?: number; children?: ReactNode}) {
     const root = useRef<HTMLDivElement>(null);
     const {currentTheme} = useTheme();
 
