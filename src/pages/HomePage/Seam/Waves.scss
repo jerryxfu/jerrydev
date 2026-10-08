@@ -8,7 +8,10 @@
     left: 0;
     right: 0;
     bottom: 100%;
-    height: 40vh;
+    // A quarter of the width, so a narrow screen doesn't squeeze the drawing sideways into steep waves (Jerry: "on mobile,
+    // the line and shape can be less squished horizontally, they can be 'flatter'"), at most 40% of the height (as on a
+    // desktop) and at least 20% (a phone's are about half as steep).
+    height: clamp(20vh, 25vw, 40vh);
     overflow: hidden; // the hero's edge, which the shapes slide down behind
     pointer-events: none;
 }

@@ -55,9 +55,10 @@ export default function Footer() {
             ]
         },
         {
-            // The same people as the friends block in About, from the same list.
+            // The same people as the friends block in About, from the same list. Lazy, as pictures from other sites
+            // are, so a friend's site that hangs can't hold back the page's load event (why: HomePage/useReveals.ts).
             category: "Special mentions",
-            content: friendList.map((friend) => ({text: friend.site, url: friend.url, decorator: <img src={friend.icon} alt="" onError={hideBrokenIcon} />})),
+            content: friendList.map((friend) => ({text: friend.site, url: friend.url, decorator: <img src={friend.icon} alt="" loading="lazy" onError={hideBrokenIcon} />})),
         }
     ];
 

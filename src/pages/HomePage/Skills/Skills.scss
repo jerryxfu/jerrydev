@@ -54,3 +54,9 @@
         width: 100%;
     }
 }
+
+// Its size is written on it (Skills.tsx: 18 languages, 300 by 285), so its room is held while it loads and nothing
+// moves when it comes in (why that matters: useReveals.ts). Its own height once it's in, should a language add a row.
+.skills_languages-card {
+    height: auto;
+}

@@ -47,7 +47,9 @@ function morph(el: HTMLElement, to: string) {
     while (keep < prev.length && keep < next.length && prev[keep] === next[keep]) keep++;
     if (keep === prev.length && keep === next.length) return;
 
-    if (prefersReducedMotion()) {
+    // In a tab in the background too: GSAP's clock stands still there (it runs on the screen's frames), so each change
+    // would leave its letters waiting, and coming back they'd all play at once, stacked.
+    if (prefersReducedMotion() || document.hidden) {
         place(el, to);
         return;
     }

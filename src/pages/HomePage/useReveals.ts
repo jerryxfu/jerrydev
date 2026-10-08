@@ -26,9 +26,18 @@ const REVEALED = [
 // The home page's content, below the hero, comes in quietly: each block rises 18px as it fades in, those that come on
 // screen together one after the other. Once, and nothing with reduced motion. After a jump down the page, what it went
 // past is simply there, so what's on screen doesn't wait its turn behind everything above it (2s and more, before).
-// The page's scroll triggers, these and the others, are measured again when the page moves under them: a picture that
-// loads late (the lazy ones load as you come near) or the fonts can move what's below them, and a trigger measured
-// before stays off by that much (the languages card, centred beside the skills, moves itself up 143px as it loads).
+//
+// Measuring the scroll triggers stops a scroll. ScrollTrigger.refresh() measures every trigger with the page at the
+// top: it scrolls the page to 0 and back in one go. Nothing shows, but a scroll under way stops dead (Firefox drops a
+// trackpad's glide). It used to run on every picture's load, and the lazy ones load as you come near, so mid-scroll
+// (Jerry, Oct 2026: "after scrolling shortly it abruptly stops scrolling"). So it's measured as little as can be:
+// - A picture holds its room before it's in: a size written on it, or a box of fixed size. A late one then moves
+//   nothing and needs no measure. The languages card in Skills has its size written on it (it moved 143px coming in).
+// - A picture from another site is lazy. An eager one holds back the page's load event, and GSAP measures by itself on
+//   it, scroll or no scroll: the Creative Commons icons in the footer held it for seconds after a reload.
+// - What measures when a scroll may be under way waits for it to end, with refresh(true): the fonts, below. Projects'
+//   plain refresh() calls follow a click (a filter, or a card's opening, 0.8s long), when nothing is scrolling.
+// Otherwise a trigger measured before something above it moved stays off by that much: its reveal comes late or early.
 export default function useReveals() {
     useGSAP(() => {
         const mm = gsap.matchMedia();
@@ -49,24 +58,13 @@ export default function useReveals() {
             });
         });
 
-        const main = document.getElementById("main");
-        let timer = 0;
-        const remeasure = () => {
-            window.clearTimeout(timer);
-            timer = window.setTimeout(() => ScrollTrigger.refresh(), 200);
-        };
-        // A picture's load event doesn't bubble, so it's caught on its way down.
-        main?.addEventListener("load", remeasure, true);
-        const sizes = new ResizeObserver(remeasure);
-        if (main) sizes.observe(main);
+        // The fonts can come in after the page's load event (in development they do) and move the text under them.
+        const remeasure = () => ScrollTrigger.refresh(true);
         document.fonts.addEventListener("loadingdone", remeasure);
 
         return () => {
             mm.revert();
-            main?.removeEventListener("load", remeasure, true);
-            sizes.disconnect();
             document.fonts.removeEventListener("loadingdone", remeasure);
-            window.clearTimeout(timer);
         };
     });
 }
