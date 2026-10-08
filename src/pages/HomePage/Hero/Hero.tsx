@@ -133,11 +133,11 @@ export default function Hero() {
             duration: 1,
         }, opening_delay);
 
-        // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
+        // Once it has expanded, a glow runs through it every few seconds: the light in Hero.scss slides from before the
         // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            glowTween.current = gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
-                "--glow-at": "175%",
+            glowTween.current = gsap.fromTo(glowRef.current, {xPercent: -100}, {
+                xPercent: 700 / 3,
                 duration: 2.6,
                 ease: "sine.inOut",
                 repeat: -1,
@@ -206,7 +206,9 @@ export default function Hero() {
                     </div>
 
                     <div className="hero_glowing-separator" ref={dividerRef}>
-                        <span className="hero_separator-glow" ref={glowRef} />
+                        <span className="hero_separator-glow">
+                            <span className="hero_separator-light" ref={glowRef} />
+                        </span>
                     </div>
 
                     <div>

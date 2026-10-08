@@ -111,23 +111,23 @@
     }
 }
 
-// The glow that runs through the separator: the same line again, brighter, seen through a soft window 3/7 as wide as
-// this box. Hero.tsx slides the window (--glow-at) from -75%, just before the box, to 175%, just past it. Being the
-// line's own shape, the glow can't go outside it.
+// The glow that runs through the separator: a soft light 3/7 as long as this box, which Hero.tsx slides from just
+// before it to just past it. The box is the line's own light (it reaches 16px past the line: 8px spread, 8px blur) and
+// clips it. A plain gradient: the CSS mask this used to be made Firefox redraw the whole hero every frame.
 .hero_separator-glow {
     position: absolute;
-    inset: -24px; // room for the line's light, which reaches 16px past it (8px spread, 8px blur)
-    -webkit-mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
-    mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
+    inset: -16px;
+    overflow: hidden;
     pointer-events: none;
+}
 
-    // The line, back where the separator draws it
-    &::before {
-        content: "";
-        position: absolute;
-        inset: 24px;
-        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.7), 0 0 0 3px white;
-    }
+.hero_separator-light {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(100% * 3 / 7);
+    background: linear-gradient(90deg, transparent, #fff, transparent) center / 100% 6px no-repeat, // the line's core
+        radial-gradient(closest-side, rgba(255, 255, 255, 0.75), transparent); // and its light
+    transform: translateX(-100%); // out of sight until Hero.tsx moves it, and with reduced motion
 }
 
 .hero_about-container {

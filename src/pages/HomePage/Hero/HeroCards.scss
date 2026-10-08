@@ -49,8 +49,9 @@
     top: 64%;
 }
 
-// Frosted from the page's lightest surface, so each theme gets its own glass: white over the light mesh, smoke over
-// night, rose over blush, wine over burgundy.
+// See-through, from the page's lightest surface, so each theme gets its own glass: white over the light mesh, smoke
+// over night, rose over blush, wine over burgundy. No backdrop blur: over the moving mesh it kept Firefox redrawing the
+// whole hero every frame, and over a gradient this smooth it hardly showed.
 .hero-card_glass {
     display: flex;
     flex-direction: column;
@@ -61,8 +62,6 @@
     border: 1px solid color-mix(in srgb, var(--bg-lt) 60%, transparent);
     border-radius: var(--r-md);
     background-color: color-mix(in srgb, var(--bg-lt) 42%, transparent);
-    -webkit-backdrop-filter: saturate(140%) blur(16px);
-    backdrop-filter: saturate(140%) blur(16px);
     box-shadow: 0 26px 50px -28px var(--shadow-daa), 0 2px 8px -4px var(--shadow-da);
     color: var(--text);
     text-decoration: none;

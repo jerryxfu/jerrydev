@@ -70,8 +70,8 @@ function HeroCards() {
             const glass = gsap.utils.toArray<HTMLElement>(".hero-card_glass", el);
 
             // One at a time, like notifications on an iPhone: each drops in from just above and grows to size as it
-            // fades up, settling without a bounce. The fade is --pop, which only the glass reads: opacity on an
-            // ancestor of a backdrop-filter would stop the glass seeing the mesh behind it while it fades.
+            // fades up, settling without a bounce. The fade is --pop, which only the glass reads (it once had a
+            // backdrop blur, which opacity on an ancestor would have cut off from the mesh).
             gsap.set(ins, {"--pop": 0, visibility: "hidden", y: -24, scale: 0.9, transformOrigin: "50% 0%"});
             const arrive = gsap.timeline({delay: ARRIVE_AT});
             ins.forEach((card, i) => {
