@@ -24,7 +24,8 @@ const REVEALED = [
 ];
 
 // The home page's content, below the hero, comes in quietly: each block rises 18px as it fades in, those that come on
-// screen together one after the other. Once, and nothing with reduced motion.
+// screen together one after the other. Once, and nothing with reduced motion. After a jump down the page, what it went
+// past is simply there, so what's on screen doesn't wait its turn behind everything above it (2s and more, before).
 // The page's scroll triggers, these and the others, are measured again when the page moves under them: a picture that
 // loads late (the lazy ones load as you come near) or the fonts can move what's below them, and a trigger measured
 // before stays off by that much (the languages card, centred beside the skills, moves itself up 143px as it loads).
@@ -37,9 +38,14 @@ export default function useReveals() {
             ScrollTrigger.batch(targets, {
                 start: "top 92%",
                 once: true,
-                onEnter: (batch) => gsap.to(batch, {
-                    opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.06, overwrite: "auto", clearProps: "opacity,transform",
-                }),
+                onEnter: (batch) => {
+                    const passed = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);
+                    const coming = batch.filter((el) => !passed.includes(el));
+                    if (passed.length) gsap.set(passed, {clearProps: "opacity,transform"});
+                    if (coming.length) gsap.to(coming, {
+                        opacity: 1, y: 0, duration: 0.9, ease: "power3.out", stagger: 0.06, overwrite: "auto", clearProps: "opacity,transform",
+                    });
+                },
             });
         });
 
