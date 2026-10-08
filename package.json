@@ -1,5 +1,6 @@
 {
     "name": "jerryxf",
+    "private": true,
     "version": "1.0.0",
     "type": "module",
     "packageManager": "pnpm@12.3.4",
@@ -13,19 +14,17 @@
     "scripts": {
         "dev": "vite --host",
         "build": "tsc -b && vite build",
-        "lint": "eslint . --report-unused-disable-directives --max-warnings 8",
+        "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
         "lint:fix": "eslint . --report-unused-disable-directives --fix",
         "type-check": "tsc -b --noEmit",
         "preview": "vite preview",
-        "analyze": "pnpm run build && npx vite-bundle-analyzer"
+        "analyze": "pnpm run build && pnpm dlx vite-bundle-analyzer"
     },
     "dependencies": {
         "@fontsource-variable/outfit": "^5.3.0",
         "@gsap/react": "^2.1.2",
-        "d3": "^7.9.0",
         "gsap": "^3.15.0",
         "lucide-react": "^1.27.0",
-        "motion": "^12.42.2",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "react-helmet-async": "^3.0.0",
@@ -35,7 +34,6 @@
         "@eslint/js": "^10.0.1",
         "@mdx-js/rollup": "^3.1.1",
         "@shikijs/rehype": "^4.4.3",
-        "@types/d3": "^7.4.3",
         "@types/mdx": "^2.0.14",
         "@types/node": "^26.1.2",
         "@types/react": "^19.2.17",

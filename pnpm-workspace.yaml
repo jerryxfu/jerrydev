@@ -1,3 +1,8 @@
 allowBuilds:
   '@parcel/watcher': true
   es5-ext: true
+
+# One KaTeX for the blog's math: rehype-katex renders it at build with its own KaTeX (0.16), and PostPage.tsx loads the
+# stylesheet from ours, so they'd come from two versions. rehype-katex only calls katex.renderToString, which 0.18 keeps.
+overrides:
+  katex: ^0.18.4

@@ -1,10 +1,7 @@
-import React, {useMemo} from "react";
+import React from "react";
 import "./Footer.scss";
 import Copyright from "../Copyright.tsx";
 import {useDebugMode} from "@/hooks/useDebugMode.ts";
-import {isDarkTheme, useTheme} from "../../context/ThemeContext.tsx";
-import _unveil_light from "../../assets/projects/unveil/unveil_icon_light.png";
-import _unveil_dark from "../../assets/projects/unveil/unveil_icon_dark.png";
 import {friendList, hideBrokenIcon} from "../Friends/friends.ts";
 import {ExternalLink} from "lucide-react";
 
@@ -26,12 +23,6 @@ function buildAge(iso: string): string {
 export default function Footer() {
     const {mode, cycle} = useDebugMode();
 
-    const {currentTheme} = useTheme();
-
-    // Theme-aware icon for the Unveil Technologies footer link.
-    const unveilIcon = useMemo(() => isDarkTheme(currentTheme) ? _unveil_light : _unveil_dark, [currentTheme]);
-
-
     const links: Array<{
         category: string;
         content: Array<{ text: string; url: string; decorator: React.ReactNode; }>
@@ -41,8 +32,6 @@ export default function Footer() {
             content: [
                 {text: "Blog", url: "https://jerryxf.net/blog", decorator: <>📝</>},
                 {text: "Curriculum Vitae", url: "https://cv.jerryxf.net", decorator: <> <ExternalLink size={16} /></>},
-                // {text: "Unveil Technologies", url: "https://unveiltechnologies.com", decorator: <img src={unveilIcon} alt="Unveil icon" />}
-
             ]
         },
         {
