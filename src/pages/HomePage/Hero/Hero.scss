@@ -1,7 +1,7 @@
 .hero {
     display: flex;
     position: relative;
-    z-index: 1; // over what's drawn on the mesh: the sky (Sky.tsx) and the horizon (Seam/Horizon.tsx)
+    z-index: 1; // over what's drawn on the mesh: the sky (Sky.tsx) and the squares under it (Seam/Squares.tsx)
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
@@ -165,4 +165,11 @@
         margin-top: 1rem;
         text-align: center;
     }
+}
+
+// The mesh as tall as the hero, in the same unit. Its own class makes it 100% of the window minus any scrollbar, which
+// can be shorter than the hero's 100vh (a horizontal scrollbar at some zooms, a phone's toolbar) and leave a strip under
+// it, between the mesh and the squares. Two classes, to win over the mesh's one.
+.homepage .hero_mesh {
+    height: 100vh;
 }

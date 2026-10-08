@@ -2,7 +2,8 @@ import "./HomePage.scss";
 import {Helmet} from "react-helmet-async";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
-import Horizon from "./Seam/Horizon.tsx";
+import Squares from "./Seam/Squares.tsx";
+import Halo, {FLAT_AT} from "./Seam/Halo.tsx";
 import Board from "./Board/Board.tsx";
 import About from "./About/About.tsx";
 import Skills from "./Skills/Skills.tsx";
@@ -29,8 +30,10 @@ export default function HomePage() {
             <Navbar isHero={true} />
             <main id="main">
                 <Hero />
-                {/* The way from the hero into About: its horizon, then the cells it carries on in. */}
-                <Horizon />
+                {/* The way from the hero into About: the cells the hero carries on in, here under the halo's horizon. */}
+                <Squares pourAt={FLAT_AT}>
+                    <Halo />
+                </Squares>
                 <About />
                 <Skills />
                 <Projects />
