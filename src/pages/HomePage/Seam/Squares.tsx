@@ -10,10 +10,9 @@ import "./Squares.scss";
 gsap.registerPlugin(ScrollTrigger);
 
 // The way from the hero into About: the hero carries on below its edge as small square cells, like GitHub's
-// contribution graph. Once you've scrolled a little (`pourAt`, in hero heights), they pour down out of the hero on
-// their own, not with the scroll, row after row, the front of the pour glowing; then they flicker like slow fire, full
-// where they meet the hero, fewer and fainter further down, until the page. Scroll back above `pourAt` and they go back
-// up into it.
+// contribution graph. Once you've scrolled a little (`pourAt`, in hero heights), they come out of the hero with the
+// scroll, row after row as you go down, the front glowing; they flicker like slow fire all the while, full where they
+// meet the hero, fewer and fainter further down, until the page. Scroll back up and they go back up into it.
 // The cells are windows in the page's background onto a reflection of the mesh under the hero's edge (the mesh again,
 // upside down, clipped to this room), so their colours carry on from the hero's, still moving. Everything is measured
 // from the hero's own bottom edge, again whenever the hero changes size (a zoom, a phone's toolbar), so the cells meet
@@ -34,10 +33,9 @@ const GLOW: Record<Theme, RGB> = {
 const BAND = 0.24;
 const OPEN_ROWS = 5;
 const LEVELS = [0.07, 0.3, 0.52, 0.76, 1];
-// The pour and its way back up (seconds); how much of the pour the rows take to start one after the other, and how long
-// each cell takes to come in (both as shares of the pour).
-const POUR = 1.5;
-const UNPOUR = 0.5;
+// How far you scroll while they come out (hero heights, from `pourAt`); how much of that the rows take to start one
+// after the other, and how long each cell takes to come in (both as shares of it).
+const REVEAL = 0.35;
 const ROWS_START = 0.6;
 const CELL_IN = 0.25;
 // How fast a cell's shown level follows its level, per frame, and how much the glow shows in the cells furthest from the
@@ -227,22 +225,19 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             ctx.globalAlpha = 1;
         };
 
-        // Each frame: the pour goes on (towards all out past `pourAt`, back otherwise), and something is drawn only when
-        // it shows a change: the pour moved, the page is fading to a new theme, or the cells are out (every other frame:
-        // they step, 30 a second is plenty). It runs while the room is on screen or near it (`near`, from the scroll
-        // trigger below), and while a new theme fades in.
+        // Each frame: the pour follows the scroll, and something is drawn only when it shows a change: the pour moved,
+        // the page is fading to a new theme, or the cells are out (every other frame: they step, 30 a second is
+        // plenty). It runs while the room is on screen or near it (`near`, from the scroll trigger below), and while a
+        // new theme fades in.
         let near = false;
         let ticking = false;
         let frame = 0;
-        let last = 0;
         const tick = () => {
             progress = progress < 0 ? target : progress + (target - progress) * 0.25;
             if (Math.abs(target - progress) < 0.0005) progress = target;
             const time = gsap.globalTimeline.time();
-            const dt = clamp(time - last, 0, 0.1);
-            last = time;
             const before = poured;
-            poured = progress >= pourAt ? Math.min(1, poured + dt / POUR) : Math.max(0, poured - dt / UNPOUR);
+            poured = clamp((progress - pourAt) / REVEAL);
             frame++;
             const fading = page.fading;
             if (fading || poured !== before || (poured > 0 && frame % 2 === 0)) draw(time);
@@ -251,7 +246,6 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
         const wake = () => {
             if (ticking) return;
             ticking = true;
-            last = gsap.globalTimeline.time();
             gsap.ticker.add(tick);
         };
         const sleep = () => {
