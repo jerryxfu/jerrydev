@@ -26,11 +26,12 @@
 }
 
 // Two classes, to win over the mesh's own (which makes it absolute, sizes it to this box and gives it a transition):
-// Squares.tsx gives it the hero's height and puts it over the hero, so the flip lands it in the room. No transition: it
-// must follow the hero at once.
+// Squares.tsx gives it the hero's height and puts it over the hero, so the flip lands it in the room. The mesh's own
+// transition (all 450ms, in every theme), so a new theme fades in here as it does on the hero; but not for its place and
+// height, which must follow the hero at once.
 .squares_reflection .squares_mirror {
     left: 0;
     transform: scaleY(-1);
     transform-origin: 50% 100%;
-    transition: none;
+    transition: all 450ms, top 0s, height 0s;
 }

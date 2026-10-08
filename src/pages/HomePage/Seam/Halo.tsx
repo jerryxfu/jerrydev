@@ -2,8 +2,8 @@ import {useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
-import {type Theme, useTheme} from "@/context/ThemeContext.tsx";
-import {clamp, fit, pageBackground, type RGB, rgba, smoothstep} from "../sky.ts";
+import type {Theme} from "@/context/ThemeContext.tsx";
+import {clamp, fit, pageBackground, type RGB, rgba, shownTheme, smoothstep, watchTheme} from "../sky.ts";
 import "./Halo.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -13,7 +13,8 @@ gsap.registerPlugin(ScrollTrigger);
 // line of light with an atmosphere's glow above it, and a light runs along it every few seconds like the separator's
 // under "Hello". Nothing on the planet yet. As you scroll down you come down and the horizon flattens, by FLAT_AT; then
 // its light fades as the squares pour (give Squares `pourAt={FLAT_AT}`). Goes inside Squares, whose top is the hero's
-// bottom edge: the canvas reaches up over the hero's lower half from there, and a little below for the line's glow.
+// bottom edge: the canvas reaches up over the hero's lower half from there, and a little below for the line's glow. A new
+// theme changes its colours where it is, the planet fading with the page's background.
 
 // Per theme: the atmosphere's glow and the line of light on the horizon.
 const PALETTE: Record<Theme, {glow: RGB; line: RGB}> = {
@@ -40,15 +41,15 @@ const BELOW = 40;
 
 export default function Halo() {
     const root = useRef<HTMLCanvasElement>(null);
-    const {currentTheme} = useTheme();
 
     useGSAP(() => {
         const canvas = root.current;
         const room = canvas?.parentElement;
         const hero = document.querySelector<HTMLElement>(".hero");
         if (!canvas || !room || !hero) return;
-        const palette = PALETTE[currentTheme];
-        const ground = rgba(pageBackground());
+        // The theme's colours, set again when it changes (watchTheme, below).
+        const page = pageBackground(room);
+        let palette = PALETTE[shownTheme()];
 
         let ctx: CanvasRenderingContext2D | null = null;
         let width = 0;
@@ -69,6 +70,7 @@ export default function Halo() {
 
         const draw = (p: number, time: number) => {
             if (!ctx) return;
+            const ground = rgba(page.colour);
             ctx.clearRect(0, 0, width, base + BELOW);
             const scale = Math.min(1.2, Math.max(0.5, width / 1440));
             const come = smoothstep(0, 1, clamp(p / FLAT_AT));
@@ -151,10 +153,14 @@ export default function Halo() {
             }
         };
 
-        // Each frame, drawing only when something shows a change: the scroll moved, the light faded or came back, or the
-        // light is running along the horizon (and a few frames after, to clear it).
+        // Each frame, drawing only when something shows a change: the scroll moved, the light faded or came back, the
+        // light is running along the horizon (and a few frames after, to clear it), or the page is fading to a new theme.
+        // It runs while the room is on screen or near it (`near`, from the scroll trigger below), and while a new theme
+        // fades in.
+        let near = false;
+        let ticking = false;
         let drawnAt = -1;
-        let last = gsap.globalTimeline.time();
+        let last = 0;
         const tick = () => {
             progress = progress < 0 ? target : progress + (target - progress) * 0.25;
             if (Math.abs(target - progress) < 0.0005) progress = target;
@@ -164,10 +170,22 @@ export default function Halo() {
             const before = faded;
             faded = progress >= FLAT_AT ? Math.min(1, faded + dt / FADE) : Math.max(0, faded - dt / UNFADE);
             const sweeping = faded < 1 && (time % (SWEEP + REST)) / SWEEP < 1.03;
-            if (progress !== drawnAt || faded !== before || sweeping) {
+            const fading = page.fading;
+            if (progress !== drawnAt || faded !== before || sweeping || fading) {
                 draw(progress, time);
                 drawnAt = progress;
             }
+            if (!near && !fading) sleep();
+        };
+        const wake = () => {
+            if (ticking) return;
+            ticking = true;
+            last = gsap.globalTimeline.time();
+            gsap.ticker.add(tick);
+        };
+        const sleep = () => {
+            ticking = false;
+            gsap.ticker.remove(tick);
         };
 
         layout();
@@ -185,6 +203,13 @@ export default function Halo() {
         sizes.observe(hero);
         sizes.observe(room);
 
+        // A new theme: its colours, and the planet following the page's fade.
+        const unwatch = watchTheme((theme) => {
+            palette = PALETTE[theme];
+            page.fade();
+            wake();
+        });
+
         const mm = gsap.matchMedia();
         mm.add("(prefers-reduced-motion: no-preference)", () => {
             const run = ScrollTrigger.create({
@@ -196,27 +221,25 @@ export default function Halo() {
                     target = Math.max(0, self.scroll() / height);
                 },
                 onToggle: (self) => {
-                    if (self.isActive) {
-                        last = gsap.globalTimeline.time();
-                        gsap.ticker.add(tick);
-                    } else {
-                        gsap.ticker.remove(tick);
-                    }
+                    near = self.isActive;
+                    if (near) wake();
                 },
             });
             target = Math.max(0, run.scroll() / height);
             return () => {
-                gsap.ticker.remove(tick);
+                near = false;
                 run.kill();
             };
         });
 
         return () => {
+            unwatch();
             sizes.disconnect();
             cancelAnimationFrame(pending);
             mm.revert();
+            sleep();
         };
-    }, {dependencies: [currentTheme], revertOnUpdate: true});
+    });
 
     return <canvas className="halo" ref={root} aria-hidden="true" />;
 }

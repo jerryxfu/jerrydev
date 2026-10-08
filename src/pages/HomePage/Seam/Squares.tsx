@@ -4,7 +4,7 @@ import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import {isDarkTheme, type Theme, useTheme} from "@/context/ThemeContext.tsx";
 import {GRADIENT_MESHES} from "../Hero/meshes.ts";
-import {clamp, fit, pageBackground, type RGB, rgba, seeded, smoothstep} from "../sky.ts";
+import {clamp, fit, pageBackground, type RGB, rgba, seeded, shownTheme, smoothstep, watchTheme} from "../sky.ts";
 import "./Squares.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -18,7 +18,8 @@ gsap.registerPlugin(ScrollTrigger);
 // upside down, clipped to this room), so their colours carry on from the hero's, still moving. Everything is measured
 // from the hero's own bottom edge, again whenever the hero changes size (a zoom, a phone's toolbar), so the cells meet
 // it at any zoom. Drawn on a canvas in the room under the hero, in the page: nothing fixed. `children` go over the
-// canvas (the redesign's halo).
+// canvas (the redesign's halo). A new theme changes the colours where they are, cells and all: the ground fades with the
+// page's background, the reflection with the mesh.
 
 // Per theme, the colour the cells glow in as they arrive and where the fire lifts them: the horizon's light.
 const GLOW: Record<Theme, RGB> = {
@@ -89,12 +90,18 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
         const hero = document.querySelector<HTMLElement>(".hero");
         const mesh = document.querySelector<HTMLElement>(".hero_mesh");
         if (!el || !canvas || !reflection || !mirror || !hero || !mesh) return;
-        const glowColour = rgba(GLOW[currentTheme]);
-        const page = pageBackground();
-        const ground = rgba(page);
-        // Empty cells barely show on a dark page: a little more of the mesh through them there.
-        const levels = isDarkTheme(currentTheme) ? [0.14, ...LEVELS.slice(1)] : LEVELS;
-        const ember = isDarkTheme(currentTheme) ? EMBER.dark : EMBER.light;
+        // The theme's colours, set again when it changes (watchTheme, below).
+        const page = pageBackground(el);
+        let glowColour = "";
+        let levels = LEVELS;
+        let ember = EMBER.light;
+        const restyle = (theme: Theme) => {
+            glowColour = rgba(GLOW[theme]);
+            // Empty cells barely show on a dark page: a little more of the mesh through them there.
+            levels = isDarkTheme(theme) ? [0.14, ...LEVELS.slice(1)] : LEVELS;
+            ember = isDarkTheme(theme) ? EMBER.dark : EMBER.light;
+        };
+        restyle(shownTheme());
 
         // The reflection keeps time with the mesh it reflects, so their colours meet at the hero's edge.
         const sync = () => {
@@ -153,9 +160,11 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             ctx.clearRect(0, 0, width, room + 2);
             // The ground, the page's own background, over the reflection. As the cells pour, it opens just under the edge
             // and closes over the first rows, so the hero carries on into them rather than stopping on a line.
+            const background = page.colour;
+            const ground = rgba(background);
             const ramp = Math.min(pitch * OPEN_ROWS, room);
             const cover = ctx.createLinearGradient(0, 0, 0, ramp);
-            cover.addColorStop(0, rgba(page, 1 - smoothstep(0.05, 0.5, poured)));
+            cover.addColorStop(0, rgba(background, 1 - smoothstep(0.05, 0.5, poured)));
             cover.addColorStop(1, ground);
             ctx.fillStyle = cover;
             ctx.fillRect(0, 0, width, ramp);
@@ -213,9 +222,13 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
         };
 
         // Each frame: the pour goes on (towards all out past `pourAt`, back otherwise), and something is drawn only when
-        // it shows a change: the pour moved, or the cells are out (every other frame: they step, 30 a second is plenty).
+        // it shows a change: the pour moved, the page is fading to a new theme, or the cells are out (every other frame:
+        // they step, 30 a second is plenty). It runs while the room is on screen or near it (`near`, from the scroll
+        // trigger below), and while a new theme fades in.
+        let near = false;
+        let ticking = false;
         let frame = 0;
-        let last = gsap.globalTimeline.time();
+        let last = 0;
         const tick = () => {
             progress = progress < 0 ? target : progress + (target - progress) * 0.25;
             if (Math.abs(target - progress) < 0.0005) progress = target;
@@ -225,7 +238,19 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             const before = poured;
             poured = progress >= pourAt ? Math.min(1, poured + dt / POUR) : Math.max(0, poured - dt / UNPOUR);
             frame++;
-            if (poured !== before || (poured > 0 && frame % 2 === 0)) draw(time);
+            const fading = page.fading;
+            if (fading || poured !== before || (poured > 0 && frame % 2 === 0)) draw(time);
+            if (!near && !fading) sleep();
+        };
+        const wake = () => {
+            if (ticking) return;
+            ticking = true;
+            last = gsap.globalTimeline.time();
+            gsap.ticker.add(tick);
+        };
+        const sleep = () => {
+            ticking = false;
+            gsap.ticker.remove(tick);
         };
 
         layout();
@@ -256,6 +281,14 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
         }
         watchRatio();
 
+        // A new theme: its colours, the ground following the page's fade, and the reflection's new mesh in step again.
+        const unwatch = watchTheme((theme) => {
+            restyle(theme);
+            page.fade();
+            sync();
+            wake();
+        });
+
         const mm = gsap.matchMedia();
         mm.add("(prefers-reduced-motion: no-preference)", () => {
             const run = ScrollTrigger.create({
@@ -267,29 +300,29 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
                     target = Math.max(0, self.scroll() / height);
                 },
                 onToggle: (self) => {
-                    if (self.isActive) {
+                    near = self.isActive;
+                    if (near) {
                         sync();
-                        last = gsap.globalTimeline.time();
-                        gsap.ticker.add(tick);
-                    } else {
-                        gsap.ticker.remove(tick);
+                        wake();
                     }
                 },
             });
             target = Math.max(0, run.scroll() / height);
             return () => {
-                gsap.ticker.remove(tick);
+                near = false;
                 run.kill();
             };
         });
 
         return () => {
+            unwatch();
             sizes.disconnect();
             ratio?.removeEventListener("change", onRatio);
             cancelAnimationFrame(pending);
             mm.revert();
+            sleep();
         };
-    }, {scope: root, dependencies: [currentTheme, pourAt], revertOnUpdate: true});
+    }, {scope: root, dependencies: [pourAt], revertOnUpdate: true});
 
     return (
         <div className="squares" ref={root} aria-hidden="true">
