@@ -19,3 +19,9 @@ export function formatDate(date: Date): string { // 0 pad for Safari
 
     return `${day}-${month}-${year} (${diffDays} days ago)`;
 }
+
+// A text's characters as a reader sees them (graphemes): not UTF-16 units, which cut an emoji in two (half of one shows
+// as a broken character), nor code points (Array.from splits 🛰️ into the satellite and its variation selector).
+const segmenter = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, {granularity: "grapheme"}) : null;
+export const graphemes = (text: string): string[] =>
+    segmenter ? Array.from(segmenter.segment(text), (part) => part.segment) : Array.from(text);

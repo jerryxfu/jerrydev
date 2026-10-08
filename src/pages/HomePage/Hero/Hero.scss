@@ -1,15 +1,17 @@
 .hero {
     display: flex;
     position: relative;
+    z-index: 1; // over what's drawn on the mesh: the waves on its lower part, from the squares' room under it (Seam/)
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     height: 100vh;
 
-    padding-left: 8%;
+    padding-left: 9%;
 
+    // On a phone, in line with the sections below (.section in index.scss).
     @media screen and (max-width: 480px) {
-        padding-left: 4%;
+        padding-left: 5%;
     }
 }
 
@@ -23,7 +25,11 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-top: 3%;
+    // A little right of the hero's padding, and above the middle (Jerry: "move the whole 'Hello, I'm Jerry' container a
+    // little bit to the right and a little bit more upwards"): the hero centres this and the texts under it, so a
+    // negative margin raises them all (by half), the title most.
+    margin-top: -4vh;
+    margin-left: 1rem;
 
     transition: color 0.50s;
 
@@ -32,7 +38,7 @@
     z-index: 1;
 
     @media screen and (max-width: 480px) {
-        margin-top: 0;
+        margin-left: 0; // a phone keeps it in line with the sections below
     }
 }
 
@@ -109,27 +115,21 @@
     }
 }
 
-// The glow that runs through the separator: the same line again, brighter, seen through a soft window 3/7 as wide as
-// this box. Hero.tsx slides the window (--glow-at) from -75%, just before the box, to 175%, just past it. Being the
-// line's own shape, the glow can't go outside it.
+// The glow that runs through the separator (runGlow in Hero.tsx): a canvas over the line and 24px all round it, room for
+// the line's light (8px spread, 8px blur). It draws the line's light again through a soft sliding window, as a CSS mask
+// once did, which made Firefox redraw the whole hero every frame. Empty between the glows, and with reduced motion.
 .hero_separator-glow {
     position: absolute;
-    inset: -24px; // room for the line's light, which reaches 16px past it (8px spread, 8px blur)
-    -webkit-mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
-    mask: linear-gradient(90deg, transparent, #000, transparent) var(--glow-at, -75%) 0 / calc(100% * 3 / 7) 100% no-repeat;
+    top: -24px;
+    left: -24px;
+    width: calc(100% + 48px);
+    height: 48px;
     pointer-events: none;
-
-    // The line, back where the separator draws it
-    &::before {
-        content: "";
-        position: absolute;
-        inset: 24px;
-        box-shadow: 0 0 8px 8px rgba(255, 255, 255, 0.7), 0 0 0 3px white;
-    }
 }
 
+// Closer to the title, and its lines closer together (Jerry: "make the other texts below closer").
 .hero_about-container {
-    margin-top: 2.75rem;
+    margin-top: 1.75rem;
     padding-left: 1%;
 
     a {
@@ -140,18 +140,18 @@
 .hero_line {
     color: var(--text-2);
     font-size: var(--fs-lgg);
-    line-height: 2;
+    line-height: 1.75;
 
     @media screen and (max-width: 480px) {
         font-size: revert;
         line-height: 1.40;
-        margin-bottom: 1.25rem;
+        margin-bottom: 0.75rem;
     }
 }
 
 .hero_typing-text {
     height: 2rem;
-    margin-top: 1.75rem;
+    margin-top: 1.25rem;
     color: var(--text-3);
 
     @media screen and (max-width: 1024px) {
@@ -163,4 +163,15 @@
         margin-top: 1rem;
         text-align: center;
     }
+}
+
+// The mesh as tall as the hero, in the same unit. Its own class makes it 100% of the window minus any scrollbar, which
+// can be shorter than the hero's 100vh (a horizontal scrollbar at some zooms, a phone's toolbar) and leave a strip under
+// it, between the mesh and the squares. Two classes, to win over the mesh's one. Out of the flow here too, as its class
+// makes it: that class's stylesheet comes a moment after the hero shows (Hero.tsx imports it), and until then a 100vh
+// block would push the whole page a screen down, and every scroll trigger measured meanwhile would stay a screen off.
+.homepage .hero_mesh {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
 }

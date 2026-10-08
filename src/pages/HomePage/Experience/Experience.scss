@@ -1,44 +1,295 @@
 .experience {
 }
 
-// Same shape as .skills_container: the grid takes what it needs and the aside is a fixed rail on the
-// right. Stacks below 1100px, where four 19.2rem cards plus a 320px rail stop fitting on one line.
+// Same shape as .skills_container: the timeline takes the room and the aside is a fixed rail on the right. Stacks
+// below 1100px.
 .experience_container {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     gap: 1.5rem;
     width: 100%;
+    margin-top: 0.75rem;
 
     @media screen and (max-width: 1100px) {
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
     }
 }
 
-.experience-grid {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
+// The timeline: newest first, down a line that runs from now to the first entry and fades out past it. The years
+// stand in a column left of the line; on a phone they go, and the line moves to the edge.
+.experience-timeline {
+    --year-w: 4.25rem; // the years' column
+    --spine-x: 5.5rem; // the line's centre, from the left
+    --gutter: 7rem; // where the entries start
+    --node-y: 1.6rem; // a node's centre, down from its entry's top: level with the title
+
+    position: relative;
     flex: 1;
     min-width: 0;
+    width: 100%;
 
     @media screen and (max-width: 768px) {
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        //gap: 1rem;
-        //margin: 0;
-        //padding: 0;
+        --spine-x: 0.5rem;
+        --gutter: 1.75rem;
     }
 }
 
-// The rail. margin-top matches the card grid's own 0.9rem margin so the panel's top edge lines up with
-// the top of the first card rather than with the row of whitespace above it.
+.experience-timeline_spine,
+.experience-timeline_glow {
+    position: absolute;
+    top: var(--node-y);
+    bottom: 0;
+    pointer-events: none;
+}
+
+.experience-timeline_spine {
+    left: calc(var(--spine-x) - 1px);
+    width: 2px;
+    background: linear-gradient(var(--border-da) calc(100% - 5rem), transparent);
+}
+
+// The glow that runs up the line into now: the line again, in the accent colour, seen through a soft window a fifth of
+// its height. Experience.tsx slides the window (--glow-at) from 125%, just below the line, to -25%, just above it: the
+// hero separator's glow, upright. It fades out at the bottom with the line.
+.experience-timeline_glow {
+    // Wide enough that the glow's light is never cut at the sides.
+    left: calc(var(--spine-x) - 20px);
+    width: 40px;
+    -webkit-mask: linear-gradient(transparent, #000, transparent) 0 var(--glow-at, 125%) / 100% 20% no-repeat;
+    mask: linear-gradient(transparent, #000, transparent) 0 var(--glow-at, 125%) / 100% 20% no-repeat;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 19px;
+        width: 2px;
+        background: linear-gradient(var(--secondary) calc(100% - 5rem), transparent);
+        filter: drop-shadow(0 0 3px var(--secondary)) drop-shadow(0 0 8px var(--secondary));
+    }
+}
+
+.experience-timeline_list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.experience-timeline_item {
+    position: relative;
+    padding-left: var(--gutter);
+
+    // On a phone, now's year leaves the gone column and starts its date line.
+    &.is-now {
+        @media screen and (max-width: 768px) {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+    }
+}
+
+// On the line, level with the entry's title. Above the line and its glow.
+.experience-timeline_node {
+    position: absolute;
+    top: calc(var(--node-y) - 5px);
+    left: calc(var(--spine-x) - 5px);
+    z-index: 1;
+    box-sizing: border-box;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--text-6);
+    border-radius: 50%;
+    background-color: var(--bg);
+
+    .is-now & {
+        top: calc(var(--node-y) - 6px);
+        left: calc(var(--spine-x) - 6px);
+        width: 12px;
+        height: 12px;
+        border: none;
+        background-color: var(--secondary);
+        box-shadow: 0 0 0 3px var(--bg), 0 0 12px 3px color-mix(in srgb, var(--secondary) 45%, transparent);
+    }
+}
+
+// A ring that leaves now when the glow arrives (Experience.tsx).
+.experience-timeline_pulse {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--secondary);
+    border-radius: 50%;
+    opacity: 0;
+}
+
+// In the years' column, right-aligned against the line, centred on the node.
+.experience-timeline_year {
+    position: absolute;
+    top: calc(var(--node-y) - 0.6em);
+    left: 0;
+    width: var(--year-w);
+    font-size: var(--fs-lg);
+    font-weight: 300;
+    line-height: 1.2;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-5);
+
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
+
+    // On a phone, now's stays, at the start of its date line, in the line's size.
+    .is-now & {
+        font-weight: 500;
+        color: var(--secondary);
+
+        @media screen and (max-width: 768px) {
+            display: block;
+            position: static;
+            width: auto;
+            font-size: var(--fs-sm);
+            line-height: 1.4;
+        }
+    }
+}
+
+// Now's line: today's date, centred on the node.
+.experience-timeline_today {
+    margin: 0;
+    padding-top: calc(var(--node-y) - 0.7em);
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--text-4);
+}
+
+// The picture left, the words right; on a phone the description and the date line go under both.
+.experience-timeline_card {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+        "logo title"
+        "logo role"
+        "logo description"
+        "logo meta";
+    column-gap: 1.1rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border-da);
+    border-radius: var(--r-sm);
+    background-color: var(--surface-lt);
+    box-shadow: 0 5px 10px -6px var(--shadow-da);
+
+    @media screen and (max-width: 768px) {
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+        grid-template-rows: auto 1fr auto auto;
+        grid-template-areas:
+            "logo title"
+            "logo role"
+            "description description"
+            "meta meta";
+        column-gap: 0.85rem;
+        padding: 0.75rem;
+    }
+}
+
+// A square, like the projects' pictures, inside the card's padding. The logos are made for white, so it's white in every
+// theme, and they sit whole in it; a picture with fill covers it instead.
+.experience-timeline_logo {
+    grid-area: logo;
+    align-self: start;
+    display: flex;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--r-xs);
+    background-color: #fff;
+
+    img {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 0.6rem;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+
+        @media screen and (max-width: 768px) {
+            padding: 0.35rem;
+        }
+    }
+
+    &.is-fill img {
+        padding: 0;
+        object-fit: cover;
+    }
+
+    &:hover img {
+        transform: scale(1.05);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        img {
+            transition: none;
+        }
+    }
+}
+
+.experience-timeline_title {
+    grid-area: title;
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--text-strong);
+}
+
+.experience-timeline_role {
+    grid-area: role;
+    margin: 0.1rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+.experience-timeline_description {
+    grid-area: description;
+    margin: 0.5rem 0 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-3);
+}
+
+.experience-timeline_meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin: 0.55rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+
+    a {
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--secondary);
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+// The rail. Level with the timeline's top, and it stays in view beside the timeline while that scrolls past.
 .experience_cv {
+    position: sticky;
+    top: 6rem;
     flex: 0 0 320px;
     box-sizing: border-box;
-    margin-top: 0.9rem;
     padding: 1.1rem 1rem 1rem;
     border: 1px solid var(--border-da);
     border-radius: var(--r-sm);
@@ -46,13 +297,9 @@
     box-shadow: 0 5px 10px -6px var(--shadow-da);
 
     @media screen and (max-width: 1100px) {
+        position: static;
         flex: 1 1 auto;
         width: 100%;
-        margin-top: 0;
-    }
-
-    @media screen and (max-width: 768px) {
-        margin-top: 0.5rem;
     }
 }
 

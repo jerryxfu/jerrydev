@@ -8,17 +8,11 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
 import HeroCards from "./HeroCards.tsx";
-import {type Theme, useTheme} from "../../../context/ThemeContext.tsx";
+import {GRADIENT_MESHES} from "./meshes.ts";
+import {graphemes} from "@/utils.ts";
+import {useTheme} from "../../../context/ThemeContext.tsx";
 
 import("../../../assets/styles/gradient-mesh-default.scss");
-
-// One mesh per theme
-const GRADIENT_MESHES: Record<Theme, string> = {
-    light: "gradient-mesh-default",
-    night: "gradient-mesh-night",
-    blush: "gradient-mesh-blush",
-    burgundy: "gradient-mesh-burgundy",
-};
 
 let isGsapConfigured = false;
 
@@ -35,6 +29,57 @@ function configureGsap() {
     isGsapConfigured = true;
 }
 
+// The glow that runs through the separator every few seconds, on the canvas over it (Hero.scss): the line's own light
+// again, in white, as Hero.scss draws the line (a 6px core, and 8px of light blurred 8px past it), seen through a soft
+// window 3/7 of the canvas long that slides from before the line's left end to past its right one. So at the ends the
+// glow rounds off as the line's light does, and it can't show anywhere the line's light doesn't. Drawn only while it
+// runs; the line's picture is made again only when its size has changed. Returns the loop, to pause off screen.
+function runGlow(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext("2d");
+    const line = document.createElement("canvas");
+    let width = 0;
+    let height = 0;
+    const fit = () => {
+        const box = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = Math.round(box.width * dpr);
+        const h = Math.round(box.height * dpr);
+        if (w === width && h === height) return;
+        width = canvas.width = line.width = w;
+        height = canvas.height = line.height = h;
+        // In device pixels, which canvas shadows are measured in: the line runs 24px in from each end, through the middle.
+        const l = line.getContext("2d");
+        if (!l) return;
+        const px = (n: number) => n * dpr;
+        const length = w - px(48);
+        l.shadowColor = "rgba(255, 255, 255, 0.7)";
+        l.shadowBlur = px(8);
+        l.shadowOffsetX = w; // drawn off the canvas, so only its shadow, the light, lands on it
+        l.fillRect(px(24 - 8) - w, h / 2 - px(8), length + px(16), px(16));
+        l.shadowColor = "transparent";
+        l.fillStyle = "#fff";
+        l.fillRect(px(24 - 3), h / 2 - px(3), length + px(6), px(6));
+    };
+    // `at`: where the window's left edge is, in canvas widths.
+    const sweep = {at: -3 / 7};
+    const draw = () => {
+        if (!ctx || !width) return;
+        const left = sweep.at * width;
+        const opening = ctx.createLinearGradient(left, 0, left + (width * 3) / 7, 0);
+        opening.addColorStop(0, "transparent");
+        opening.addColorStop(0.5, "#000");
+        opening.addColorStop(1, "transparent");
+        ctx.globalCompositeOperation = "copy";
+        ctx.drawImage(line, 0, 0);
+        ctx.globalCompositeOperation = "destination-in";
+        ctx.fillStyle = opening;
+        ctx.fillRect(0, 0, width, height);
+    };
+    return gsap.fromTo(sweep, {at: -3 / 7}, {
+        at: 1, duration: 2.6, ease: "sine.inOut", repeat: -1, repeatDelay: 2, delay: 1.6, onStart: fit, onRepeat: fit, onUpdate: draw,
+    });
+}
+
 export default function Hero() {
     configureGsap();
 
@@ -46,21 +91,38 @@ export default function Hero() {
     // combine general and month-specific texts
     const combinedTexts = useMemo(() => [...(texts[0] || []), ...(texts[currentMonth] || [])], [currentMonth]);
 
-    const [headerText, setHeaderText] = useState("");
     const [textIndex, setTextIndex] = useState(() => Math.floor(Math.random() * combinedTexts.length));
     const [charIndex, setCharIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const currentText = combinedTexts[textIndex] ?? "";
-    const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
+    // Typed and deleted a character as you see it at a time (graphemes): one UTF-16 unit at a time, an emoji showed as a
+    // broken character for a moment. The line shows the first `charIndex` of them.
+    const letters = useMemo(() => graphemes(combinedTexts[textIndex] ?? ""), [combinedTexts, textIndex]);
+    const isBlinking = (!isDeleting && charIndex >= letters.length) || (isDeleting && charIndex <= 0);
 
+    const heroRef = useRef<HTMLDivElement>(null);
     const dividerRef = useRef(null);
-    const glowRef = useRef<HTMLSpanElement>(null);
+    const glowRef = useRef<HTMLCanvasElement>(null);
+    const glowTween = useRef<gsap.core.Tween | null>(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
     const line1Ref = useRef<HTMLParagraphElement>(null);
     const line2Ref = useRef<HTMLParagraphElement>(null);
+
+    // What moves on its own here rests while the hero is off screen: the mesh's drift, the separator's glow, the typing.
+    // Half a screen of margin above, so the mesh still drifts while the squares under the hero reflect it.
+    const [onScreen, setOnScreen] = useState(true);
+    useEffect(() => {
+        const hero = heroRef.current;
+        if (!hero) return;
+        const observer = new IntersectionObserver(([entry]) => setOnScreen(!!entry?.isIntersecting), {rootMargin: "50% 0px 0px 0px"});
+        observer.observe(hero);
+        return () => observer.disconnect();
+    }, []);
+    useEffect(() => {
+        glowTween.current?.paused(!onScreen);
+    }, [onScreen]);
 
     useEffect(() => {
         // Preload the other styles on mount so the first switch doesn't jump/look buggy
@@ -70,26 +132,14 @@ export default function Hero() {
     }, []);
 
     useEffect(() => {
-        const typeText = () => {
-            if (!currentText) return; // Safety check
+        if (!onScreen) return; // carries on where it was when the hero comes back
+        if (!letters.length) return; // Safety check
 
-            if (!isDeleting) {
-                setHeaderText((prev) => prev + currentText[charIndex]);
-                setCharIndex((prev) => prev + 1);
-            } else {
-                setHeaderText((prev) => prev.slice(0, -1));
-                setCharIndex((prev) => prev - 1);
-            }
-        };
-
-        const currentText = combinedTexts[textIndex];
-        if (!currentText) return; // Safety check
-
-        if (!isDeleting && charIndex < currentText.length) {
-            const timeout = setTimeout(typeText, 45); // typing delay
+        if (!isDeleting && charIndex < letters.length) {
+            const timeout = setTimeout(() => setCharIndex((prev) => prev + 1), 45); // typing delay
             return () => clearTimeout(timeout);
         } else if (isDeleting && charIndex > 0) {
-            const timeout = setTimeout(typeText, 15); // deleting delay
+            const timeout = setTimeout(() => setCharIndex((prev) => prev - 1), 15); // deleting delay
             return () => clearTimeout(timeout);
         } else {
             const timeout = setTimeout(() => {
@@ -107,7 +157,7 @@ export default function Hero() {
             }, isDeleting ? 150 : 2250); // delay before deleting and after typing
             return () => clearTimeout(timeout);
         }
-    }, [charIndex, combinedTexts, isDeleting, textIndex]);
+    }, [charIndex, combinedTexts.length, isDeleting, letters, onScreen]);
 
     useGSAP(() => {
         const tl = gsap.timeline({});
@@ -122,17 +172,10 @@ export default function Hero() {
             duration: 1,
         }, opening_delay);
 
-        // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
-        // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
+        // Once it has expanded, a glow runs through it every few seconds (runGlow, above). Not with reduced motion: it
+        // loops for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
-                "--glow-at": "175%",
-                duration: 2.6,
-                ease: "sine.inOut",
-                repeat: -1,
-                repeatDelay: 2,
-                delay: 1.6,
-            });
+            glowTween.current = runGlow(glowRef.current);
         }
 
         // Slide up "Hello"
@@ -185,16 +228,17 @@ export default function Hero() {
 
     return (
         <>
-            <div className={themeGradientClass} />
+            <div className={`${themeGradientClass} hero_mesh`} style={onScreen ? undefined : {animationPlayState: "paused"}} />
             {/*<div className="gradient-mesh-default" />*/}
-            <div className="hero">
+            <div className="hero" ref={heroRef}>
                 <div className="hero_container">
                     <div className="hero_title">
                         <h1 ref={titleRef} className="hero_title">Hello</h1>
                     </div>
 
                     <div className="hero_glowing-separator" ref={dividerRef}>
-                        <span className="hero_separator-glow" ref={glowRef} />
+                        <canvas className="hero_separator-glow" ref={glowRef} />
+
                     </div>
 
                     <div>
@@ -215,7 +259,7 @@ export default function Hero() {
                     </div>
 
                     <p className="hero_typing-text" ref={typingTextRef}>
-                        {headerText}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
+                        {letters.slice(0, charIndex).join("")}<span id="caret" className={isBlinking ? "blink_animation" : ""}>|</span>
                     </p>
                 </div>
 

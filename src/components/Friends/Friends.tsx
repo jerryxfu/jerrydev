@@ -1,6 +1,6 @@
 import "./Friends.scss";
 import SubSectionTitle from "../SubTitle/SubSectionTitle.tsx";
-import {friendList} from "./friends.ts";
+import {friendList, hideBrokenIcon} from "./friends.ts";
 
 // The footer's special mentions, brought up the page into About: who they are and why they're here, one line each.
 export default function Friends() {
@@ -14,7 +14,7 @@ export default function Friends() {
                 {friendList.map((friend) => (
                     <li key={friend.url}>
                         <a className="friends_card" href={friend.url} target="_blank" rel="noopener noreferrer">
-                            <img className="friends_icon" src={friend.icon} alt="" loading="lazy" decoding="async" />
+                            <img className="friends_icon" src={friend.icon} alt="" loading="lazy" decoding="async" onError={hideBrokenIcon} />
                             <span className="friends_text">
                                 <span className="friends_name">
                                     {friend.name}

@@ -1,20 +1,21 @@
-import {type CSSProperties, useEffect, useRef, useState} from "react";
-import {Link} from "wouter";
+import {type CSSProperties, memo, useEffect, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import Morph from "@/components/Morph/Morph.tsx";
 import useLocalClock from "@/hooks/useLocalClock.ts";
-import useLatestPost from "@/hooks/useLatestPost.ts";
 import {THEMES, type Theme, useTheme} from "@/context/ThemeContext.tsx";
 import "./HeroCards.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Frosted cards in the hero's empty right half, each something live: what I'm building, my time, the newest post,
-// the theme. The pattern is TechNexus's cards around its phone (website/src/pages/Home in that repo), three layers
-// each: the outer one flies off as the hero scrolls away, the middle one pops in like a notification, the inner one
-// is the glass and drifts. Wide screens only, where the right half is empty; with reduced motion they're just there.
+// Frosted cards in the hero's empty right half, each something live: what I'm building, my time, an announcement, the
+// theme. The pattern is TechNexus's cards around its phone (website/src/pages/Home in that repo), three layers each:
+// the outer one flies off as the hero scrolls away, the middle one pops in like a notification, the inner one is the
+// glass and drifts. Wide screens only, where the right half is empty; with reduced motion they're just there.
+
+// The announcement card's text, to change whenever there's something to say.
+const ANNOUNCEMENT = "Nothing for now...";
 
 // The "Now building" card's line, stepping like a match through TechNexus's statuses, in their colours.
 const BUILDING = [
@@ -35,10 +36,9 @@ const ARRIVE_AT = 2.3;
 
 const cssVar = (name: string, value: string) => ({[name]: value}) as CSSProperties;
 
-export default function HeroCards() {
+function HeroCards() {
     const root = useRef<HTMLDivElement>(null);
     const clock = useLocalClock();
-    const latest = useLatestPost();
     const {currentTheme, themePreference, setTheme} = useTheme();
 
     // The building card cycles only while the hero is on screen, and not at all with reduced motion: a line that
@@ -70,8 +70,8 @@ export default function HeroCards() {
             const glass = gsap.utils.toArray<HTMLElement>(".hero-card_glass", el);
 
             // One at a time, like notifications on an iPhone: each drops in from just above and grows to size as it
-            // fades up, settling without a bounce. The fade is --pop, which only the glass reads: opacity on an
-            // ancestor of a backdrop-filter would stop the glass seeing the mesh behind it while it fades.
+            // fades up, settling without a bounce. The fade is --pop, which only the glass reads (it once had a
+            // backdrop blur, which opacity on an ancestor would have cut off from the mesh).
             gsap.set(ins, {"--pop": 0, visibility: "hidden", y: -24, scale: 0.9, transformOrigin: "50% 0%"});
             const arrive = gsap.timeline({delay: ARRIVE_AT});
             ins.forEach((card, i) => {
@@ -81,9 +81,11 @@ export default function HeroCards() {
                     .to(card, {y: 0, scale: 1, duration: 1.1, ease: "expo.out"}, i * 0.2);
             });
 
-            glass.forEach((card, i) => {
-                gsap.to(card, {y: i % 2 ? 9 : -9, duration: 2.8 + i * 0.45, ease: "sine.inOut", yoyo: true, repeat: -1});
-            });
+            // The glass drifts while the cards are on screen, and rests off it.
+            const drift = glass.map((card, i) =>
+                gsap.to(card, {y: i % 2 ? 9 : -9, duration: 2.8 + i * 0.45, ease: "sine.inOut", yoyo: true, repeat: -1}));
+            const watch = new IntersectionObserver(([entry]) => drift.forEach((tween) => tween.paused(!entry?.isIntersecting)));
+            watch.observe(el);
 
             // As the hero scrolls away, each flies off up and to the right by its depth, and is gone by the time the
             // hero is half off screen. Gone means unclickable too.
@@ -99,6 +101,7 @@ export default function HeroCards() {
                     .to(card, {x: 160 * depth, y: -120 * depth, ease: "none", duration: 1}, 0)
                     .to(card, {"--away": 0, ease: "none", duration: 0.45}, 0);
             });
+            return () => watch.disconnect();
         });
         return () => mm.revert();
     }, {scope: root});
@@ -123,7 +126,7 @@ export default function HeroCards() {
             <div className="hero-card hero-card--clock" data-depth="0.85">
                 <div className="hero-card_in">
                     <div className="hero-card_glass">
-                        <span className="hero-card_label">Montréal</span>
+                        <span className="hero-card_label">Clock</span>
                         <span className="hero-card_big">
                             <Morph text={clock.hm} />
                             <span className="hero-card_period">{clock.period}</span>
@@ -135,16 +138,12 @@ export default function HeroCards() {
                 </div>
             </div>
 
-            <div className="hero-card hero-card--post" data-depth="1">
+            <div className="hero-card hero-card--news" data-depth="1">
                 <div className="hero-card_in">
-                    {/* Stays one element while the post loads, so the drift on it isn't lost when the href arrives. */}
-                    <Link className="hero-card_glass" href={latest ? `/blog/${latest.slug}` : "/blog"}>
-                        <span className="hero-card_label">Latest post</span>
-                        <span className="hero-card_title">{latest?.title ?? "From the blog"}</span>
-                        <span className="hero-card_sub">
-                            {latest ? `${latest.age} · ${latest.tags.map((tag) => `#${tag}`).join(" ")}` : "Devlogs, courses and guides"}
-                        </span>
-                    </Link>
+                    <div className="hero-card_glass">
+                        <span className="hero-card_label">Announcement</span>
+                        <span className="hero-card_message">{ANNOUNCEMENT}</span>
+                    </div>
                 </div>
             </div>
 
@@ -172,3 +171,6 @@ export default function HeroCards() {
         </div>
     );
 }
+
+// The hero re-renders with each letter its typing line types; the cards have nothing to change then.
+export default memo(HeroCards);

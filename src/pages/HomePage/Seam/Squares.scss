@@ -1,0 +1,43 @@
+// Squares.tsx: the room under the hero where its cells carry on, over the mesh's reflection, behind nothing (the hero's
+// words end above it). Its top is the hero's bottom edge, which everything here is measured from.
+.squares {
+    position: relative;
+    z-index: 0;
+    height: 24vh; // as far as the cells reach (BAND in Squares.tsx: 0.24 of the hero); the rows past it don't show
+    overflow-x: clip; // the canvas keeps its width until it's laid out again, a frame after the window narrows
+    pointer-events: none;
+}
+
+// The section after the squares starts where they end: this room is its spacing, so the fire sits right over it.
+.squares + .section {
+    padding-top: 0;
+}
+
+.squares_canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+// The mesh again, upside down about the hero's bottom edge, seen only in the top of this room, as far as the cells go
+// (Squares.tsx sets the height), and only through the cells' windows.
+.squares_reflection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+// Two classes, to win over the mesh's own (which makes it absolute, sizes it to this box and gives it a transition):
+// Squares.tsx gives it the hero's height and puts it over the hero, so the flip lands it in the room. The mesh's own
+// transition (all 450ms, in every theme), so a new theme fades in here as it does on the hero; but not for its place and
+// height, which must follow the hero at once.
+.squares_reflection .squares_mirror {
+    left: 0;
+    transform: scaleY(-1);
+    transform-origin: 50% 100%;
+    transition: all 450ms, top 0s, height 0s;
+}

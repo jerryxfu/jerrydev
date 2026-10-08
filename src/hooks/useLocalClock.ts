@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from "react";
 
-// My clock, for the contact block and the hero's Montréal card. A named zone rather than a fixed offset, so all of
+// My clock, for the contact block and the hero's clock card. A named zone rather than a fixed offset, so all of
 // this follows daylight saving on its own: Montréal is EST only from November to March, EDT the rest of the year.
 export const MY_ZONE = "America/Toronto";
 
@@ -28,6 +28,8 @@ export type LocalClock = {
     delta: number;
     // That distance, unsigned: "6h", "2h30", "0h".
     span: string;
+    date: string; // my day, "Wednesday, October 7", for the experience timeline's now
+    day: string; // the same day for a <time>: "2026-10-07"
 };
 
 export default function useLocalClock(timeZone: string = MY_ZONE): LocalClock {
@@ -69,6 +71,9 @@ export default function useLocalClock(timeZone: string = MY_ZONE): LocalClock {
             zone: part("timeZoneName") || "ET",
             delta,
             span: m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
+            date: new Intl.DateTimeFormat("en-US", {weekday: "long", month: "long", day: "numeric", timeZone}).format(now),
+            // en-CA writes dates the ISO way.
+            day: new Intl.DateTimeFormat("en-CA", {year: "numeric", month: "2-digit", day: "2-digit", timeZone}).format(now),
         };
     }, [now, timeZone]);
 }

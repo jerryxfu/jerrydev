@@ -1,0 +1,117 @@
+// Waves.tsx: over the hero's lower part, above the squares' room (it sits in it, moved up past its top), under the
+// hero's words. The colour is the squares' glow (GLOW in Squares.tsx): white, pale blue at night, pale pink in burgundy,
+// a little fainter in the dark themes.
+.waves {
+    --wave: rgb(255, 255, 255);
+    --dim: 1;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 40vh;
+    overflow: hidden; // the hero's edge, which the shapes slide down behind
+    pointer-events: none;
+}
+
+[data-theme="night"] .waves {
+    --wave: rgb(176, 208, 255);
+    --dim: 0.6;
+}
+
+[data-theme="burgundy"] .waves {
+    --wave: rgb(255, 196, 214);
+    --dim: 0.6;
+}
+
+// One shape, the whole box. The layer slides down as you scroll (Waves.tsx); its picture drifts a little and back again.
+.waves_one {
+    position: absolute;
+    inset: 0;
+
+    svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    path {
+        fill: var(--wave);
+        fill-opacity: calc(var(--strength) * var(--dim));
+        stroke: none;
+    }
+
+    &.is-line path {
+        fill: none;
+        stroke: var(--wave);
+        stroke-opacity: calc(var(--strength) * var(--dim));
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    // The light running along the line (Waves.tsx moves its gradient): a soft glow, and a brighter core over the line.
+    &.is-line .waves_glow {
+        stroke: url(#waves-light);
+        stroke-opacity: calc(0.25 * var(--dim));
+        stroke-width: 8;
+    }
+
+    &.is-line .waves_glow.is-core {
+        stroke-opacity: var(--dim);
+        stroke-width: 2;
+    }
+
+    stop {
+        stop-color: var(--wave);
+    }
+
+    &.is-a svg {
+        transform-origin: 0 100%;
+        animation: waves-a 26s ease-in-out infinite alternate;
+    }
+
+    &.is-b svg {
+        transform-origin: 100% 100%;
+        animation: waves-b 34s ease-in-out infinite alternate;
+    }
+
+    &.is-c svg {
+        transform-origin: 100% 40%;
+        animation: waves-c 22s ease-in-out infinite alternate;
+    }
+
+    &.is-d svg {
+        animation: waves-d 40s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes waves-a {
+    to {
+        transform: translate(2%, -3%) scale(1.05);
+    }
+}
+
+@keyframes waves-b {
+    to {
+        transform: translate(-4%, -3%) scale(1.04);
+    }
+}
+
+@keyframes waves-c {
+    to {
+        transform: translate(-2%, 5%) scale(0.95);
+    }
+}
+
+@keyframes waves-d {
+    to {
+        transform: translate(4%, 2%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .waves_one svg {
+        animation: none !important;
+    }
+}

@@ -1,9 +1,11 @@
 // HeroCards.tsx. Over the hero's right half, which the mesh fills on its own; under 1100px the hero text needs that
-// room, so the cards go.
+// room, so the cards go. As the hero scrolls away they fly off to the right and stay there, faded out: cut at the hero's
+// right edge, as the screen's would, they don't widen the page (a horizontal scrollbar once past the hero).
 .hero-cards {
     position: absolute;
     inset: 0;
     z-index: 1;
+    overflow-x: clip;
     pointer-events: none;
 
     @media screen and (max-width: 1099px) {
@@ -34,11 +36,11 @@
     top: 29%;
 }
 
-.hero-card--post {
+.hero-card--news {
     left: 58%;
     top: 56%;
 
-    // Its title makes it the widest card; nearer 1100px it would reach into the theme card.
+    // A longer announcement makes it the widest card; nearer 1100px it would reach into the theme card.
     @media screen and (max-width: 1300px) {
         left: 52%;
     }
@@ -49,8 +51,9 @@
     top: 64%;
 }
 
-// Frosted from the page's lightest surface, so each theme gets its own glass: white over the light mesh, smoke over
-// night, rose over blush, wine over burgundy.
+// See-through, from the page's lightest surface, so each theme gets its own glass: white over the light mesh, smoke
+// over night, rose over blush, wine over burgundy. No backdrop blur: over the moving mesh it kept Firefox redrawing the
+// whole hero every frame, and over a gradient this smooth it hardly showed.
 .hero-card_glass {
     display: flex;
     flex-direction: column;
@@ -61,8 +64,6 @@
     border: 1px solid color-mix(in srgb, var(--bg-lt) 60%, transparent);
     border-radius: var(--r-md);
     background-color: color-mix(in srgb, var(--bg-lt) 42%, transparent);
-    -webkit-backdrop-filter: saturate(140%) blur(16px);
-    backdrop-filter: saturate(140%) blur(16px);
     box-shadow: 0 26px 50px -28px var(--shadow-daa), 0 2px 8px -4px var(--shadow-da);
     color: var(--text);
     text-decoration: none;
@@ -142,10 +143,11 @@ a.hero-card_glass:hover {
     color: var(--text-3);
 }
 
-.hero-card_title {
+// The announcement: a sentence, so the text's regular weight (the post card this replaced had its title at 500).
+.hero-card_message {
     max-width: 15rem;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.3;
     color: var(--text-strong);
 }

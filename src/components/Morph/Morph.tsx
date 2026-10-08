@@ -1,6 +1,7 @@
 import {type ElementType, useLayoutEffect, useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {graphemes} from "@/utils.ts";
 import "./Morph.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -20,11 +21,7 @@ gsap.registerPlugin(ScrollTrigger);
 // ones start coming; the new letters coming. And how far both travel, as a share of a letter's height.
 const MORPH = {out: 0.34, outStagger: 0.012, gap: 0.3, in: 0.6, inStagger: 0.016, travel: 25};
 
-// Graphemes, not code points. Array.from splits 🛰️ into the satellite and its variation selector, and a selector
-// alone in its span leaves the satellite drawn as a plain glyph.
-const segmenter = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, {granularity: "grapheme"}) : null;
-const graphemes = (text: string): string[] =>
-    segmenter ? Array.from(segmenter.segment(text), (part) => part.segment) : Array.from(text);
+// Letters are graphemes (utils.ts): a variation selector alone in its span would leave 🛰️ drawn as a plain glyph.
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
