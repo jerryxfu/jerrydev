@@ -1,4 +1,4 @@
-import {type CSSProperties, useEffect, useRef, useState} from "react";
+import {type CSSProperties, memo, useEffect, useRef, useState} from "react";
 import {Link} from "wouter";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
@@ -35,7 +35,7 @@ const ARRIVE_AT = 2.3;
 
 const cssVar = (name: string, value: string) => ({[name]: value}) as CSSProperties;
 
-export default function HeroCards() {
+function HeroCards() {
     const root = useRef<HTMLDivElement>(null);
     const clock = useLocalClock();
     const latest = useLatestPost();
@@ -172,3 +172,6 @@ export default function HeroCards() {
         </div>
     );
 }
+
+// The hero re-renders with each letter its typing line types; the cards have nothing to change then.
+export default memo(HeroCards);

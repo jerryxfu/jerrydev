@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {memo, useEffect, useRef, useState} from "react";
 import {gsap} from "gsap";
 import {type Theme, useTheme} from "@/context/ThemeContext.tsx";
 import {clamp, fit, type RGB, rgba, seeded, smoothstep} from "../sky.ts";
@@ -59,7 +59,7 @@ const asked = () => {
 
 type Star = {x: number; y: number; r: number; glow: number; a: number; period: number; phase: number};
 
-export default function Sky() {
+function Sky() {
     const {currentTheme} = useTheme();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [hour, setHour] = useState<number | null>(asked);
@@ -209,3 +209,6 @@ export default function Sky() {
         </div>
     );
 }
+
+// The hero re-renders with each letter its typing line types; the sky has nothing to change then.
+export default memo(Sky);
