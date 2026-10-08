@@ -48,13 +48,29 @@ export default function Hero() {
     const currentText = combinedTexts[textIndex] ?? "";
     const isBlinking = (!isDeleting && charIndex >= currentText.length) || (isDeleting && charIndex <= 0);
 
+    const heroRef = useRef<HTMLDivElement>(null);
     const dividerRef = useRef(null);
     const glowRef = useRef<HTMLSpanElement>(null);
+    const glowTween = useRef<gsap.core.Tween | null>(null);
     const titleRef = useRef(null);
     const subtitleRef = useRef<HTMLHeadingElement>(null);
     const typingTextRef = useRef(null);
     const line1Ref = useRef<HTMLParagraphElement>(null);
     const line2Ref = useRef<HTMLParagraphElement>(null);
+
+    // What moves on its own here rests while the hero is off screen: the mesh's drift, the separator's glow, the typing.
+    // Half a screen of margin above, so the mesh still drifts while the squares under the hero reflect it.
+    const [onScreen, setOnScreen] = useState(true);
+    useEffect(() => {
+        const hero = heroRef.current;
+        if (!hero) return;
+        const observer = new IntersectionObserver(([entry]) => setOnScreen(!!entry?.isIntersecting), {rootMargin: "50% 0px 0px 0px"});
+        observer.observe(hero);
+        return () => observer.disconnect();
+    }, []);
+    useEffect(() => {
+        glowTween.current?.paused(!onScreen);
+    }, [onScreen]);
 
     useEffect(() => {
         // Preload the other styles on mount so the first switch doesn't jump/look buggy
@@ -64,6 +80,7 @@ export default function Hero() {
     }, []);
 
     useEffect(() => {
+        if (!onScreen) return; // carries on where it was when the hero comes back
         const typeText = () => {
             if (!currentText) return; // Safety check
 
@@ -101,7 +118,7 @@ export default function Hero() {
             }, isDeleting ? 150 : 2250); // delay before deleting and after typing
             return () => clearTimeout(timeout);
         }
-    }, [charIndex, combinedTexts, isDeleting, textIndex]);
+    }, [charIndex, combinedTexts, isDeleting, onScreen, textIndex]);
 
     useGSAP(() => {
         const tl = gsap.timeline({});
@@ -119,7 +136,7 @@ export default function Hero() {
         // Once it has expanded, a glow runs through it every few seconds: the window in Hero.scss slides from before the
         // line's left end to past its right one. Not with reduced motion: it loops for as long as the page is open.
         if (glowRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
+            glowTween.current = gsap.fromTo(glowRef.current, {"--glow-at": "-75%"}, {
                 "--glow-at": "175%",
                 duration: 2.6,
                 ease: "sine.inOut",
@@ -179,10 +196,10 @@ export default function Hero() {
 
     return (
         <>
-            <div className={`${themeGradientClass} hero_mesh`} />
+            <div className={`${themeGradientClass} hero_mesh`} style={onScreen ? undefined : {animationPlayState: "paused"}} />
             {/*<div className="gradient-mesh-default" />*/}
             <Sky />
-            <div className="hero">
+            <div className="hero" ref={heroRef}>
                 <div className="hero_container">
                     <div className="hero_title">
                         <h1 ref={titleRef} className="hero_title">Hello</h1>

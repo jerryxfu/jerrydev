@@ -39,10 +39,16 @@ export default function Board() {
         if (!track) return;
         const mm = gsap.matchMedia();
         mm.add("(prefers-reduced-motion: no-preference)", () => {
-            // Two copies side by side, so moving by half its width loops without a seam. About two seconds an item.
-            const loop = gsap.to(track, {xPercent: -50, ease: "none", duration: ROW.length * 2.2, repeat: -1});
+            // Two copies side by side, so moving by half its width loops without a seam. About two seconds an item. It
+            // runs only while the board is on screen; off it, the loop and its ticker rest.
+            const loop = gsap.to(track, {xPercent: -50, ease: "none", duration: ROW.length * 2.2, repeat: -1, paused: true});
             let direction = 1;
             let target = 1;
+            // Ease the speed toward the target, and the target back to a drift, every frame.
+            const tick = () => {
+                target = direction + (target - direction) * 0.94;
+                loop.timeScale(gsap.utils.interpolate(loop.timeScale(), target, 0.1));
+            };
             ScrollTrigger.create({
                 trigger: board.current,
                 start: "top bottom",
@@ -51,13 +57,12 @@ export default function Board() {
                     direction = self.direction;
                     target = direction * clamp(1 + Math.abs(self.getVelocity()) / 250, 1, 7);
                 },
+                onToggle: (self) => {
+                    loop.paused(!self.isActive);
+                    if (self.isActive) gsap.ticker.add(tick);
+                    else gsap.ticker.remove(tick);
+                },
             });
-            // Ease the speed toward the target, and the target back to a drift, every frame.
-            const tick = () => {
-                target = direction + (target - direction) * 0.94;
-                loop.timeScale(gsap.utils.interpolate(loop.timeScale(), target, 0.1));
-            };
-            gsap.ticker.add(tick);
             return () => gsap.ticker.remove(tick);
         });
         return () => mm.revert();

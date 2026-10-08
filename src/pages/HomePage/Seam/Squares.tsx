@@ -103,12 +103,18 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
         };
         restyle(shownTheme());
 
-        // The reflection keeps time with the mesh it reflects, so their colours meet at the hero's edge.
+        // The reflection keeps time with the mesh it reflects, so their colours meet at the hero's edge. Its drift runs
+        // only while the room is on screen or near it (`near`, below), and starts again in step.
         const sync = () => {
             const [original] = mesh.getAnimations();
             const [copy] = mirror.getAnimations();
             if (original && copy) copy.currentTime = original.currentTime;
         };
+        const drift = (on: boolean) => {
+            mirror.style.animationPlayState = on ? "" : "paused";
+            if (on) sync();
+        };
+        drift(false);
 
         let ctx: CanvasRenderingContext2D | null = null;
         let width = 0;
@@ -301,21 +307,21 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
                 },
                 onToggle: (self) => {
                     near = self.isActive;
-                    if (near) {
-                        sync();
-                        wake();
-                    }
+                    drift(near);
+                    if (near) wake();
                 },
             });
             target = Math.max(0, run.scroll() / height);
             return () => {
                 near = false;
+                drift(false);
                 run.kill();
             };
         });
 
         return () => {
             unwatch();
+            mirror.style.animationPlayState = "";
             sizes.disconnect();
             ratio?.removeEventListener("change", onRatio);
             cancelAnimationFrame(pending);

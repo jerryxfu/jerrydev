@@ -81,9 +81,11 @@ function HeroCards() {
                     .to(card, {y: 0, scale: 1, duration: 1.1, ease: "expo.out"}, i * 0.2);
             });
 
-            glass.forEach((card, i) => {
-                gsap.to(card, {y: i % 2 ? 9 : -9, duration: 2.8 + i * 0.45, ease: "sine.inOut", yoyo: true, repeat: -1});
-            });
+            // The glass drifts while the cards are on screen, and rests off it.
+            const drift = glass.map((card, i) =>
+                gsap.to(card, {y: i % 2 ? 9 : -9, duration: 2.8 + i * 0.45, ease: "sine.inOut", yoyo: true, repeat: -1}));
+            const watch = new IntersectionObserver(([entry]) => drift.forEach((tween) => tween.paused(!entry?.isIntersecting)));
+            watch.observe(el);
 
             // As the hero scrolls away, each flies off up and to the right by its depth, and is gone by the time the
             // hero is half off screen. Gone means unclickable too.
@@ -99,6 +101,7 @@ function HeroCards() {
                     .to(card, {x: 160 * depth, y: -120 * depth, ease: "none", duration: 1}, 0)
                     .to(card, {"--away": 0, ease: "none", duration: 0.45}, 0);
             });
+            return () => watch.disconnect();
         });
         return () => mm.revert();
     }, {scope: root});
