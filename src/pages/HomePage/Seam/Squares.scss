@@ -3,7 +3,7 @@
 .squares {
     position: relative;
     z-index: 0;
-    height: 30vh; // the cells reach 0.24 of the hero down (BAND in Squares.tsx), and a little breathing room
+    height: 25vh; // the cells reach 0.24 of the hero down (BAND in Squares.tsx), their faint last rows a little past
     pointer-events: none;
 }
 
