@@ -30,8 +30,7 @@ export default function HomePage() {
             <Navbar isHero={true} />
             <main id="main">
                 <Hero />
-                {/* The way from the hero into About: the cells the hero carries on in, under waves on trial (the halo's
-                    place; Seam/Halo.tsx kept for now). */}
+                {/* The way from the hero into About: the cells the hero carries on in, under the waves. */}
                 <Squares>
                     <Waves />
                 </Squares>
