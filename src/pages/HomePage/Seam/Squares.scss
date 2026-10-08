@@ -4,6 +4,7 @@
     position: relative;
     z-index: 0;
     height: 24vh; // as far as the cells reach (BAND in Squares.tsx: 0.24 of the hero); the rows past it don't show
+    overflow-x: clip; // the canvas keeps its width until it's laid out again, a frame after the window narrows
     pointer-events: none;
 }
 

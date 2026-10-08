@@ -1,9 +1,11 @@
 // HeroCards.tsx. Over the hero's right half, which the mesh fills on its own; under 1100px the hero text needs that
-// room, so the cards go.
+// room, so the cards go. As the hero scrolls away they fly off to the right and stay there, faded out: cut at the hero's
+// right edge, as the screen's would, they don't widen the page (a horizontal scrollbar once past the hero).
 .hero-cards {
     position: absolute;
     inset: 0;
     z-index: 1;
+    overflow-x: clip;
     pointer-events: none;
 
     @media screen and (max-width: 1099px) {
