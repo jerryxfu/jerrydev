@@ -127,7 +127,9 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             const box = el.getBoundingClientRect();
             width = box.width;
             room = box.height;
-            height = hero.getBoundingClientRect().height || window.innerHeight;
+            // Never 0, even in a window that has no size yet (a tab opened hidden): the scroll is divided by it, and a
+            // NaN there would stay in the smoothing below for good.
+            height = Math.max(1, hero.getBoundingClientRect().height);
             ctx = fit(canvas, width, room + 2);
             const phone = width < 768;
             pitch = phone ? 11 : 14;
