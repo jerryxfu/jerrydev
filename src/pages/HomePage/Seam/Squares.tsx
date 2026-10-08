@@ -10,15 +10,15 @@ import "./Squares.scss";
 gsap.registerPlugin(ScrollTrigger);
 
 // The way from the hero into About: the hero carries on below its edge as small square cells, like GitHub's
-// contribution graph. Once you've scrolled a little (`pourAt`, in hero heights), they come out of the hero with the
+// contribution graph. Once you've scrolled a little (`POUR_AT`, in hero heights), they come out of the hero with the
 // scroll, row after row as you go down, the front glowing; they flicker like slow fire all the while, full where they
 // meet the hero, fewer and fainter further down, until the page. Scroll back up and they go back up into it.
 // The cells are windows in the page's background onto a reflection of the mesh under the hero's edge (the mesh again,
 // upside down, clipped to this room), so their colours carry on from the hero's, still moving. Everything is measured
 // from the hero's own bottom edge, again whenever the hero changes size (a zoom, a phone's toolbar), so the cells meet
 // it at any zoom. Drawn on a canvas in the room under the hero, in the page: nothing fixed. `children` go over the
-// canvas (the redesign's halo). A new theme changes the colours where they are, cells and all: the ground fades with the
-// page's background, the reflection with the mesh.
+// canvas (the waves). A new theme changes the colours where they are, cells and all: the ground fades with the page's
+// background, the reflection with the mesh.
 
 // Per theme, the colour the cells glow in as they arrive and where the fire lifts them: the horizon's light.
 const GLOW: Record<Theme, RGB> = {
@@ -33,8 +33,10 @@ const GLOW: Record<Theme, RGB> = {
 const BAND = 0.24;
 const OPEN_ROWS = 5;
 const LEVELS = [0.07, 0.3, 0.52, 0.76, 1];
-// How far you scroll while they come out (hero heights, from `pourAt`); how much of that the rows take to start one
-// after the other, and how long each cell takes to come in (both as shares of it).
+// When they start coming out (in hero heights of scroll: as soon as you scroll, so the hero's straight edge hardly shows
+// first), and how far you scroll while they do; how much of that the rows take to start one after the other, and how
+// long each cell takes to come in (both as shares of it).
+const POUR_AT = 0.05;
 const REVEAL = 0.35;
 const ROWS_START = 0.6;
 const CELL_IN = 0.25;
@@ -75,8 +77,7 @@ const fire = (c: number, r: number, depth: number, t: number) =>
 
 type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number; glow: number};
 
-// On its own, the pour starts as soon as you scroll (0.05 of the hero), so the hero's straight edge hardly shows first.
-export default function Squares({pourAt = 0.05, children}: {pourAt?: number; children?: ReactNode}) {
+export default function Squares({children}: {children?: ReactNode}) {
     const root = useRef<HTMLDivElement>(null);
     const {currentTheme} = useTheme();
 
@@ -239,7 +240,7 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             if (Math.abs(target - progress) < 0.0005) progress = target;
             const time = gsap.globalTimeline.time();
             const before = poured;
-            poured = clamp((progress - pourAt) / REVEAL);
+            poured = clamp((progress - POUR_AT) / REVEAL);
             frame++;
             const fading = page.fading;
             if (fading || poured !== before || (poured > 0 && frame % 2 === 0)) draw(time);
@@ -324,7 +325,7 @@ export default function Squares({pourAt = 0.05, children}: {pourAt?: number; chi
             mm.revert();
             sleep();
         };
-    }, {scope: root, dependencies: [pourAt], revertOnUpdate: true});
+    }, {scope: root});
 
     return (
         <div className="squares" ref={root} aria-hidden="true">

@@ -1,6 +1,6 @@
 import {type Theme, THEMES} from "@/context/ThemeContext.tsx";
 
-// What the hero's sky (Hero/Sky.tsx) and the way down from it (Seam/Squares.tsx, Seam/Halo.tsx) share: colour and number
+// What the hero's sky (Hero/Sky.tsx) and the way down from it (Seam/Squares.tsx) share: colour and number
 // helpers, the theme and the page's background as the page shows them, a seeded random, and a canvas sized in CSS px.
 
 export type RGB = readonly [number, number, number];
@@ -34,9 +34,9 @@ export function watchTheme(onChange: (theme: Theme) => void) {
     return () => observer.disconnect();
 }
 
-// The page's background behind `el`, to paint with (the squares' ground, the halo's planet). On a new theme the page fades
-// to its new background (.homepage, 450ms, from a frame after the change, which on a busy page can be a while), so after
-// `fade()` it's read again each time until it has got there, and `fading` says to draw every frame meanwhile.
+// The page's background behind `el`, to paint with (the squares' ground). On a new theme the page fades to its new
+// background (.homepage, 450ms, from a frame after the change, which on a busy page can be a while), so after `fade()`
+// it's read again each time until it has got there, and `fading` says to draw every frame meanwhile.
 export function pageBackground(el: Element) {
     const page = el.closest(".homepage") ?? document.body;
     let colour = cssRgb(getComputedStyle(page).backgroundColor);

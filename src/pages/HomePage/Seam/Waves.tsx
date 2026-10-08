@@ -6,14 +6,14 @@ import "./Waves.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Instead of the halo, to try on this branch: big soft shapes over the hero's lower part, like the blobs and long
-// curved lines on a presentation's title slide, and not symmetric (Jerry, with such a slide for an example: "more like
-// bigger blobs ... not exactly like the slides but that sort of waves. and it doesn't have to be symmetric"). Each
-// shape is its own layer, drifting a little on a CSS transform animation, which browsers run without redrawing it;
-// together they flatten and fade as you scroll into the squares. Nothing here blurs, masks or blends: in Firefox those
-// made the hero expensive. Goes inside Squares, above its room.
+// Big soft shapes over the hero's lower part, where the halo was, like the blobs and long curved lines on a
+// presentation's title slide, and not symmetric (Jerry, with such a slide for an example: "more like bigger blobs ...
+// not exactly like the slides but that sort of waves. and it doesn't have to be symmetric"). Each shape is its own
+// layer, drifting a little on a CSS transform animation, which browsers run without redrawing it; together they flatten
+// and fade as you scroll into the squares. Nothing here blurs, masks or blends: in Firefox those made the hero
+// expensive. Goes inside Squares, above its room.
 
-// The scroll by which they're flat and gone (hero heights), as the halo was.
+// The scroll by which they're flat and gone (hero heights).
 const FLAT_AT = 0.36;
 
 // Drawn in a 1600 x 500 box stretched over the hero's lower part, 500 being the hero's bottom edge. Blobs are filled
