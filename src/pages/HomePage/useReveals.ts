@@ -25,6 +25,9 @@ const REVEALED = [
 
 // The home page's content, below the hero, comes in quietly: each block rises 18px as it fades in, those that come on
 // screen together one after the other. Once, and nothing with reduced motion.
+// The page's scroll triggers, these and the others, are measured again when the page moves under them: a picture that
+// loads late (the lazy ones load as you come near) or the fonts can move what's below them, and a trigger measured
+// before stays off by that much (the languages card, centred beside the skills, moves itself up 143px as it loads).
 export default function useReveals() {
     useGSAP(() => {
         const mm = gsap.matchMedia();
@@ -39,6 +42,25 @@ export default function useReveals() {
                 }),
             });
         });
-        return () => mm.revert();
+
+        const main = document.getElementById("main");
+        let timer = 0;
+        const remeasure = () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => ScrollTrigger.refresh(), 200);
+        };
+        // A picture's load event doesn't bubble, so it's caught on its way down.
+        main?.addEventListener("load", remeasure, true);
+        const sizes = new ResizeObserver(remeasure);
+        if (main) sizes.observe(main);
+        document.fonts.addEventListener("loadingdone", remeasure);
+
+        return () => {
+            mm.revert();
+            main?.removeEventListener("load", remeasure, true);
+            sizes.disconnect();
+            document.fonts.removeEventListener("loadingdone", remeasure);
+            window.clearTimeout(timer);
+        };
     });
 }
