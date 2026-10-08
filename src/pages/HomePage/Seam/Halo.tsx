@@ -63,10 +63,12 @@ export default function Halo() {
             canvas.style.top = `${-base}px`;
         };
 
-        // The scroll, smoothed a little, in hero heights; and how far the light has faded once it's flat.
+        // The scroll, smoothed a little, in hero heights; how far the light has faded once it's flat; and whether things
+        // may move (not with reduced motion: then the halo stays as it is at the top, without the light running along it).
         let target = 0;
         let progress = -1;
         let faded = 0;
+        let moving = false;
 
         const draw = (p: number, time: number) => {
             if (!ctx) return;
@@ -137,7 +139,7 @@ export default function Halo() {
                 }
                 ctx.stroke();
                 const phase = (time % (SWEEP + REST)) / SWEEP;
-                if (phase < 1) {
+                if (moving && phase < 1) {
                     const reach = width * 0.28;
                     const at = -reach + (width + 2 * reach) * smoothstep(0, 1, phase);
                     const run = ctx.createLinearGradient(at - reach, 0, at + reach, 0);
@@ -169,7 +171,7 @@ export default function Halo() {
             last = time;
             const before = faded;
             faded = progress >= FLAT_AT ? Math.min(1, faded + dt / FADE) : Math.max(0, faded - dt / UNFADE);
-            const sweeping = faded < 1 && (time % (SWEEP + REST)) / SWEEP < 1.03;
+            const sweeping = moving && faded < 1 && (time % (SWEEP + REST)) / SWEEP < 1.03;
             const fading = page.fading;
             if (progress !== drawnAt || faded !== before || sweeping || fading) {
                 draw(progress, time);
@@ -212,6 +214,7 @@ export default function Halo() {
 
         const mm = gsap.matchMedia();
         mm.add("(prefers-reduced-motion: no-preference)", () => {
+            moving = true;
             const run = ScrollTrigger.create({
                 trigger: hero,
                 start: "top bottom", // already passed at the top of the page, so it's on from there
@@ -227,6 +230,7 @@ export default function Halo() {
             });
             target = Math.max(0, run.scroll() / height);
             return () => {
+                moving = false;
                 near = false;
                 run.kill();
             };
