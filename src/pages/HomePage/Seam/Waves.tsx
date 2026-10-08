@@ -1,4 +1,4 @@
-import {type CSSProperties, useRef, useState} from "react";
+import {type CSSProperties, useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
@@ -6,65 +6,37 @@ import "./Waves.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Instead of the halo, to try on this branch: soft waves over the hero's lower part, like the wave patterns on a
-// presentation's title slide (Jerry: "minimalist wave patterns ... kind of bubbly"). Three looks to compare, by
-// ?waves=: lines (thin flowing lines, the default, his pick), bands (soft filled bands), bubbles (rows of small arcs).
-// Each wave is its own picture, twice the screen's width, sliding sideways for good (a CSS animation of its
-// transform, which browsers run without redrawing it); together they flatten and fade as you scroll into the squares.
-// Nothing here blurs, masks or blends: in Firefox those made the hero expensive. Goes inside Squares, above its room.
-
-type Look = "lines" | "bands" | "bubbles";
-const LOOKS: readonly Look[] = ["lines", "bands", "bubbles"];
-const asked = (): Look => {
-    const value = new URLSearchParams(window.location.search).get("waves") as Look;
-    return LOOKS.includes(value) ? value : "lines";
-};
+// Instead of the halo, to try on this branch: big soft shapes over the hero's lower part, like the blobs and long
+// curved lines on a presentation's title slide, and not symmetric (Jerry, with such a slide for an example: "more like
+// bigger blobs ... not exactly like the slides but that sort of waves. and it doesn't have to be symmetric"). Each
+// shape is its own layer, drifting a little on a CSS transform animation, which browsers run without redrawing it;
+// together they flatten and fade as you scroll into the squares. Nothing here blurs, masks or blends: in Firefox those
+// made the hero expensive. Goes inside Squares, above its room.
 
 // The scroll by which they're flat and gone (hero heights), as the halo was.
 const FLAT_AT = 0.36;
 
-// Drawn in a box two screens wide (W) and 100 high, stretched over the waves' area. A wave: `periods` ups and downs per
-// screen, `amp` high, around `y`; with `scallops`, every hump on the same side, like a row of bubbles. Whole humps per
-// screen, so sliding by one screen loops without a seam.
-const W = 2400;
-function wave(periods: number, amp: number, y: number, scallops = false) {
-    const half = 1200 / periods / 2;
-    let d = `M0 ${y}`;
-    for (let i = 0; i * half < W; i++) {
-        const up = scallops || i % 2 === 0;
-        d += ` Q${i * half + half / 2} ${up ? y - 2 * amp : y + 2 * amp} ${(i + 1) * half} ${y}`;
-    }
-    return d;
-}
-const band = (periods: number, amp: number, y: number) => `${wave(periods, amp, y)} L${W} 100 L0 100 Z`;
-
-// Each look's waves, top to bottom: the path, how long one screen of drift takes (seconds), which way, how strong.
-type Wave = {d: string; seconds: number; back?: boolean; strength: number};
-const WAVES: Record<Look, Wave[]> = {
-    lines: [
-        {d: wave(1, 9, 34), seconds: 52, strength: 0.35},
-        {d: wave(2, 5, 48), seconds: 38, back: true, strength: 0.45},
-        {d: wave(1, 8, 62), seconds: 64, strength: 0.55},
-        {d: wave(3, 3.5, 77), seconds: 30, back: true, strength: 0.65},
-    ],
-    bands: [
-        {d: band(1, 9, 52), seconds: 60, strength: 0.12},
-        {d: band(2, 6, 66), seconds: 44, back: true, strength: 0.16},
-        {d: band(1, 7, 80), seconds: 70, strength: 0.22},
-    ],
-    bubbles: [
-        {d: wave(12, 3, 42, true), seconds: 40, strength: 0.4},
-        {d: wave(16, 2.5, 60, true), seconds: 32, back: true, strength: 0.5},
-        {d: wave(10, 3.5, 78, true), seconds: 50, strength: 0.6},
-    ],
-};
+// Drawn in a 1600 x 500 box stretched over the hero's lower part, 500 being the hero's bottom edge. Blobs are filled
+// and lines stroked, with `strength` of the light colour; `drift` is which slow movement each makes (Waves.scss).
+type Shape = {d: string; line?: boolean; strength: number; drift: "a" | "b" | "c" | "d"};
+const SHAPES: Shape[] = [
+    // A long wave across the whole width, behind, its crests uneven and rising to the right edge.
+    {d: "M0 500 L0 330 C160 300 300 362 470 348 C640 334 760 258 960 268 C1160 278 1260 362 1420 302 C1500 272 1560 206 1600 186 L1600 500 Z", strength: 0.1, drift: "b"},
+    // A lower one in front, on another rhythm.
+    {d: "M0 500 L0 420 C200 444 360 380 560 394 C760 408 860 462 1060 442 C1260 422 1380 376 1600 402 L1600 500 Z", strength: 0.14, drift: "d"},
+    // A hill rising from the left edge.
+    {d: "M0 500 L0 300 C90 262 230 228 380 246 C560 268 640 380 720 500 Z", strength: 0.12, drift: "a"},
+    // A rounder one hugging the right edge, higher up.
+    {d: "M1600 40 C1520 46 1430 98 1420 182 C1410 266 1470 320 1600 330 Z", strength: 0.16, drift: "c"},
+    // A long line sweeping across, down and up and down again.
+    {d: "M-10 190 C200 205 400 420 640 410 S1000 215 1210 250 S1490 450 1610 440", line: true, strength: 0.5, drift: "d"},
+];
 
 export default function Waves() {
     const root = useRef<HTMLDivElement>(null);
-    const [look] = useState(asked);
 
-    // Flatter and fainter as you scroll down out of the hero, gone by FLAT_AT. A transform and one variable the
-    // strokes read, nothing that needs the waves drawn again as a group.
+    // Flatter and fainter as you scroll down out of the hero, gone by FLAT_AT. A transform and one variable the shapes
+    // read, nothing that needs them drawn again as a group.
     useGSAP(() => {
         const el = root.current;
         const hero = document.querySelector<HTMLElement>(".hero");
@@ -82,15 +54,15 @@ export default function Waves() {
     }, {scope: root});
 
     return (
-        <div className={`waves waves--${look}`} ref={root} aria-hidden="true">
-            {WAVES[look].map((one) => (
+        <div className="waves" ref={root} aria-hidden="true">
+            {SHAPES.map((shape) => (
                 <div
-                    key={one.d}
-                    className={`waves_one${one.back ? " is-back" : ""}`}
-                    style={{"--seconds": `${one.seconds}s`, "--strength": one.strength} as CSSProperties}
+                    key={shape.d}
+                    className={`waves_one is-${shape.drift}${shape.line ? " is-line" : ""}`}
+                    style={{"--strength": shape.strength} as CSSProperties}
                 >
-                    <svg viewBox={`0 0 ${W} 100`} preserveAspectRatio="none">
-                        <path d={one.d} />
+                    <svg viewBox="0 0 1600 500" preserveAspectRatio="none">
+                        <path d={shape.d} />
                     </svg>
                 </div>
             ))}
