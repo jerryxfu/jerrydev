@@ -31,7 +31,7 @@ const GLOW: Record<Theme, RGB> = {
 // The cells: how far down they reach under the hero (hero heights; Squares.scss gives the room), over how many rows the
 // page's background closes in under the hero's edge, and GitHub's levels, as how much of the mesh a cell lets through:
 // empty, then four steps.
-const BAND = 0.3;
+const BAND = 0.24;
 const OPEN_ROWS = 5;
 const LEVELS = [0.07, 0.3, 0.52, 0.76, 1];
 // The pour and its way back up (seconds); how much of the pour the rows take to start one after the other, and how long
