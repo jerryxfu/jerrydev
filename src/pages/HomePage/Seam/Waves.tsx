@@ -18,18 +18,20 @@ const FLAT_AT = 0.36;
 
 // Drawn in a 1600 x 500 box stretched over the hero's lower part, 500 being the hero's bottom edge. Blobs are filled
 // and lines stroked, with `strength` of the light colour; `drift` is which slow movement each makes (Waves.scss).
+// Where a shape meets the box's sides or bottom, it carries on past them, out of sight (to -100, 1700 and 560, straight
+// on from its curve): a drift moves it up to 64 across and 15 up, which would otherwise show its end inside the box.
 type Shape = {d: string; line?: boolean; strength: number; drift: "a" | "b" | "c" | "d"};
 const SHAPES: Shape[] = [
     // A long wave across the whole width, behind, its crests uneven and rising to the right edge.
-    {d: "M0 500 L0 330 C160 300 300 362 470 348 C640 334 760 258 960 268 C1160 278 1260 362 1420 302 C1500 272 1560 206 1600 186 L1600 500 Z", strength: 0.1, drift: "b"},
+    {d: "M-100 560 L-100 349 L0 330 C160 300 300 362 470 348 C640 334 760 258 960 268 C1160 278 1260 362 1420 302 C1500 272 1560 206 1600 186 L1700 136 L1700 560 Z", strength: 0.1, drift: "b"},
     // A lower one in front, on another rhythm.
-    {d: "M0 500 L0 420 C200 444 360 380 560 394 C760 408 860 462 1060 442 C1260 422 1380 376 1600 402 L1600 500 Z", strength: 0.14, drift: "d"},
+    {d: "M-100 560 L-100 408 L0 420 C200 444 360 380 560 394 C760 408 860 462 1060 442 C1260 422 1380 376 1600 402 L1700 414 L1700 560 Z", strength: 0.14, drift: "d"},
     // A hill rising from the left edge.
-    {d: "M0 500 L0 300 C90 262 230 228 380 246 C560 268 640 380 720 500 Z", strength: 0.12, drift: "a"},
+    {d: "M-100 560 L-100 342 L0 300 C90 262 230 228 380 246 C560 268 640 380 720 500 L760 560 Z", strength: 0.12, drift: "a"},
     // A rounder one hugging the right edge, higher up.
-    {d: "M1600 40 C1520 46 1430 98 1420 182 C1410 266 1470 320 1600 330 Z", strength: 0.16, drift: "c"},
+    {d: "M1700 32 L1600 40 C1520 46 1430 98 1420 182 C1410 266 1470 320 1600 330 L1700 338 Z", strength: 0.16, drift: "c"},
     // A long line sweeping across, down and up and down again.
-    {d: "M-10 190 C200 205 400 420 640 410 S1000 215 1210 250 S1490 450 1610 440", line: true, strength: 0.5, drift: "d"},
+    {d: "M-100 184 L-10 190 C200 205 400 420 640 410 S1000 215 1210 250 S1490 450 1610 440 L1700 432", line: true, strength: 0.5, drift: "d"},
 ];
 
 export default function Waves() {
