@@ -3,8 +3,13 @@
 .squares {
     position: relative;
     z-index: 0;
-    height: 25vh; // the cells reach 0.24 of the hero down (BAND in Squares.tsx), their faint last rows a little past
+    height: 24vh; // as far as the cells reach (BAND in Squares.tsx: 0.24 of the hero); the rows past it don't show
     pointer-events: none;
+}
+
+// The section after the squares starts where they end: this room is its spacing, so the fire sits right over it.
+.squares + .section {
+    padding-top: 0;
 }
 
 .squares_canvas {
