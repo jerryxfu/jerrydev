@@ -82,3 +82,17 @@
         border-radius: 8px;
     }
 }
+
+.expedite_qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+}
+
+.expedite_qr-code {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}

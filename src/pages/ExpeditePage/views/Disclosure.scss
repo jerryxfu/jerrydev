@@ -1,0 +1,45 @@
+.expedite_disclosure-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: color 0.15s;
+
+    // The browser's own triangle, replaced by the chevron.
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &:hover {
+        color: var(--text);
+    }
+}
+
+.expedite_disclosure-chevron {
+    flex-shrink: 0;
+    transition: rotate 0.2s ease;
+
+    [open] > .expedite_disclosure-summary & {
+        rotate: 90deg;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.expedite_disclosure-note {
+    color: var(--text-5);
+}
+
+.expedite_disclosure-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: 0.6rem;
+}

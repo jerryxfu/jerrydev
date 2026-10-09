@@ -25,6 +25,7 @@
         "@gsap/react": "^2.1.2",
         "gsap": "^3.15.0",
         "lucide-react": "^1.27.0",
+        "qrcode.react": "^4.2.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "react-helmet-async": "^3.0.0",

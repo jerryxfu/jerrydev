@@ -2,6 +2,7 @@ import {Download, MonitorSmartphone, Radio} from "lucide-react";
 import {type DropMeta, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, timeUntil} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
+import Disclosure from "./Disclosure.tsx";
 import "./P2PReceiveView.scss";
 
 interface P2PReceiveViewProps {
@@ -89,31 +90,35 @@ export default function P2PReceiveView(
                         </div>
                     </div>
 
-                    <div className="expedite_settings">
-                        <p className="expedite_settings-title">Transport</p>
-                        <div className="expedite_setting-row">
-                            <label className="text-small">
-                                Force TURN relay
-                                <span className="expedite_setting-sub">
-                                    <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
-                                    This happens automatically on failure. Forces Traversal Using Relays around NAT
-                                    (TURN) via Cloudflare on the first attempt. Leave off by default.
-                                </span>
-                            </label>
-                            <button
-                                className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
-                                onClick={() => setUseTurn(!useTurn)}
-                                disabled={relayDisabled}
-                            >
-                                <span className="expedite_toggle-knob" />
-                            </button>
+                    {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
+                        route fails, so few need it. Said beside the title when it's on. */}
+                    <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
+                        <div className="expedite_settings">
+                            <p className="expedite_settings-title">Transport</p>
+                            <div className="expedite_setting-row">
+                                <label className="text-small">
+                                    Force TURN relay
+                                    <span className="expedite_setting-sub">
+                                        <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
+                                        This happens automatically on failure. Forces Traversal Using Relays around NAT
+                                        (TURN) via Cloudflare on the first attempt. Leave off by default.
+                                    </span>
+                                </label>
+                                <button
+                                    className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
+                                    onClick={() => setUseTurn(!useTurn)}
+                                    disabled={relayDisabled}
+                                >
+                                    <span className="expedite_toggle-knob" />
+                                </button>
+                            </div>
+                            {relayDisabled && (
+                                <p className="expedite_p2p-standby">
+                                    This month's relay quota is used up, so transfers are direct-only until it resets.
+                                </p>
+                            )}
                         </div>
-                        {relayDisabled && (
-                            <p className="expedite_p2p-standby">
-                                This month's relay quota is used up, so transfers are direct-only until it resets.
-                            </p>
-                        )}
-                    </div>
+                    </Disclosure>
 
                     <div className="expedite_p2p-notes">
                         <p className="expedite_p2p-notes-title">How does this work?</p>

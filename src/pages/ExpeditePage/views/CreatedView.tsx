@@ -1,5 +1,6 @@
 import React from "react";
 import {Check, Clipboard, Link} from "lucide-react";
+import {QRCodeSVG} from "qrcode.react";
 import {getDropUrl} from "../utils.ts";
 import "./CreatedView.scss";
 
@@ -36,6 +37,21 @@ export default function CreatedView({code, copiedField, onCopy, onDone}: Created
                     {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
                 </button>
             </div>
+
+            {/* The link, for a phone's camera (issue #70). Dark on white in every theme: some scanners can't read a light
+                code on a dark ground. */}
+            <figure className="expedite_qr">
+                <QRCodeSVG
+                    className="expedite_qr-code"
+                    value={getDropUrl(code)}
+                    size={168}
+                    marginSize={3}
+                    bgColor="#ffffff"
+                    fgColor="#1a1a1a"
+                    title="QR code of the drop's link"
+                />
+                <figcaption className="text-caption">Scan to open it on another device</figcaption>
+            </figure>
 
             <button className="expedite_btn-primary expedite_btn-full" onClick={onDone}>
                 Done

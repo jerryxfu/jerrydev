@@ -81,12 +81,20 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* The detail line carries the live state (code, poll counter, retry note), so
-   it reads as a subtitle rather than fine print. */
+/* Under the phase: the relay retry note, which reads as a subtitle rather than fine print. */
 .expedite_p2p-detail {
     font-size: var(--fs-md);
     line-height: 1.45;
     color: var(--text-2);
+    word-break: break-word;
+}
+
+/* In the connection details: what the engines are doing right now (the code, the signalling, the ICE state). */
+.expedite_p2p-trace {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text-3);
     word-break: break-word;
 }
 

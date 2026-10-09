@@ -43,11 +43,12 @@ if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
 }
 
 export const isDev = import.meta.env.DEV || import.meta.env.MODE === "development";
-export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
-    (isDev ?
-            "http://localhost:3001" // dev
-            : "https://api.jerryxf.net" // prod
-    );
+export const apiBaseUrl = "https://api.jerryxf.net";
+// export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ??
+//     (isDev ?
+//             "http://localhost:3001" // dev
+//             : "https://api.jerryxf.net" // prod
+//     );
 
 // region this passes build, and does absolutely nothing. TypeScript hell.
 type Rev<S extends string> = S extends `${infer H}${infer R}` ? `${Rev<R>}${H}` : "";

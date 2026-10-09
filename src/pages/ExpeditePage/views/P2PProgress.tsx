@@ -1,6 +1,7 @@
 import {type P2PPhase, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {totalCandidates} from "../p2p/peer.ts";
 import {formatBytes, formatEta, formatSpeed} from "../utils.ts";
+import Disclosure from "./Disclosure.tsx";
 import "./P2PProgress.scss";
 
 interface Props {
@@ -107,15 +108,8 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false}
                 {/* The note rides along only while the connection is still being
                     built. Once it's up (or genuinely dead) it drops off on its
                     own, so nothing upstream has to remember to clear the flag. */}
-                {(status.detail || (relayRetry && waiting)) && (
-                    <span className="expedite_p2p-detail">
-                        {status.detail}
-                        {relayRetry && waiting && (
-                            <span className="expedite_p2p-detail-retry">
-                                {status.detail ? " · " : ""}retrying using TURN...
-                            </span>
-                        )}
-                    </span>
+                {relayRetry && waiting && (
+                    <span className="expedite_p2p-detail expedite_p2p-detail-retry">retrying using TURN...</span>
                 )}
             </div>
 
@@ -143,72 +137,78 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false}
                 </div>
             )}
 
-            {/* Connection readout */}
-            <dl className="expedite_p2p-stats">
-                <div className="expedite_p2p-stat">
-                    <dt>
-                        <span className="expedite_p2p-stat-name">Candidates</span>
-                        <span className="expedite_p2p-stat-desc">The routes ICE gathered</span>
-                    </dt>
-                    <dd>
-                        {status.candidates.host} host · {status.candidates.srflx} srflx · {status.candidates.relay} relay
-                        {status.remoteCandidates && <> · peer {totalCandidates(status.remoteCandidates)}</>}
-                    </dd>
-                </div>
+            {/* The technical side, folded away: most people only need the steps, the phase and the bar above (Raph and
+                Samy, Oct 2026). What the engines are doing, and the connection itself. */}
+            <Disclosure id="p2p-connection" title="Connection details">
+                {status.detail && <p className="expedite_p2p-trace">{status.detail}</p>}
 
-                <div className="expedite_p2p-stat">
-                    <dt>
-                        <span className="expedite_p2p-stat-name">Pair</span>
-                        <span className="expedite_p2p-stat-desc">The route the data is taking</span>
-                    </dt>
-                    <dd>
-                        {status.pair ? `${status.pair} ${status.relayed ? "(relayed)" : "(direct)"}` : "—"}
-                    </dd>
-                </div>
+                {/* Connection readout */}
+                <dl className="expedite_p2p-stats">
+                    <div className="expedite_p2p-stat">
+                        <dt>
+                            <span className="expedite_p2p-stat-name">Candidates</span>
+                            <span className="expedite_p2p-stat-desc">The routes ICE gathered</span>
+                        </dt>
+                        <dd>
+                            {status.candidates.host} host · {status.candidates.srflx} srflx · {status.candidates.relay} relay
+                            {status.remoteCandidates && <> · peer {totalCandidates(status.remoteCandidates)}</>}
+                        </dd>
+                    </div>
 
-                <div className="expedite_p2p-stat">
-                    <dt>
-                        <span className="expedite_p2p-stat-name">RTT</span>
-                        <span className="expedite_p2p-stat-desc">The round trip time to the peer</span>
-                    </dt>
-                    <dd>{status.rttMs != null ? `${status.rttMs} ms` : "—"}</dd>
-                </div>
+                    <div className="expedite_p2p-stat">
+                        <dt>
+                            <span className="expedite_p2p-stat-name">Pair</span>
+                            <span className="expedite_p2p-stat-desc">The route the data is taking</span>
+                        </dt>
+                        <dd>
+                            {status.pair ? `${status.pair} ${status.relayed ? "(relayed)" : "(direct)"}` : "—"}
+                        </dd>
+                    </div>
 
-                <div className="expedite_p2p-stat">
-                    <dt>
-                        <span className="expedite_p2p-stat-name">SCTP max</span>
-                        <span className="expedite_p2p-stat-desc">largest message the channel accepts</span>
-                    </dt>
-                    <dd>{status.maxMessageSize != null ? `${status.maxMessageSize} B` : "—"}</dd>
-                </div>
+                    <div className="expedite_p2p-stat">
+                        <dt>
+                            <span className="expedite_p2p-stat-name">RTT</span>
+                            <span className="expedite_p2p-stat-desc">The round trip time to the peer</span>
+                        </dt>
+                        <dd>{status.rttMs != null ? `${status.rttMs} ms` : "—"}</dd>
+                    </div>
 
-                {snapshot && (
-                    <>
-                        <div className="expedite_p2p-stat">
-                            <dt>
-                                <span className="expedite_p2p-stat-name">Chunks</span>
-                                <span className="expedite_p2p-stat-desc">
-                                    {role === "send" ? "pieces handed to the channel" : "pieces written to disk"}
-                                </span>
-                            </dt>
-                            <dd>
-                                {snapshot.chunks.toLocaleString()}
-                                {snapshot.chunkSize > 0 ? ` × ${formatBytes(snapshot.chunkSize)}` : ""}
-                            </dd>
-                        </div>
+                    <div className="expedite_p2p-stat">
+                        <dt>
+                            <span className="expedite_p2p-stat-name">SCTP max</span>
+                            <span className="expedite_p2p-stat-desc">largest message the channel accepts</span>
+                        </dt>
+                        <dd>{status.maxMessageSize != null ? `${status.maxMessageSize} B` : "—"}</dd>
+                    </div>
 
-                        {role === "send" && (
+                    {snapshot && (
+                        <>
                             <div className="expedite_p2p-stat">
                                 <dt>
-                                    <span className="expedite_p2p-stat-name">Buffer</span>
-                                    <span className="expedite_p2p-stat-desc">Queued, not yet delivered</span>
+                                    <span className="expedite_p2p-stat-name">Chunks</span>
+                                    <span className="expedite_p2p-stat-desc">
+                                        {role === "send" ? "pieces handed to the channel" : "pieces written to disk"}
+                                    </span>
                                 </dt>
-                                <dd>{formatBytes(snapshot.bufferedAmount)}</dd>
+                                <dd>
+                                    {snapshot.chunks.toLocaleString()}
+                                    {snapshot.chunkSize > 0 ? ` × ${formatBytes(snapshot.chunkSize)}` : ""}
+                                </dd>
                             </div>
-                        )}
-                    </>
-                )}
-            </dl>
+
+                            {role === "send" && (
+                                <div className="expedite_p2p-stat">
+                                    <dt>
+                                        <span className="expedite_p2p-stat-name">Buffer</span>
+                                        <span className="expedite_p2p-stat-desc">Queued, not yet delivered</span>
+                                    </dt>
+                                    <dd>{formatBytes(snapshot.bufferedAmount)}</dd>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </dl>
+            </Disclosure>
 
             {status.error && <p className="expedite_error">{status.error}</p>}
         </div>
