@@ -1,9 +1,8 @@
-import React, {type ReactNode, useEffect, useMemo, useRef} from "react";
+import React, {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {File, Upload, X} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
 import FilePreview from "./FilePreview.tsx";
-import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./UploadView.scss";
 
 interface UploadViewProps {
@@ -27,9 +26,6 @@ interface UploadViewProps {
 // How many times a drop can be opened: the usual choices; any other number goes in the field beside them.
 const VIEW_PRESETS: (number | null)[] = [1, 5, null];
 
-// The shortcut that creates a text drop from the text box, as this computer writes it.
-const SHORTCUT = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘ Enter" : "Ctrl Enter";
-
 export default function UploadView(
     {
         dropType, textContent, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
@@ -37,7 +33,9 @@ export default function UploadView(
     }: UploadViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const hasKeyboard = useMediaQuery("(hover: hover)");
+    const createButton = useRef<HTMLButtonElement>(null);
+    // Reached by ⌘/Ctrl+Enter: ringed until it loses focus, whatever the browser thinks of where the focus came from.
+    const [createReady, setCreateReady] = useState(false);
 
     // Derive the preview URL during render — no setState needed. FilePreview decides whether the file can be shown.
     const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
@@ -56,12 +54,17 @@ export default function UploadView(
                         className="expedite_textarea"
                         placeholder="Paste or type your text here..."
                         value={textContent}
-                        onChange={(e) => setTextContent(e.target.value)}
+                        onChange={(e) => {
+                            setTextContent(e.target.value);
+                            setCreateReady(false);
+                        }}
                         onKeyDown={(e) => {
-                            // ⌘/Ctrl+Enter creates the drop, without reaching for the button.
+                            // ⌘/Ctrl+Enter takes you to the Create button, ringed, without sending: Enter then sends it.
+                            // A text box has no such shortcut of its own.
                             if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && textContent.trim() && !loading) {
                                 e.preventDefault();
-                                onUpload();
+                                setCreateReady(true);
+                                createButton.current?.focus();
                             }
                         }}
                         rows={10}
@@ -183,14 +186,15 @@ export default function UploadView(
                         {loading ? "Cancel upload" : "Cancel"}
                     </button>
                     <button
-                        className="expedite_btn-primary"
+                        ref={createButton}
+                        className={`expedite_btn-primary${createReady ? " is-ready" : ""}`}
+                        onBlur={() => setCreateReady(false)}
                         onClick={onUpload}
                         disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
                     >
                         {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}`}
                     </button>
                 </div>
-                {dropType === "text" && hasKeyboard && <p className="expedite_shortcut">or press {SHORTCUT} in the text box</p>}
             </div>
 
             {/* Under the form, as wide as the view: the upload's progress, and the file itself. */}

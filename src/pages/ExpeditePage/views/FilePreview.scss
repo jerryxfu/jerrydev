@@ -28,10 +28,17 @@
     box-sizing: border-box;
 }
 
+// A PDF shows one whole page: as tall as a portrait A4 page (1.414 times its width) at the preview's width, plus the
+// viewer's toolbar and margins. Letter pages, a little shorter, leave the top of the next page in view. The page itself
+// scrolls rather than cutting the PDF off at a fixed height.
+.expedite_file-preview.is-pdf {
+    container-type: inline-size;
+}
+
 .expedite_preview-frame {
     display: block;
     width: 100%;
-    height: 480px;
+    height: calc(100cqw * 1.414 + 64px);
     border: 0;
 }
 

@@ -5,12 +5,18 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 1.2rem 1.5rem 0;
+    padding: 2rem 1.5rem 0;
     position: relative;
     overflow-y: auto;
 
     @media screen and (max-width: 768px) {
-        padding: 0.8rem 1.25rem 3rem;
+        padding: 1.4rem 1.25rem 3rem;
+    }
+
+    // Nothing in the page's column gives way when it runs taller than the screen (a PDF, a long file): the navbar's
+    // spacer, which has no content to hold it, shrank to nothing and slid the Back link and the title under the bar.
+    > * {
+        flex-shrink: 0;
     }
 }
 

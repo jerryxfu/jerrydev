@@ -143,7 +143,7 @@ export default function FilePreview({src, name, mimeType, size, file, onInfo}: F
 
     const onError = () => setFailed(true);
     return (
-        <div className="expedite_file-preview">
+        <div className={`expedite_file-preview${kind === "pdf" ? " is-pdf" : ""}`}>
             {kind === "image" && (
                 <img
                     src={src} alt={name} className="expedite_preview-img" onError={onError}
@@ -167,7 +167,12 @@ export default function FilePreview({src, name, mimeType, size, file, onInfo}: F
                     onLoadedMetadata={(e) => onInfo?.({duration: e.currentTarget.duration})}
                 />
             )}
-            {kind === "pdf" && <iframe src={src} title={name} className="expedite_preview-frame" />}
+            {/* A whole page, at the width of the preview: the viewer fits the page's width (view=FitH for Chromium's
+                viewer, zoom=page-width for Firefox's) with its thumbnails closed (navpanes=0), and the frame is a
+                portrait page tall (FilePreview.scss). */}
+            {kind === "pdf" && (
+                <iframe src={`${src}#view=FitH&navpanes=0&zoom=page-width`} title={name} className="expedite_preview-frame" />
+            )}
         </div>
     );
 }

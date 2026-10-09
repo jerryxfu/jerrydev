@@ -287,10 +287,9 @@
     }
 }
 
-// Under the Create button, for a text drop: the keyboard's way to it.
-.expedite_shortcut {
-    margin: -0.4rem 0 0;
-    font-size: var(--fs-xs);
-    color: var(--text-5);
-    text-align: right;
+// The Create button reached by ⌘/Ctrl+Enter from the text box: the site's focus ring (index.scss), drawn outright, since
+// a browser may judge that focus wasn't from the keyboard and leave it unringed. Enter then sends.
+.expedite_btn-primary.is-ready {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
 }
