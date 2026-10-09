@@ -20,7 +20,7 @@ type Props = {
 // way the hero's lines come in, and quieter than the block of ink it replaces (BlockReveal). Once they're in, the
 // heading goes back to its own markup, so it wraps again if the window changes. Without JavaScript, or with reduced
 // motion, it's simply there.
-export default function Rise({children, as: Tag = "h2", className, id, start = "top 88%"}: Props) {
+export default function Rise({children, as: Tag = "h2", className, id, start = "top 96%"}: Props) {
     const ref = useRef<HTMLElement>(null);
 
     // contextSafe (always passed, typed as optional) keeps what runs after the fonts load in this context.

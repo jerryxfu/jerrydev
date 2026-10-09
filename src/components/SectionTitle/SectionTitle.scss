@@ -1,4 +1,8 @@
+// The title carries the section's id, so an anchor link (the navbar's) lands here. It stops 96px down, clear of the
+// navbar's island (its bottom is about 70px down), the room Projects keeps above an opened card. On a phone the island
+// floats below the status bar, so that's added.
 .section-title-text {
+    scroll-margin-top: calc(env(safe-area-inset-top) + 96px);
     font-weight: 350;
     font-size: 3.5rem;
     color: var(--text-strong);

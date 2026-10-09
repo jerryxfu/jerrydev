@@ -309,7 +309,6 @@ body.homeisland-body {
 .section {
     max-width: 100%;
     padding: 2rem 5%;
-    scroll-margin-top: 80px; /* for anchor link scrolling, clears the scrolled navbar island (64px ish) with extra room */
 
     @media screen and (max-width: 768px) {
         padding: 1.6rem 5%;

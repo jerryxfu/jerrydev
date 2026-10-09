@@ -133,6 +133,9 @@
     }
 }
 
+// The one action to take on a screen. In the site's accent once it can be pressed, in plain grey until then: the pale
+// blue it had read the same both ways, faded or not (issue #69). --bg-da is light in the light themes and dark in the
+// dark ones, where the accent is lighter: 4.4:1 and better in all four.
 .expedite_btn-primary {
     flex: 1;
     display: flex;
@@ -140,23 +143,25 @@
     justify-content: center;
     gap: 0.45rem;
     padding: 0.65rem 1.1rem;
-    border: none;
+    border: 1px solid var(--secondary);
     border-radius: 8px;
-    background: var(--primary-da);
+    background: var(--secondary);
     color: var(--bg-da);
     font-family: inherit;
     font-size: var(--fs-sm);
     font-weight: 500;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
     white-space: nowrap;
 
-    &:hover {
+    &:hover:not(:disabled) {
         opacity: var(--opacity-hover);
     }
 
     &:disabled {
-        opacity: var(--opacity-disabled);
+        border-color: var(--border);
+        background: var(--surface-da);
+        color: var(--text-5);
         cursor: not-allowed;
     }
 }

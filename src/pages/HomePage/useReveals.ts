@@ -45,7 +45,7 @@ export default function useReveals() {
             const targets = gsap.utils.toArray<HTMLElement>(REVEALED.join(", "));
             gsap.set(targets, {opacity: 0, y: 18});
             ScrollTrigger.batch(targets, {
-                start: "top 92%",
+                start: "top bottom",
                 once: true,
                 onEnter: (batch) => {
                     const passed = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);

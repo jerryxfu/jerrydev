@@ -117,7 +117,7 @@ export default function Experience() {
                 introDone = true;
                 sync();
             });
-            ScrollTrigger.create({trigger: root, start: "top 80%", once: true, onEnter: () => intro.play()});
+            ScrollTrigger.create({trigger: root, start: "top 88%", once: true, onEnter: () => intro.play()});
             ScrollTrigger.create({
                 trigger: root,
                 start: "top bottom",
