@@ -118,3 +118,22 @@
         animation: none !important;
     }
 }
+
+// As you scroll out of the hero, each layer slides down behind its edge and off to one side (`sink` and `side` in
+// Waves.tsx), all gone by GONE_AT of the hero's 100vh. Driven by the scroll itself, by the browser, so a fast swipe on a
+// phone doesn't leave the shapes behind. Where this isn't supported, Waves.tsx does it with GSAP.
+@supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .waves_one {
+            animation: waves-away linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 50vh;
+        }
+    }
+}
+
+@keyframes waves-away {
+    to {
+        translate: calc(var(--side) * 100%) calc(var(--sink) * 100%);
+    }
+}

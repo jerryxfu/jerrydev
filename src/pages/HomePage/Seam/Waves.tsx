@@ -61,8 +61,8 @@ export default function Waves() {
 
     // The way in, then, as you scroll down out of the hero, each layer slides down behind its edge and off to one side,
     // all of them gone by GONE_AT: only transforms, nothing drawn again. The drift is on each layer's picture, so the
-    // movements add up, and the way in moves the layers in px (x, y), the slide in % (xPercent, yPercent), so those add
-    // up too if the page is scrolled meanwhile. The line's light rests once they're gone.
+    // movements add up, and the way in moves the layers in px (x, y), the slide in % (CSS translate, or xPercent and
+    // yPercent), so those add up too if the page is scrolled meanwhile. The line's light rests once they're gone.
     useGSAP(() => {
         const el = root.current;
         const hero = document.querySelector<HTMLElement>(".hero");
@@ -94,12 +94,16 @@ export default function Waves() {
             });
 
             const rest = (self: ScrollTrigger) => run?.paused(self.progress >= 1);
-            const away = gsap.timeline({
-                scrollTrigger: {
-                    trigger: hero, start: "top top", end: () => `+=${hero.offsetHeight * GONE_AT}`, scrub: true,
-                    onUpdate: rest, onRefresh: rest,
-                },
-            });
+            const range = {
+                trigger: hero, start: "top top", end: () => `+=${hero.offsetHeight * GONE_AT}`, onUpdate: rest, onRefresh: rest,
+            };
+            // The slide away is the browser's own where it can (Waves.scss), moved with the scroll itself. Set from here,
+            // after each scroll, it trailed the page on a phone as soon as you swiped. Firefox may not have it yet.
+            if (CSS.supports("animation-timeline: scroll()")) {
+                ScrollTrigger.create(range);
+                return;
+            }
+            const away = gsap.timeline({scrollTrigger: {...range, scrub: true}});
             layers.forEach((layer, i) => {
                 const shape = SHAPES[i];
                 if (shape) away.to(layer, {yPercent: 100 * shape.sink, xPercent: 100 * shape.side, ease: "none"}, 0);
@@ -114,7 +118,7 @@ export default function Waves() {
                 <div
                     key={shape.d}
                     className={`waves_one is-${shape.drift}${shape.line ? " is-line" : ""}`}
-                    style={{"--strength": shape.strength} as CSSProperties}
+                    style={{"--strength": shape.strength, "--sink": shape.sink, "--side": shape.side} as CSSProperties}
                 >
                     <svg viewBox="0 0 1600 500" preserveAspectRatio="none">
                         <path d={shape.d} />

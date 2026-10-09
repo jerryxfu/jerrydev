@@ -11,8 +11,10 @@ import "./Navbar.scss";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Scroll distance before the bar settles into its compact state.
-const SHRINK_AT = 80;
+// Scroll distance before the bar settles into its compact state: as soon as the page moves, as on TechNexus.
+const SHRINK_AT = 2;
+// A phone, as in Navbar.scss: there the bar floats below the status bar.
+const PHONE = "(max-width: 768px)";
 const ENTRY_DELAY = 0.1;
 // How long after the bar starts dropping before its contents follow it down.
 const ITEM_OFFSET = 0.15;
@@ -118,17 +120,22 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
 
         // Reduce motion overrides both props. animate/stagger are a page-level preference; this is the user's, and it wins.
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const runEntry = animate && !reduceMotion;
-        const runStagger = stagger && !reduceMotion;
+        // On a phone the bar floats below the status bar from the start (Navbar.scss), so it doesn't drop in, nor its
+        // contents: from above, they'd pass the screen's top edge and tint the status bar. It fades in instead (CSS).
+        const onPhone = window.matchMedia(PHONE).matches;
+        const runEntry = animate && !reduceMotion && !onPhone;
+        const runStagger = stagger && !reduceMotion && !onPhone;
 
         if (runEntry) {
-            // The bar drops in from above. clearProps hands the transform back to CSS so the compact-state transition isn't fighting a leftover inline style.
+            // The bar drops in from above, by its top rather than a transform: moving a transform, GSAP sets the CSS
+            // scale and translate to none until it's done, and the compact state is those, so scrolling during the drop
+            // made the bar the island only once it was over. clearProps hands top back to CSS.
             void gsap.from(nav, {
-                yPercent: -100,
+                top: () => -nav.offsetHeight,
                 duration: 1.5,
                 delay: ENTRY_DELAY,
                 ease: "elastic.out(1,0.95)",
-                clearProps: "transform",
+                clearProps: "top",
             });
         }
 
@@ -212,6 +219,9 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
         <>
             {/* First focusable thing on the page */}
             <a className="navbar_skip" href="#main">Skip to content</a>
+
+            {/* On a phone, the full bar's look at the top of the page, scrolling away with it (Navbar.scss). */}
+            {isHero && <div className="navbar_strip" aria-hidden="true" />}
 
             <nav
                 className={

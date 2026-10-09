@@ -2,10 +2,35 @@
 // Two bar modes:
 // .navbar - transparent over a hero
 // .navbar--solid - opaque surface from the start
-// Both share the scrolled state (.is-scrolled): frosted + shrunk.
+// Both share the scrolled state (.is-scrolled): frosted and shrunk (the hero's bar only on a wider screen). On a
+// phone the bar floats as an island below the status bar (phone-island, below).
 
 $dur: 0.4s;
 $ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+// On a phone, where the bar floats: below the status bar, with room on each side, fading in. Never against the
+// screen's top edge: Safari 26 fills the status bar with a solid colour for anything fixed drawn there, even for a
+// moment, and keeps it after; otherwise the page shows under it (tried on Jerry's iPhone, 2026-10-08: it goes by where
+// things are drawn, and 8px below the status bar is far enough). PostToc.scss floats its bar the same way.
+@mixin phone-island {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 8px);
+    left: 10px;
+    right: 10px;
+    width: auto;
+    border-radius: var(--r-md);
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: navbar-island-in 0.9s $ease;
+    }
+}
+
+@keyframes navbar-island-in {
+    from {
+        opacity: 0;
+        scale: 0.9;
+    }
+}
 
 // ------
 //  Skip link
@@ -160,40 +185,111 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     border-radius $dur $ease,
     padding $dur $ease;
 
+    // On a phone the bar floats where the island goes from the start (phone-island, above), slim like the island
+    // scrolled or not (Jerry, 2026-10-08), and shows its own frosted pill only once scrolled: at the top of the page,
+    // the full bar's look is the strip under it (.navbar_strip, below), which leaves as the page moves. So nothing
+    // fixed comes near the screen's top edge, and nothing on the bar moves. 62px: the bar's 50, and 6px above and below.
     @media screen and (max-width: 768px) {
-        padding: 0.25rem 0.5rem;
+        @include phone-island;
+        padding: 0.375rem 0.5rem;
+        backdrop-filter: none;
+        box-shadow: none;
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: inherit;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 10px 0 var(--shadow-daa);
+            opacity: 0;
+            transition: opacity $dur ease;
+        }
     }
 }
 
+// Shrunk on a wider screen; on a phone it only shows its pill (Jerry, 2026-10-08: the shrink looks better on a laptop).
 .navbar--hero.is-scrolled {
-    scale: 0.95;
-    translate: 0 6px;
-    border-radius: var(--r-md);
-    padding: 0.5rem 0;
+    @media screen and (min-width: 769px) {
+        scale: 0.95;
+        translate: 0 6px;
+        border-radius: var(--r-md);
+        padding: 0.5rem 0;
+    }
+
+    @media screen and (max-width: 768px) {
+        &::before {
+            opacity: 1;
+        }
+    }
+}
+
+// On a phone, at the top of the home page, the full bar's look: frosted like it and full width, under the bar's
+// contents. Part of the page, not fixed, so it can leave by the top: once the page moves, it slides up and fades
+// out (its shadow with it), uncovering the island; back at the top, it comes down again. 78px: the bar's 62, and 8px
+// above and below it, since the bar floats 8px below the status bar.
+.navbar_strip {
+    display: none;
+
+    @media screen and (max-width: 768px) {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 499; // under the bar's 500, over the hero
+        height: 78px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 10px 0 var(--shadow-daa);
+        pointer-events: none;
+        transition: translate $dur $ease, opacity $dur ease;
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: navbar-strip-in 0.9s $ease;
+        }
+
+        &:has(+ .navbar.is-scrolled) {
+            translate: 0 -100%;
+            opacity: 0;
+        }
+    }
+}
+
+@keyframes navbar-strip-in {
+    from {
+        opacity: 0;
+    }
 }
 
 .navbar--hero .navbar_bar {
     height: 68px;
     transition: height $dur $ease;
+
+    // On a phone, the island's height scrolled or not (above).
+    @media screen and (max-width: 768px) {
+        height: 50px;
+    }
 }
 
 .navbar--hero.is-scrolled .navbar_bar {
-    height: 50px;
+    @media screen and (min-width: 769px) {
+        height: 50px;
+    }
+}
+
+// The logo is a share of the bar's height (58px of 68), so it shrinks with the bar in the same movement, not one of its
+// own (Jerry, 2026-10-08: on its own, it seemed to snap and move).
+.navbar--hero .navbar_logo {
+    align-self: stretch;
 }
 
 .navbar--hero .navbar_logo img {
-    height: 58px;
-    border-radius: var(--r-none);
-    transition: height $dur $ease, border-radius $dur $ease;
+    height: 85%;
 
     @media screen and (max-width: 768px) {
         scale: 0.8;
     }
-}
-
-.navbar--hero.is-scrolled .navbar_logo img {
-    height: 42px;
-    border-radius: var(--r-sm);
 }
 
 .navbar--hero .navbar_inline {
@@ -261,6 +357,13 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     backdrop-filter: blur(12px);
     box-shadow: 0 1px 20px 0 var(--shadow);
     padding: calc(0.45rem + env(safe-area-inset-top)) 0.25rem 0.45rem;
+
+    // On a phone, every page with this bar has it compact from the start: the island, fading in rather than dropping in
+    // from above, which would pass the screen's top edge (Navbar.tsx).
+    @media screen and (max-width: 768px) {
+        @include phone-island;
+        padding: 0.45rem 0.25rem;
+    }
 }
 
 .navbar--solid .navbar_logo {

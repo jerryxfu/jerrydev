@@ -1,6 +1,5 @@
-// PostPage always renders <Navbar isShrunk>, which pins .navbar--solid.is-scrolled at a constant
-// 0.45rem + 44px + 0.45rem. It never transitions on this page, so the bar below can sit at a fixed
-// offset instead of measuring the navbar at runtime.
+// A post has no navbar (PostPage.tsx), so the table of contents only clears the status bar: its height on a phone,
+// nothing elsewhere.
 $nav-h: env(safe-area-inset-top);
 
 $rail-w: 210px;
@@ -75,21 +74,32 @@ $rail-left: calc(50vw - 370px - 1.75rem - #{$rail-w});
 }
 
 // ------
-//  Narrow screens: a fixed bar under the navbar
+//  Narrow screens: a pill floating under the status bar
 // ------
+// 8px below the status bar, not against the screen's top edge: Safari 26 fills the status bar with a solid colour for
+// anything fixed drawn there (components/Nav/Navbar.scss says more). Nearly full width, its ends half circles (Jerry,
+// 2026-10-08); open, its corners keep that radius, which on the taller box would otherwise make it an oval.
+$bar-ends: 22px; // half the collapsed bar's height: the trigger's 40px, the progress line's 2px, the border's 2px
+
 .posttoc_bar {
     position: fixed;
-    top: $nav-h;
-    left: 0;
-    right: 0;
-    // Under the navbar's 500 so the two never fight, above the article.
+    top: calc(#{$nav-h} + 8px);
+    left: 12px;
+    right: 12px;
+    // Above the article.
     z-index: 400;
+    overflow: hidden; // the sheet and the progress line, inside the rounded shape
+    border-radius: 999px;
     background-color: color-mix(in srgb, var(--bg) 80%, transparent);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid var(--border);
     // Separates the panel from the prose scrolling under it, which the 1px border alone does not do
     // once the sheet is open and covering half the screen.
     box-shadow: 0 4px 16px var(--shadow);
+
+    &:has(.posttoc_sheet) {
+        border-radius: $bar-ends;
+    }
 }
 
 .posttoc_trigger {
