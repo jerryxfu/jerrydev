@@ -44,6 +44,13 @@ const TILES: {
     },
 ];
 
+// What's typed or pasted in the code field, as a code: from a pasted link its ?code=, otherwise its letters and digits
+// (spaces and dashes dropped), five at most. A pasted link used to be cut to "HTTPS" by the field's length limit.
+function toCode(input: string): string {
+    const fromLink = input.match(/[?&]code=([A-Za-z0-9]{5})/);
+    return (fromLink?.[1] ?? input.replace(/[^A-Za-z0-9]/g, "").slice(0, 5)).toUpperCase();
+}
+
 export default function LandingView(
     {onSelect, code, setCode, error, loading, onRetrieve, p2pSupported}: LandingViewProps
 ) {
@@ -71,6 +78,8 @@ export default function LandingView(
                         </button>
                     ))}
                 </div>
+
+                <p className="expedite_landing-hint">Or drop a file anywhere on this page.</p>
 
                 <dl className="expedite_landing-modes">
                     {TILES.map(({type, label, desc, help}) => (
@@ -116,8 +125,7 @@ export default function LandingView(
                     type="text"
                     placeholder="Enter drop code"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    maxLength={5}
+                    onChange={(e) => setCode(toCode(e.target.value))}
                     onKeyDown={(e) => e.key === "Enter" && onRetrieve()}
                 />
 
@@ -132,7 +140,7 @@ export default function LandingView(
                 </button>
 
                 <p className="expedite_landing-hint">
-                    Enter the code or paste the link in your browser search bar.
+                    Enter the code, or paste the link here or in your browser's address bar.
                 </p>
 
                 {!p2pSupported && (

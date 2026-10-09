@@ -75,69 +75,73 @@ export default function P2PReceiveView(
     }
 
     return (
-        <div className="expedite_p2p-receive">
+        <div className="expedite_p2p-receive expedite_split">
             {!running && (
                 <>
-                    <div className="expedite_p2p-offer">
-                        <Radio size={22} strokeWidth={1.5} />
-                        <div className="expedite_p2p-offer-text">
-                            <p className="expedite_p2p-offer-name">{meta.fileName ?? "unnamed"}</p>
-                            <p className="expedite_p2p-offer-meta">
-                                {formatBytes(meta.size)}
-                                {meta.mimeType ? ` · ${meta.mimeType}` : ""}
-                                {" · session expires in "}{timeUntil(meta.expiresAt)}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
-                        route fails, so few need it. Said beside the title when it's on. */}
-                    <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
-                        <div className="expedite_settings">
-                            <p className="expedite_settings-title">Transport</p>
-                            <div className="expedite_setting-row">
-                                <label className="text-small">
-                                    Force TURN relay
-                                    <span className="expedite_setting-sub">
-                                        <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
-                                        This happens automatically on failure. Forces Traversal Using Relays around NAT
-                                        (TURN) via Cloudflare on the first attempt. Leave off by default.
-                                    </span>
-                                </label>
-                                <button
-                                    className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
-                                    onClick={() => setUseTurn(!useTurn)}
-                                    disabled={relayDisabled}
-                                >
-                                    <span className="expedite_toggle-knob" />
-                                </button>
-                            </div>
-                            {relayDisabled && (
-                                <p className="expedite_p2p-standby">
-                                    This month's relay quota is used up, so transfers are direct-only until it resets.
+                    <div className="expedite_main expedite_main--fill">
+                        <div className="expedite_p2p-offer">
+                            <Radio size={22} strokeWidth={1.5} />
+                            <div className="expedite_p2p-offer-text">
+                                <p className="expedite_p2p-offer-name">{meta.fileName ?? "unnamed"}</p>
+                                <p className="expedite_p2p-offer-meta">
+                                    {formatBytes(meta.size)}
+                                    {meta.mimeType ? ` · ${meta.mimeType}` : ""}
+                                    {" · session expires in "}{timeUntil(meta.expiresAt)}
                                 </p>
-                            )}
+                            </div>
                         </div>
-                    </Disclosure>
-
-                    <div className="expedite_p2p-notes">
-                        <p className="expedite_p2p-notes-title">How does this work?</p>
-                        <ul>
-                            <li>You'll pick a save location first. The file is written there as it arrives.</li>
-                            <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
-                            <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).</li>
-                            <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
-                        </ul>
                     </div>
 
-                    {error && <p className="expedite_error">{error}</p>}
+                    <div className="expedite_side">
+                        {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
+                            route fails, so few need it. Said beside the title when it's on. */}
+                        <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
+                            <div className="expedite_settings">
+                                <p className="expedite_settings-title">Transport</p>
+                                <div className="expedite_setting-row">
+                                    <label className="text-small">
+                                        Force TURN relay
+                                        <span className="expedite_setting-sub">
+                                            <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
+                                            This happens automatically on failure. Forces Traversal Using Relays around NAT
+                                            (TURN) via Cloudflare on the first attempt. Leave off by default.
+                                        </span>
+                                    </label>
+                                    <button
+                                        className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
+                                        onClick={() => setUseTurn(!useTurn)}
+                                        disabled={relayDisabled}
+                                    >
+                                        <span className="expedite_toggle-knob" />
+                                    </button>
+                                </div>
+                                {relayDisabled && (
+                                    <p className="expedite_p2p-standby">
+                                        This month's relay quota is used up, so transfers are direct-only until it resets.
+                                    </p>
+                                )}
+                            </div>
+                        </Disclosure>
 
-                    <div className="expedite_btn-row">
-                        <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
-                        <button className="expedite_btn-primary" onClick={onAccept}>
-                            <Download size={14} />
-                            Choose location &amp; receive
-                        </button>
+                        <div className="expedite_p2p-notes">
+                            <p className="expedite_p2p-notes-title">How does this work?</p>
+                            <ul>
+                                <li>You'll pick a save location first. The file is written there as it arrives.</li>
+                                <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
+                                <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).</li>
+                                <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
+                            </ul>
+                        </div>
+
+                        {error && <p className="expedite_error">{error}</p>}
+
+                        <div className="expedite_btn-row">
+                            <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
+                            <button className="expedite_btn-primary" onClick={onAccept}>
+                                <Download size={14} />
+                                Choose location &amp; receive
+                            </button>
+                        </div>
                     </div>
                 </>
             )}

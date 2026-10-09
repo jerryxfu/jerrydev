@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {ArrowLeft, Upload} from "lucide-react";
+import {ArrowLeft, CircleCheck, File as FileIcon, FileText, type LucideIcon, Radio, Upload} from "lucide-react";
 import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
@@ -9,6 +9,7 @@ import {
     DEFAULT_SETTINGS,
     type DropMeta,
     type DropSettings,
+    type DownloadCheck,
     type DropType,
     EMPTY_P2P_STATUS,
     isP2PReceiveSupported,
@@ -20,11 +21,12 @@ import {
 import {formatBytes} from "./utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
-import CreatedView from "./views/CreatedView.tsx";
+import CreatedView, {type CreatedInfo} from "./views/CreatedView.tsx";
 import ResultView from "./views/ResultView.tsx";
 import P2PSendView from "./views/P2PSendView.tsx";
 import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
+import {hashBlob} from "./sha256.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
 import {P2PError} from "./p2p/peer.ts";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
@@ -87,6 +89,8 @@ export default function Expedite() {
     const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
     const [result, setResult] = useState<DropMeta | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
+    // What the drop just created will do, for the summary under its code.
+    const [createdInfo, setCreatedInfo] = useState<CreatedInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -96,6 +100,11 @@ export default function Expedite() {
 
     const [uploadSnapshot, setUploadSnapshot] = useState<UploadSnapshot | null>(null);
     const uploadAbortRef = useRef<AbortController | null>(null);
+    // The file's SHA-256 while it uploads: how far it's got (0 to 1), and how to stop waiting for it.
+    const [hashProgress, setHashProgress] = useState<number | null>(null);
+    const skipHashRef = useRef<(() => void) | null>(null);
+    // A downloaded file checked against that hash.
+    const [downloadCheck, setDownloadCheck] = useState<DownloadCheck | null>(null);
 
     // --- Direct P2P ---
     const [useTurn, setUseTurn] = useState(false);
@@ -201,7 +210,9 @@ export default function Expedite() {
         setSelectedFile(null);
         setRetrieveCode("");
         setResult(null);
+        setDownloadCheck(null);
         setCreatedCode(null);
+        setCreatedInfo(null);
         setError(null);
         setLoading(false);
         setCopiedField(null);
@@ -244,6 +255,7 @@ export default function Expedite() {
                     return;
                 }
                 setCreatedCode(json.data.code);
+                setCreatedInfo({expiresAt: json.data.expiresAt, maxViews: settings.maxViews, deletable: settings.deletable});
                 await transitionTo("created");
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : "Upload failed");
@@ -262,9 +274,23 @@ export default function Expedite() {
         const controller = new AbortController();
         uploadAbortRef.current = controller;
         setUploadSnapshot(null);
+        // The file's SHA-256, alongside the upload. The upload waits for it at the end, unless the sender skips it.
+        setHashProgress(0);
+        const hashing = hashBlob(selectedFile, setHashProgress);
+        let skip = () => {};
+        const skipped = new Promise<null>((resolve) => {
+            skip = () => resolve(null);
+        });
+        skipHashRef.current = () => {
+            hashing.cancel();
+            skip();
+        };
+        controller.signal.addEventListener("abort", () => hashing.cancel());
+        const hash = () => Promise.race([hashing.result.catch(() => null), skipped]);
         try {
-            const meta = await uploadFile(selectedFile, settings, apiBaseUrl, setUploadSnapshot, controller.signal);
+            const meta = await uploadFile(selectedFile, settings, apiBaseUrl, setUploadSnapshot, controller.signal, hash);
             setCreatedCode(meta.code);
+            setCreatedInfo({expiresAt: meta.expiresAt, maxViews: meta.maxViews, deletable: meta.deletable});
             await transitionTo("created");
         } catch (err: unknown) {
             // AbortError = user cancelled; stay on the form silently
@@ -272,6 +298,9 @@ export default function Expedite() {
                 setError(err instanceof Error ? err.message : "Upload failed");
             }
         } finally {
+            hashing.cancel();
+            skipHashRef.current = null;
+            setHashProgress(null);
             uploadAbortRef.current = null;
             setUploadSnapshot(null);
             setLoading(false);
@@ -298,6 +327,7 @@ export default function Expedite() {
 
             const meta = json.data as DropMeta;
             setResult(meta);
+            setDownloadCheck(null);
             // The type isn't known until the lookup resolves, which is also when
             // it appears in the heading.
             await transitionTo(meta.type === "p2p" ? "p2p-receive" : "result");
@@ -562,6 +592,15 @@ export default function Expedite() {
             a.download = result.fileName ?? `expedite-${result.code}`;
             a.click();
             URL.revokeObjectURL(url);
+
+            // What was just saved, checked against the hash the sender's browser stored: proof it arrived intact.
+            const expected = result.sha256;
+            if (expected) {
+                setDownloadCheck({state: "checking", progress: 0});
+                hashBlob(blob, (progress) => setDownloadCheck({state: "checking", progress})).result
+                    .then((hex) => setDownloadCheck({state: hex === expected ? "match" : "mismatch"}))
+                    .catch(() => setDownloadCheck(null));
+            }
         } catch {
             // Fallback: open in new tab if fetch fails (e.g. CORS)
             window.open(result.fileUrl, "_blank");
@@ -614,8 +653,15 @@ export default function Expedite() {
 
     const handleDragLeave = useCallback(() => setIsDragging(false), []);
 
-    // The resolved drop type is appended to the heading, so it only appears once a lookup has returned.
-    const resolvedType = result?.type ?? null;
+    // What each screen is, said in its heading, with the icon of its kind (as on the landing page's tiles). The landing
+    // page is Expedite itself.
+    const title: { icon: LucideIcon; text: string } | null =
+        view === "composing" ? (dropType === "text" ? {icon: FileText, text: "Send text"} : {icon: FileIcon, text: "Send a file"})
+            : view === "p2p-send" ? {icon: Radio, text: "Send directly"}
+                : view === "created" ? {icon: CircleCheck, text: "Your drop is ready"}
+                    : view === "result" && result ? (result.type === "text" ? {icon: FileText, text: "Text for you"} : {icon: FileIcon, text: "A file for you"})
+                        : view === "p2p-receive" ? {icon: Radio, text: "A file, sent directly"}
+                            : null;
 
     return (
         <div className="expedite" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
@@ -635,14 +681,8 @@ export default function Expedite() {
                 <p>Drop file to upload</p>
             </div>
 
-            <div
-                className={[
-                    "expedite_container",
-                    view === "composing" && uploadSnapshot ? "expedite_container--wide" : "",
-                    view === "landing" ? "expedite_container--landing" : "",
-                    view === "p2p-send" || view === "p2p-receive" ? "expedite_container--p2p" : "",
-                ].filter(Boolean).join(" ")}
-            >
+            {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). */}
+            <div className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}`}>
                 <header className="expedite_header">
                     {view !== "landing" && (
                         <button className="expedite_back" onClick={reset}>
@@ -650,7 +690,14 @@ export default function Expedite() {
                             <span>Back</span>
                         </button>
                     )}
-                    <h1>Expedite 📦{resolvedType ? ` (${resolvedType})` : ""}</h1>
+                    {title ? (
+                        <h1 className="expedite_title">
+                            <title.icon size={30} strokeWidth={1.6} aria-hidden />
+                            {title.text}
+                        </h1>
+                    ) : (
+                        <h1>Expedite 📦</h1>
+                    )}
                     {view === "landing" && (
                         <p className="caption-text">Share files and text snippets instantaneously!</p>
                     )}
@@ -671,29 +718,34 @@ export default function Expedite() {
                     )}
 
                     {view === "composing" && (
-                        <div className={`expedite_upload-layout ${uploadSnapshot ? "is-uploading" : ""}`}>
-                            <UploadView
-                                dropType={dropType}
-                                textContent={textContent}
-                                setTextContent={setTextContent}
-                                selectedFile={selectedFile}
-                                setSelectedFile={setSelectedFile}
-                                settings={settings}
-                                setSettings={setSettings}
-                                maxViewsInput={maxViewsInput}
-                                onMaxViewsChange={handleMaxViewsChange}
-                                error={error}
-                                loading={loading}
-                                onUpload={handleUpload}
-                                onCancel={loading ? cancelUpload : reset}
-                            />
-                            {uploadSnapshot && <UploadProgress snapshot={uploadSnapshot} />}
-                        </div>
+                        <UploadView
+                            dropType={dropType}
+                            textContent={textContent}
+                            setTextContent={setTextContent}
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                            settings={settings}
+                            setSettings={setSettings}
+                            maxViewsInput={maxViewsInput}
+                            onMaxViewsChange={handleMaxViewsChange}
+                            error={error}
+                            loading={loading}
+                            onUpload={handleUpload}
+                            onCancel={loading ? cancelUpload : reset}
+                            progress={uploadSnapshot && (
+                                <UploadProgress
+                                    snapshot={uploadSnapshot}
+                                    hashProgress={hashProgress}
+                                    onSkipHash={() => skipHashRef.current?.()}
+                                />
+                            )}
+                        />
                     )}
 
                     {view === "created" && createdCode && (
                         <CreatedView
                             code={createdCode}
+                            info={createdInfo}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
                             onDone={reset}
@@ -748,6 +800,7 @@ export default function Expedite() {
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
                             error={error}
+                            downloadCheck={downloadCheck}
                             onDownload={handleDownload}
                             onDelete={handleDelete}
                         />

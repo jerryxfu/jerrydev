@@ -5,6 +5,49 @@
     gap: 0.85rem;
 }
 
+// The code and its link, one block: the left column on a laptop.
+.expedite_created-share {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: inherit;
+    width: 100%;
+}
+
+// On a laptop: the code, its link, Done and the reminder on the left, centred there; the QR code beside them.
+@media (min-width: 900px) {
+    .expedite_created {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "share qr" "done qr" "note qr";
+        column-gap: 3rem;
+        row-gap: 1.25rem;
+        align-items: center;
+
+        > .expedite_created-share {
+            grid-area: share;
+        }
+
+        > .expedite_qr {
+            grid-area: qr;
+        }
+
+        > .expedite_btn-primary {
+            grid-area: done;
+        }
+
+        > .text-caption {
+            grid-area: note;
+            text-align: center;
+        }
+    }
+
+    .expedite_qr-code {
+        width: 200px;
+        height: 200px;
+    }
+}
+
 .expedite_code-display {
     display: flex;
     align-items: center;
@@ -95,4 +138,22 @@
     display: block;
     border: 1px solid var(--border);
     border-radius: 8px;
+}
+
+// The drop's settings, told back: one line, its parts apart by a dot; wrapped on a phone.
+.expedite_created-summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0;
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+    text-align: center;
+
+    span + span::before {
+        content: "·";
+        margin: 0 0.5rem;
+        color: var(--text-6);
+    }
 }

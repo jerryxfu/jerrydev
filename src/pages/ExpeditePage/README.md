@@ -21,6 +21,7 @@ ExpeditePage/
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
   utils.ts              formatting helpers (formatBytes, formatEta, ...)
   uploadEngine.ts       R2 upload: single PUT or multipart, with progress
+  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's download checked against it
   p2p/
     peer.ts             shared WebRTC plumbing, rate meter, protocol constants
     sender.ts           offer -> publish -> wait -> stream file

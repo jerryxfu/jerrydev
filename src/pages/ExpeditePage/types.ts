@@ -21,6 +21,8 @@ export interface DropMeta {
     mimeType?: string;
     encoding?: string;
     fileUrl?: string;
+    /** The file's SHA-256 (hex) as the sender's browser computed it while uploading; absent if skipped. */
+    sha256?: string;
     offer?: string; // (p2p only, SDP offer from the sender)
 }
 
@@ -54,6 +56,9 @@ export interface UploadSnapshot {
     uploadedBytes: number;  // sum of loaded across parts
     totalBytes: number;     // file size
 }
+
+/** The receiver's check of a downloaded file against the SHA-256 the sender's browser stored with it. */
+export type DownloadCheck = { state: "checking"; progress: number } | { state: "match" } | { state: "mismatch" };
 
 // --- Direct P2P ---
 

@@ -36,16 +36,21 @@
     gap: 1rem;
 }
 
+// Writing a text drop: body-sized text with room between the lines, in a box with real room. Half the screen at least,
+// beside the settings on a laptop (it fills its column, so a drag handle couldn't resize it: none is offered).
 .expedite_textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: 1rem 1.1rem;
     border: 1px solid var(--border);
     color: var(--text);
     border-radius: 10px;
     background: transparent;
     font-family: inherit;
-    resize: vertical;
-    min-height: 8rem;
+    font-size: var(--fs-base);
+    line-height: 1.6;
+    tab-size: 4;
+    resize: none;
+    min-height: max(18rem, 50vh);
     box-sizing: border-box;
     outline: none;
     transition: border-color 0.15s;
@@ -107,6 +112,12 @@
 .expedite_file-limit {
     font-size: var(--fs-xs) !important;
     color: var(--text-6) !important;
+}
+
+// One file per drop: the way to send more. Something to read, so a rung above the limit's decoration grey.
+.expedite_file-tip {
+    font-size: var(--fs-xs) !important;
+    color: var(--text-5) !important;
 }
 
 .expedite_file-clear {
@@ -274,4 +285,12 @@
             border-color: color-mix(in srgb, var(--danger) 4%, transparent);
         }
     }
+}
+
+// Under the Create button, for a text drop: the keyboard's way to it.
+.expedite_shortcut {
+    margin: -0.4rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+    text-align: right;
 }

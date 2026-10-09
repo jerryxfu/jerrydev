@@ -1,8 +1,9 @@
-import React, {useEffect, useMemo, useRef} from "react";
+import React, {type ReactNode, useEffect, useMemo, useRef} from "react";
 import {File, Upload, X} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
 import FilePreview from "./FilePreview.tsx";
+import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./UploadView.scss";
 
 interface UploadViewProps {
@@ -19,14 +20,24 @@ interface UploadViewProps {
     loading: boolean;
     onUpload: () => void;
     onCancel: () => void;
+    /** The upload's progress, under the form. */
+    progress?: ReactNode;
 }
+
+// How many times a drop can be opened: the usual choices; any other number goes in the field beside them.
+const VIEW_PRESETS: (number | null)[] = [1, 5, null];
+
+// The shortcut that creates a text drop from the text box, as this computer writes it.
+const SHORTCUT = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘ Enter" : "Ctrl Enter";
 
 export default function UploadView(
     {
         dropType, textContent, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
-        maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel,
+        maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
     }: UploadViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const hasKeyboard = useMediaQuery("(hover: hover)");
 
     // Derive the preview URL during render — no setState needed. FilePreview decides whether the file can be shown.
     const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
@@ -38,18 +49,25 @@ export default function UploadView(
     }, [filePreview]);
 
     return (
-        <div className="expedite_upload">
-            {dropType === "text" ? (
-                <textarea
-                    className="expedite_textarea text-small"
-                    placeholder="Paste or type your text here..."
-                    value={textContent}
-                    onChange={(e) => setTextContent(e.target.value)}
-                    rows={10}
-                    autoFocus
-                />
-            ) : (
-                <>
+        <div className="expedite_upload expedite_split">
+            <div className="expedite_main expedite_main--fill">
+                {dropType === "text" ? (
+                    <textarea
+                        className="expedite_textarea"
+                        placeholder="Paste or type your text here..."
+                        value={textContent}
+                        onChange={(e) => setTextContent(e.target.value)}
+                        onKeyDown={(e) => {
+                            // ⌘/Ctrl+Enter creates the drop, without reaching for the button.
+                            if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && textContent.trim() && !loading) {
+                                e.preventDefault();
+                                onUpload();
+                            }
+                        }}
+                        rows={10}
+                        autoFocus
+                    />
+                ) : (
                     <div className="expedite_file-zone" onClick={() => {
                         if (!loading) fileInputRef.current?.click();
                     }}>
@@ -85,96 +103,109 @@ export default function UploadView(
                                 <Upload size={28} strokeWidth={1} />
                                 <p>Click to choose a file or drag &amp; drop</p>
                                 <p className="expedite_file-limit">Max 16 GB</p>
+                                <p className="expedite_file-tip">Several files? Zip them into one first.</p>
                             </>
                         )}
                     </div>
-
-                    {filePreview && selectedFile && (
-                        <FilePreview
-                            key={filePreview}
-                            src={filePreview}
-                            name={selectedFile.name}
-                            mimeType={selectedFile.type}
-                            size={selectedFile.size}
-                            file={selectedFile}
-                        />
-                    )}
-                </>
-            )}
-
-            {/* Settings */}
-            <div className={`expedite_settings ${loading ? "is-disabled" : ""}`}>
-                <p className="expedite_settings-title caption-text">Settings</p>
-
-                <div className="expedite_setting-row">
-                    <label className="text-small">Deletable by recipient</label>
-                    <button
-                        className={`expedite_toggle ${settings.deletable ? "active" : ""}`}
-                        onClick={() => setSettings(s => ({...s, deletable: !s.deletable}))}
-                    >
-                        <span className="expedite_toggle-knob" />
-                    </button>
-                </div>
-
-                <div className="expedite_setting-row">
-                    <label className="text-small">Max views</label>
-                    <div className="expedite_setting-input-group">
-                        <input
-                            className="expedite_setting-input"
-                            type="text"
-                            inputMode="numeric"
-                            min={1}
-                            placeholder="unlimited"
-                            value={maxViewsInput}
-                            onChange={(e) => {
-                                const cleaned = e.target.value.replace(/\D/g, "");
-                                onMaxViewsChange(cleaned);
-                            }}
-                        />
-                        <button
-                            className={`expedite_setting-pill ${settings.maxViews === null ? "active" : ""}`}
-                            onClick={() => {
-                                onMaxViewsChange("");
-                                setSettings(s => ({...s, maxViews: null}));
-                            }}
-                        >
-                            ♾️
-                        </button>
-                    </div>
-                </div>
-
-                <div className="expedite_setting-row">
-                    <label className="text-small">Expires after</label>
-                    <div className="expedite_ttl-presets">
-                        {TTL_PRESETS.map((p) => (
-                            <button
-                                key={p.value}
-                                className={`expedite_setting-pill ${settings.ttlMs === p.value ? "active" : ""}`}
-                                onClick={() => setSettings(s => ({...s, ttlMs: p.value}))}
-                            >
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                )}
             </div>
 
-            {error && <p className="expedite_error">{error}</p>}
+            <div className="expedite_side">
+                {/* Settings */}
+                <div className={`expedite_settings ${loading ? "is-disabled" : ""}`}>
+                    <p className="expedite_settings-title caption-text">Settings</p>
 
-            <div className="expedite_btn-row">
-                <button
-                    className={`expedite_btn-secondary ${loading ? "expedite_btn-secondary--danger" : ""}`}
-                    onClick={onCancel}
-                >
-                    {loading ? "Cancel upload" : "Cancel"}
-                </button>
-                <button
-                    className="expedite_btn-primary"
-                    onClick={onUpload}
-                    disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
-                >
-                    {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}`}
-                </button>
+                    <div className="expedite_setting-row">
+                        <label className="text-small">Deletable by recipient</label>
+                        <button
+                            className={`expedite_toggle ${settings.deletable ? "active" : ""}`}
+                            onClick={() => setSettings(s => ({...s, deletable: !s.deletable}))}
+                        >
+                            <span className="expedite_toggle-knob" />
+                        </button>
+                    </div>
+
+                    <div className="expedite_setting-row">
+                        <label className="text-small">Views allowed</label>
+                        {/* Presets like the expiry's, and a field for any other number (a pill lights only when the
+                            field is empty). */}
+                        <div className="expedite_setting-input-group">
+                            {VIEW_PRESETS.map((n) => (
+                                <button
+                                    key={n ?? "none"}
+                                    className={`expedite_setting-pill ${!maxViewsInput && settings.maxViews === n ? "active" : ""}`}
+                                    onClick={() => {
+                                        onMaxViewsChange("");
+                                        setSettings(s => ({...s, maxViews: n}));
+                                    }}
+                                >
+                                    {n ?? "No limit"}
+                                </button>
+                            ))}
+                            <input
+                                className="expedite_setting-input"
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="other"
+                                aria-label="Another number of views"
+                                value={maxViewsInput}
+                                onChange={(e) => {
+                                    const cleaned = e.target.value.replace(/\D/g, "");
+                                    onMaxViewsChange(cleaned);
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="expedite_setting-row">
+                        <label className="text-small">Expires after</label>
+                        <div className="expedite_ttl-presets">
+                            {TTL_PRESETS.map((p) => (
+                                <button
+                                    key={p.value}
+                                    className={`expedite_setting-pill ${settings.ttlMs === p.value ? "active" : ""}`}
+                                    onClick={() => setSettings(s => ({...s, ttlMs: p.value}))}
+                                >
+                                    {p.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {error && <p className="expedite_error">{error}</p>}
+
+                <div className="expedite_btn-row">
+                    <button
+                        className={`expedite_btn-secondary ${loading ? "expedite_btn-secondary--danger" : ""}`}
+                        onClick={onCancel}
+                    >
+                        {loading ? "Cancel upload" : "Cancel"}
+                    </button>
+                    <button
+                        className="expedite_btn-primary"
+                        onClick={onUpload}
+                        disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
+                    >
+                        {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}`}
+                    </button>
+                </div>
+                {dropType === "text" && hasKeyboard && <p className="expedite_shortcut">or press {SHORTCUT} in the text box</p>}
+            </div>
+
+            {/* Under the form, as wide as the view: the upload's progress, and the file itself. */}
+            <div className="expedite_wide">{progress}</div>
+            <div className="expedite_wide">
+                {filePreview && selectedFile && (
+                    <FilePreview
+                        key={filePreview}
+                        src={filePreview}
+                        name={selectedFile.name}
+                        mimeType={selectedFile.type}
+                        size={selectedFile.size}
+                        file={selectedFile}
+                    />
+                )}
             </div>
         </div>
     );

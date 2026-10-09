@@ -4,25 +4,45 @@
     gap: 1rem;
 }
 
+// On a laptop the row spans the page, so Download keeps a button's size, at the end of it.
+@media (min-width: 900px) {
+    .expedite_retrieved > .expedite_btn-row > .expedite_btn-primary {
+        flex: 0 0 auto;
+        margin-left: auto;
+        padding-inline: 2rem;
+    }
+}
+
+// One table, two sections ("File details", "Advanced"): side by side from a laptop's width, a line between them; one
+// above the other on a phone.
 .expedite_meta {
+    display: grid;
     border: 1px solid var(--border-da);
     border-radius: 10px;
     overflow: hidden;
+
+    @media (min-width: 900px) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.expedite_meta-section + .expedite_meta-section {
+    border-top: 1px solid var(--border-da);
+
+    @media (min-width: 900px) {
+        border-top: none;
+        border-left: 1px solid var(--border-da);
+    }
 }
 
 .expedite_meta-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.4rem;
+    margin: 0;
     padding: 0.65rem 0.95rem;
     border-bottom: 1px solid var(--border);
     background: var(--surface-lt);
-}
-
-.expedite_meta-type {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
     font-size: var(--fs-xs);
     font-weight: 600;
     text-transform: uppercase;
@@ -31,10 +51,8 @@
 }
 
 .expedite_meta-code {
-    font-size: var(--fs-smm);
     font-weight: 600;
     letter-spacing: 0.18em;
-    color: var(--text-6);
 }
 
 .expedite_meta-grid {
@@ -83,27 +101,110 @@
 }
 
 // Text preview
+// A received text drop: set like the box it was written in, and as tall as the screen allows before it scrolls.
 .expedite_text-preview {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    min-height: 120px;
-    max-height: 320px;
+    min-height: 12rem;
+    max-height: 60vh;
+    field-sizing: content; // as tall as the text, where the browser can (Chromium); the limits above hold everywhere
     resize: vertical;
     overflow-y: auto;
     border: 1px solid var(--border-da);
     background: transparent;
     color: var(--text);
     border-radius: 10px;
-    padding: 0.85rem;
+    padding: 1rem 1.1rem;
     margin: 0;
-    font-size: var(--fs-sm);
-    font-family: "Outfit Variable", monospace;
-    line-height: 1.55;
+    font-size: var(--fs-base);
+    font-family: inherit;
+    line-height: 1.6;
+    tab-size: 4;
     outline: none;
     transition: border-color 0.15s;
 
     &:focus {
         border-color: var(--primary);
+    }
+}
+
+// The SHA-256 takes its section's whole width, and keeps its 64 characters in one monospace block.
+.expedite_meta-item.is-wide {
+    grid-column: 1 / -1;
+    border-right: none;
+}
+
+.expedite_meta-hash {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    word-break: break-all;
+}
+
+.expedite_meta-copy {
+    flex-shrink: 0;
+    display: inline-flex;
+    padding: 0.2rem;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: none;
+    color: var(--text-4);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+
+    &:hover {
+        color: var(--text);
+        border-color: var(--border);
+    }
+}
+
+.expedite_meta-check {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+    word-break: normal;
+
+    // The progress panels' green and red (UploadProgress.scss): the theme's --success is too light for small text.
+    &.is-match {
+        color: #2e9b51;
+    }
+
+    &.is-mismatch {
+        color: #e1483a;
+    }
+}
+
+// Something the receiver should know before going on (the last view used), above what to do.
+.expedite_notice {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--secondary);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-2);
+}
+
+// Deleting, asked in place of the buttons: the question, "Keep it" (focused), and the delete itself.
+.expedite_confirm {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--danger) 6%, transparent);
+
+    p {
+        flex: 1 1 14rem;
+        margin: 0;
+        font-size: var(--fs-sm);
+        color: var(--text-2);
     }
 }

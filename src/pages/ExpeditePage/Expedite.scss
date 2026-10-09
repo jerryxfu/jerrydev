@@ -30,7 +30,8 @@
     font-size: var(--fs-md);
 }
 
-// Container
+// Container. Narrow on a phone; from a laptop's width every view takes the same room as the landing page, and the
+// views use it with two columns (.expedite_split, below) rather than stretching one.
 .expedite_container {
     width: 100%;
     max-width: 600px;
@@ -41,20 +42,60 @@
 }
 
 @media (min-width: 820px) {
-    .expedite_container--wide {
-        max-width: 1180px;
-    }
-
-    // Landing puts send and receive side by side, so it needs the extra room.
-    .expedite_container--landing {
+    .expedite_container {
         max-width: 1060px;
     }
 
-    // P2P views are single-column but dense — wider than default, still narrow
-    // enough that the notes and status lines stay readable.
-    .expedite_container--p2p {
+    // A P2P session under way: one column, readable at this width.
+    .expedite_container--narrow {
         max-width: 800px;
     }
+}
+
+// A view's two columns: what it's about on the left (the text, the file and its preview, the session code), what to do
+// with it on the right (settings, notes, buttons, progress). On a phone the columns dissolve and their blocks stack in
+// the view's own gap, left then right. A view with nothing on the left (a file that can't be previewed, a transfer
+// under way) stays one column.
+.expedite_main,
+.expedite_side {
+    display: contents;
+}
+
+@media (min-width: 900px) {
+    .expedite_split:has(> .expedite_main:not(:empty)) {
+        display: grid;
+        // 460px: room for the expiry presets on one line beside their label (they need about 440).
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+        column-gap: 2.5rem;
+        align-items: start;
+
+        > .expedite_main,
+        > .expedite_side {
+            display: flex;
+            flex-direction: column;
+            gap: inherit;
+            min-width: 0;
+        }
+
+        // A main column of one block (the file zone, the text box) grows to the side column's height: the two line up.
+        > .expedite_main--fill {
+            align-self: stretch;
+
+            > :first-child {
+                flex: 1;
+            }
+        }
+
+        // Under both columns, as wide as the view: the file's preview, the upload's progress.
+        > .expedite_wide {
+            grid-column: 1 / -1;
+        }
+    }
+}
+
+// Nothing to show (no file picked, nothing uploading): no empty row.
+.expedite_wide:empty {
+    display: none;
 }
 
 // Header
@@ -68,6 +109,18 @@
         font-weight: 600;
         margin: 0;
         letter-spacing: -0.025em;
+    }
+}
+
+// A screen's heading: its kind's icon, then what it is.
+.expedite_title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    svg {
+        flex-shrink: 0;
+        color: var(--text-3);
     }
 }
 
@@ -88,30 +141,6 @@
 
     &:hover {
         color: var(--text);
-    }
-}
-
-.expedite_upload-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-@media (min-width: 820px) {
-    .expedite_upload-layout.is-uploading {
-        flex-direction: row;
-        align-items: flex-start;
-
-        > .expedite_upload {
-            flex: 1 1 0;
-            min-width: 0;
-        }
-
-        > .expedite_progress {
-            flex: 1 1 0;
-            min-width: 0;
-            margin-top: 0; // it has margin-top:1rem by default for the stacked case
-        }
     }
 }
 

@@ -71,12 +71,12 @@ async function abortUpload(apiBaseUrl: string, code: string): Promise<void> {
 async function finalize(
     apiBaseUrl: string, code: string,
     parts: { partNumber: number; etag: string }[],
-    settings: DropSettings, signal: AbortSignal
+    settings: DropSettings, sha256: string | null, signal: AbortSignal
 ): Promise<DropMeta> {
     const res = await fetch(`${apiBaseUrl}/expedite/drop/file/complete`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({code, parts, ttlMs: settings.ttlMs}),
+        body: JSON.stringify({code, parts, ttlMs: settings.ttlMs, ...(sha256 ? {sha256} : {})}),
         signal
     });
     const json = await res.json();
@@ -86,7 +86,8 @@ async function finalize(
         code: d.code, type: "file",
         fileName: d.fileName, mimeType: d.mimeType, size: d.size,
         createdAt: d.createdAt, expiresAt: d.expiresAt,
-        views: 0, maxViews: settings.maxViews ?? null, deletable: settings.deletable
+        views: 0, maxViews: settings.maxViews ?? null, deletable: settings.deletable,
+        ...(sha256 ? {sha256} : {}),
     } as DropMeta;
 }
 
@@ -95,13 +96,15 @@ async function finalize(
  * with a parallel pool, per-part retry, and brief-disconnect resilience.
  * onProgress fires throttled (~10/s) plus on every state change.
  * Pass an AbortSignal; aborting cancels in-flight parts and tells the server to clean up.
+ * `hash`, when given, is awaited once the bytes are up: the file's SHA-256, or null if the sender skipped it.
  */
 export async function uploadFile(
     file: File,
     settings: DropSettings,
     apiBaseUrl: string,
     onProgress: (s: UploadSnapshot) => void,
-    signal: AbortSignal
+    signal: AbortSignal,
+    hash?: () => Promise<string | null>
 ): Promise<DropMeta> {
     const contentType = file.type || "application/octet-stream";
 
@@ -154,7 +157,7 @@ export async function uploadFile(
             only.loaded = file.size;
             only.state = "done";
             emit(true);
-            return await finalize(apiBaseUrl, code, [], settings, signal);
+            return await finalize(apiBaseUrl, code, [], settings, hash ? await hash() : null, signal);
         }
 
         // multipart
@@ -225,7 +228,7 @@ export async function uploadFile(
         const ordered = [...etags.entries()]
             .sort((a, b) => a[0] - b[0])
             .map(([partNumber, etag]) => ({partNumber, etag}));
-        return await finalize(apiBaseUrl, code, ordered, settings, signal);
+        return await finalize(apiBaseUrl, code, ordered, settings, hash ? await hash() : null, signal);
 
     } catch (err) {
         // Any failure or cancellation: tell the server to abort + free the reservation

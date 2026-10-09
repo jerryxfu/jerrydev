@@ -1,5 +1,5 @@
+// No margins: it sits in the views' gaps, and level with the top of the column beside it.
 .expedite_file-preview {
-    margin: 0.75rem 0;
     border: 1px solid var(--border);
     border-radius: 8px;
     // clip, not hidden: it rounds the corners the same, without making the box a scroll container, which would keep
@@ -36,14 +36,12 @@
 }
 
 .expedite_preview-note {
-    margin: 0.75rem 0;
+    margin: 0;
     font-size: var(--fs-sm);
     color: var(--text-4);
 }
 
 // Text and code, with line numbers. Shiki's lines and the plain ones are both spans with the class "line".
-$collapsed-lines: 20; // FilePreview.tsx collapses from 25
-
 .expedite_code {
     // Collapsing from far down scrolls back to the top of the code, clear of the navbar (as the section titles do).
     scroll-margin-top: calc(env(safe-area-inset-top) + 96px);
@@ -82,25 +80,13 @@ $collapsed-lines: 20; // FilePreview.tsx collapses from 25
         }
     }
 
-    // A long file shows its first lines, the last three fading out above the button that opens the rest. Faded by
-    // opacity rather than a gradient over them, so it needs no colour matched to the box in each theme.
-    &.is-collapsed {
-        pre {
-            max-height: calc(#{$collapsed-lines} * 1.55em);
-            padding-bottom: 0;
-        }
-
-        .line:nth-of-type(#{$collapsed-lines - 2}) {
-            opacity: 0.6;
-        }
-
-        .line:nth-of-type(#{$collapsed-lines - 1}) {
-            opacity: 0.35;
-        }
-
-        .line:nth-of-type(#{$collapsed-lines}) {
-            opacity: 0.15;
-        }
+    // A long file shows its first lines (--collapsed-lines, set by FilePreview.tsx), the last three fading out above
+    // the button that opens the rest. A mask, so the fade needs no colour matched to the box in each theme; the box
+    // holds still, so it costs nothing.
+    &.is-collapsed pre {
+        max-height: calc(var(--collapsed-lines) * 1.55em);
+        padding-bottom: 0;
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 4.65em), transparent);
     }
 
     // The dark themes swap in the dark colours Shiki ships as custom properties, as the blog does (prose.scss).
@@ -143,6 +129,28 @@ $collapsed-lines: 20; // FilePreview.tsx collapses from 25
     &:hover {
         color: var(--text);
         border-color: var(--border-da);
+    }
+}
+
+// While a text file is read: grey lines where its text will be, past the line numbers' gutter, breathing slowly.
+// A line as tall as the text's (1.55em), its bar drawn in the middle: no vertical margins, which would collapse.
+.expedite_code-placeholder {
+    display: block;
+    height: 1.55em;
+    margin-left: calc(3.2em + 1rem);
+    max-width: calc(100% - 3.2em - 2rem);
+    background: linear-gradient(color-mix(in srgb, var(--text) 9%, transparent) 0 0) no-repeat left center / 100% 0.7em;
+}
+
+.expedite_code.is-loading pre {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: expedite-code-loading 1.4s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes expedite-code-loading {
+    to {
+        opacity: 0.45;
     }
 }
 

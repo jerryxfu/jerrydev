@@ -1,5 +1,5 @@
+// No margin: it sits in the upload view's gaps, under the form.
 .expedite_progress {
-    margin-top: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -213,4 +213,21 @@
     height: 100%;
     background: #1565c0;
     transition: width 0.15s linear;
+}
+// The bytes are up, the hash isn't: what's happening, and the way not to wait for it.
+.expedite_progress-hash {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+
+    p {
+        flex: 1;
+        margin: 0;
+        font-size: var(--fs-smm);
+        color: var(--text-2);
+    }
 }

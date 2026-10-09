@@ -1,9 +1,10 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {Check, Clipboard, File, Link, Radio, Upload, X} from "lucide-react";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
 import Disclosure from "./Disclosure.tsx";
+import FilePreview from "./FilePreview.tsx";
 import "./P2PSendView.scss";
 
 interface P2PSendViewProps {
@@ -64,99 +65,125 @@ export default function P2PSendView(
 ) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const remaining = useCountdown(expiresAt);
+
+    // The picked file's preview URL, revoked when it changes (as in UploadView).
+    const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
+    useEffect(() => {
+        if (!filePreview) return;
+        return () => URL.revokeObjectURL(filePreview);
+    }, [filePreview]);
     const transferring = status.phase === "transferring" || status.phase === "connected";
 
     return (
-        <div className="expedite_p2p-send">
+        <div className="expedite_p2p-send expedite_split">
             {!running && (
                 <>
-                    <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            hidden
-                            onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) setSelectedFile(f);
-                            }}
-                        />
-                        {selectedFile ? (
-                            <div className="expedite_file-selected">
-                                <File size={22} />
-                                <div>
-                                    <p className="expedite_file-name">{selectedFile.name}</p>
-                                    <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
+                    <div className="expedite_main expedite_main--fill">
+                        <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                hidden
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) setSelectedFile(f);
+                                }}
+                            />
+                            {selectedFile ? (
+                                <div className="expedite_file-selected">
+                                    <File size={22} />
+                                    <div>
+                                        <p className="expedite_file-name">{selectedFile.name}</p>
+                                        <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
+                                    </div>
+                                    <button
+                                        className="expedite_file-clear"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedFile(null);
+                                        }}
+                                    >
+                                        <X size={14} />
+                                    </button>
                                 </div>
-                                <button
-                                    className="expedite_file-clear"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedFile(null);
-                                    }}
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <Upload size={28} strokeWidth={1} />
-                                <p>Click to choose a file or drag &amp; drop</p>
-                                <p className="expedite_file-limit">No size limit (well... capped by the receiver's free storage)</p>
-                            </>
-                        )}
-                    </div>
-
-                    {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
-                        route fails, so few need it. Said beside the title when it's on. */}
-                    <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
-                        <div className="expedite_settings">
-                            <p className="expedite_settings-title">Transport</p>
-                            <div className="expedite_setting-row">
-                                <label className="text-small">
-                                    Force TURN relay
-                                    <span className="expedite_setting-sub">
-                                        <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
-                                        This happens automatically on failure. Forces Traversal Using Relays around NAT
-                                        (TURN) via Cloudflare on the first attempt. Leave off by default.
-                                    </span>
-                                </label>
-                                <button
-                                    className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
-                                    onClick={() => setUseTurn(!useTurn)}
-                                    disabled={relayDisabled}
-                                >
-                                    <span className="expedite_toggle-knob" />
-                                </button>
-                            </div>
-                            {relayDisabled && (
-                                <p className="expedite_p2p-standby">
-                                    This month's relay quota is used up, so transfers are direct-only until it resets.
-                                </p>
+                            ) : (
+                                <>
+                                    <Upload size={28} strokeWidth={1} />
+                                    <p>Click to choose a file or drag &amp; drop</p>
+                                    <p className="expedite_file-limit">No size limit (well... capped by the receiver's free storage)</p>
+                                    <p className="expedite_file-tip">Several files? Zip them into one first.</p>
+                                </>
                             )}
                         </div>
-                    </Disclosure>
-
-                    <div className="expedite_p2p-notes">
-                        <p className="expedite_p2p-notes-title">Before you start</p>
-                        <ul>
-                            <li>Keep this tab open and awake for the whole transfer. Closing it kills the connection.</li>
-                            <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer.</li>
-                            <li>Nothing is stored in the cloud during transfer because it's a one-time peer-to-peer transfer.</li>
-                        </ul>
                     </div>
 
-                    {error && <p className="expedite_error">{error}</p>}
+                    <div className="expedite_side">
+                        {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
+                            route fails, so few need it. Said beside the title when it's on. */}
+                        <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
+                            <div className="expedite_settings">
+                                <p className="expedite_settings-title">Transport</p>
+                                <div className="expedite_setting-row">
+                                    <label className="text-small">
+                                        Force TURN relay
+                                        <span className="expedite_setting-sub">
+                                            <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
+                                            This happens automatically on failure. Forces Traversal Using Relays around NAT
+                                            (TURN) via Cloudflare on the first attempt. Leave off by default.
+                                        </span>
+                                    </label>
+                                    <button
+                                        className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
+                                        onClick={() => setUseTurn(!useTurn)}
+                                        disabled={relayDisabled}
+                                    >
+                                        <span className="expedite_toggle-knob" />
+                                    </button>
+                                </div>
+                                {relayDisabled && (
+                                    <p className="expedite_p2p-standby">
+                                        This month's relay quota is used up, so transfers are direct-only until it resets.
+                                    </p>
+                                )}
+                            </div>
+                        </Disclosure>
 
-                    <div className="expedite_btn-row">
-                        <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
-                        <button
-                            className="expedite_btn-primary"
-                            onClick={onStart}
-                            disabled={!selectedFile}
-                        >
-                            <Radio size={14} />
-                            Open session
-                        </button>
+                        <div className="expedite_p2p-notes">
+                            <p className="expedite_p2p-notes-title">Before you start</p>
+                            <ul>
+                                <li>Keep this tab open and awake for the whole transfer. Closing it kills the connection.</li>
+                                <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer.</li>
+                                <li>Nothing is stored in the cloud during transfer because it's a one-time peer-to-peer transfer.</li>
+                            </ul>
+                        </div>
+
+                        {error && <p className="expedite_error">{error}</p>}
+
+                        <div className="expedite_btn-row">
+                            <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
+                            <button
+                                className="expedite_btn-primary"
+                                onClick={onStart}
+                                disabled={!selectedFile}
+                            >
+                                <Radio size={14} />
+                                Get a code
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* The file, under both columns, as on the drop form. */}
+                    <div className="expedite_wide">
+                        {filePreview && selectedFile && (
+                            <FilePreview
+                                key={filePreview}
+                                src={filePreview}
+                                name={selectedFile.name}
+                                mimeType={selectedFile.type}
+                                size={selectedFile.size}
+                                file={selectedFile}
+                            />
+                        )}
                     </div>
                 </>
             )}
@@ -189,7 +216,7 @@ export default function P2PSendView(
 
                             {remaining != null && (
                                 <p className={`expedite_p2p-countdown${remaining <= 60 ? " is-low" : ""}`}>
-                                    rotates in {mmss(remaining)}
+                                    New code in {mmss(remaining)}
                                 </p>
                             )}
                         </div>

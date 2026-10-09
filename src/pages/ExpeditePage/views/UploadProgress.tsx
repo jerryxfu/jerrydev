@@ -6,6 +6,10 @@ import "./UploadProgress.scss";
 
 interface Props {
     snapshot: UploadSnapshot;
+    /** The file's SHA-256, computed alongside: how far it's got, 0 to 1. */
+    hashProgress: number | null;
+    /** Finalize without the hash, rather than wait for it. */
+    onSkipHash: () => void;
 }
 
 const SPEED_WINDOW_MS = 3000;
@@ -29,7 +33,7 @@ function speedFrom(samples: Sample[], now: number): number {
     return Math.max(0, (last.loaded - first.loaded) / dt);
 }
 
-export default function UploadProgress({snapshot}: Props) {
+export default function UploadProgress({snapshot, hashProgress, onSkipHash}: Props) {
     // refs survive renders without retriggering effects
     const snapRef = useRef<UploadSnapshot>(snapshot);
     const overallSamples = useRef<Sample[]>([]);
@@ -97,6 +101,10 @@ export default function UploadProgress({snapshot}: Props) {
     }, []);
 
     const pct = snapshot.totalBytes > 0 ? (snapshot.uploadedBytes / snapshot.totalBytes) * 100 : 0;
+    // Every byte is up but the hash isn't done: the drop is finalized once it is, or when the sender skips it.
+    const hashing = hashProgress != null && hashProgress < 1;
+    const waitingForHash = hashing && snapshot.uploadedBytes >= snapshot.totalBytes;
+    const hashPct = Math.floor((hashProgress ?? 0) * 100);
 
     // active parts (with a bar); sorted most-complete first
     const activeParts = snapshot.parts
@@ -106,7 +114,7 @@ export default function UploadProgress({snapshot}: Props) {
     return (
         <div className="expedite_progress">
             <div className="expedite_progress-head">
-                <p className="expedite_progress-title">Uploading your file...</p>
+                <p className="expedite_progress-title">{waitingForHash ? "Finishing the SHA-256..." : "Uploading your file..."}</p>
             </div>
 
             {/* Global progress */}
@@ -119,8 +127,16 @@ export default function UploadProgress({snapshot}: Props) {
                     <span>{formatBytes(snapshot.uploadedBytes)} / {formatBytes(snapshot.totalBytes)}</span>
                     <span>{formatSpeed(stats.overallSpeed)}</span>
                     <span>ETA {formatEta(stats.eta)}</span>
+                    {hashProgress != null && <span>SHA-256 {hashing ? `${hashPct}%` : "done"}</span>}
                 </div>
             </div>
+
+            {waitingForHash && (
+                <div className="expedite_progress-hash">
+                    <p>Uploaded. Its SHA-256 is {hashPct}% done, so the receiver can check their download against it.</p>
+                    <button type="button" className="expedite_btn-secondary" onClick={onSkipHash}>Skip</button>
+                </div>
+            )}
 
             {/* Grid — stable order, nothing shifts */}
             {snapshot.mode === "multipart" && (

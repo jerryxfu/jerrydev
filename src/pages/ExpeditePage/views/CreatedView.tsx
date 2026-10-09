@@ -1,41 +1,74 @@
 import React from "react";
 import {Check, Clipboard, Link} from "lucide-react";
 import {QRCodeSVG} from "qrcode.react";
-import {getDropUrl} from "../utils.ts";
+import {getDropUrl, timeUntil} from "../utils.ts";
+import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./CreatedView.scss";
+
+/** What the drop just created will do: told back under its code, so the sender knows what they made. */
+export interface CreatedInfo {
+    expiresAt: string;
+    maxViews: number | null;
+    deletable: boolean;
+}
+
+// "22:31", "tomorrow at 09:15": when, in the sender's own clock.
+function when(iso: string): string {
+    const at = new Date(iso);
+    const time = at.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (at.toDateString() === new Date().toDateString()) return `at ${time}`;
+    if (at.toDateString() === tomorrow.toDateString()) return `tomorrow at ${time}`;
+    return `on ${at.toLocaleDateString()} at ${time}`;
+}
 
 interface CreatedViewProps {
     code: string;
+    info: CreatedInfo | null;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onDone: () => void;
 }
 
-export default function CreatedView({code, copiedField, onCopy, onDone}: CreatedViewProps) {
+export default function CreatedView({code, info, copiedField, onCopy, onDone}: CreatedViewProps) {
+    // A pointer that hovers clicks; a finger taps.
+    const verb = useMediaQuery("(hover: hover)") ? "Click" : "Tap";
+
     return (
         <div className="expedite_created">
-            <p className="text-small">Your drop code</p>
-            <button className="expedite_code-display" onClick={(e) => onCopy(code, "code", e)}>
-                <span className="expedite_code-text">{code}</span>
-                {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
-            </button>
-            <p className="text-small">
-                {copiedField === "code" ? "Copied!" : "Tap to copy code"}
-            </p>
-            <div className="expedite_link-box">
-                <input
-                    className="expedite_link-input text-small"
-                    type="text"
-                    value={getDropUrl(code)}
-                    readOnly
-                    onFocus={(e) => e.target.select()}
-                />
-                <button
-                    className="expedite_link-copy"
-                    onClick={(e) => onCopy(getDropUrl(code), "link", e)}
-                >
-                    {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
+            <div className="expedite_created-share">
+                <p className="text-small">Your drop code</p>
+                <button className="expedite_code-display" onClick={(e) => onCopy(code, "code", e)}>
+                    <span className="expedite_code-text">{code}</span>
+                    {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
                 </button>
+                <p className="text-small">
+                    {copiedField === "code" ? "Copied!" : `${verb} to copy the code`}
+                </p>
+                <div className="expedite_link-box">
+                    <input
+                        className="expedite_link-input text-small"
+                        type="text"
+                        value={getDropUrl(code)}
+                        readOnly
+                        onFocus={(e) => e.target.select()}
+                    />
+                    <button
+                        className="expedite_link-copy"
+                        onClick={(e) => onCopy(getDropUrl(code), "link", e)}
+                    >
+                        {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
+                    </button>
+                </div>
+
+                {info && (
+                    <p className="expedite_created-summary">
+                        <span>Expires {when(info.expiresAt)} (in {timeUntil(info.expiresAt)})</span>
+                        <span>{info.maxViews == null ? "No view limit" : info.maxViews === 1 ? "Can be opened once" : `Can be opened ${info.maxViews} times`}</span>
+                        <span>{info.deletable ? "The recipient can delete it" : "The recipient can't delete it"}</span>
+                    </p>
+                )}
             </div>
 
             {/* The link, for a phone's camera (issue #70). Dark on white in every theme: some scanners can't read a light
@@ -57,7 +90,7 @@ export default function CreatedView({code, copiedField, onCopy, onDone}: Created
                 Done
             </button>
 
-            <p className="text-caption period-line-break">{"Make sure to copy the code now. \nYou won't be able to see it again."}</p>
+            <p className="text-caption">Copy the code or the link now: this page won't show them again.</p>
         </div>
     );
 }
