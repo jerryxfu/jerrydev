@@ -26,6 +26,11 @@
     }
 }
 
+// A table of one section (the text box's statistics) takes the whole width.
+.expedite_meta-section:only-child {
+    grid-column: 1 / -1;
+}
+
 .expedite_meta-section + .expedite_meta-section {
     border-top: 1px solid var(--border-da);
 
@@ -108,7 +113,7 @@
     box-sizing: border-box;
     min-height: 12rem;
     max-height: 60vh;
-    field-sizing: content; // as tall as the text, where the browser can (Chromium); the limits above hold everywhere
+    field-sizing: content; // as tall as the text (every browser since 2026), within the limits above
     resize: vertical;
     overflow-y: auto;
     border: 1px solid var(--border-da);
@@ -118,9 +123,14 @@
     padding: 1rem 1.1rem;
     margin: 0;
     font-size: var(--fs-base);
-    font-family: inherit;
+    font-family: var(--font-reading);
     line-height: 1.6;
     tab-size: 4;
+    caret-color: var(--secondary);
+
+    &::selection {
+        background: color-mix(in srgb, var(--secondary) 28%, transparent);
+    }
     outline: none;
     transition: border-color 0.15s;
 
@@ -139,7 +149,7 @@
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-family: var(--font-code);
     font-size: var(--fs-xs);
     line-height: 1.5;
     word-break: break-all;
@@ -164,6 +174,7 @@
 
 .expedite_meta-check {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem;
     margin-top: 0.35rem;
@@ -206,5 +217,21 @@
         margin: 0;
         font-size: var(--fs-sm);
         color: var(--text-2);
+    }
+}
+
+// "Check a saved copy": a link-like button after the line, on its own line when there's no room.
+.expedite_meta-pick {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-3);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text);
     }
 }

@@ -79,7 +79,7 @@ export default function P2PReceiveView(
             {!running && (
                 <>
                     <div className="expedite_main expedite_main--fill">
-                        <div className="expedite_p2p-offer">
+                        <div className="expedite_p2p-offer expedite_grow">
                             <Radio size={22} strokeWidth={1.5} />
                             <div className="expedite_p2p-offer-text">
                                 <p className="expedite_p2p-offer-name">{meta.fileName ?? "unnamed"}</p>
@@ -102,9 +102,11 @@ export default function P2PReceiveView(
                                     <label className="text-small">
                                         Force TURN relay
                                         <span className="expedite_setting-sub">
-                                            <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
-                                            This happens automatically on failure. Forces Traversal Using Relays around NAT
-                                            (TURN) via Cloudflare on the first attempt. Leave off by default.
+                                            Expedite tries a direct connection first and switches to the relay by
+                                            itself if that fails. Turn it on if direct transfers keep failing on your
+                                            network. The relay (Traversal Using Relays around NAT, through Cloudflare
+                                            TURN) passes the file through a server instead of straight between the
+                                            devices.
                                         </span>
                                     </label>
                                     <button

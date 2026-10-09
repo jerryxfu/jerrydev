@@ -1,0 +1,4 @@
+// The toast itself is the offline one's (.offline-toast, OfflineToast.scss). When both show, this one sits above it.
+.offline-toast ~ .hang-toast {
+    bottom: 4rem;
+}

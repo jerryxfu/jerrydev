@@ -5,18 +5,27 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 2rem 1.5rem 0;
+    padding: 1.4rem 1.5rem 0;
     position: relative;
     overflow-y: auto;
 
     @media screen and (max-width: 768px) {
-        padding: 1.4rem 1.25rem 3rem;
+        padding: 1rem 1.25rem 3rem;
     }
 
     // Nothing in the page's column gives way when it runs taller than the screen (a PDF, a long file): the navbar's
     // spacer, which has no content to hold it, shrank to nothing and slid the Back link and the title under the bar.
     > * {
         flex-shrink: 0;
+    }
+}
+
+// A drop being received: no navbar, so the page starts at the top of the screen, clear of a phone's status bar.
+.expedite--bare {
+    padding-top: calc(env(safe-area-inset-top) + 1.4rem);
+
+    @media screen and (max-width: 768px) {
+        padding-top: calc(env(safe-area-inset-top) + 1rem);
     }
 }
 
@@ -83,11 +92,11 @@
             min-width: 0;
         }
 
-        // A main column of one block (the file zone, the text box) grows to the side column's height: the two line up.
+        // A main column's block (the file zone, the text box) grows to the side column's height: the two line up.
         > .expedite_main--fill {
             align-self: stretch;
 
-            > :first-child {
+            > .expedite_grow {
                 flex: 1;
             }
         }

@@ -22,6 +22,17 @@ export function timeUntil(dateStr: string): string {
     return `${minutes}m`;
 }
 
+// "at 22:31", "tomorrow at 09:15", "on 10/12/2026 at 09:15": when, in the reader's own clock.
+export function when(iso: string): string {
+    const at = new Date(iso);
+    const time = at.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (at.toDateString() === new Date().toDateString()) return `at ${time}`;
+    if (at.toDateString() === tomorrow.toDateString()) return `tomorrow at ${time}`;
+    return `on ${at.toLocaleDateString()} at ${time}`;
+}
+
 export function getDropUrl(code: string): string {
     return `${window.location.origin}/expedite?code=${code}`;
 }

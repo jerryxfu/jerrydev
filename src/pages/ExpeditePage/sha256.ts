@@ -14,7 +14,9 @@ export function hashBlob(blob: Blob, onProgress?: (fraction: number) => void): H
     let lastReport = 0;
 
     const result = new Promise<string>((resolve, reject) => {
-        worker.onmessage = (event: MessageEvent<{ type: "progress"; done: number } | { type: "done"; hex: string }>) => {
+        worker.onmessage = (event: MessageEvent<
+            { type: "progress"; done: number } | { type: "done"; hex: string } | { type: "error"; message: string }
+        >) => {
             const data = event.data;
             if (data.type === "progress") {
                 const now = performance.now();
@@ -25,7 +27,8 @@ export function hashBlob(blob: Blob, onProgress?: (fraction: number) => void): H
                 return;
             }
             worker.terminate();
-            resolve(data.hex);
+            if (data.type === "error") reject(new Error(data.message || "Hashing failed"));
+            else resolve(data.hex);
         };
         worker.onerror = (event) => {
             worker.terminate();

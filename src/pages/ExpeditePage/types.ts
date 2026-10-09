@@ -17,10 +17,14 @@ export interface DropMeta {
     maxViews: number | null;
     deletable: boolean;
     text?: string;
+    /** A text drop sent as code: its highlighting language (Shiki's id). */
+    language?: string;
     fileName?: string;
     mimeType?: string;
     encoding?: string;
     fileUrl?: string;
+    /** The same file, answered as an attachment under its name: what a big file is downloaded with. */
+    downloadUrl?: string;
     /** The file's SHA-256 (hex) as the sender's browser computed it while uploading; absent if skipped. */
     sha256?: string;
     offer?: string; // (p2p only, SDP offer from the sender)
@@ -57,8 +61,12 @@ export interface UploadSnapshot {
     totalBytes: number;     // file size
 }
 
-/** The receiver's check of a downloaded file against the SHA-256 the sender's browser stored with it. */
-export type DownloadCheck = { state: "checking"; progress: number } | { state: "match" } | { state: "mismatch" };
+/**
+ * The receiver's check of a copy of the file (just downloaded, or picked on the device) against the SHA-256 the
+ * sender's browser stored with it. "saving": a big file handed to the browser's downloader, to be picked once saved.
+ */
+export type DownloadCheck =
+    { state: "saving" } | { state: "checking"; progress: number } | { state: "match" } | { state: "mismatch" };
 
 // --- Direct P2P ---
 

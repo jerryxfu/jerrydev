@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {ArrowLeft, CircleCheck, File as FileIcon, FileText, type LucideIcon, Radio, Upload} from "lucide-react";
+import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio, Upload} from "lucide-react";
 import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
@@ -26,7 +26,8 @@ import ResultView from "./views/ResultView.tsx";
 import P2PSendView from "./views/P2PSendView.tsx";
 import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
-import {hashBlob} from "./sha256.ts";
+import {type Hashing, hashBlob} from "./sha256.ts";
+import {resolveLanguage} from "./highlight.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
 import {P2PError} from "./p2p/peer.ts";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
@@ -51,6 +52,17 @@ function animateOut(el: HTMLElement | null): Promise<void> {
         });
     });
 }
+
+// Each kind of drop's heading, with its icon (as on the landing page's tiles), on all of its screens.
+const TITLES: Record<DropType, { icon: LucideIcon; text: string }> = {
+    text: {icon: FileText, text: "Send text"},
+    file: {icon: FileIcon, text: "Send a file"},
+    p2p: {icon: Radio, text: "Send directly (P2P)"},
+};
+
+// Up to this size a download goes through the page, which checks it against the SHA-256 at once. Past it, the browser's
+// own downloader takes it (to disk, with its progress, never all in memory), and a saved copy is checked when picked.
+const PAGE_DOWNLOAD_LIMIT = 200 * 1024 * 1024;
 
 // Receiver-side auto-recovery: how often to look for the sender's relay
 // republish, and how many times before giving up (30 x 3s = 90s).
@@ -85,6 +97,8 @@ export default function Expedite() {
         new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? ""
     );
     const [dropType, setDropType] = useState<DropType>("text");
+    // A text drop sent as code: its highlighting language (Shiki's id), or null for plain text.
+    const [textLanguage, setTextLanguage] = useState<string | null>(null);
     const [textContent, setTextContent] = useState("");
     const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
     const [result, setResult] = useState<DropMeta | null>(null);
@@ -105,6 +119,9 @@ export default function Expedite() {
     const skipHashRef = useRef<(() => void) | null>(null);
     // A downloaded file checked against that hash.
     const [downloadCheck, setDownloadCheck] = useState<DownloadCheck | null>(null);
+    const checkRef = useRef<Hashing | null>(null);
+    // A download going through the page: its button waits, so a second click doesn't start a second one.
+    const [downloading, setDownloading] = useState(false);
 
     // --- Direct P2P ---
     const [useTurn, setUseTurn] = useState(false);
@@ -207,9 +224,12 @@ export default function Expedite() {
         await animateOut(viewRef.current);
         setDropType("text");
         setTextContent("");
+        setTextLanguage(null);
         setSelectedFile(null);
         setRetrieveCode("");
         setResult(null);
+        checkRef.current?.cancel();
+        checkRef.current = null;
         setDownloadCheck(null);
         setCreatedCode(null);
         setCreatedInfo(null);
@@ -241,6 +261,8 @@ export default function Expedite() {
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
                         text: textContent,
+                        // Sent as code: Auto is resolved to what it sees in the text now.
+                        ...(textLanguage ? {language: resolveLanguage(textLanguage, textContent)} : {}),
                         deletable: settings.deletable,
                         maxViews: settings.maxViews,
                         ttlMs: settings.ttlMs,
@@ -575,44 +597,80 @@ export default function Expedite() {
 
         if (!result.fileUrl) return;
 
-        // File: Fetch and force a download via blob
         setError(null);
+        setDownloading(true);
+        // A big file goes to the browser's downloader (when the API gives the attachment link): only its first byte is
+        // read here, to know the link still works.
+        const native = !!result.downloadUrl && result.size > PAGE_DOWNLOAD_LIMIT;
         try {
-            const res = await fetch(result.fileUrl);
+            const res = await fetch(result.fileUrl, native ? {headers: {Range: "bytes=0-0"}} : undefined);
             // The signed link lasts until the drop expires. After that, or once the drop is deleted, R2 answers with an
-            // error page, which would otherwise be saved under the file's name.
+            // error page, which would otherwise be saved under the file's name (or opened, for the downloader).
             if (!res.ok) {
                 setError("This file is no longer available: the drop has expired or was deleted.");
                 return;
             }
+            if (native) {
+                const a = document.createElement("a");
+                a.href = result.downloadUrl!;
+                a.click();
+                if (result.sha256) setDownloadCheck({state: "saving"});
+                return;
+            }
+
+            // Through the page: fetched whole, then saved under the file's name.
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
             a.download = result.fileName ?? `expedite-${result.code}`;
             a.click();
-            URL.revokeObjectURL(url);
-
+            // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
+            setTimeout(() => URL.revokeObjectURL(url), 60_000);
             // What was just saved, checked against the hash the sender's browser stored: proof it arrived intact.
-            const expected = result.sha256;
-            if (expected) {
-                setDownloadCheck({state: "checking", progress: 0});
-                hashBlob(blob, (progress) => setDownloadCheck({state: "checking", progress})).result
-                    .then((hex) => setDownloadCheck({state: hex === expected ? "match" : "mismatch"}))
-                    .catch(() => setDownloadCheck(null));
-            }
+            checkCopy(blob);
         } catch {
             // Fallback: open in new tab if fetch fails (e.g. CORS)
             window.open(result.fileUrl, "_blank");
+        } finally {
+            setDownloading(false);
         }
+    };
+
+    // A copy of the file (a download just made, or one picked on this device) checked against the drop's SHA-256. A new
+    // check replaces one under way.
+    const checkCopy = (blob: Blob) => {
+        const expected = result?.sha256;
+        if (!expected) return;
+        checkRef.current?.cancel();
+        const hashing = hashBlob(blob, (progress) => {
+            if (checkRef.current === hashing) setDownloadCheck({state: "checking", progress});
+        });
+        checkRef.current = hashing;
+        setDownloadCheck({state: "checking", progress: 0});
+        hashing.result
+            .then((hex) => {
+                if (checkRef.current === hashing) setDownloadCheck({state: hex === expected ? "match" : "mismatch"});
+            })
+            .catch(() => {
+                if (checkRef.current === hashing) setDownloadCheck(null);
+            });
     };
 
     const handleDelete = async () => {
         if (!result || !result.deletable) return;
+        setError(null);
         try {
-            await fetch(`${apiBaseUrl}/expedite/drop/${result.code}`, {method: "DELETE"});
+            const res = await fetch(`${apiBaseUrl}/expedite/drop/${result.code}`, {method: "DELETE"});
+            // Already gone (404: it expired, or someone deleted it first) is as good as deleted. Anything else failed,
+            // and saying nothing would pass the drop for deleted.
+            if (!res.ok && res.status !== 404) {
+                setError("The drop couldn't be deleted. Try again.");
+                return;
+            }
             await reset();
-        } catch { /* silent */
+        } catch {
+            setError("The drop couldn't be deleted. Check your connection and try again.");
         }
     };
 
@@ -653,18 +711,24 @@ export default function Expedite() {
 
     const handleDragLeave = useCallback(() => setIsDragging(false), []);
 
-    // What each screen is, said in its heading, with the icon of its kind (as on the landing page's tiles). The landing
-    // page is Expedite itself.
-    const title: { icon: LucideIcon; text: string } | null =
-        view === "composing" ? (dropType === "text" ? {icon: FileText, text: "Send text"} : {icon: FileIcon, text: "Send a file"})
-            : view === "p2p-send" ? {icon: Radio, text: "Send directly"}
-                : view === "created" ? {icon: CircleCheck, text: "Your drop is ready"}
-                    : view === "result" && result ? (result.type === "text" ? {icon: FileText, text: "Text for you"} : {icon: FileIcon, text: "A file for you"})
-                        : view === "p2p-receive" ? {icon: Radio, text: "A file, sent directly"}
-                            : null;
+    // The kind of drop on screen, whose heading it shows: the same while it's written, once it's made and when it's
+    // received. The landing page is Expedite itself.
+    const kind: DropType | null =
+        view === "composing" || view === "created" ? dropType
+            : view === "p2p-send" ? "p2p"
+                : (view === "result" || view === "p2p-receive") && result ? result.type
+                    : null;
+    const title = kind ? TITLES[kind] : null;
+    // Someone receiving a drop came for it, not for the site: no navbar on those screens.
+    const receiving = view === "result" || view === "p2p-receive";
 
     return (
-        <div className="expedite" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
+        <div
+            className={`expedite${receiving ? " expedite--bare" : ""}`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+        >
             <Helmet>
                 <title>Expedite 📦 | jerryxf</title>
                 <meta name="description"
@@ -672,8 +736,12 @@ export default function Expedite() {
                 <link rel="canonical" href="https://jerryxf.net/expedite" />
             </Helmet>
 
-            <Navbar isShrunk={true} />
-            <div className="nav-spacer" />
+            {!receiving && (
+                <>
+                    <Navbar isShrunk={true} />
+                    <div className="nav-spacer" />
+                </>
+            )}
 
             {/* Drag overlay */}
             <div ref={dragOverlayRef} className="expedite_drag-overlay" style={{opacity: 0, pointerEvents: "none"}}>
@@ -722,6 +790,8 @@ export default function Expedite() {
                             dropType={dropType}
                             textContent={textContent}
                             setTextContent={setTextContent}
+                            language={textLanguage}
+                            setLanguage={setTextLanguage}
                             selectedFile={selectedFile}
                             setSelectedFile={setSelectedFile}
                             settings={settings}
@@ -801,7 +871,9 @@ export default function Expedite() {
                             onCopy={copyToClipboard}
                             error={error}
                             downloadCheck={downloadCheck}
+                            downloading={downloading}
                             onDownload={handleDownload}
+                            onCheckCopy={checkCopy}
                             onDelete={handleDelete}
                         />
                     )}

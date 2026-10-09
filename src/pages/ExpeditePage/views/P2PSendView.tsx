@@ -79,7 +79,7 @@ export default function P2PSendView(
             {!running && (
                 <>
                     <div className="expedite_main expedite_main--fill">
-                        <div className="expedite_file-zone" onClick={() => fileInputRef.current?.click()}>
+                        <div className="expedite_file-zone expedite_grow" onClick={() => fileInputRef.current?.click()}>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -127,9 +127,11 @@ export default function P2PSendView(
                                     <label className="text-small">
                                         Force TURN relay
                                         <span className="expedite_setting-sub">
-                                            <strong>Enable if you are behind a firewall or mDNS filtering (e.g. school or corporate network).</strong>
-                                            This happens automatically on failure. Forces Traversal Using Relays around NAT
-                                            (TURN) via Cloudflare on the first attempt. Leave off by default.
+                                            Expedite tries a direct connection first and switches to the relay by
+                                            itself if that fails. Turn it on if direct transfers keep failing on your
+                                            network. The relay (Traversal Using Relays around NAT, through Cloudflare
+                                            TURN) passes the file through a server instead of straight between the
+                                            devices.
                                         </span>
                                     </label>
                                     <button
@@ -235,7 +237,7 @@ export default function P2PSendView(
                     {retryable && status.phase === "failed" && (
                         <p className="expedite_p2p-standby">
                             No direct route was found, and the automatic relay retry
-                            failed too. Retrying attempts the relay again — if this keeps
+                            failed too. Retrying attempts the relay again. If this keeps
                             failing, both ends may be offline or blocked.
                         </p>
                     )}

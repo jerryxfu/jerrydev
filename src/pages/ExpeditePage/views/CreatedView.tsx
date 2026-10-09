@@ -1,7 +1,7 @@
 import React from "react";
 import {Check, Clipboard, Link} from "lucide-react";
 import {QRCodeSVG} from "qrcode.react";
-import {getDropUrl, timeUntil} from "../utils.ts";
+import {getDropUrl, timeUntil, when} from "../utils.ts";
 import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./CreatedView.scss";
 
@@ -10,17 +10,6 @@ export interface CreatedInfo {
     expiresAt: string;
     maxViews: number | null;
     deletable: boolean;
-}
-
-// "22:31", "tomorrow at 09:15": when, in the sender's own clock.
-function when(iso: string): string {
-    const at = new Date(iso);
-    const time = at.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (at.toDateString() === new Date().toDateString()) return `at ${time}`;
-    if (at.toDateString() === tomorrow.toDateString()) return `tomorrow at ${time}`;
-    return `on ${at.toLocaleDateString()} at ${time}`;
 }
 
 interface CreatedViewProps {

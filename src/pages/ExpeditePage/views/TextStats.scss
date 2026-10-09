@@ -1,0 +1,60 @@
+// The statistics reuse the received drop's table (ResultView.scss); these are their own parts.
+
+.expedite_stats-over {
+    color: #e1483a; // Expedite's red (UploadProgress.scss)
+}
+
+// Folded under the text box's row: more counts, and the chart of the most used words, side by side from a laptop's width.
+.expedite_more-stats {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+
+    @media (min-width: 900px) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+// The most used words: each with a bar as long as its count, against the first one's.
+.expedite_freq {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    gap: 0.4rem 0.75rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.75rem 0.95rem;
+    list-style: none;
+    font-size: var(--fs-sm);
+
+    li {
+        display: contents;
+    }
+}
+
+.expedite_freq-word {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-2);
+}
+
+.expedite_freq-bar {
+    height: 0.55rem;
+    min-width: 2px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--secondary) 55%, transparent);
+}
+
+.expedite_freq-count {
+    color: var(--text-4);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.expedite_freq-empty {
+    margin: 0;
+    padding: 0.75rem 0.95rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+}

@@ -10,6 +10,7 @@ import {ThemeProvider} from "./context/ThemeContext.tsx";
 import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import OfflineToast from "./components/OfflineToast/OfflineToast.tsx";
+import HangToast from "./components/HangToast/HangToast.tsx";
 
 // A deploy replaces every hashed filename, so a tab opened against an older build can ask for a chunk that no longer exists.
 // Vite fires this instead of throwing, and a reload lands on the current build.
@@ -107,6 +108,7 @@ root.render(
                 <ThemeProvider>
                     <ScrollToTop />
                     <OfflineToast />
+                    <HangToast />
                     <Switch>
                         <Route path="/"><HomePage /></Route>
                         <Route path="/blog">{renderLazy(<LazyBlog />)}</Route>

@@ -21,7 +21,8 @@ ExpeditePage/
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
   utils.ts              formatting helpers (formatBytes, formatEta, ...)
   uploadEngine.ts       R2 upload: single PUT or multipart, with progress
-  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's download checked against it
+  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's download (or a saved copy) checked against it
+  highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, and Auto's guess at pasted code's language
   p2p/
     peer.ts             shared WebRTC plumbing, rate meter, protocol constants
     sender.ts           offer -> publish -> wait -> stream file
@@ -29,6 +30,8 @@ ExpeditePage/
   views/
     LandingView         send tiles + retrieve field
     UploadView          text/file composer + settings
+    CodeEditor          the text box for code: a textarea over its coloured copy, Tab indents
+    TextStats           the text box's statistics, counted when the typing pauses
     CreatedView         code + share link + QR code
     ResultView          retrieved text/file
     FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself)

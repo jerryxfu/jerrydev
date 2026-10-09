@@ -19,7 +19,7 @@ const TILES: {
     type: DropType; label: string; note: string; desc: string; icon: typeof File; help?: ReactNode;
 }[] = [
     {
-        type: "text", label: "Text", note: "freeform text", icon: FileText,
+        type: "text", label: "Text", note: "text or code", icon: FileText,
         desc: "Stored in the cloud, up to 500 KB. Expires between 1 minute and 24 hours.",
     },
     {
@@ -147,7 +147,7 @@ export default function LandingView(
                     <div className="expedite_landing-notice">
                         <MonitorSmartphone size={22} strokeWidth={1.4} />
                         <p className="expedite_landing-notice-text">
-                            Direct P2P drops can't be received on this browser. The recipient needs a Chromium-based browser (e.g. Google Chrome,
+                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g. Google Chrome,
                             Edge, Opera, Brave, etc.) on computer. Sending works anywhere.
                         </p>
                     </div>

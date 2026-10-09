@@ -1,0 +1,95 @@
+// The code text box: a frame holding the text box over its highlighted copy. Both lay their text out the same way (font,
+// size, spacing, padding, no wrapping), so every character of the copy sits under its own in the box.
+.expedite_editor {
+    position: relative;
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+
+    &:focus-within {
+        border-color: var(--border-da);
+    }
+}
+
+.expedite_editor-input,
+.expedite_editor-colours pre {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    font-family: var(--font-code);
+    font-size: var(--fs-smm);
+    line-height: 1.6;
+    tab-size: 4;
+    white-space: pre;
+    letter-spacing: normal;
+    // Set on both: the text box doesn't inherit the page's optimizeLegibility, and a browser may kern or join letters
+    // (in a fallback font, an emoji) in one copy and not the other, which would shift what follows.
+    text-rendering: auto;
+    font-kerning: none;
+    font-variant-ligatures: none;
+}
+
+// Sized by its text (field-sizing) within the plain text box's limits (UploadView.scss); the frame follows it.
+.expedite_editor-input {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    field-sizing: content;
+    min-height: 14rem;
+    max-height: 70vh;
+    box-sizing: border-box;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    caret-color: var(--secondary);
+    resize: none;
+    outline: none;
+    overflow: auto;
+
+    &::placeholder {
+        color: var(--text-6);
+    }
+
+    &::selection {
+        background: color-mix(in srgb, var(--secondary) 28%, transparent);
+    }
+}
+
+// Coloured: the box's own text turns transparent, and the copy under it shows. Its caret, selection and placeholder stay.
+.expedite_editor.is-coloured .expedite_editor-input {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+
+    &::placeholder {
+        -webkit-text-fill-color: var(--text-6);
+    }
+}
+
+// The copy: under the box, scrolled with it (CodeEditor.tsx), never in the way of the pointer.
+.expedite_editor-colours {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    pre {
+        min-height: 100%;
+        box-sizing: border-box;
+        width: max-content;
+        min-width: 100%;
+        // Room past the end, unseen: where scrollbars take space (Windows), the box, its text squeezed above a
+        // horizontal scrollbar, scrolls further down than a copy without one could, and the colours fell behind.
+        padding-bottom: calc(1rem + 24px);
+        background: transparent !important; // Shiki's own background: the box's shows through
+    }
+
+    // The dark themes swap in the dark colours Shiki ships as custom properties, as the code previews do.
+    [data-theme="night"] &,
+    [data-theme="burgundy"] & {
+        .shiki,
+        .shiki span {
+            color: var(--shiki-dark) !important;
+        }
+    }
+}

@@ -1,6 +1,7 @@
-import {type CSSProperties, Fragment, useEffect, useRef, useState} from "react";
+import {type CSSProperties, Fragment, useEffect, useMemo, useRef, useState} from "react";
 import {ChevronDown, ChevronUp} from "lucide-react";
 import useMediaQuery from "../../../hooks/useMediaQuery.ts";
+import {EXTENSIONS, highlighterFor} from "../highlight.ts";
 import "./FilePreview.scss";
 
 type Kind = "image" | "video" | "audio" | "pdf" | "text";
@@ -30,45 +31,6 @@ interface FilePreviewProps {
     onInfo?: (info: PreviewInfo) => void;
 }
 
-// Shiki's grammar per extension, loaded only when a file of that kind is shown. Listed one by one so the build emits
-// these and no others (it has 300). Extensions missing here, and those mapped to null, show as plain text.
-const LANGS: Record<string, [string, () => Promise<unknown>] | null> = {
-    ts: ["typescript", () => import("shiki/langs/typescript.mjs")],
-    mts: ["typescript", () => import("shiki/langs/typescript.mjs")],
-    cts: ["typescript", () => import("shiki/langs/typescript.mjs")],
-    tsx: ["tsx", () => import("shiki/langs/tsx.mjs")],
-    js: ["javascript", () => import("shiki/langs/javascript.mjs")],
-    mjs: ["javascript", () => import("shiki/langs/javascript.mjs")],
-    cjs: ["javascript", () => import("shiki/langs/javascript.mjs")],
-    jsx: ["jsx", () => import("shiki/langs/jsx.mjs")],
-    py: ["python", () => import("shiki/langs/python.mjs")],
-    java: ["java", () => import("shiki/langs/java.mjs")],
-    kt: ["kotlin", () => import("shiki/langs/kotlin.mjs")],
-    c: ["c", () => import("shiki/langs/c.mjs")],
-    h: ["c", () => import("shiki/langs/c.mjs")],
-    cpp: ["cpp", () => import("shiki/langs/cpp.mjs")],
-    hpp: ["cpp", () => import("shiki/langs/cpp.mjs")],
-    cs: ["csharp", () => import("shiki/langs/csharp.mjs")],
-    go: ["go", () => import("shiki/langs/go.mjs")],
-    rs: ["rust", () => import("shiki/langs/rust.mjs")],
-    swift: ["swift", () => import("shiki/langs/swift.mjs")],
-    html: ["html", () => import("shiki/langs/html.mjs")],
-    css: ["css", () => import("shiki/langs/css.mjs")],
-    scss: ["scss", () => import("shiki/langs/scss.mjs")],
-    json: ["json", () => import("shiki/langs/json.mjs")],
-    yaml: ["yaml", () => import("shiki/langs/yaml.mjs")],
-    yml: ["yaml", () => import("shiki/langs/yaml.mjs")],
-    toml: ["toml", () => import("shiki/langs/toml.mjs")],
-    xml: ["xml", () => import("shiki/langs/xml.mjs")],
-    md: ["markdown", () => import("shiki/langs/markdown.mjs")],
-    sql: ["sql", () => import("shiki/langs/sql.mjs")],
-    sh: ["bash", () => import("shiki/langs/bash.mjs")],
-    bash: ["bash", () => import("shiki/langs/bash.mjs")],
-    zsh: ["bash", () => import("shiki/langs/bash.mjs")],
-    tex: ["latex", () => import("shiki/langs/latex.mjs")],
-    txt: null, log: null, csv: null, tsv: null, ini: null, conf: null, env: null,
-};
-
 const IMAGE = ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico"];
 const VIDEO = ["mp4", "m4v", "webm", "mov", "ogv"];
 const AUDIO = ["mp3", "wav", "ogg", "oga", "opus", "m4a", "aac", "flac"];
@@ -77,7 +39,7 @@ const AUDIO = ["mp3", "wav", "ogg", "oga", "opus", "m4a", "aac", "flac"];
 // MPEG video, video/mp2t, and many come as nothing at all). The type is for files without a known extension.
 function kindOf(name: string, mimeType?: string | null): Kind | null {
     const ext = extension(name);
-    if (ext in LANGS) return "text";
+    if (Object.hasOwn(EXTENSIONS, ext)) return "text";
     if (IMAGE.includes(ext)) return "image";
     if (VIDEO.includes(ext)) return "video";
     if (AUDIO.includes(ext)) return "audio";
@@ -114,7 +76,8 @@ const LABELS: Record<string, string> = {
 /** The file's type in words: "Python", "PNG picture". The raw type when the extension says nothing. */
 export function describeType(name: string, mimeType?: string | null): string {
     const ext = extension(name);
-    if (LABELS[ext]) return LABELS[ext];
+    const label = Object.hasOwn(LABELS, ext) ? LABELS[ext] : undefined;
+    if (label) return label;
     const kind = kindOf(name, mimeType);
     if (ext && (kind === "image" || kind === "video" || kind === "audio")) return `${ext.toUpperCase()} ${NOUN[kind]}`;
     return mimeType || "File";
@@ -185,16 +148,14 @@ const TEXT_LIMIT = 128 * 1024;
 const COLLAPSED_LINES = {wide: 30, narrow: 20};
 const COLLAPSE_MARGIN = 5;
 
-type Text = { text: string; html: string | null; lines: number; truncated: boolean };
+type Read = { text: string; truncated: boolean };
 
 function TextPreview({src, name, size, file, onInfo}: {
     src: string; name: string; size: number; file?: File | null; onInfo?: (info: PreviewInfo) => void;
 }) {
     // The text, keyed to where it came from so a new file never shows the last one's.
-    const [read, setRead] = useState<{ src: string; result: Text | null } | null>(null);
-    const [open, setOpen] = useState(false);
-    const box = useRef<HTMLDivElement>(null);
-    const collapsedLines = useMediaQuery("(min-width: 900px)") ? COLLAPSED_LINES.wide : COLLAPSED_LINES.narrow;
+    const [read, setRead] = useState<{ src: string; result: Read | null } | null>(null);
+    const collapsedLines = useCollapsedLines();
 
     useEffect(() => {
         let cancelled = false;
@@ -208,51 +169,83 @@ function TextPreview({src, name, size, file, onInfo}: {
             });
 
         bytes
-            .then((buffer): Text | null => {
+            .then((buffer): Read | null => {
                 const decoded = decode(buffer.slice(0, TEXT_LIMIT), truncated);
                 if (decoded === null) return null;
-                // Without the file's last newline, which would show as an empty numbered line.
-                const text = decoded.replace(/\r\n/g, "\n").replace(/\n$/, "");
-                const lines = text.split("\n").length;
+                const text = linesOf(decoded);
                 if (!cancelled) {
-                    onInfo?.({lines, partial: truncated, lineEndings: decoded.includes("\r\n") ? "CRLF" : "LF", text: truncated ? undefined : decoded});
+                    onInfo?.({
+                        lines: text.split("\n").length, partial: truncated,
+                        lineEndings: decoded.includes("\r\n") ? "CRLF" : "LF", text: truncated ? undefined : decoded,
+                    });
                 }
-                return {text, html: null, lines, truncated};
+                return {text, truncated};
             })
             // Unreadable (no permission to read the link, or gone): no preview, as for any other file.
             .catch(() => null)
             .then((result) => {
-                if (cancelled) return;
-                // The text shows as soon as it's read; its colours follow, a moment later on the first code file
-                // (Shiki and the grammar load then).
-                setRead({src, result});
-                const lang = LANGS[extension(name)];
-                if (result && lang) {
-                    highlight(result.text, lang)
-                        .then((html) => {
-                            if (!cancelled) setRead({src, result: {...result, html}});
-                        })
-                        .catch(() => undefined);
-                }
+                if (!cancelled) setRead({src, result});
             });
         return () => {
             cancelled = true;
         };
-    }, [src, name, size, file, onInfo]);
+    }, [src, size, file, onInfo]);
 
     // Being read: lines standing in for the text, about as many as it will show, so what's under it doesn't jump.
     if (read?.src !== src) {
         const guess = Math.max(3, Math.ceil(size / 40)); // about 40 bytes a line of code
         return <TextPlaceholder lines={Math.min(collapsedLines, guess)} bar={guess >= collapsedLines + COLLAPSE_MARGIN} />;
     }
-    const result = read.result;
-    if (!result) return null;
+    if (!read.result) return null;
+    return <CodeView text={read.result.text} language={EXTENSIONS[extension(name)] ?? null} truncated={read.result.truncated} />;
+}
 
-    const long = result.lines >= collapsedLines + COLLAPSE_MARGIN;
-    // Closing a long file from far down it would leave the page scrolled past where it now ends: back to its top.
+function useCollapsedLines(): number {
+    return useMediaQuery("(min-width: 900px)") ? COLLAPSED_LINES.wide : COLLAPSED_LINES.narrow;
+}
+
+/**
+ * Text or code with line numbers: a code file's preview, or a text drop sent as code. It shows at once as plain text;
+ * the colours follow when the highlighter is ready (Shiki and the grammar load on the first code shown). A long one
+ * collapses to its first lines, with a button to open it all that stays on screen while it's open.
+ */
+export function CodeView({text, language, truncated = false}: { text: string; language: string | null; truncated?: boolean }) {
+    // The colouring function for the language, once its grammar is loaded.
+    const [colourer, setColourer] = useState<{ language: string; colour: (text: string) => string } | null>(null);
+    const [open, setOpen] = useState(false);
+    // Opened at least once: coloured whole from then on, closed again or not.
+    const [opened, setOpened] = useState(false);
+    const box = useRef<HTMLDivElement>(null);
+    const collapsedLines = useCollapsedLines();
+
+    useEffect(() => {
+        if (!language) return;
+        let cancelled = false;
+        highlighterFor(language)
+            .then((colour) => {
+                if (!cancelled) setColourer({language, colour});
+            })
+            .catch(() => undefined);
+        return () => {
+            cancelled = true;
+        };
+    }, [language]);
+
+    const all = useMemo(() => text.split("\n"), [text]);
+    const lines = all.length;
+    const long = lines >= collapsedLines + COLLAPSE_MARGIN;
+    // Colouring holds the page up while it runs (about a second for 128 KB), so a collapsed text colours only the lines
+    // in view, and the rest the first time it's opened. A longer text (a big text drop) stays plain.
+    const shown = long && !opened ? all.slice(0, collapsedLines).join("\n") : text;
+    const html = useMemo(
+        () => colourer?.language === language && shown.length <= TEXT_LIMIT ? colourer.colour(shown) : null,
+        [colourer, language, shown],
+    );
+    // Closing a long text from far down it would leave the page scrolled past where it now ends: back to its top.
     const toggle = () => {
         const above = (box.current?.getBoundingClientRect().top ?? 0) < 0;
         setOpen(!open);
+        setOpened(true);
         if (open && above) requestAnimationFrame(() => box.current?.scrollIntoView({block: "start"}));
     };
 
@@ -262,20 +255,20 @@ function TextPreview({src, name, size, file, onInfo}: {
             className={`expedite_file-preview expedite_code${long && !open ? " is-collapsed" : ""}`}
             style={{"--collapsed-lines": collapsedLines} as CSSProperties}
         >
-            {result.html
-                ? <div dangerouslySetInnerHTML={{__html: result.html}} /> // Shiki escapes the text it's given
-                : <pre><code>{result.text.split("\n").map((line, i) => <Fragment key={i}><span className="line">{line}</span>{"\n"}</Fragment>)}</code></pre>}
-            {/* Sticks to the bottom of the screen while the open file runs past it, so closing it is always one click
+            {html
+                ? <div dangerouslySetInnerHTML={{__html: html}} /> // Shiki escapes the text it's given
+                : <pre><code>{all.map((line, i) => <Fragment key={i}><span className="line">{line}</span>{"\n"}</Fragment>)}</code></pre>}
+            {/* Sticks to the bottom of the screen while the open text runs past it, so closing it is always one click
                 away, wherever one is in it. */}
             {long && (
                 <div className="expedite_code-bar">
                     <button type="button" className="expedite_code-toggle" aria-expanded={open} onClick={toggle}>
                         {open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
-                        {open ? "Collapse" : `Show all ${result.lines.toLocaleString()} lines`}
+                        {open ? "Collapse" : `Show all ${lines.toLocaleString()} lines`}
                     </button>
                 </div>
             )}
-            {result.truncated && <p className="expedite_code-more">Showing the start. Download it to see it all.</p>}
+            {truncated && <p className="expedite_code-more">Showing the start. Download it to see it all.</p>}
         </div>
     );
 }
@@ -306,6 +299,14 @@ function TextPlaceholder({lines, bar}: { lines: number; bar: boolean }) {
     );
 }
 
+/**
+ * Text as it's shown in lines: Windows line endings made plain, and without the last newline that most files end with,
+ * which would show (and count) as an empty last line.
+ */
+export function linesOf(text: string): string {
+    return text.replace(/\r\n/g, "\n").replace(/\n$/, "");
+}
+
 // UTF-8 text, or null for anything binary. Strict, so a picture or an archive renamed .txt isn't shown as garbage; a
 // cut file may end halfway through a character, which `stream` lets go.
 function decode(buffer: ArrayBuffer, truncated: boolean): string | null {
@@ -315,24 +316,4 @@ function decode(buffer: ArrayBuffer, truncated: boolean): string | null {
     } catch {
         return null;
     }
-}
-
-// One highlighter for the page, made on the first code file shown: the light and dark GitHub themes (as on the blog),
-// and the JavaScript regex engine, so no WebAssembly. Each grammar is added as it's needed.
-type Highlighter = Awaited<ReturnType<typeof import("shiki/core")["createHighlighterCore"]>>;
-let highlighter: Promise<Highlighter> | null = null;
-
-async function highlight(text: string, [lang, load]: [string, () => Promise<unknown>]): Promise<string> {
-    highlighter ??= Promise.all([import("shiki/core"), import("shiki/engine/javascript")]).then(
-        ([{createHighlighterCore}, {createJavaScriptRegexEngine}]) => createHighlighterCore({
-            themes: [import("shiki/themes/github-light.mjs"), import("shiki/themes/github-dark.mjs")],
-            langs: [],
-            engine: createJavaScriptRegexEngine(),
-        }),
-    );
-    const shiki = await highlighter;
-    if (!shiki.getLoadedLanguages().includes(lang)) {
-        await shiki.loadLanguage(load() as Parameters<Highlighter["loadLanguage"]>[0]);
-    }
-    return shiki.codeToHtml(text, {lang, themes: {light: "github-light", dark: "github-dark"}});
 }

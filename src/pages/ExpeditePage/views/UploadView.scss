@@ -36,8 +36,9 @@
     gap: 1rem;
 }
 
-// Writing a text drop: body-sized text with room between the lines, in a box with real room. Half the screen at least,
-// beside the settings on a laptop (it fills its column, so a drag handle couldn't resize it: none is offered).
+// Writing a text drop: body-sized text with room between the lines, in a box as wide as the page that grows with what's
+// written (field-sizing), from 14rem, so the buttons under it start on screen, to 70% of the screen, then scrolls. No
+// drag handle: the box sizes itself.
 .expedite_textarea {
     width: 100%;
     padding: 1rem 1.1rem;
@@ -45,18 +46,25 @@
     color: var(--text);
     border-radius: 10px;
     background: transparent;
-    font-family: inherit;
+    font-family: var(--font-reading);
     font-size: var(--fs-base);
     line-height: 1.6;
     tab-size: 4;
+    caret-color: var(--secondary);
     resize: none;
-    min-height: max(18rem, 50vh);
+    field-sizing: content; // every browser since 2026 (Firefox 152); an older one keeps the min-height and scrolls
+    min-height: 14rem;
+    max-height: 70vh;
     box-sizing: border-box;
     outline: none;
     transition: border-color 0.15s;
 
     &::placeholder {
         color: var(--text-6);
+    }
+
+    &::selection {
+        background: color-mix(in srgb, var(--secondary) 28%, transparent);
     }
 
     &:focus {
@@ -292,4 +300,75 @@
 .expedite_btn-primary.is-ready {
     outline: 2px solid var(--secondary);
     outline-offset: 2px;
+}
+
+// A text drop, written like a message: the text box first, as wide as the page; under it a row of the statistics and
+// the settings with the buttons (these first on a phone, so sending isn't pushed down); then the folded statistics.
+.expedite_compose,
+.expedite_compose-row,
+.expedite_compose-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 900px) {
+    .expedite_compose-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+        column-gap: 2.5rem;
+        align-items: start;
+
+        > .expedite_meta {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        > .expedite_compose-controls {
+            grid-column: 2;
+            grid-row: 1;
+        }
+    }
+}
+
+// Above the text box: whether it's code, and in what language.
+.expedite_text-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    min-height: 2rem;
+}
+
+.expedite_check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    cursor: pointer;
+    user-select: none;
+
+    input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        accent-color: var(--secondary);
+        cursor: pointer;
+    }
+}
+
+.expedite_select {
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--border-da);
+    }
 }

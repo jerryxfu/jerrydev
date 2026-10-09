@@ -1,17 +1,23 @@
-import React, {type ReactNode, useState} from "react";
+import React, {type ReactNode, useMemo, useRef, useState} from "react";
 import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Link, SlidersHorizontal, Trash2} from "lucide-react";
 import {type DownloadCheck, type DropMeta} from "../types.ts";
-import {formatBytes, getDropUrl, timeUntil} from "../utils.ts";
-import FilePreview, {describeType, type PreviewInfo} from "./FilePreview.tsx";
+import {formatBytes, getDropUrl, timeUntil, when} from "../utils.ts";
+import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./FilePreview.tsx";
+import {isLanguage, languageLabel} from "../highlight.ts";
+import {characterCount, wordStats} from "./TextStats.tsx";
 import "./ResultView.scss";
 interface ResultViewProps {
     result: DropMeta;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     error: string | null;
-    /** The last download checked against the drop's SHA-256. */
+    /** The last copy checked against the drop's SHA-256. */
     downloadCheck: DownloadCheck | null;
+    /** A download through the page is under way. */
+    downloading: boolean;
     onDownload: () => void;
+    /** Checks a copy picked on this device against the SHA-256. */
+    onCheckCopy: (file: File) => void;
     onDelete: () => void;
 }
 
@@ -37,15 +43,41 @@ function Detail({label, wide, children}: { label: string; wide?: boolean; childr
     );
 }
 
-// Under the hash: what checking a download against it found, or the way to find out.
-function DownloadCheckLine({check}: { check: DownloadCheck | null }) {
-    if (!check) return <span className="expedite_meta-check">Download it to check your copy against it.</span>;
-    if (check.state === "checking") {
-        return <span className="expedite_meta-check">Checking your download... {Math.floor(check.progress * 100)}%</span>;
-    }
-    return check.state === "match"
-        ? <span className="expedite_meta-check is-match"><CircleCheck size={13} /> Your download matches it.</span>
-        : <span className="expedite_meta-check is-mismatch"><CircleX size={13} /> Your download doesn't match. Download it again.</span>;
+// Under the hash: what checking a copy against it found, or the way to find out. Whatever the size, a copy already
+// saved on this device can be picked and checked (a big file's download, which the page never sees, is checked so).
+function DownloadCheckLine({check, onPick}: { check: DownloadCheck | null; onPick: (file: File) => void }) {
+    const picker = useRef<HTMLInputElement>(null);
+    const state = check?.state;
+    const message =
+        !check ? "Download it to check your copy against it."
+            : check.state === "saving" ? "Your browser is saving it. Once it's done, check the saved copy against it."
+                : check.state === "checking" ? `Checking your copy... ${Math.floor(check.progress * 100)}%`
+                    : check.state === "match" ? "Your copy matches it."
+                        : "Your copy doesn't match. Download it again.";
+    return (
+        <span className={`expedite_meta-check${state === "match" ? " is-match" : state === "mismatch" ? " is-mismatch" : ""}`}>
+            {state === "match" && <CircleCheck size={13} />}
+            {state === "mismatch" && <CircleX size={13} />}
+            <span>{message}</span>
+            {state !== "checking" && (
+                <>
+                    <button type="button" className="expedite_meta-pick" onClick={() => picker.current?.click()}>
+                        Check a saved copy
+                    </button>
+                    <input
+                        ref={picker}
+                        type="file"
+                        hidden
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onPick(file);
+                            e.target.value = ""; // the same file can be picked again
+                        }}
+                    />
+                </>
+            )}
+        </span>
+    );
 }
 
 /**
@@ -53,16 +85,22 @@ function DownloadCheckLine({check}: { check: DownloadCheck | null }) {
  * what to do with it under them, then the file itself, as wide as the page allows. Some details come from the preview as it loads:
  * lines, dimensions, duration.
  */
-export default function ResultView({result, copiedField, onCopy, error, downloadCheck, onDownload, onDelete}: ResultViewProps) {
+export default function ResultView(
+    {result, copiedField, onCopy, error, downloadCheck, downloading, onDownload, onCheckCopy, onDelete}: ResultViewProps,
+) {
     const [info, setInfo] = useState<PreviewInfo>({});
     // Deleting removes the drop for everyone, so the trash button asks first, in place.
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     // Opening it used the last view the sender allowed: the code is gone for anyone else.
     const lastView = result.maxViews != null && result.views >= result.maxViews;
     const isText = result.type === "text";
-    const lines = isText && result.text ? result.text.split("\n").length : info.lines;
+    // A text drop as its lines show: a pasted file's last newline and Windows line endings don't add an empty line.
+    const shownText = useMemo(() => (result.text ? linesOf(result.text) : ""), [result.text]);
+    const lines = isText && result.text ? shownText.split("\n").length : info.lines;
     // What "Content" copies: a text drop's text, or a text or code file read whole by its preview.
     const content = isText ? result.text : info.text;
+    // A text drop (not code): how long it is to read.
+    const words = useMemo(() => isText && result.text && !result.language ? wordStats(result.text) : null, [isText, result.text, result.language]);
 
     return (
         <div className="expedite_retrieved">
@@ -80,7 +118,13 @@ export default function ResultView({result, copiedField, onCopy, error, download
                         {lines != null && (
                             <Detail label="Lines">{lines.toLocaleString()}{info.partial ? "+ (counted in the part shown)" : ""}</Detail>
                         )}
-                        {isText && result.text && <Detail label="Characters">{[...result.text].length.toLocaleString()}</Detail>}
+                        {words && (
+                            <>
+                                <Detail label="Words">{words.words.toLocaleString()}</Detail>
+                                <Detail label="Reading time">{words.reading}</Detail>
+                            </>
+                        )}
+                        {isText && result.text && <Detail label="Characters">{characterCount(result.text).toLocaleString()}</Detail>}
                         {info.width != null && info.height != null && (
                             <Detail label="Dimensions">{info.width.toLocaleString()} × {info.height.toLocaleString()} px</Detail>
                         )}
@@ -99,6 +143,7 @@ export default function ResultView({result, copiedField, onCopy, error, download
                     <div className="expedite_meta-grid">
                         <Detail label="Drop code"><span className="expedite_meta-code">{result.code}</span></Detail>
                         {result.mimeType && <Detail label="MIME type, as uploaded">{result.mimeType}</Detail>}
+                        {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
                         {result.encoding && <Detail label="Encoding">{result.encoding}</Detail>}
                         {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
                         <Detail label="Deletable by you">{result.deletable ? "Yes" : "No, the sender turned it off"}</Detail>
@@ -116,7 +161,7 @@ export default function ResultView({result, copiedField, onCopy, error, download
                                         {copiedField === "sha256" ? <Check size={13} /> : <Clipboard size={13} />}
                                     </button>
                                 </span>
-                                <DownloadCheckLine check={downloadCheck} />
+                                <DownloadCheckLine check={downloadCheck} onPick={onCheckCopy} />
                             </Detail>
                         )}
                     </div>
@@ -127,7 +172,7 @@ export default function ResultView({result, copiedField, onCopy, error, download
                 <p className="expedite_notice">
                     {isText
                         ? "That was the last view: this code no longer works. Copy or download the text before you leave this page."
-                        : `That was the last view: this code no longer works, but you can still download the file here until ${new Date(result.expiresAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}.`}
+                        : `That was the last view: this code no longer works, but you can still download the file here until it expires ${when(result.expiresAt)}.`}
                 </p>
             )}
 
@@ -169,9 +214,9 @@ export default function ResultView({result, copiedField, onCopy, error, download
                             {copiedField === "content" ? "Copied" : "Content"}
                         </button>
                     )}
-                    <button className="expedite_btn-primary" onClick={onDownload}>
+                    <button className="expedite_btn-primary" onClick={onDownload} disabled={downloading}>
                         <Download size={14} />
-                        Download
+                        {downloading ? "Downloading..." : "Download"}
                     </button>
                 </div>
             )}
@@ -188,7 +233,12 @@ export default function ResultView({result, copiedField, onCopy, error, download
                 />
             )}
 
-            {isText && result.text && (
+            {/* Sent as code: shown like a code file, numbered and highlighted. */}
+            {isText && result.text && result.language && (
+                <CodeView text={shownText} language={isLanguage(result.language) ? result.language : null} />
+            )}
+
+            {isText && result.text && !result.language && (
                 <>
                     <p className="expedite_content-label">Content</p>
                     {/* A textarea rather than <pre> so the caret can be placed inside it and ranges selected */}
