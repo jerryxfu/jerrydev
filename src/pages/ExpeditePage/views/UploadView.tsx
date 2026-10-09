@@ -48,6 +48,10 @@ function rememberLanguage(id: string) {
     }
 }
 
+// Past this many characters the plain text box is at its tallest on any screen, wrapped or not: it stops measuring its
+// text to size itself (field-sizing), which a long text would pay on every key.
+const FULL_CHARACTERS = 20_000;
+
 // How many times a drop can be opened: the usual choices; any other number goes in the field beside them.
 const VIEW_PRESETS: (number | null)[] = [1, 5, null];
 
@@ -130,7 +134,7 @@ export default function UploadView(
         />
     ) : (
         <textarea
-            className="expedite_textarea"
+            className={`expedite_textarea${textContent.length > FULL_CHARACTERS ? " is-full" : ""}`}
             placeholder="Paste or type your text here..."
             value={textContent}
             onChange={(e) => onTextChange(e.target.value)}

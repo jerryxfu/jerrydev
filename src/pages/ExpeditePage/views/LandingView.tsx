@@ -70,6 +70,7 @@ export default function LandingView(
                         <button
                             key={type}
                             className="expedite_tile"
+                            data-kind={type}
                             onClick={() => onSelect(type)}
                         >
                             <Icon size={20} strokeWidth={1.5} />

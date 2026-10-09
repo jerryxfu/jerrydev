@@ -66,7 +66,8 @@
     }
 }
 
-// The copy: under the box, scrolled with it (CodeEditor.tsx), never in the way of the pointer.
+// The copy: under the box, scrolled with it (CodeEditor.tsx), never in the way of the pointer. Drawn from Shiki's colours
+// line by line (highlight.ts, lineColourerFor): each word's light colour inline, its dark one as --shiki-dark.
 .expedite_editor-colours {
     position: absolute;
     inset: 0;
@@ -81,15 +82,26 @@
         // Room past the end, unseen: where scrollbars take space (Windows), the box, its text squeezed above a
         // horizontal scrollbar, scrolls further down than a copy without one could, and the colours fell behind.
         padding-bottom: calc(1rem + 24px);
-        background: transparent !important; // Shiki's own background: the box's shows through
     }
 
-    // The dark themes swap in the dark colours Shiki ships as custom properties, as the code previews do.
+    // Each line a block of its own, at least a line tall when empty: typing in one line lays out that line, not all
+    // of them (one block of text would be laid out whole on every key).
+    .line {
+        display: block;
+        min-height: 1lh;
+    }
+
+    // The dark themes swap in the dark colours, as the code previews do.
     [data-theme="night"] &,
     [data-theme="burgundy"] & {
-        .shiki,
-        .shiki span {
+        .line > span {
             color: var(--shiki-dark) !important;
         }
     }
+}
+
+// A long text: the box at its tallest without measuring the text on each key (CodeEditor.tsx, FULL_LINES).
+.expedite_editor.is-full .expedite_editor-input {
+    field-sizing: fixed;
+    height: 70vh;
 }

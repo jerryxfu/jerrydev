@@ -139,6 +139,32 @@
     }
 }
 
+// Each kind of drop's colour, on its icon (the landing tiles, the headings): File the site's accent blue, Text amber,
+// Direct P2P red. Darker on the light themes, so a thin icon stays clear on a pale page (4.5:1 or more in every theme).
+.expedite {
+    --kind-text: #b45309;
+    --kind-file: var(--secondary);
+    --kind-p2p: #dc2626;
+
+    [data-theme="night"] &,
+    [data-theme="burgundy"] & {
+        --kind-text: #fbbf24;
+        --kind-p2p: var(--danger);
+    }
+}
+
+[data-kind="text"] > svg {
+    color: var(--kind-text);
+}
+
+[data-kind="file"] > svg {
+    color: var(--kind-file);
+}
+
+[data-kind="p2p"] > svg {
+    color: var(--kind-p2p);
+}
+
 .expedite_back {
     display: inline-flex;
     align-items: center;

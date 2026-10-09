@@ -759,7 +759,7 @@ export default function Expedite() {
                         </button>
                     )}
                     {title ? (
-                        <h1 className="expedite_title">
+                        <h1 className="expedite_title" data-kind={kind ?? undefined}>
                             <title.icon size={30} strokeWidth={1.6} aria-hidden />
                             {title.text}
                         </h1>

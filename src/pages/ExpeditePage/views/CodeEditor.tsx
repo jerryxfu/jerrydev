@@ -1,5 +1,5 @@
-import {type KeyboardEvent, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
-import {highlighterFor, isLanguage} from "../highlight.ts";
+import {type KeyboardEvent, memo, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
+import {type ColouredLine, type ColouredText, isLanguage, lineColourerFor} from "../highlight.ts";
 import "./CodeEditor.scss";
 
 interface CodeEditorProps {
@@ -12,18 +12,18 @@ interface CodeEditorProps {
     className?: string;
 }
 
-// Past this, the box stays plain: colouring it would hold the page up for seconds. The receiver's view colours as much
-// (FilePreview's TEXT_LIMIT), so what's coloured here is coloured there.
+// Past this, the box stays plain: the first colouring, on a paste, would hold the page up for seconds (about half a
+// second for 68 KB). The receiver's view colours as much (FilePreview's TEXT_LIMIT), so what's coloured here is
+// coloured there.
 const HIGHLIGHT_LIMIT = 128 * 1024;
 
-// Colouring takes longer the longer the text. While it fits in a key's time the colours follow every key; past that,
-// the text shows plain as it's typed and is coloured once the typing pauses: for a long text (half a second for 68 KB),
-// a pause twice that long, so that typing again rarely waits for it.
-const KEY_BUDGET_MS = 16;
-const PAUSE_MS = 300;
+// How long the typing pauses before the lines an edit left with their old colours (past lineColourerFor's budget) are
+// coloured again.
+const FINISH_MS = 300;
 
-// What the device is timed on when a grammar loads: about 4 KB of ordinary code.
-const SAMPLE = "const value = compute(items[index], 42); // a note\n".repeat(80);
+// Past this many lines the box is at its tallest on any screen (70vh), so it stops measuring its text to size itself
+// (field-sizing), which costs more than the rest of a key in a long text.
+const FULL_LINES = 200;
 
 // Tab in the code box indents, as in an editor: the caret's line, or every line selected; Shift+Tab takes a level off.
 // Through the browser's own editing (insertText), so undo takes it back like typing. A tab if the code is indented with
@@ -58,24 +58,39 @@ function indent(box: HTMLTextAreaElement, out: boolean) {
     }
 }
 
+function lineCount(text: string): number {
+    let lines = 1;
+    for (let at = text.indexOf("\n"); at !== -1; at = text.indexOf("\n", at + 1)) lines++;
+    return lines;
+}
+
 interface Colourer {
     language: string;
-    colour: (text: string) => string;
-    /** How long colouring takes on this device, per character. */
-    msPerChar: number;
+    colour: (text: string, finish?: boolean) => ColouredText;
 }
+
+// One line of the coloured copy. Memoized: an edit redraws the lines it coloured again, and React leaves the rest alone.
+const Line = memo(function Line({line}: { line: ColouredLine }) {
+    return (
+        <span className="line">
+            {line.pieces.map((piece, i) => <span key={i} style={piece.style}>{piece.text}</span>)}
+        </span>
+    );
+});
 
 /**
  * The text box for a text drop sent as code: a real <textarea> (typing, selecting, undo and paste as ever), its text
  * transparent over a highlighted copy of it in the same font, size and spacing, scrolled with it. The colours follow
- * every key once the grammar is loaded, or the pauses in the typing for a long text; until then, or for a very long
- * text, the box is plain.
+ * every key once the grammar is loaded: only the lines an edit changes are coloured and drawn again (lineColourerFor),
+ * so a long text is as quick to type in as a short one. Until the grammar is loaded, or past HIGHLIGHT_LIMIT, the box
+ * is plain.
  */
 export default function CodeEditor({value, onChange, onKeyDown, language, placeholder, className}: CodeEditorProps) {
-    // The colouring function for the language, once its grammar is loaded.
+    // The colouring function for the language, once its grammar is loaded. Its own for this box: it remembers the last
+    // text it coloured.
     const [colourer, setColourer] = useState<Colourer | null>(null);
-    // The colours of a text too long to colour on every key, made once the typing paused.
-    const [late, setLate] = useState<{ key: string; html: string } | null>(null);
+    // The text whose leftover lines are to be coloured now that the typing has paused.
+    const [finishing, setFinishing] = useState<string | null>(null);
     const layer = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
     // Escape, then Tab: the way out of the box from the keyboard, since Tab itself indents (as in VS Code).
@@ -85,14 +100,9 @@ export default function CodeEditor({value, onChange, onKeyDown, language, placeh
         // Plain code (Auto recognized nothing): no colours to load.
         if (!isLanguage(language)) return;
         let cancelled = false;
-        highlighterFor(language)
+        lineColourerFor(language)
             .then((colour) => {
-                // Timed on the second run: the first also pays for warming the engine up.
-                colour(SAMPLE);
-                const start = performance.now();
-                colour(SAMPLE);
-                const msPerChar = (performance.now() - start) / SAMPLE.length;
-                if (!cancelled) setColourer({language, colour, msPerChar});
+                if (!cancelled) setColourer({language, colour});
             })
             .catch(() => undefined);
         return () => {
@@ -100,31 +110,38 @@ export default function CodeEditor({value, onChange, onKeyDown, language, placeh
         };
     }, [language]);
 
+    const full = useMemo(() => lineCount(value) > FULL_LINES, [value]);
     const ready = colourer?.language === language && value.length <= HIGHLIGHT_LIMIT ? colourer : null;
-    // Quick enough to colour with every key, in the render; otherwise after a pause, in the effect below.
-    const perKey = !!ready && value.length * ready.msPerChar <= KEY_BUDGET_MS;
-    const key = `${language}\u0000${value}`;
-    // A trailing newline: the copy then has the empty last line the text box shows after one.
-    const now = useMemo(() => (perKey && ready ? ready.colour(`${value}\n`) : null), [perKey, ready, value]);
+    const finish = finishing === value;
+    const coloured = useMemo(() => (ready ? ready.colour(value, finish) : null), [ready, value, finish]);
+    // An edit that left lines with their old colours (an opened comment): they're coloured once the typing pauses.
     useEffect(() => {
-        if (!ready || perKey) return;
-        const pause = Math.max(PAUSE_MS, 2 * value.length * ready.msPerChar);
-        const timer = setTimeout(() => setLate({key, html: ready.colour(`${value}\n`)}), pause);
+        if (!coloured?.stale) return;
+        const timer = setTimeout(() => setFinishing(value), FINISH_MS);
         return () => clearTimeout(timer);
-    }, [ready, perKey, key, value]);
-    const html = now ?? (late?.key === key ? late.html : null);
+    }, [coloured, value]);
 
-    // A copy that appears (the grammar has loaded, the typing has paused) starts at its top, while the box may be
-    // scrolled to the end of a paste: it's put where the box is before it shows.
+    // A copy that appears (the grammar has loaded) starts at its top, while the box may be scrolled to the end of a
+    // paste: it's put where the box is before it shows.
     useLayoutEffect(() => {
         if (!layer.current || !input.current) return;
         layer.current.scrollTop = input.current.scrollTop;
         layer.current.scrollLeft = input.current.scrollLeft;
-    }, [html]);
+    }, [coloured]);
 
     return (
-        <div className={`expedite_editor${html ? " is-coloured" : ""}${className ? ` ${className}` : ""}`}>
-            {html && <div ref={layer} className="expedite_editor-colours" aria-hidden="true" dangerouslySetInnerHTML={{__html: html}} />}
+        <div
+            className={`expedite_editor${coloured ? " is-coloured" : ""}${full ? " is-full" : ""}${className ? ` ${className}` : ""}`}
+        >
+            {coloured && (
+                <div ref={layer} className="expedite_editor-colours" aria-hidden="true">
+                    <pre className="shiki">
+                        <code>
+                            {coloured.lines.map((line) => <Line key={line.id} line={line} />)}
+                        </code>
+                    </pre>
+                </div>
+            )}
             <textarea
                 ref={input}
                 className="expedite_editor-input"

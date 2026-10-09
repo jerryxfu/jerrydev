@@ -72,6 +72,12 @@
     }
 }
 
+// A long text: the box at its tallest without measuring the text on each key (UploadView.tsx, FULL_CHARACTERS).
+.expedite_textarea.is-full {
+    field-sizing: fixed;
+    height: 70vh;
+}
+
 .expedite_file-zone {
     display: flex;
     flex-direction: column;

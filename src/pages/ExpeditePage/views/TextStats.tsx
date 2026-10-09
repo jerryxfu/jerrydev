@@ -4,7 +4,7 @@ import Disclosure from "./Disclosure.tsx";
 import "./TextStats.scss";
 
 // The server's limit for a text drop, in UTF-8 bytes (MAX_TEXT_SIZE in the API), and how it says it: "500 KB".
-export const TEXT_LIMIT_BYTES = 500_000;
+const TEXT_LIMIT_BYTES = 500_000;
 
 const segmenter = (granularity: "word" | "sentence") =>
     typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(undefined, {granularity}) : null;
