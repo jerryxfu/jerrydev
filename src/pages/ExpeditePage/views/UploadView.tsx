@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useRef} from "react";
 import {File, Upload, X} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatBytes, formatDuration} from "../utils.ts";
+import FilePreview from "./FilePreview.tsx";
 import "./UploadView.scss";
 
 interface UploadViewProps {
@@ -27,14 +28,8 @@ export default function UploadView(
     }: UploadViewProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const isImage = !!selectedFile && selectedFile.type.startsWith("image/");
-    const isPdf = !!selectedFile && selectedFile.type === "application/pdf";
-
-    // Derive the preview URL during render — no setState needed
-    const filePreview = useMemo(() => {
-        if (!selectedFile || (!isImage && !isPdf)) return null;
-        return URL.createObjectURL(selectedFile);
-    }, [selectedFile, isImage, isPdf]);
+    // Derive the preview URL during render — no setState needed. FilePreview decides whether the file can be shown.
+    const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
 
     // Effect's only job: revoke the previous URL when it changes/unmounts
     useEffect(() => {
@@ -94,14 +89,15 @@ export default function UploadView(
                         )}
                     </div>
 
-                    {filePreview && (isImage || isPdf) && (
-                        <div className="expedite_file-preview">
-                            {isImage ? (
-                                <img src={filePreview} alt={selectedFile!.name} className="expedite_preview-img" />
-                            ) : (
-                                <iframe src={filePreview} title="preview" className="expedite_preview-frame" />
-                            )}
-                        </div>
+                    {filePreview && selectedFile && (
+                        <FilePreview
+                            key={filePreview}
+                            src={filePreview}
+                            name={selectedFile.name}
+                            mimeType={selectedFile.type}
+                            size={selectedFile.size}
+                            file={selectedFile}
+                        />
                     )}
                 </>
             )}

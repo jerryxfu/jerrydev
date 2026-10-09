@@ -546,8 +546,15 @@ export default function Expedite() {
         if (!result.fileUrl) return;
 
         // File: Fetch and force a download via blob
+        setError(null);
         try {
             const res = await fetch(result.fileUrl);
+            // The signed link lasts until the drop expires. After that, or once the drop is deleted, R2 answers with an
+            // error page, which would otherwise be saved under the file's name.
+            if (!res.ok) {
+                setError("This file is no longer available: the drop has expired or was deleted.");
+                return;
+            }
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -740,6 +747,7 @@ export default function Expedite() {
                             result={result}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
+                            error={error}
                             onDownload={handleDownload}
                             onDelete={handleDelete}
                         />

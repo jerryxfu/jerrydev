@@ -2,20 +2,19 @@ import React from "react";
 import {Check, Clipboard, Download, File, FileText, Link, Trash2} from "lucide-react";
 import {type DropMeta} from "../types.ts";
 import {formatBytes, getDropUrl, timeUntil} from "../utils.ts";
+import FilePreview from "./FilePreview.tsx";
 import "./ResultView.scss";
 
 interface ResultViewProps {
     result: DropMeta;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
+    error: string | null;
     onDownload: () => void;
     onDelete: () => void;
 }
 
-export default function ResultView({result, copiedField, onCopy, onDownload, onDelete}: ResultViewProps) {
-    const isImage = result.type === "file" && !!result.mimeType && /^image\//.test(result.mimeType);
-    const isPdf = result.type === "file" && result.mimeType === "application/pdf";
-
+export default function ResultView({result, copiedField, onCopy, error, onDownload, onDelete}: ResultViewProps) {
     return (
         <div className="expedite_retrieved">
             {/* Metadata card */}
@@ -67,14 +66,14 @@ export default function ResultView({result, copiedField, onCopy, onDownload, onD
                 </div>
             </div>
 
-            {result.fileUrl && (isImage || isPdf) && (
-                <div className="expedite_file-preview">
-                    {isImage ? (
-                        <img src={result.fileUrl} alt={result.fileName ?? "preview"} className="expedite_preview-img" />
-                    ) : (
-                        <iframe src={result.fileUrl} title="preview" className="expedite_preview-frame" />
-                    )}
-                </div>
+            {result.type === "file" && result.fileUrl && (
+                <FilePreview
+                    key={result.fileUrl}
+                    src={result.fileUrl}
+                    name={result.fileName ?? ""}
+                    mimeType={result.mimeType}
+                    size={result.size}
+                />
             )}
 
             {/* Content */}
@@ -91,6 +90,8 @@ export default function ResultView({result, copiedField, onCopy, onDownload, onD
                     />
                 </>
             )}
+
+            {error && <p className="expedite_error">{error}</p>}
 
             {/* Actions */}
             <div className="expedite_btn-row">

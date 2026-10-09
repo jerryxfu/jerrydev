@@ -28,15 +28,17 @@ ExpeditePage/
   views/
     LandingView         send tiles + retrieve field
     UploadView          text/file composer + settings
-    CreatedView         code + share link
+    CreatedView         code + share link + QR code
     ResultView          retrieved text/file
+    FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself)
+    Disclosure          folded section (P2P's technical side), open state remembered
     P2PSendView         session code, countdown, notes
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
     P2PProgress         phase ladder + transfer stats (presentational, no hooks)
 ```
 
-`Expedite.tsx` owns every piece of state and every network call. The views are presentational and take callbacks. Transfer engines are plain async functions
+`Expedite.tsx` owns every piece of state and every network call, but one: `FilePreview` reads the start of a text file to show it. The views are presentational and take callbacks. Transfer engines are plain async functions
 taking an options object with callbacks and an `AbortSignal` — same shape as
 `uploadEngine.ts`, deliberately.
 

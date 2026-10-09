@@ -1,0 +1,155 @@
+.expedite_file-preview {
+    margin: 0.75rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    // clip, not hidden: it rounds the corners the same, without making the box a scroll container, which would keep
+    // the code's Collapse button from sticking to the screen.
+    overflow: clip;
+    background: var(--surface);
+}
+
+.expedite_preview-img,
+.expedite_preview-media {
+    display: block;
+    width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+}
+
+// A video's black bars would fill the box's surface otherwise.
+.expedite_preview-media {
+    background: #000;
+}
+
+.expedite_preview-audio {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    box-sizing: border-box;
+}
+
+.expedite_preview-frame {
+    display: block;
+    width: 100%;
+    height: 480px;
+    border: 0;
+}
+
+.expedite_preview-note {
+    margin: 0.75rem 0;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+}
+
+// Text and code, with line numbers. Shiki's lines and the plain ones are both spans with the class "line".
+$collapsed-lines: 20; // FilePreview.tsx collapses from 25
+
+.expedite_code {
+    // Collapsing from far down scrolls back to the top of the code, clear of the navbar (as the section titles do).
+    scroll-margin-top: calc(env(safe-area-inset-top) + 96px);
+
+    pre {
+        margin: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.75rem 0;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: var(--fs-xs);
+        line-height: 1.55;
+        tab-size: 4;
+        counter-reset: line;
+        // Shiki's own background, so the box's surface shows through as for every other preview.
+        background: transparent !important;
+    }
+
+    code {
+        display: block;
+        min-width: max-content;
+        padding-right: 1rem;
+    }
+
+    .line {
+        counter-increment: line;
+
+        &::before {
+            content: counter(line);
+            display: inline-block;
+            width: 3.2em;
+            margin-right: 1rem;
+            text-align: right;
+            color: var(--text-6);
+            user-select: none;
+        }
+    }
+
+    // A long file shows its first lines, the last three fading out above the button that opens the rest. Faded by
+    // opacity rather than a gradient over them, so it needs no colour matched to the box in each theme.
+    &.is-collapsed {
+        pre {
+            max-height: calc(#{$collapsed-lines} * 1.55em);
+            padding-bottom: 0;
+        }
+
+        .line:nth-of-type(#{$collapsed-lines - 2}) {
+            opacity: 0.6;
+        }
+
+        .line:nth-of-type(#{$collapsed-lines - 1}) {
+            opacity: 0.35;
+        }
+
+        .line:nth-of-type(#{$collapsed-lines}) {
+            opacity: 0.15;
+        }
+    }
+
+    // The dark themes swap in the dark colours Shiki ships as custom properties, as the blog does (prose.scss).
+    [data-theme="night"] &,
+    [data-theme="burgundy"] & {
+        .shiki,
+        .shiki span {
+            color: var(--shiki-dark) !important;
+        }
+    }
+}
+
+// Under the code, and stuck to the bottom of the screen while an open file runs past it. Only the button takes the
+// pointer, so the bar never blocks selecting the code it floats over.
+.expedite_code-bar {
+    position: sticky;
+    bottom: 0.75rem;
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 0.75rem;
+    pointer-events: none;
+}
+
+.expedite_code-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    background: var(--bg-lt);
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: var(--fs-xs);
+    box-shadow: 0 2px 10px var(--shadow-da);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: color 0.15s, border-color 0.15s;
+
+    &:hover {
+        color: var(--text);
+        border-color: var(--border-da);
+    }
+}
+
+.expedite_code-more {
+    margin: 0;
+    padding: 0.5rem 0.85rem;
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+}
