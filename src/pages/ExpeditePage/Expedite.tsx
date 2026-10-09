@@ -60,10 +60,6 @@ const TITLES: Record<DropType, { icon: LucideIcon; text: string }> = {
     p2p: {icon: Radio, text: "Send directly (P2P)"},
 };
 
-// Up to this size a download goes through the page, which checks it against the SHA-256 at once. Past it, the browser's
-// own downloader takes it (to disk, with its progress, never all in memory), and a saved copy is checked when picked.
-const PAGE_DOWNLOAD_LIMIT = 200 * 1024 * 1024;
-
 // Receiver-side auto-recovery: how often to look for the sender's relay
 // republish, and how many times before giving up (30 x 3s = 90s).
 const RECOVERY_POLL_MS = 3_000;
@@ -120,8 +116,6 @@ export default function Expedite() {
     // A downloaded file checked against that hash.
     const [downloadCheck, setDownloadCheck] = useState<DownloadCheck | null>(null);
     const checkRef = useRef<Hashing | null>(null);
-    // A download going through the page: its button waits, so a second click doesn't start a second one.
-    const [downloading, setDownloading] = useState(false);
 
     // --- Direct P2P ---
     const [useTurn, setUseTurn] = useState(false);
@@ -591,54 +585,35 @@ export default function Expedite() {
             a.href = url;
             a.download = `expedite-${result.code}.txt`;
             a.click();
-            URL.revokeObjectURL(url);
+            // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
+            setTimeout(() => URL.revokeObjectURL(url), 60_000);
             return;
         }
 
         if (!result.fileUrl) return;
 
+        // A file: the browser's own downloader takes it (to disk, with its progress), from the link R2 answers as an
+        // attachment under the file's name. Its first byte is read here first, to know the link still works: after the
+        // drop expires, or once it's deleted, R2 answers with an error page, which the browser would show or save.
         setError(null);
-        setDownloading(true);
-        // A big file goes to the browser's downloader (when the API gives the attachment link): only its first byte is
-        // read here, to know the link still works.
-        const native = !!result.downloadUrl && result.size > PAGE_DOWNLOAD_LIMIT;
         try {
-            const res = await fetch(result.fileUrl, native ? {headers: {Range: "bytes=0-0"}} : undefined);
-            // The signed link lasts until the drop expires. After that, or once the drop is deleted, R2 answers with an
-            // error page, which would otherwise be saved under the file's name (or opened, for the downloader).
+            const res = await fetch(result.fileUrl, {headers: {Range: "bytes=0-0"}});
             if (!res.ok) {
                 setError("This file is no longer available: the drop has expired or was deleted.");
                 return;
             }
-            if (native) {
-                const a = document.createElement("a");
-                a.href = result.downloadUrl!;
-                a.click();
-                if (result.sha256) setDownloadCheck({state: "saving"});
-                return;
-            }
-
-            // Through the page: fetched whole, then saved under the file's name.
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
+        } catch { /* not reachable from the page (offline, CORS): the browser tries for itself */
+        }
+        if (result.downloadUrl) {
             const a = document.createElement("a");
-            a.href = url;
-            a.download = result.fileName ?? `expedite-${result.code}`;
+            a.href = result.downloadUrl;
             a.click();
-            // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
-            setTimeout(() => URL.revokeObjectURL(url), 60_000);
-            // What was just saved, checked against the hash the sender's browser stored: proof it arrived intact.
-            checkCopy(blob);
-        } catch {
-            // Fallback: open in new tab if fetch fails (e.g. CORS)
-            window.open(result.fileUrl, "_blank");
-        } finally {
-            setDownloading(false);
+        } else {
+            window.open(result.fileUrl, "_blank"); // an API without the attachment link
         }
     };
 
-    // A copy of the file (a download just made, or one picked on this device) checked against the drop's SHA-256. A new
-    // check replaces one under way.
+    // A copy of the file, picked on this device, checked against the drop's SHA-256. A new check replaces one under way.
     const checkCopy = (blob: Blob) => {
         const expected = result?.sha256;
         if (!expected) return;
@@ -871,7 +846,6 @@ export default function Expedite() {
                             onCopy={copyToClipboard}
                             error={error}
                             downloadCheck={downloadCheck}
-                            downloading={downloading}
                             onDownload={handleDownload}
                             onCheckCopy={checkCopy}
                             onDelete={handleDelete}

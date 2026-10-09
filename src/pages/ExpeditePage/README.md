@@ -21,7 +21,7 @@ ExpeditePage/
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
   utils.ts              formatting helpers (formatBytes, formatEta, ...)
   uploadEngine.ts       R2 upload: single PUT or multipart, with progress
-  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's download (or a saved copy) checked against it
+  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's saved copy (picked after the download) checked against it
   highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, Auto's guess at pasted code's language, and the code box's line-by-line colouring (only the lines an edit changes)
   p2p/
     peer.ts             shared WebRTC plumbing, rate meter, protocol constants

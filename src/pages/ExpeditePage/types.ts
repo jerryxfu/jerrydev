@@ -61,12 +61,8 @@ export interface UploadSnapshot {
     totalBytes: number;     // file size
 }
 
-/**
- * The receiver's check of a copy of the file (just downloaded, or picked on the device) against the SHA-256 the
- * sender's browser stored with it. "saving": a big file handed to the browser's downloader, to be picked once saved.
- */
-export type DownloadCheck =
-    { state: "saving" } | { state: "checking"; progress: number } | { state: "match" } | { state: "mismatch" };
+/** The receiver's check of a copy of the file, picked on the device, against the SHA-256 the sender's browser stored. */
+export type DownloadCheck = { state: "checking"; progress: number } | { state: "match" } | { state: "mismatch" };
 
 // --- Direct P2P ---
 

@@ -1,5 +1,5 @@
 import React, {type ReactNode, useMemo, useRef, useState} from "react";
-import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Link, SlidersHorizontal, Trash2} from "lucide-react";
+import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, SlidersHorizontal, Trash2} from "lucide-react";
 import {type DownloadCheck, type DropMeta} from "../types.ts";
 import {formatBytes, getDropUrl, timeUntil, when} from "../utils.ts";
 import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./FilePreview.tsx";
@@ -13,8 +13,6 @@ interface ResultViewProps {
     error: string | null;
     /** The last copy checked against the drop's SHA-256. */
     downloadCheck: DownloadCheck | null;
-    /** A download through the page is under way. */
-    downloading: boolean;
     onDownload: () => void;
     /** Checks a copy picked on this device against the SHA-256. */
     onCheckCopy: (file: File) => void;
@@ -43,41 +41,21 @@ function Detail({label, wide, children}: { label: string; wide?: boolean; childr
     );
 }
 
-// Under the hash: what checking a copy against it found, or the way to find out. Whatever the size, a copy already
-// saved on this device can be picked and checked (a big file's download, which the page never sees, is checked so).
-function DownloadCheckLine({check, onPick}: { check: DownloadCheck | null; onPick: (file: File) => void }) {
-    const picker = useRef<HTMLInputElement>(null);
-    const state = check?.state;
-    const message =
-        !check ? "Download it to check your copy against it."
-            : check.state === "saving" ? "Your browser is saving it. Once it's done, check the saved copy against it."
-                : check.state === "checking" ? `Checking your copy... ${Math.floor(check.progress * 100)}%`
-                    : check.state === "match" ? "Your copy matches it."
-                        : "Your copy doesn't match. Download it again.";
-    return (
-        <span className={`expedite_meta-check${state === "match" ? " is-match" : state === "mismatch" ? " is-mismatch" : ""}`}>
-            {state === "match" && <CircleCheck size={13} />}
-            {state === "mismatch" && <CircleX size={13} />}
-            <span>{message}</span>
-            {state !== "checking" && (
-                <>
-                    <button type="button" className="expedite_meta-pick" onClick={() => picker.current?.click()}>
-                        Check a saved copy
-                    </button>
-                    <input
-                        ref={picker}
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onPick(file);
-                            e.target.value = ""; // the same file can be picked again
-                        }}
-                    />
-                </>
-            )}
-        </span>
-    );
+// Under the hash: how to check a copy against it, then how far the check has got, and what it found.
+function DownloadCheckLine({check}: { check: DownloadCheck | null }) {
+    if (!check) {
+        return (
+            <span className="expedite_meta-check">
+                To make sure your copy is exactly the file that was sent, use the hash check below.
+            </span>
+        );
+    }
+    if (check.state === "checking") {
+        return <span className="expedite_meta-check">Checking your copy... {Math.floor(check.progress * 100)}%</span>;
+    }
+    return check.state === "match"
+        ? <span className="expedite_meta-check is-match"><CircleCheck size={13} /> Your copy matches it.</span>
+        : <span className="expedite_meta-check is-mismatch"><CircleX size={13} /> Your copy doesn't match. Download it again.</span>;
 }
 
 /**
@@ -86,9 +64,12 @@ function DownloadCheckLine({check, onPick}: { check: DownloadCheck | null; onPic
  * lines, dimensions, duration.
  */
 export default function ResultView(
-    {result, copiedField, onCopy, error, downloadCheck, downloading, onDownload, onCheckCopy, onDelete}: ResultViewProps,
+    {result, copiedField, onCopy, error, downloadCheck, onDownload, onCheckCopy, onDelete}: ResultViewProps,
 ) {
     const [info, setInfo] = useState<PreviewInfo>({});
+    // The hash check's file picker, and where the check is.
+    const picker = useRef<HTMLInputElement>(null);
+    const check = downloadCheck?.state;
     // Deleting removes the drop for everyone, so the trash button asks first, in place.
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     // Opening it used the last view the sender allowed: the code is gone for anyone else.
@@ -161,7 +142,7 @@ export default function ResultView(
                                         {copiedField === "sha256" ? <Check size={13} /> : <Clipboard size={13} />}
                                     </button>
                                 </span>
-                                <DownloadCheckLine check={downloadCheck} onPick={onCheckCopy} />
+                                <DownloadCheckLine check={downloadCheck} />
                             </Detail>
                         )}
                     </div>
@@ -214,9 +195,33 @@ export default function ResultView(
                             {copiedField === "content" ? "Copied" : "Content"}
                         </button>
                     )}
-                    <button className="expedite_btn-primary" onClick={onDownload} disabled={downloading}>
+                    {/* The downloaded copy, picked from the device, checked against the hash (the line under it says how
+                        it went): the page never sees the download, which the browser's own downloader saves. */}
+                    {result.sha256 && (
+                        <>
+                            <button
+                                className={`expedite_btn-secondary${check === "match" ? " is-match" : check === "mismatch" ? " is-mismatch" : ""}`}
+                                onClick={() => picker.current?.click()}
+                                disabled={check === "checking"}
+                            >
+                                {check === "match" ? <CircleCheck size={14} /> : check === "mismatch" ? <CircleX size={14} /> : <Fingerprint size={14} />}
+                                Hash check
+                            </button>
+                            <input
+                                ref={picker}
+                                type="file"
+                                hidden
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) onCheckCopy(file);
+                                    e.target.value = ""; // the same file can be picked again
+                                }}
+                            />
+                        </>
+                    )}
+                    <button className="expedite_btn-primary" onClick={onDownload}>
                         <Download size={14} />
-                        {downloading ? "Downloading..." : "Download"}
+                        Download
                     </button>
                 </div>
             )}

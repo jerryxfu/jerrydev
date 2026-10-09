@@ -220,18 +220,14 @@
     }
 }
 
-// "Check a saved copy": a link-like button after the line, on its own line when there's no room.
-.expedite_meta-pick {
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--text-3);
-    font: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
+// The hash check's button, once it has run: green for a copy that matches, red for one that doesn't (with its icon, for
+// those who can't tell the two colours apart). The greens and reds of the line under the hash.
+.expedite_btn-secondary.is-match {
+    color: #2e9b51;
+    border-color: color-mix(in srgb, #2e9b51 55%, transparent);
+}
 
-    &:hover {
-        color: var(--text);
-    }
+.expedite_btn-secondary.is-mismatch {
+    color: #e1483a;
+    border-color: color-mix(in srgb, #e1483a 55%, transparent);
 }
