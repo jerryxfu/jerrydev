@@ -11,9 +11,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 // The way from the hero into About: the hero carries on below its edge as small square cells, like GitHub's
 // contribution graph. Once you've scrolled a little (`POUR_AT`, in hero heights), they pour down out of the hero on
-// their own, not with the scroll, row after row, the front of the pour glowing; then they flicker like slow fire, full
-// where they meet the hero, fewer and fainter further down, until the page. Scroll back above `POUR_AT` and they go back
-// up into it.
+// their own, not with the scroll, row after row, the front of the pour glowing; then the hero's light keeps flowing down
+// them, full and even where they meet the hero, livelier, fewer and fainter further down, until the page. Scroll back
+// above `POUR_AT` and they go back up into it.
 // The cells are windows in the page's background onto a reflection of the mesh under the hero's edge (the mesh again,
 // upside down, clipped to this room), so their colours carry on from the hero's, still moving. Everything is measured
 // from the hero's own bottom edge, again whenever the hero changes size (a zoom, a phone's toolbar), so the cells meet
@@ -21,7 +21,7 @@ gsap.registerPlugin(ScrollTrigger);
 // canvas (the waves). A new theme changes the colours where they are, cells and all: the ground fades with the page's
 // background, the reflection with the mesh.
 
-// Per theme, the colour the cells glow in as they arrive and where the fire lifts them: the horizon's light.
+// Per theme, the colour the cells glow in as they arrive and where the flow is brightest: the horizon's light.
 const GLOW: Record<Theme, RGB> = {
     light: [255, 255, 255],
     night: [176, 208, 255],
@@ -43,10 +43,9 @@ const POUR = 1.5;
 const UNPOUR = 0.5;
 const ROWS_START = 0.6;
 const CELL_IN = 0.25;
-// How fast a cell's shown level follows its level, per frame, and how much the glow shows in the cells furthest from the
-// hero, where the fire lifts them (more in the dark themes).
+// How fast a cell's shown level follows its level, per frame, and how much the flow glows where it's brightest.
 const FOLLOW = 0.2;
-const EMBER = {light: 0.35, dark: 0.5};
+const EMBER = 0.3;
 
 const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const hash = (x: number, y: number, z: number) => {
@@ -71,14 +70,16 @@ function noise(x: number, y: number, z: number) {
     return lerp(plane(zi), plane(zi + 1), w);
 }
 
-// The fire: what it adds to a cell's level (in quarters), for column c and row r from the hero's edge down, `depth` 0 at
-// the edge to 1 at the band's end, at time t. A field flowing slowly up towards the hero, livelier further down where
-// the cells thin out, so the flickers rise from there.
-const fire = (c: number, r: number, depth: number, t: number) =>
-    (noise(c * 0.3, (r + t * 1.5) * 0.42, t * 0.35) - 0.5) * (0.55 + 0.9 * depth)
-    + (noise(c * 0.9, (r + t * 2.5) * 1.1, t * 0.6) - 0.5) * 0.2;
+// The flow: what it adds to a cell's level (in quarters), for column c and row r from the hero's edge down, `depth` 0 at
+// the edge to 1 at the band's end, at time t. Calm under the hero, so the hero carries on into an even grain, then
+// shapes a few columns wide and about four rows tall growing out of it as they flow down, in a finer grain that keeps
+// them from standing alone (Jerry, 2026-10-10: the field it replaced flowed up, in blobs that came and went on their
+// own; then streams, too vertical; this is between the two).
+const flow = (c: number, r: number, depth: number, t: number) =>
+    (noise(c * 0.35, (r - t * 1.8) * 0.25, t * 0.2) - 0.5) * (0.35 + 1.05 * depth)
+    + (noise(c * 0.9, (r - t * 2.6) * 0.7, t * 0.5) - 0.5) * 0.2;
 
-type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number; glow: number};
+type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number};
 
 export default function Squares({children}: {children?: ReactNode}) {
     const root = useRef<HTMLDivElement>(null);
@@ -96,12 +97,10 @@ export default function Squares({children}: {children?: ReactNode}) {
         const page = pageBackground(el);
         let glowColour = "";
         let levels = LEVELS;
-        let ember = EMBER.light;
         const restyle = (theme: Theme) => {
             glowColour = rgba(GLOW[theme]);
             // Empty cells barely show on a dark page: a little more of the mesh through them there.
             levels = isDarkTheme(theme) ? [0.14, ...LEVELS.slice(1)] : LEVELS;
-            ember = isDarkTheme(theme) ? EMBER.dark : EMBER.light;
         };
         restyle(shownTheme());
 
@@ -153,7 +152,7 @@ export default function Squares({children}: {children?: ReactNode}) {
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     const delay = clamp((r / rows) * ROWS_START + (random() - 0.5) * 0.12, 0, 1 - CELL_IN);
-                    cells.push({x: left + c * pitch, y: r * pitch, c, r, noise: random() - 0.5, delay, shown: 0, glow: 0});
+                    cells.push({x: left + c * pitch, y: r * pitch, c, r, noise: random() - 0.5, delay, shown: 0});
                 }
             }
         };
@@ -181,10 +180,7 @@ export default function Squares({children}: {children?: ReactNode}) {
             ctx.fillRect(0, ramp, width, room + 2 - ramp);
 
             if (poured <= 0) {
-                for (const cell of cells) {
-                    cell.shown = 0;
-                    cell.glow = 0;
-                }
+                for (const cell of cells) cell.shown = 0;
                 return;
             }
             const band = BAND * height;
@@ -198,21 +194,20 @@ export default function Squares({children}: {children?: ReactNode}) {
                 const arrived = clamp((poured - cell.delay) / CELL_IN);
                 if (arrived <= 0) continue;
                 const full = 1 - smoothstep(0, 1, d);
-                const lift = fire(cell.c, cell.r, clamp(d), time);
+                const lift = flow(cell.c, cell.r, clamp(d), time);
                 const wanted = clamp(Math.round((full + cell.noise * 0.45 + lift) * 4), 0, 4);
                 // Its shown level follows slowly; it starts from where the band is.
                 if (!cell.shown) cell.shown = levels[wanted]!;
                 cell.shown += (levels[wanted]! - cell.shown) * FOLLOW;
-                cell.glow += (clamp(lift * 2.2) * smoothstep(0.3, 0.95, d) - cell.glow) * FOLLOW;
                 const fadeOut = 1 - smoothstep(0.7, 1.04, d);
                 const alpha = cell.shown * fadeOut * arrived;
                 if (alpha <= 0.01) continue;
                 const x = cell.x + (pitch - size) / 2;
                 const y = cell.y + (pitch - size) / 2;
                 windows[Math.round(alpha * batches)]!.roundRect(x, y, size, size, 2.5);
-                // The front of the pour glows as each cell comes in, then the fire's embers.
+                // The front of the pour glows as each cell comes in, then the flow where it's brightest, fading down.
                 const front = 4 * arrived * (1 - arrived);
-                const glow = clamp((cell.glow * ember + front * 0.4) * fadeOut);
+                const glow = clamp((clamp(lift * 1.6) * full * EMBER + front * 0.4) * fadeOut);
                 if (glow > 0.02) embers[Math.round(glow * batches)]!.roundRect(x, y, size, size, 2.5);
             }
             windows.forEach((path, b) => {

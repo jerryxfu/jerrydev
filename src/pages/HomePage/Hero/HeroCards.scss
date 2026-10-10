@@ -108,34 +108,11 @@ a.hero-card_glass:hover {
     color: var(--text-3);
 }
 
-.hero-card_status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+// TechNexus's slogan, at the size the status line it replaced had.
+.hero-card_slogan {
     font-size: 0.86rem;
     font-weight: 500;
     color: var(--text-strong);
-}
-
-// A status dot, pulsing: live. Its colour is TechNexus's status of the moment (--dot).
-.hero-card_dot {
-    flex: none;
-    width: 8px;
-    height: 8px;
-    border-radius: var(--r-full);
-    background-color: var(--dot, #bf5af2);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot, #bf5af2) 28%, transparent);
-    transition: background-color 0.4s ease;
-
-    @media (prefers-reduced-motion: no-preference) {
-        animation: hero-card-pulse 2s ease-in-out infinite;
-    }
-}
-
-@keyframes hero-card-pulse {
-    50% {
-        box-shadow: 0 0 0 7px color-mix(in srgb, var(--dot, #bf5af2) 0%, transparent);
-    }
 }
 
 .hero-card_sub {

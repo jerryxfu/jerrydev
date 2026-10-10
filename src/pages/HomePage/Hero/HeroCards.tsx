@@ -1,4 +1,4 @@
-import {type CSSProperties, memo, useEffect, useRef, useState} from "react";
+import {type CSSProperties, memo, useRef} from "react";
 import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
@@ -17,16 +17,6 @@ gsap.registerPlugin(ScrollTrigger);
 // The announcement card's text, to change whenever there's something to say.
 const ANNOUNCEMENT = "Nothing for now...";
 
-// The "Now building" card's line, stepping like a match through TechNexus's statuses, in their colours.
-const BUILDING = [
-    {text: "with Raphaël & Samy", colour: "#bf5af2"},
-    {text: "Live from frc.nexus", colour: "#ff9f0a"},
-    {text: "App Store · Soon", colour: "#0a84ff"},
-    {text: "Android on its way", colour: "#30d158"},
-];
-// TechNexus's own beat (PULSE_EVERY in its story.ts).
-const BUILDING_EVERY = 3400;
-
 // Each theme by its --primary, the colour its mesh is built around.
 const SWATCH: Record<Theme, string> = {light: "#abcdef", night: "#104080", blush: "#f7b8d8", burgundy: "#9e1e3e"};
 const LABEL: Record<Theme, string> = {light: "Light", night: "Night", blush: "Blush", burgundy: "Burgundy"};
@@ -40,25 +30,6 @@ function HeroCards() {
     const root = useRef<HTMLDivElement>(null);
     const clock = useLocalClock();
     const {currentTheme, themePreference, setTheme} = useTheme();
-
-    // The building card cycles only while the hero is on screen, and not at all with reduced motion: a line that
-    // changes by itself every few seconds is motion too.
-    const [step, setStep] = useState(0);
-    useEffect(() => {
-        const el = root.current;
-        if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        let timer: number | undefined;
-        const observer = new IntersectionObserver(([entry]) => {
-            window.clearInterval(timer);
-            if (entry?.isIntersecting) timer = window.setInterval(() => setStep((n) => n + 1), BUILDING_EVERY);
-        });
-        observer.observe(el);
-        return () => {
-            observer.disconnect();
-            window.clearInterval(timer);
-        };
-    }, []);
-    const building = BUILDING[step % BUILDING.length] ?? BUILDING[0]!;
 
     useGSAP(() => {
         const el = root.current;
@@ -115,10 +86,7 @@ function HeroCards() {
                     <a className="hero-card_glass" href="https://technexus.jerryxf.net" target="_blank" rel="noopener noreferrer">
                         <span className="hero-card_label">Now building</span>
                         <span className="hero-card_big">TechNexus</span>
-                        <span className="hero-card_status">
-                            <span className="hero-card_dot" style={cssVar("--dot", building.colour)} aria-hidden="true" />
-                            <Morph text={building.text} />
-                        </span>
+                        <span className="hero-card_slogan">Your event, live.</span>
                     </a>
                 </div>
             </div>
