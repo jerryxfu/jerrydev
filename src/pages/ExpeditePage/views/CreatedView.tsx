@@ -38,6 +38,7 @@ export default function CreatedView({code, info, copiedField, onCopy, onDone}: C
                 <div className="expedite_link-box">
                     <input
                         className="expedite_link-input text-small"
+                        aria-label="The drop's link"
                         type="text"
                         value={getDropUrl(code)}
                         readOnly
@@ -45,6 +46,7 @@ export default function CreatedView({code, info, copiedField, onCopy, onDone}: C
                     />
                     <button
                         className="expedite_link-copy"
+                        aria-label={copiedField === "link" ? "Link copied" : "Copy the link"}
                         onClick={(e) => onCopy(getDropUrl(code), "link", e)}
                     >
                         {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}

@@ -97,8 +97,7 @@
     }
 
     // The dark themes swap in the dark colours Shiki ships as custom properties, as the blog does (prose.scss).
-    [data-theme="night"] &,
-    [data-theme="burgundy"] & {
+    [data-scheme="dark"] & {
         .shiki,
         .shiki span {
             color: var(--shiki-dark) !important;

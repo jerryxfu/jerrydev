@@ -87,7 +87,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-6);
+    color: var(--text-5);
 }
 
 .expedite_meta-value {
@@ -101,7 +101,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-6);
+    color: var(--text-5);
     margin: 1rem 0 0;
 }
 
@@ -184,11 +184,11 @@
 
     // The progress panels' green and red (UploadProgress.scss): the theme's --success is too light for small text.
     &.is-match {
-        color: #2e9b51;
+        color: var(--success-text);
     }
 
     &.is-mismatch {
-        color: #e1483a;
+        color: var(--danger-text);
     }
 }
 
@@ -223,11 +223,11 @@
 // The hash check's button, once it has run: green for a copy that matches, red for one that doesn't (with its icon, for
 // those who can't tell the two colours apart). The greens and reds of the line under the hash.
 .expedite_btn-secondary.is-match {
-    color: #2e9b51;
-    border-color: color-mix(in srgb, #2e9b51 55%, transparent);
+    color: var(--success-text);
+    border-color: color-mix(in srgb, var(--success-text) 55%, transparent);
 }
 
 .expedite_btn-secondary.is-mismatch {
-    color: #e1483a;
-    border-color: color-mix(in srgb, #e1483a 55%, transparent);
+    color: var(--danger-text);
+    border-color: color-mix(in srgb, var(--danger-text) 55%, transparent);
 }

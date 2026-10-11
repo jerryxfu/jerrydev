@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Scroll distance before the bar settles into its compact state: as soon as the page moves, as on TechNexus.
 const SHRINK_AT = 2;
-// A phone, as in Navbar.scss: there the bar floats below the status bar.
+// A phone, as $phone in Navbar.scss: there the bar floats below the status bar.
 const PHONE = "(max-width: 768px)";
 const ENTRY_DELAY = 0.1;
 // How long after the bar starts dropping before its contents follow it down.

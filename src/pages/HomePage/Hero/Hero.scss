@@ -152,7 +152,10 @@
 .hero_typing-text {
     height: 2rem;
     margin-top: 1.25rem;
-    color: var(--text-3);
+    // About halfway between the lines above it (--text-2) and --text-3, which fell to 3.5-4.1:1 over the moving mesh at
+    // its palest (Light, Blush, Latte): still a shade quieter than those lines, and 4.5:1 or more in every theme at 60%
+    // (Blush 4.57, Light and Latte 5.3; at 50%, Blush fell to 4.38).
+    color: color-mix(in srgb, var(--text-2) 60%, var(--text-3));
 
     @media screen and (max-width: 1024px) {
         font-size: 96%;
@@ -168,8 +171,8 @@
 // The mesh as tall as the hero, in the same unit. Its own class makes it 100% of the window minus any scrollbar, which
 // can be shorter than the hero's 100vh (a horizontal scrollbar at some zooms, a phone's toolbar) and leave a strip under
 // it, between the mesh and the squares. Two classes, to win over the mesh's one. Out of the flow here too, as its class
-// makes it: that class's stylesheet comes a moment after the hero shows (Hero.tsx imports it), and until then a 100vh
-// block would push the whole page a screen down, and every scroll trigger measured meanwhile would stay a screen off.
+// makes it, in case its stylesheet (gradient-meshes.scss) ever comes late: a 100vh block would push the whole page a
+// screen down, and every scroll trigger measured meanwhile would stay a screen off.
 .homepage .hero_mesh {
     position: absolute;
     width: 100%;

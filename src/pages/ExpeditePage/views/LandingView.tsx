@@ -1,10 +1,15 @@
 import {type ReactNode, useState} from "react";
 import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio} from "lucide-react";
 import {type DropType} from "../types.ts";
+import {useFileDrag} from "../useFileDrag.ts";
 import "./LandingView.scss";
 
 interface LandingViewProps {
     onSelect: (type: DropType) => void;
+    // A file dropped on the File or Direct P2P tile.
+    onDropFile: (type: "file" | "p2p", file: globalThis.File) => void;
+    // A file is being dragged over the page: the tiles that take it show it.
+    dragging: boolean;
     code: string;
     setCode: (code: string) => void;
     error: string | null;
@@ -15,9 +20,11 @@ interface LandingViewProps {
 
 // `help` is the long-form answer behind the question mark. Optional because only
 // the mode people actually have to choose between needs one.
-const TILES: {
+type TileInfo = {
     type: DropType; label: string; note: string; desc: string; icon: typeof File; help?: ReactNode;
-}[] = [
+};
+
+const TILES: TileInfo[] = [
     {
         type: "text", label: "Text", note: "text or code", icon: FileText,
         desc: "Stored in the cloud, up to 500 KB. Expires between 1 minute and 24 hours.",
@@ -51,8 +58,28 @@ function toCode(input: string): string {
     return (fromLink?.[1] ?? input.replace(/[^A-Za-z0-9]/g, "").slice(0, 5)).toUpperCase();
 }
 
+// A tile: a click opens its screen. File and Direct P2P also take a dropped file, and open their screen with it.
+function Tile({type, label, note, icon: Icon, onSelect, onDropFile, dragging}: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
+    const takesFiles = type !== "text";
+    const drag = useFileDrag((file) => {
+        if (type !== "text") onDropFile(type, file);
+    });
+    return (
+        <button
+            className={`expedite_tile${takesFiles && dragging ? " is-target" : ""}${takesFiles && drag.over ? " is-over" : ""}`}
+            data-kind={type}
+            onClick={() => onSelect(type)}
+            {...(takesFiles ? drag.handlers : {})}
+        >
+            <Icon size={20} strokeWidth={1.5} />
+            <span className="expedite_tile-label">{label}</span>
+            <span className="expedite_tile-note">{note}</span>
+        </button>
+    );
+}
+
 export default function LandingView(
-    {onSelect, code, setCode, error, loading, onRetrieve, p2pSupported}: LandingViewProps
+    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pSupported}: LandingViewProps
 ) {
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
@@ -66,21 +93,12 @@ export default function LandingView(
                 <p className="expedite_landing-label">Send</p>
 
                 <div className="expedite_tiles">
-                    {TILES.map(({type, label, note, icon: Icon}) => (
-                        <button
-                            key={type}
-                            className="expedite_tile"
-                            data-kind={type}
-                            onClick={() => onSelect(type)}
-                        >
-                            <Icon size={20} strokeWidth={1.5} />
-                            <span className="expedite_tile-label">{label}</span>
-                            <span className="expedite_tile-note">{note}</span>
-                        </button>
+                    {TILES.map((tile) => (
+                        <Tile key={tile.type} {...tile} onSelect={onSelect} onDropFile={onDropFile} dragging={dragging} />
                     ))}
                 </div>
 
-                <p className="expedite_landing-hint">Or drop a file anywhere on this page.</p>
+                <p className="expedite_landing-hint">Or drop a file on the page.</p>
 
                 <dl className="expedite_landing-modes">
                     {TILES.map(({type, label, desc, help}) => (

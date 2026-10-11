@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio, Upload} from "lucide-react";
+import React, {useEffect, useRef, useState} from "react";
+import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio} from "lucide-react";
 import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
@@ -18,7 +18,7 @@ import {
     type UploadSnapshot,
     type ViewMode
 } from "./types.ts";
-import {formatBytes} from "./utils.ts";
+import {copyText, formatBytes} from "./utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
 import CreatedView, {type CreatedInfo} from "./views/CreatedView.tsx";
@@ -28,6 +28,7 @@ import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
 import {type Hashing, hashBlob} from "./sha256.ts";
 import {resolveLanguage} from "./highlight.ts";
+import {useFileDrag} from "./useFileDrag.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
 import {P2PError} from "./p2p/peer.ts";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
@@ -35,16 +36,23 @@ import {receiveP2P} from "./p2p/receiver.ts";
 import Navbar from "@/components/Nav/Navbar.tsx";
 
 // --- GSAP transition helpers ---
+// With reduced motion there's none: the screen just changes.
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 function animateIn(el: HTMLElement | null, delay = 0) {
     if (!el) return;
-    void void gsap.fromTo(el,
+    if (reducedMotion()) {
+        gsap.set(el, {opacity: 1, y: 0});
+        return;
+    }
+    void gsap.fromTo(el,
         {opacity: 0, y: 16},
         {opacity: 1, y: 0, duration: 0.33, delay, ease: "power2.out"}
     );
 }
 
 function animateOut(el: HTMLElement | null): Promise<void> {
-    if (!el) return Promise.resolve();
+    if (!el || reducedMotion()) return Promise.resolve();
     return new Promise((resolve) => {
         void gsap.to(el, {
             opacity: 0, y: -12, duration: 0.2, ease: "power2.in",
@@ -104,7 +112,6 @@ export default function Expedite() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [settings, setSettings] = useState<DropSettings>({...DEFAULT_SETTINGS});
     const [maxViewsInput, setMaxViewsInput] = useState("");
 
@@ -131,6 +138,8 @@ export default function Expedite() {
     // label for the progress readout: without it the handover reads as a red
     // failure followed by an unexplained wait, and people abort.
     const [p2pRelayRetry, setP2pRelayRetry] = useState(false);
+    // The receiver's recovery countdown (recoverP2PReceive), in view rather than in the folded connection details.
+    const [p2pWait, setP2pWait] = useState<string | null>(null);
     // Automatic receiver reconnects used for the current accepted transfer.
     const p2pRecoveredRef = useRef(0);
     const p2pAbortRef = useRef<AbortController | null>(null);
@@ -153,24 +162,12 @@ export default function Expedite() {
         && stats.turnUsage.egressBytes >= stats.turnUsage.capBytes;
 
     const viewRef = useRef<HTMLDivElement>(null);
-    const dragOverlayRef = useRef<HTMLDivElement>(null);
     const hasInitialized = useRef(false);
 
     // Animate view transitions
     useEffect(() => {
         animateIn(viewRef.current);
     }, [view, createdCode, result]);
-
-    // Drag overlay animation
-    useEffect(() => {
-        if (dragOverlayRef.current) {
-            gsap.to(dragOverlayRef.current, {
-                opacity: isDragging ? 1 : 0,
-                duration: 0.2,
-                pointerEvents: isDragging ? "auto" : "none"
-            });
-        }
-    }, [isDragging]);
 
     // Fetch stats
     useEffect(() => {
@@ -183,15 +180,24 @@ export default function Expedite() {
         });
     }, [view]);
 
-    // A live session left dangling would keep handing out an offer nobody is
-    // listening for until its TTL runs out. keepalive lets the request outlive
-    // the page; sendBeacon can't be used because it only issues POSTs.
+    // Leaving Expedite stops whatever runs, as Cancel or Back would: an upload and its hashing (the server is told, so it
+    // frees the drop), a P2P transfer, and its session (else it keeps handing out an offer nobody is listening for until
+    // its TTL runs out), a download's hash check. When the page goes (a closed tab, another site) as when the site moves
+    // on to another of its pages (the logo, a link). The server calls use keepalive to outlive a closing page;
+    // sendBeacon can't be used because it only issues POSTs. pagehide rather than beforeunload: phones often skip that.
     useEffect(() => {
-        const onUnload = (): void => {
+        const stop = (): void => {
+            uploadAbortRef.current?.abort();
+            p2pAbortRef.current?.abort();
+            checkRef.current?.cancel();
             if (p2pCodeRef.current) closeSession(apiBaseUrl, p2pCodeRef.current);
+            p2pCodeRef.current = null;
         };
-        window.addEventListener("beforeunload", onUnload);
-        return () => window.removeEventListener("beforeunload", onUnload);
+        window.addEventListener("pagehide", stop);
+        return () => {
+            window.removeEventListener("pagehide", stop);
+            stop();
+        };
     }, []);
 
     const transitionTo = async (nextView: ViewMode) => {
@@ -213,6 +219,7 @@ export default function Expedite() {
         setP2pRunning(false);
         setP2pSnapshot(null);
         setP2pRelayRetry(false);
+        setP2pWait(null);
         setP2pStatus(freshStatus());
 
         await animateOut(viewRef.current);
@@ -495,17 +502,11 @@ export default function Expedite() {
                 // the difference between "still working" and "hung"; a 90s wait
                 // behind a single static line is what makes people hit abort.
                 for (let left = Math.round(RECOVERY_POLL_MS / 1000); left > 0; left--) {
-                    setP2pStatus((prev) => ({
-                        ...prev,
-                        detail: `waiting for the sender to republish · attempt ${poll}/${RECOVERY_MAX_POLLS},`
-                            + ` next check in ${left}s`,
-                    }));
+                    setP2pWait(`waiting for the sender to republish · attempt ${poll}/${RECOVERY_MAX_POLLS},`
+                        + ` next check in ${left}s`);
                     await sleep(1_000, controller.signal);
                 }
-                setP2pStatus((prev) => ({
-                    ...prev,
-                    detail: `checking for the sender's new session · attempt ${poll}/${RECOVERY_MAX_POLLS}`,
-                }));
+                setP2pWait(`checking for the sender's new session · attempt ${poll}/${RECOVERY_MAX_POLLS}`);
                 // Recovery exists to outlive a broken network moment, so a poll
                 // that can't reach the API is just "not yet". Only an abort will exit.
                 let meta: DropMeta;
@@ -522,6 +523,7 @@ export default function Expedite() {
 
                 setResult(meta);
                 p2pAbortRef.current = null;
+                setP2pWait(null);
                 return runP2PReceive(meta, handle);
             }
             setP2pStatus((prev) => ({...prev, phase: "failed"}));
@@ -533,6 +535,7 @@ export default function Expedite() {
             }
         } finally {
             if (p2pAbortRef.current === controller) p2pAbortRef.current = null;
+            setP2pWait(null);
         }
     };
 
@@ -650,14 +653,15 @@ export default function Expedite() {
     };
 
     const copyToClipboard = async (text: string, field: string, e?: React.MouseEvent) => {
+        // Read before waiting: React clears it once the click is handled.
         const btn = e?.currentTarget as HTMLElement | null;
+        // Green and "Copied" only once it's really copied.
+        if (!await copyText(text)) return;
 
         if (btn) {
             btn.classList.add("expedite_btn--success");
             setTimeout(() => btn.classList.remove("expedite_btn--success"), 1500);
         }
-
-        await navigator.clipboard.writeText(text);
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 2000);
     };
@@ -668,23 +672,17 @@ export default function Expedite() {
         setSettings(s => ({...s, maxViews: (num > 0) ? num : null}));
     };
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            setSelectedFile(file);
-            setDropType("file");
-            setView("composing");
-        }
-    }, []);
+    // Files are taken where they're dropped on purpose: the landing's File and Direct P2P tiles, and the file zones on
+    // those screens. Anywhere else the page refuses them, or the browser would open the file in place of Expedite (and a
+    // stray drop used to switch screens, even mid-transfer). While one is dragged over the page, the landing shows
+    // where it can go.
+    const pageDrag = useFileDrag();
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-    }, []);
-
-    const handleDragLeave = useCallback(() => setIsDragging(false), []);
+    // A file dropped on the landing's File or Direct P2P tile: that screen, with the file chosen.
+    const handleDropFile = async (type: "file" | "p2p", file: globalThis.File) => {
+        setSelectedFile(file);
+        await handleSelect(type);
+    };
 
     // The kind of drop on screen, whose heading it shows: the same while it's written, once it's made and when it's
     // received. The landing page is Expedite itself.
@@ -700,9 +698,7 @@ export default function Expedite() {
     return (
         <div
             className={`expedite${receiving ? " expedite--bare" : ""}`}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
+            {...pageDrag.handlers}
         >
             <Helmet>
                 <title>Expedite 📦 | jerryxf</title>
@@ -717,12 +713,6 @@ export default function Expedite() {
                     <div className="nav-spacer" />
                 </>
             )}
-
-            {/* Drag overlay */}
-            <div ref={dragOverlayRef} className="expedite_drag-overlay" style={{opacity: 0, pointerEvents: "none"}}>
-                <Upload size={48} strokeWidth={1} />
-                <p>Drop file to upload</p>
-            </div>
 
             {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). */}
             <div className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}`}>
@@ -751,6 +741,8 @@ export default function Expedite() {
                     {view === "landing" && (
                         <LandingView
                             onSelect={handleSelect}
+                            onDropFile={handleDropFile}
+                            dragging={pageDrag.over}
                             code={retrieveCode}
                             setCode={setRetrieveCode}
                             error={error}
@@ -833,6 +825,7 @@ export default function Expedite() {
                             retryable={p2pIceFailed}
                             relayDisabled={relayBlocked}
                             relayRetry={p2pRelayRetry}
+                            wait={p2pWait}
                             onAccept={acceptP2PReceive}
                             onRetry={() => void retryP2PReceive()}
                             onCancel={reset}

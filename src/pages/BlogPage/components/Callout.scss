@@ -9,7 +9,7 @@
     border-left: 3px solid var(--callout-tint);
     border-radius: var(--r-none);
     // color-mix against --bg rather than a fixed alpha: an alpha tint over the dark themes washes
-    // out to grey, while mixing with the page background keeps the same 8% weight readable in all four.
+    // out to grey, while mixing with the page background keeps the same 8% weight readable in every theme.
     background-color: color-mix(in srgb, var(--callout-tint) 8%, var(--bg));
 }
 

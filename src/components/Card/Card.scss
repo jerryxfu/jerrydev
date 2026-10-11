@@ -135,7 +135,7 @@
 
 // Sits over the bottom of the image as a scrim. The colours are hardcoded rather than themed on purpose: this floats
 // over an arbitrary image, so a --surface gradient would be near-white in light mode and unreadable against a pale
-// logo. A dark scrim with white text is legible over anything, in all four themes.
+// logo. A dark scrim with white text is legible over anything, in every theme.
 .card_article {
     position: absolute;
     left: 0;

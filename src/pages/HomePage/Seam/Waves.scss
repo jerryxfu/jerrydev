@@ -1,8 +1,8 @@
 // Waves.tsx: over the hero's lower part, above the squares' room (it sits in it, moved up past its top), under the
-// hero's words. The colour is the squares' glow (GLOW in Squares.tsx): white, pale blue at night, pale pink in burgundy,
-// a little fainter in the dark themes.
+// hero's words. The colour is the theme's horizon light (--horizon in index.scss, the squares' glow too), a little
+// fainter in the dark themes.
 .waves {
-    --wave: rgb(255, 255, 255);
+    --wave: var(--horizon);
     --dim: 1;
     position: absolute;
     left: 0;
@@ -16,13 +16,7 @@
     pointer-events: none;
 }
 
-[data-theme="night"] .waves {
-    --wave: rgb(176, 208, 255);
-    --dim: 0.6;
-}
-
-[data-theme="burgundy"] .waves {
-    --wave: rgb(255, 196, 214);
+[data-scheme="dark"] .waves {
     --dim: 0.6;
 }
 

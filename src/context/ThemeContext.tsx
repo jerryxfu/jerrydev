@@ -1,24 +1,31 @@
-import React, {createContext, type ReactNode, useContext, useEffect, useMemo, useState} from "react";
+import React, {createContext, type ReactNode, useContext, useEffect, useState, useSyncExternalStore} from "react";
+import {Coffee, Flower2, type LucideIcon, Moon, Snowflake, Sun, Wine} from "lucide-react";
 
-// Adding a theme, all six steps:
-// 1. add its name to THEMES below
-// 2. add it to DARK_THEMES below if its background is dark
-// 3. add a [data-theme="name"] block in index.scss
-// 4. add an icon and a label for it in ThemeToggle.tsx
-// 5. add a gradient mesh in src/assets/styles/, then map and preload it in Hero.tsx
-// 6. add it to the themes list and the boot colour map in index.html
-// Only 1, 4 and 5 are type checked. The rest fail silently, so work the list.
-export const THEMES = ["light", "night", "blush", "burgundy"] as const;
-export type Theme = typeof THEMES[number];
+// Every theme, in the order the toggle cycles through them: its name and icon (the toggle, the hero's theme card), its
+// swatch in the theme card (the --primary its mesh is built around), and whether its background is dark (to resolve
+// "auto", for data-scheme, which the styles that change only in the dark go by, and for components that swap assets).
+// Adding a theme, four steps:
+// 1. an entry here
+// 2. a [data-theme="name"] block in index.scss
+// 3. its mesh in src/assets/styles/gradient-meshes.scss
+// 4. its background, and whether it's dark, in the boot map in index.html
+// Only 1 is type checked. The rest fail silently, so work the list.
+export const THEME_INFO = {
+    light: {label: "Light", icon: Sun, swatch: "#abcdef", dark: false},
+    night: {label: "Night", icon: Moon, swatch: "#104080", dark: true},
+    blush: {label: "Blush", icon: Flower2, swatch: "#f7b8d8", dark: false},
+    burgundy: {label: "Burgundy", icon: Wine, swatch: "#9e1e3e", dark: true},
+    glacier: {label: "Glacier", icon: Snowflake, swatch: "#c9d6e8", dark: false},
+    latte: {label: "Latte", icon: Coffee, swatch: "#d8bb97", dark: false},
+} satisfies Record<string, {label: string; icon: LucideIcon; swatch: string; dark: boolean}>;
+export type Theme = keyof typeof THEME_INFO;
+export const THEMES = Object.keys(THEME_INFO) as Theme[];
 
-// The order the toggle cycles through, with auto at thr end
-export const THEME_PREFERENCES = [...THEMES, "auto"] as const;
-export type ThemePreference = typeof THEME_PREFERENCES[number];
+// The order the toggle cycles through, with auto at the end
+export type ThemePreference = Theme | "auto";
+export const THEME_PREFERENCES: readonly ThemePreference[] = [...THEMES, "auto"];
 
-// Themes with a dark background. Used to resolve "auto", and available to components that swap assets based on background lightness.
-const DARK_THEMES: readonly Theme[] = ["night", "burgundy"];
-
-export const isDarkTheme = (theme: Theme): boolean => DARK_THEMES.includes(theme);
+export const isDarkTheme = (theme: Theme): boolean => THEME_INFO[theme].dark;
 
 const STORAGE_KEY = "themeName";
 
@@ -34,10 +41,15 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 const isPreference = (value: unknown): value is ThemePreference =>
     THEME_PREFERENCES.includes(value as ThemePreference);
 
-function resolveTheme(pref: ThemePreference): Theme {
-    if (pref !== "auto") return pref;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "light";
-}
+// Whether the OS asks for dark, followed live: what "auto" resolves to (Night or Light), as index.html's boot script
+// resolves it before React starts, so the first render agrees with the first paint.
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+const prefersDark = () => window.matchMedia(DARK_QUERY).matches;
+const watchScheme = (onChange: () => void) => {
+    const mq = window.matchMedia(DARK_QUERY);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+};
 
 function getInitialPreference(): ThemePreference {
     try {
@@ -49,26 +61,15 @@ function getInitialPreference(): ThemePreference {
     return "light";
 }
 
-// Fixes FOUC (Flash of Unstyled Content): the inline script in index.html has
-// already picked a theme before React boots, so trust what it wrote.
-function getInitialAutoTheme(): Theme {
-    const applied = document.documentElement.getAttribute("data-theme");
-    if (applied && THEMES.includes(applied as Theme)) return applied as Theme;
-    return resolveTheme(getInitialPreference());
-}
-
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialPreference);
-    const [autoTheme, setAutoTheme] = useState<Theme>(getInitialAutoTheme);
-
-    const currentTheme = useMemo(
-        () => (themePreference === "auto" ? autoTheme : themePreference),
-        [themePreference, autoTheme]
-    );
+    const osDark = useSyncExternalStore(watchScheme, prefersDark);
+    const currentTheme: Theme = themePreference === "auto" ? (osDark ? "night" : "light") : themePreference;
 
     // Apply theme to DOM + persist
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", currentTheme);
+        document.documentElement.setAttribute("data-scheme", isDarkTheme(currentTheme) ? "dark" : "light");
         document.body.setAttribute("data-theme", currentTheme);
         // Hand the background back to CSS once styles are loaded (clears the inline boot bg)
         document.documentElement.style.background = "";
@@ -86,15 +87,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => 
             console.warn("Failed to save theme preference:", error);
         }
     }, [currentTheme, themePreference]);
-
-    // Listen for OS theme changes when on auto
-    useEffect(() => {
-        if (themePreference !== "auto") return;
-        const mq = window.matchMedia("(prefers-color-scheme: dark)");
-        const handler = () => setAutoTheme(resolveTheme("auto"));
-        mq.addEventListener("change", handler);
-        return () => mq.removeEventListener("change", handler);
-    }, [themePreference]);
 
     const toggleTheme = () => {
         setThemePreference((prev) => {

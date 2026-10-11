@@ -69,7 +69,8 @@ export default function PostPage() {
     return (
         <div className="post">
             <Helmet>
-                <title>{post.title} | jerryxf</title>
+                {/* One string: React leaves a title made of several pieces empty. */}
+                <title>{`${post.title} | jerryxf`}</title>
                 <meta name="description" content={post.description} />
                 <link rel="canonical" href={`https://jerryxf.net/blog/${post.slug}`} />
                 <meta property="og:type" content="article" />

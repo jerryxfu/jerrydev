@@ -3,7 +3,7 @@
 // GitHub themes (as on the blog), and one grammar per language as it's needed. The grammars are listed one by one so
 // the build emits these and no others (Shiki has 300).
 
-export interface Language {
+interface Language {
     label: string;
     load: () => Promise<unknown>;
 }

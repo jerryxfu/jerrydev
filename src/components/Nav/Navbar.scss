@@ -8,6 +8,15 @@
 $dur: 0.4s;
 $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
+// The two widths the bar changes at, one decision each:
+// - up to $phone, a phone: the bar floats as an island below the status bar (phone-island, below). Navbar.tsx's PHONE
+//   is the same width.
+// - below $links, the inline links go and the drawer, which has them all, is the menu: with the longest theme name in
+//   the toggle, they need 960px on the hero's bar and 920px on the solid one (measured 2026-10-10; at 768 and 640, the
+//   old widths, the bar ran off the screen on a tablet, menu button and all).
+$phone: 768px;
+$links: 1000px;
+
 // On a phone, where the bar floats: below the status bar, with room on each side, fading in. Never against the
 // screen's top edge: Safari 26 fills the status bar with a solid colour for anything fixed drawn there, even for a
 // moment, and keeps it after; otherwise the page shows under it (tried on Jerry's iPhone, 2026-10-08: it goes by where
@@ -115,6 +124,10 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     margin: 0;
     padding: 0;
 
+    @media screen and (max-width: $links - 1px) {
+        display: none;
+    }
+
     li {
         display: flex;
         justify-content: center;
@@ -189,7 +202,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     // scrolled or not (Jerry, 2026-10-08), and shows its own frosted pill only once scrolled: at the top of the page,
     // the full bar's look is the strip under it (.navbar_strip, below), which leaves as the page moves. So nothing
     // fixed comes near the screen's top edge, and nothing on the bar moves. 62px: the bar's 50, and 6px above and below.
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         @include phone-island;
         padding: 0.375rem 0.5rem;
         backdrop-filter: none;
@@ -211,14 +224,14 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
 // Shrunk on a wider screen; on a phone it only shows its pill (Jerry, 2026-10-08: the shrink looks better on a laptop).
 .navbar--hero.is-scrolled {
-    @media screen and (min-width: 769px) {
+    @media screen and (min-width: $phone + 1px) {
         scale: 0.95;
         translate: 0 6px;
         border-radius: var(--r-md);
         padding: 0.5rem 0;
     }
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         &::before {
             opacity: 1;
         }
@@ -232,7 +245,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 .navbar_strip {
     display: none;
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         display: block;
         position: absolute;
         top: 0;
@@ -267,13 +280,13 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     transition: height $dur $ease;
 
     // On a phone, the island's height scrolled or not (above).
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         height: 50px;
     }
 }
 
 .navbar--hero.is-scrolled .navbar_bar {
-    @media screen and (min-width: 769px) {
+    @media screen and (min-width: $phone + 1px) {
         height: 50px;
     }
 }
@@ -287,31 +300,25 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 .navbar--hero .navbar_logo img {
     height: 85%;
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         scale: 0.8;
     }
 }
 
-.navbar--hero .navbar_inline {
-    li {
-        margin-right: 32px;
-    }
-
-    @media screen and (max-width: 768px) {
-        display: none;
-    }
+.navbar--hero .navbar_inline li {
+    margin-right: 32px;
 }
 
 .navbar--hero .navbar_actions {
     margin-right: 2.5rem;
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         margin-right: 0.5rem;
     }
 }
 
 // The pill under the link of the section being read (Navbar.tsx places it). Tinted from --primary-lt like the
-// menu button's hover, so each theme gets its own: pale blue, deep blue, pink, wine. Earlier in the nav than the
+// menu button's hover, so each theme gets its own tint. Earlier in the nav than the
 // links, which are positioned, so it paints under them.
 .navbar_pill {
     position: absolute;
@@ -328,7 +335,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     // The inline links are gone there; the drawer has the menu.
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $links - 1px) {
         display: none;
     }
 
@@ -360,7 +367,7 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
     // On a phone, every page with this bar has it compact from the start: the island, fading in rather than dropping in
     // from above, which would pass the screen's top edge (Navbar.tsx).
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: $phone) {
         @include phone-island;
         padding: 0.45rem 0.25rem;
     }
@@ -392,10 +399,6 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 // both modes — only the spacing differs from hero.
 .navbar--solid .navbar_inline {
     gap: 1.5rem;
-
-    @media screen and (max-width: 640px) {
-        display: none;
-    }
 }
 
 .navbar--solid .navbar_actions {
@@ -524,6 +527,8 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     justify-content: space-between;
     gap: 0.5rem;
     width: 100%;
+    // Its padding inside that width, so the hover lines up with the menu on both sides (it overhung the right by 21px).
+    box-sizing: border-box;
 
     background: transparent;
     border: none;

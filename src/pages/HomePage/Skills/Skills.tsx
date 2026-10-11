@@ -1,4 +1,5 @@
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
+import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
 import "./Skills.scss";
 import SkillCard from "./components/SkillCard.tsx";
 import _java from "../../../assets/skills/java.svg";
@@ -79,7 +80,13 @@ const tech_stack = [
     }
 ];
 
+// The languages card is a picture from the stats server, so its text can't follow the theme: on the dark themes it's
+// asked for in a light grey (Night's --text-2), as its default, #434d58, is 2.2:1 there.
+const LANGUAGES_CARD = "https://github-stats.jerryxf.net/api/top-langs/?username=jerryxfu&layout=compact&langs_count=20"
+    + "&hide_title=true&hide_border=true&bg_color=00000000&title_color=abcdef";
+
 export default function Skills() {
+    const {currentTheme} = useTheme();
     return (
         <div className="section skills">
             <SectionTitle
@@ -106,7 +113,7 @@ export default function Skills() {
                     <h2 style={{fontWeight: 400}}>Github top languages</h2>
                     <img
                         className="skills_languages-card"
-                        src="https://github-stats.jerryxf.net/api/top-langs/?username=jerryxfu&layout=compact&langs_count=20&hide_title=true&hide_border=true&bg_color=00000000&title_color=abcdef"
+                        src={isDarkTheme(currentTheme) ? `${LANGUAGES_CARD}&text_color=c8c8c8` : LANGUAGES_CARD}
                         alt="Github languages card"
                         width={300}
                         height={285}

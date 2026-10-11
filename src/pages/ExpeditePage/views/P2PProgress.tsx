@@ -16,6 +16,11 @@ interface Props {
      * engines overwrite `detail` on every phase change and would wipe it.
      */
     relayRetry?: boolean;
+    /**
+     * The receiver's recovery countdown, shown under the bar rather than with the engines' trace in the connection
+     * details: a number that moves is what tells "still working" from "hung" over the 90s wait.
+     */
+    wait?: string | null;
 }
 
 const PHASE_LABEL: Record<P2PPhase, string> = {
@@ -54,7 +59,7 @@ const LADDER: P2PPhase[] = [
     "gathering", "signalling", "awaiting-peer", "negotiating", "connected", "transferring", "done",
 ];
 
-export default function P2PProgress({status, snapshot, role, relayRetry = false}: Props) {
+export default function P2PProgress({status, snapshot, role, relayRetry = false, wait = null}: Props) {
     // Throughput is measured in the transfer engine and arrives on the snapshot.
     const speed = snapshot?.speedBps ?? 0;
 
@@ -121,6 +126,8 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false}
                     </div>
                 </div>
             )}
+
+            {wait && <p className="expedite_p2p-trace">{wait}</p>}
 
             {/* Transfer bar */}
             {snapshot && (

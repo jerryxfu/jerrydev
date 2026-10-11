@@ -164,8 +164,8 @@ a.hero-card_glass:hover {
     }
 }
 
+// On its own line under the swatches, so the card keeps its width however many themes there are.
 .hero-card_theme-name {
-    margin-left: 0.3rem;
     font-size: 0.86rem;
     font-weight: 500;
     color: var(--text-strong);

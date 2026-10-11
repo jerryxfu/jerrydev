@@ -98,8 +98,7 @@
 
         // flip colors on transparent background images
         &.diagram {
-            [data-theme="night"] &,
-            [data-theme="burgundy"] & {
+            [data-scheme="dark"] & {
                 filter: invert(1) hue-rotate(180deg);
             }
         }
@@ -110,7 +109,7 @@
         padding: 0.15rem 0 0.15rem 1.1rem;
         border-left: 3px solid var(--border-da);
         // One step further down the ladder than it was: against body text at --text-2, --text-3 is only ~34 points
-        // apart in the light theme and reads as the same grey. --text-4 is a visible step in all four themes.
+        // apart in the light theme and reads as the same grey. --text-4 is a visible step in every theme.
         color: var(--text-4);
 
         // Blockquote content is wrapped in <p>, which carries a 1.15rem bottom margin from the rule above. That margin
@@ -207,10 +206,9 @@
     }
 
     // Shiki bakes the light theme in as inline styles and ships the dark one as custom properties. Inline styles beat any selector, so the swap needs
-    // !important — this is Shiki's own documented dual-theme pattern. Keyed to the dark themes rather than to theme names, which means DARK_THEMES
-    // in ThemeContext stays the single source of truth and a fifth theme needs nothing here beyond being listed there.
-    [data-theme="night"] &,
-    [data-theme="burgundy"] & {
+    // !important — this is Shiki's own documented dual-theme pattern. Keyed to data-scheme rather than to theme names, so THEME_INFO in
+    // ThemeContext stays the single source of truth and a new theme needs nothing here.
+    [data-scheme="dark"] & {
         .shiki,
         .shiki span {
             color: var(--shiki-dark) !important;

@@ -2,7 +2,7 @@ import {Download, MonitorSmartphone, Radio} from "lucide-react";
 import {type DropMeta, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, timeUntil} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
-import Disclosure from "./Disclosure.tsx";
+import RelaySetting from "./RelaySetting.tsx";
 import "./P2PReceiveView.scss";
 
 interface P2PReceiveViewProps {
@@ -20,6 +20,8 @@ interface P2PReceiveViewProps {
     relayDisabled: boolean;
     /** This attempt is the automatic relay fallback — annotates the progress readout. */
     relayRetry: boolean;
+    // The recovery countdown, while it waits for the sender to come back.
+    wait: string | null;
     onAccept: () => void;
     onRetry: () => void;
     onCancel: () => void;
@@ -38,6 +40,7 @@ export default function P2PReceiveView(
         retryable,
         relayDisabled,
         relayRetry,
+        wait,
         onAccept,
         onRetry,
         onCancel
@@ -93,37 +96,7 @@ export default function P2PReceiveView(
                     </div>
 
                     <div className="expedite_side">
-                        {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
-                            route fails, so few need it. Said beside the title when it's on. */}
-                        <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
-                            <div className="expedite_settings">
-                                <p className="expedite_settings-title">Transport</p>
-                                <div className="expedite_setting-row">
-                                    <label className="text-small">
-                                        Force TURN relay
-                                        <span className="expedite_setting-sub">
-                                            Expedite tries a direct connection first and switches to the relay by
-                                            itself if that fails. Turn it on if direct transfers keep failing on your
-                                            network. The relay (Traversal Using Relays around NAT, through Cloudflare
-                                            TURN) passes the file through a server instead of straight between the
-                                            devices.
-                                        </span>
-                                    </label>
-                                    <button
-                                        className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
-                                        onClick={() => setUseTurn(!useTurn)}
-                                        disabled={relayDisabled}
-                                    >
-                                        <span className="expedite_toggle-knob" />
-                                    </button>
-                                </div>
-                                {relayDisabled && (
-                                    <p className="expedite_p2p-standby">
-                                        This month's relay quota is used up, so transfers are direct-only until it resets.
-                                    </p>
-                                )}
-                            </div>
-                        </Disclosure>
+                        <RelaySetting useTurn={useTurn} setUseTurn={setUseTurn} relayDisabled={relayDisabled} />
 
                         <div className="expedite_p2p-notes">
                             <p className="expedite_p2p-notes-title">How does this work?</p>
@@ -154,7 +127,7 @@ export default function P2PReceiveView(
                         {meta.fileName ?? "unnamed"} · {formatBytes(meta.size)}
                     </p>
 
-                    <P2PProgress status={status} snapshot={snapshot} role="receive" relayRetry={relayRetry} />
+                    <P2PProgress status={status} snapshot={snapshot} role="receive" relayRetry={relayRetry} wait={wait} />
 
                     {error && <p className="expedite_error">{error}</p>}
 

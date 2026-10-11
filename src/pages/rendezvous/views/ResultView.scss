@@ -69,7 +69,7 @@
 }
 
 // A real colour rather than opacity: 0.5, which multiplies against whatever is behind it and lands at a
-// different contrast on each of the four themes.
+// different contrast in each theme.
 .rv_slot-detail-hint {
     color: var(--text-5);
 }

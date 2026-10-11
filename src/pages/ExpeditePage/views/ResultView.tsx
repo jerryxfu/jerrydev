@@ -1,4 +1,5 @@
 import React, {type ReactNode, useMemo, useRef, useState} from "react";
+import {flushSync} from "react-dom";
 import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, SlidersHorizontal, Trash2} from "lucide-react";
 import {type DownloadCheck, type DropMeta} from "../types.ts";
 import {formatBytes, getDropUrl, timeUntil, when} from "../utils.ts";
@@ -72,6 +73,12 @@ export default function ResultView(
     const check = downloadCheck?.state;
     // Deleting removes the drop for everyone, so the trash button asks first, in place.
     const [confirmingDelete, setConfirmingDelete] = useState(false);
+    // Keeping it (the button or Escape) puts the focus back on the trash button, where the question came from.
+    const trash = useRef<HTMLButtonElement>(null);
+    const keep = () => {
+        flushSync(() => setConfirmingDelete(false));
+        trash.current?.focus();
+    };
     // Opening it used the last view the sender allowed: the code is gone for anyone else.
     const lastView = result.maxViews != null && result.views >= result.maxViews;
     const isText = result.type === "text";
@@ -161,17 +168,28 @@ export default function ResultView(
 
             {/* Actions */}
             {confirmingDelete ? (
-                <div className="expedite_btn-row expedite_confirm">
+                // Keyed, so the question's buttons are new ones (autoFocus works only on a new element) rather than
+                // the row's own reused in place, the Link button turned into "Keep it".
+                <div
+                    key="confirm"
+                    className="expedite_btn-row expedite_confirm"
+                    role="group"
+                    aria-label="Delete this drop?"
+                    onKeyDown={(e) => {
+                        if (e.key === "Escape") keep();
+                    }}
+                >
                     <p>Delete this drop for everyone? Its code and link stop working.</p>
-                    <button className="expedite_btn-secondary" onClick={() => setConfirmingDelete(false)} autoFocus>Keep it</button>
+                    <button className="expedite_btn-secondary" onClick={keep} autoFocus>Keep it</button>
                     <button className="expedite_btn-secondary expedite_btn-secondary--danger" onClick={onDelete}>
                         <Trash2 size={14} />
                         Delete
                     </button>
                 </div>
             ) : (
-                <div className="expedite_btn-row">
+                <div key="actions" className="expedite_btn-row">
                     <button
+                        ref={trash}
                         className={`expedite_btn-icon ${result.deletable ? "expedite_btn-icon--danger" : "expedite_btn-icon--disabled"}`}
                         onClick={() => setConfirmingDelete(true)}
                         disabled={!result.deletable}

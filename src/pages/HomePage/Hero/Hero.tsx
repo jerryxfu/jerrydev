@@ -5,14 +5,12 @@ import {CustomEase} from "gsap/CustomEase";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {SplitText} from "gsap/SplitText";
 import {TextPlugin} from "gsap/TextPlugin";
+import "@/assets/styles/gradient-meshes.scss";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
 import HeroCards from "./HeroCards.tsx";
-import {GRADIENT_MESHES} from "./meshes.ts";
 import {graphemes} from "@/utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
-
-import("../../../assets/styles/gradient-mesh-default.scss");
 
 let isGsapConfigured = false;
 
@@ -84,7 +82,6 @@ export default function Hero() {
     configureGsap();
 
     const {currentTheme} = useTheme();
-    const themeGradientClass = GRADIENT_MESHES[currentTheme];
 
     const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
 
@@ -123,13 +120,6 @@ export default function Hero() {
     useEffect(() => {
         glowTween.current?.paused(!onScreen);
     }, [onScreen]);
-
-    useEffect(() => {
-        // Preload the other styles on mount so the first switch doesn't jump/look buggy
-        import("../../../assets/styles/gradient-mesh-night.scss");
-        import("../../../assets/styles/gradient-mesh-blush.scss");
-        import("../../../assets/styles/gradient-mesh-burgundy.scss");
-    }, []);
 
     useEffect(() => {
         if (!onScreen) return; // carries on where it was when the hero comes back
@@ -228,8 +218,7 @@ export default function Hero() {
 
     return (
         <>
-            <div className={`${themeGradientClass} hero_mesh`} style={onScreen ? undefined : {animationPlayState: "paused"}} />
-            {/*<div className="gradient-mesh-default" />*/}
+            <div className={`gradient-mesh gradient-mesh-${currentTheme} hero_mesh`} style={onScreen ? undefined : {animationPlayState: "paused"}} />
             <div className="hero" ref={heroRef}>
                 <div className="hero_container">
                     <div className="hero_title">

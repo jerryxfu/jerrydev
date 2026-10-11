@@ -92,8 +92,7 @@
     }
 
     // The dark themes swap in the dark colours, as the code previews do.
-    [data-theme="night"] &,
-    [data-theme="burgundy"] & {
+    [data-scheme="dark"] & {
         .line > span {
             color: var(--shiki-dark) !important;
         }

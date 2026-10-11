@@ -148,6 +148,12 @@
     aspect-ratio: 1 / 1;
     // Keeps the squares sane once the container gets wide.
     max-height: 170px;
+    // Square only where the words fit in one: on a narrower phone the notes wrap, the tile grows taller, and the
+    // square's ratio turned that height into a width, pushing the third tile off the screen (112px at 320). There the
+    // tiles are as wide as their column and as tall as the tallest.
+    @media (max-width: 359px) {
+        aspect-ratio: auto;
+    }
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -170,6 +176,20 @@
 
     &:active {
         transform: scale(0.98);
+    }
+
+    // While a file is dragged over the page, the two tiles that take it: dashed, in their colour; filled under the file.
+    &.is-target {
+        border-style: dashed;
+        border-color: var(--kind-file);
+    }
+
+    &.is-target[data-kind="p2p"] {
+        border-color: var(--kind-p2p);
+    }
+
+    &.is-over {
+        background: var(--surface-da);
     }
 }
 

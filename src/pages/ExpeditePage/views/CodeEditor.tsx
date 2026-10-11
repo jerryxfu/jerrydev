@@ -9,7 +9,8 @@ interface CodeEditorProps {
     /** The highlighting language, by Shiki's id. */
     language: string;
     placeholder?: string;
-    className?: string;
+    /** The id of what says how its keys work (Tab indents, Esc leaves). */
+    describedBy?: string;
 }
 
 // Past this, the box stays plain: the first colouring, on a paste, would hold the page up for seconds (about half a
@@ -78,6 +79,19 @@ const Line = memo(function Line({line}: { line: ColouredLine }) {
     );
 });
 
+// The control after `box` in the page's Tab order (the page has no positive tabindex, so document order), for Escape.
+function focusNext(box: HTMLElement) {
+    const controls = document.querySelectorAll<HTMLElement>(
+        "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]",
+    );
+    const next = Array.from(controls).find((control) =>
+        control.tabIndex >= 0
+        && control.checkVisibility({visibilityProperty: true})
+        && box.compareDocumentPosition(control) & Node.DOCUMENT_POSITION_FOLLOWING);
+    if (next) next.focus();
+    else box.blur();
+}
+
 /**
  * The text box for a text drop sent as code: a real <textarea> (typing, selecting, undo and paste as ever), its text
  * transparent over a highlighted copy of it in the same font, size and spacing, scrolled with it. The colours follow
@@ -85,7 +99,7 @@ const Line = memo(function Line({line}: { line: ColouredLine }) {
  * so a long text is as quick to type in as a short one. Until the grammar is loaded, or past HIGHLIGHT_LIMIT, the box
  * is plain.
  */
-export default function CodeEditor({value, onChange, onKeyDown, language, placeholder, className}: CodeEditorProps) {
+export default function CodeEditor({value, onChange, onKeyDown, language, placeholder, describedBy}: CodeEditorProps) {
     // The colouring function for the language, once its grammar is loaded. Its own for this box: it remembers the last
     // text it coloured.
     const [colourer, setColourer] = useState<Colourer | null>(null);
@@ -93,8 +107,6 @@ export default function CodeEditor({value, onChange, onKeyDown, language, placeh
     const [finishing, setFinishing] = useState<string | null>(null);
     const layer = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
-    // Escape, then Tab: the way out of the box from the keyboard, since Tab itself indents (as in VS Code).
-    const escaped = useRef(false);
 
     useEffect(() => {
         // Plain code (Auto recognized nothing): no colours to load.
@@ -131,7 +143,7 @@ export default function CodeEditor({value, onChange, onKeyDown, language, placeh
 
     return (
         <div
-            className={`expedite_editor${coloured ? " is-coloured" : ""}${full ? " is-full" : ""}${className ? ` ${className}` : ""}`}
+            className={`expedite_editor${coloured ? " is-coloured" : ""}${full ? " is-full" : ""}`}
         >
             {coloured && (
                 <div ref={layer} className="expedite_editor-colours" aria-hidden="true">
@@ -152,17 +164,18 @@ export default function CodeEditor({value, onChange, onKeyDown, language, placeh
                 autoCorrect="off"
                 wrap="off"
                 autoFocus
+                aria-describedby={describedBy}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={(e) => {
                     onKeyDown?.(e);
                     if (e.defaultPrevented || e.nativeEvent.isComposing) return;
+                    // Tab indents (as in VS Code), so Escape is the way out from the keyboard: to the control after
+                    // the box. (Blurring it instead sent the next Tab back to the top of the page.)
                     if (e.key === "Escape") {
-                        escaped.current = true;
+                        focusNext(e.currentTarget);
                         return;
                     }
-                    const leaving = escaped.current;
-                    escaped.current = false;
-                    if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey || leaving) return;
+                    if (e.key !== "Tab" || e.altKey || e.ctrlKey || e.metaKey) return;
                     e.preventDefault();
                     indent(e.currentTarget, e.shiftKey);
                 }}

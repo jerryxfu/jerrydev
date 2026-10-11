@@ -1,10 +1,11 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
-import {Check, Clipboard, File, Link, Radio, Upload, X} from "lucide-react";
+import React, {useEffect, useMemo, useState} from "react";
+import {Check, Clipboard, Link, Radio} from "lucide-react";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
-import Disclosure from "./Disclosure.tsx";
+import RelaySetting from "./RelaySetting.tsx";
 import FilePreview from "./FilePreview.tsx";
+import FileZone from "./FileZone.tsx";
 import "./P2PSendView.scss";
 
 interface P2PSendViewProps {
@@ -63,7 +64,6 @@ export default function P2PSendView(
         copiedField, onCopy, onStart, onRetry, onCancel,
     }: P2PSendViewProps
 ) {
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const remaining = useCountdown(expiresAt);
 
     // The picked file's preview URL, revoked when it changes (as in UploadView).
@@ -79,76 +79,15 @@ export default function P2PSendView(
             {!running && (
                 <>
                     <div className="expedite_main expedite_main--fill">
-                        <div className="expedite_file-zone expedite_grow" onClick={() => fileInputRef.current?.click()}>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                hidden
-                                onChange={(e) => {
-                                    const f = e.target.files?.[0];
-                                    if (f) setSelectedFile(f);
-                                }}
-                            />
-                            {selectedFile ? (
-                                <div className="expedite_file-selected">
-                                    <File size={22} />
-                                    <div>
-                                        <p className="expedite_file-name">{selectedFile.name}</p>
-                                        <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
-                                    </div>
-                                    <button
-                                        className="expedite_file-clear"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedFile(null);
-                                        }}
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <>
-                                    <Upload size={28} strokeWidth={1} />
-                                    <p>Click to choose a file or drag &amp; drop</p>
-                                    <p className="expedite_file-limit">No size limit (well... capped by the receiver's free storage)</p>
-                                    <p className="expedite_file-tip">Several files? Zip them into one first.</p>
-                                </>
-                            )}
-                        </div>
+                        <FileZone
+                            file={selectedFile}
+                            onFile={setSelectedFile}
+                            limit="No size limit (well... capped by the receiver's free storage)"
+                        />
                     </div>
 
                     <div className="expedite_side">
-                        {/* The relay, folded away with the rest of the technical side: it kicks in by itself when a direct
-                            route fails, so few need it. Said beside the title when it's on. */}
-                        <Disclosure id="p2p-transport" title="Advanced" note={useTurn && !relayDisabled ? "relay forced" : undefined}>
-                            <div className="expedite_settings">
-                                <p className="expedite_settings-title">Transport</p>
-                                <div className="expedite_setting-row">
-                                    <label className="text-small">
-                                        Force TURN relay
-                                        <span className="expedite_setting-sub">
-                                            Expedite tries a direct connection first and switches to the relay by
-                                            itself if that fails. Turn it on if direct transfers keep failing on your
-                                            network. The relay (Traversal Using Relays around NAT, through Cloudflare
-                                            TURN) passes the file through a server instead of straight between the
-                                            devices.
-                                        </span>
-                                    </label>
-                                    <button
-                                        className={`expedite_toggle ${useTurn && !relayDisabled ? "active" : ""}`}
-                                        onClick={() => setUseTurn(!useTurn)}
-                                        disabled={relayDisabled}
-                                    >
-                                        <span className="expedite_toggle-knob" />
-                                    </button>
-                                </div>
-                                {relayDisabled && (
-                                    <p className="expedite_p2p-standby">
-                                        This month's relay quota is used up, so transfers are direct-only until it resets.
-                                    </p>
-                                )}
-                            </div>
-                        </Disclosure>
+                        <RelaySetting useTurn={useTurn} setUseTurn={setUseTurn} relayDisabled={relayDisabled} />
 
                         <div className="expedite_p2p-notes">
                             <p className="expedite_p2p-notes-title">Before you start</p>
@@ -203,6 +142,7 @@ export default function P2PSendView(
                             <div className="expedite_link-box">
                                 <input
                                     className="expedite_link-input text-small"
+                                    aria-label="The drop's link"
                                     type="text"
                                     value={getDropUrl(code)}
                                     readOnly
@@ -210,6 +150,7 @@ export default function P2PSendView(
                                 />
                                 <button
                                     className="expedite_link-copy"
+                                    aria-label={copiedField === "link" ? "Link copied" : "Copy the link"}
                                     onClick={(e) => onCopy(getDropUrl(code), "link", e)}
                                 >
                                     {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}

@@ -3,8 +3,7 @@ import {gsap} from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import {isDarkTheme, type Theme, useTheme} from "@/context/ThemeContext.tsx";
-import {GRADIENT_MESHES} from "../Hero/meshes.ts";
-import {clamp, fit, pageBackground, type RGB, rgba, seeded, shownTheme, smoothstep, watchTheme} from "../sky.ts";
+import {clamp, fit, pageBackground, rgba, seeded, shownTheme, smoothstep, watchTheme} from "../sky.ts";
 import "./Squares.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -21,13 +20,6 @@ gsap.registerPlugin(ScrollTrigger);
 // canvas (the waves). A new theme changes the colours where they are, cells and all: the ground fades with the page's
 // background, the reflection with the mesh.
 
-// Per theme, the colour the cells glow in as they arrive and where the flow is brightest: the horizon's light.
-const GLOW: Record<Theme, RGB> = {
-    light: [255, 255, 255],
-    night: [176, 208, 255],
-    blush: [255, 255, 255],
-    burgundy: [255, 196, 214],
-};
 // The cells: how far down they reach under the hero (hero heights; Squares.scss gives the room), over how many rows the
 // page's background closes in under the hero's edge, and GitHub's levels, as how much of the mesh a cell lets through:
 // empty, then four steps.
@@ -93,12 +85,13 @@ export default function Squares({children}: {children?: ReactNode}) {
         const hero = document.querySelector<HTMLElement>(".hero");
         const mesh = document.querySelector<HTMLElement>(".hero_mesh");
         if (!el || !canvas || !reflection || !mirror || !hero || !mesh) return;
-        // The theme's colours, set again when it changes (watchTheme, below).
+        // The theme's colours, set again when it changes (watchTheme, below). The cells glow in the horizon's light
+        // (--horizon in index.scss) as they arrive and where the flow is brightest.
         const page = pageBackground(el);
         let glowColour = "";
         let levels = LEVELS;
         const restyle = (theme: Theme) => {
-            glowColour = rgba(GLOW[theme]);
+            glowColour = getComputedStyle(document.documentElement).getPropertyValue("--horizon").trim();
             // Empty cells barely show on a dark page: a little more of the mesh through them there.
             levels = isDarkTheme(theme) ? [0.14, ...LEVELS.slice(1)] : LEVELS;
         };
@@ -329,7 +322,7 @@ export default function Squares({children}: {children?: ReactNode}) {
     return (
         <div className="squares" ref={root} aria-hidden="true">
             <div className="squares_reflection">
-                <div className={`${GRADIENT_MESHES[currentTheme]} squares_mirror`} />
+                <div className={`gradient-mesh gradient-mesh-${currentTheme} squares_mirror`} />
             </div>
             <canvas className="squares_canvas" />
             {children}

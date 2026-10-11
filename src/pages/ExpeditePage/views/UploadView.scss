@@ -1,34 +1,3 @@
-// --- Type toggle ---
-.expedite_type-toggle {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.expedite_type-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
-    border-radius: 6px;
-    background: transparent;
-    color: inherit;
-    font-family: inherit;
-    cursor: pointer;
-    opacity: var(--opacity-quiet);
-    transition: opacity 0.15s, background 0.15s;
-
-    &.active {
-        opacity: 1;
-        background: color-mix(in srgb, currentColor 6%, transparent);
-        border-color: color-mix(in srgb, currentColor 18%, transparent);
-    }
-
-    &:hover {
-        opacity: var(--opacity-hover);
-    }
-}
-
 // --- Upload ---
 .expedite_upload {
     display: flex;
@@ -102,6 +71,18 @@
         background: var(--surface);
         border-color: var(--border);
     }
+
+    // A file dragged over it (FileZone.tsx).
+    &.is-over {
+        background: var(--surface-da);
+        border-color: var(--secondary);
+    }
+
+    // Its input, reached from the keyboard, is hidden: the zone shows the focus.
+    &:has(> input:focus-visible) {
+        outline: 2px solid var(--secondary);
+        outline-offset: 2px;
+    }
 }
 
 .expedite_file-selected {
@@ -115,6 +96,8 @@
     font-weight: 500;
     color: var(--text-2);
     margin: 0;
+    // A long name with no spaces wraps anywhere, so the X stays in the zone.
+    overflow-wrap: anywhere;
 }
 
 .expedite_file-size {
@@ -125,7 +108,7 @@
 
 .expedite_file-limit {
     font-size: var(--fs-xs) !important;
-    color: var(--text-6) !important;
+    color: var(--text-5) !important;
 }
 
 // One file per drop: the way to send more. Something to read, so a rung above the limit's decoration grey.
@@ -173,6 +156,55 @@
     justify-content: space-between;
     gap: 0.75rem;
 }
+
+// The (i) beside the settings' title, and what it shows under it (UploadView.tsx).
+.expedite_info {
+    display: inline-flex;
+    vertical-align: middle;
+    margin: -2px 0 0 0.3rem;
+    padding: 2px;
+    border: none;
+    border-radius: var(--r-full);
+    background: transparent;
+    color: var(--text-4);
+    cursor: pointer;
+    transition: color 0.15s;
+
+    &:hover,
+    &[aria-expanded="true"] {
+        color: var(--secondary);
+    }
+}
+
+.expedite_settings-about {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: var(--fs-smm);
+    line-height: 1.4;
+
+    &[hidden] {
+        display: none;
+    }
+
+    dt {
+        display: inline;
+        font-weight: 500;
+        color: var(--text-2);
+
+        &::after {
+            content: ": ";
+        }
+    }
+
+    dd {
+        display: inline;
+        margin: 0;
+        color: var(--text-3);
+    }
+}
+
 
 // Toggle switch
 .expedite_toggle {
@@ -290,7 +322,7 @@
 }
 
 .expedite_btn-secondary--danger {
-    color: var(--danger);
+    color: var(--danger-text);
     border-color: color-mix(in srgb, var(--danger) 80%, transparent);
 
     &:hover {
@@ -344,6 +376,13 @@
     align-items: center;
     gap: 0.5rem 0.75rem;
     min-height: 2rem;
+}
+
+// How the code box's keys work, at the row's end (UploadView.tsx).
+.expedite_text-hint {
+    margin-left: auto;
+    font-size: var(--fs-xs);
+    color: var(--text-4);
 }
 
 .expedite_check {

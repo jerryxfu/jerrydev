@@ -1,8 +1,9 @@
-import React, {type ReactNode, useEffect, useMemo, useRef, useState} from "react";
-import {File, Upload, X} from "lucide-react";
+import React, {type ReactNode, useEffect, useId, useMemo, useRef, useState} from "react";
+import {Info} from "lucide-react";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
-import {formatBytes, formatDuration} from "../utils.ts";
+import {formatDuration} from "../utils.ts";
 import FilePreview from "./FilePreview.tsx";
+import FileZone from "./FileZone.tsx";
 import CodeEditor from "./CodeEditor.tsx";
 import TextStats, {MoreTextStats, useTextStats} from "./TextStats.tsx";
 import {AUTO, isLanguage, languageLabel, LANGUAGES, PLAIN, resolveLanguage} from "../highlight.ts";
@@ -60,8 +61,6 @@ export default function UploadView(
         dropType, textContent, language, setLanguage, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
         maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
     }: UploadViewProps) {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     const createButton = useRef<HTMLButtonElement>(null);
 
     const onTextChange = (value: string) => {
@@ -96,6 +95,11 @@ export default function UploadView(
 
     // The pieces, put together below in the layout of a text drop or of a file drop.
     // Code: highlighted as you write, and on the receiver's page, in the language picked here.
+    // Ids for the names of the settings' controls and the code box's hint; and whether the (i) beside the settings'
+    // title shows what each does in a few words (a click or a tap, so it works on a phone too).
+    const ids = {deletable: useId(), views: useId(), expiry: useId(), about: useId(), codeKeys: useId()};
+    const [about, setAbout] = useState(false);
+
     const textTools = (
         <div className="expedite_text-tools">
             <label className="expedite_check">
@@ -121,6 +125,9 @@ export default function UploadView(
                     {Object.entries(LANGUAGES).map(([id, {label}]) => <option key={id} value={id}>{label}</option>)}
                 </select>
             )}
+            {language !== null && (
+                <span className="expedite_text-hint" id={ids.codeKeys}>Tab indents. To escape focus, press Esc.</span>
+            )}
         </div>
     );
 
@@ -131,6 +138,7 @@ export default function UploadView(
             placeholder="Paste or type your code here..."
             onChange={onTextChange}
             onKeyDown={onTextKeyDown}
+            describedBy={ids.codeKeys}
         />
     ) : (
         <textarea
@@ -146,12 +154,41 @@ export default function UploadView(
 
     const settingsPanel = (
         <div className={`expedite_settings ${loading ? "is-disabled" : ""}`}>
-            <p className="expedite_settings-title caption-text">Settings</p>
+            <p className="expedite_settings-title caption-text">
+                Settings
+                <button
+                    type="button"
+                    className="expedite_info"
+                    aria-label="What these settings do"
+                    aria-expanded={about}
+                    aria-controls={ids.about}
+                    onClick={() => setAbout((open) => !open)}
+                >
+                    <Info size={14} strokeWidth={2} />
+                </button>
+            </p>
+            <dl className="expedite_settings-about" id={ids.about} hidden={!about}>
+                <div>
+                    <dt>Deletable by recipient</dt>
+                    <dd>Lets the person who opens it delete it for everyone.</dd>
+                </div>
+                <div>
+                    <dt>Views allowed</dt>
+                    <dd>How many times the code or link can be opened. After that, it stops working.</dd>
+                </div>
+                <div>
+                    <dt>Expires after</dt>
+                    <dd>When the drop is deleted, opened or not.</dd>
+                </div>
+            </dl>
 
             <div className="expedite_setting-row">
-                <label className="text-small">Deletable by recipient</label>
+                <label className="text-small" htmlFor={ids.deletable}>Deletable by recipient</label>
                 <button
+                    id={ids.deletable}
                     className={`expedite_toggle ${settings.deletable ? "active" : ""}`}
+                    role="switch"
+                    aria-checked={settings.deletable}
                     onClick={() => setSettings(s => ({...s, deletable: !s.deletable}))}
                 >
                     <span className="expedite_toggle-knob" />
@@ -159,14 +196,15 @@ export default function UploadView(
             </div>
 
             <div className="expedite_setting-row">
-                <label className="text-small">Views allowed</label>
+                <span className="text-small" id={ids.views}>Views allowed</span>
                 {/* Presets like the expiry's, and a field for any other number (a pill lights only when the
                     field is empty). */}
-                <div className="expedite_setting-input-group">
+                <div className="expedite_setting-input-group" role="group" aria-labelledby={ids.views}>
                     {VIEW_PRESETS.map((n) => (
                         <button
                             key={n ?? "none"}
                             className={`expedite_setting-pill ${!maxViewsInput && settings.maxViews === n ? "active" : ""}`}
+                            aria-pressed={!maxViewsInput && settings.maxViews === n}
                             onClick={() => {
                                 onMaxViewsChange("");
                                 setSettings(s => ({...s, maxViews: n}));
@@ -191,12 +229,13 @@ export default function UploadView(
             </div>
 
             <div className="expedite_setting-row">
-                <label className="text-small">Expires after</label>
-                <div className="expedite_ttl-presets">
+                <span className="text-small" id={ids.expiry}>Expires after</span>
+                <div className="expedite_ttl-presets" role="group" aria-labelledby={ids.expiry}>
                     {TTL_PRESETS.map((p) => (
                         <button
                             key={p.value}
                             className={`expedite_setting-pill ${settings.ttlMs === p.value ? "active" : ""}`}
+                            aria-pressed={settings.ttlMs === p.value}
                             onClick={() => setSettings(s => ({...s, ttlMs: p.value}))}
                         >
                             {p.label}
@@ -251,45 +290,7 @@ export default function UploadView(
     return (
         <div className="expedite_upload expedite_split">
             <div className="expedite_main expedite_main--fill">
-                <div className="expedite_file-zone expedite_grow" onClick={() => {
-                    if (!loading) fileInputRef.current?.click();
-                }}>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) setSelectedFile(f);
-                        }}
-                    />
-                    {selectedFile ? (
-                        <div className="expedite_file-selected">
-                            <File size={22} />
-                            <div>
-                                <p className="expedite_file-name">{selectedFile.name}</p>
-                                <p className="expedite_file-size">{formatBytes(selectedFile.size)}</p>
-                            </div>
-                            <button
-                                className="expedite_file-clear"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (!loading) setSelectedFile(null);
-                                }}
-                                disabled={loading}
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <Upload size={28} strokeWidth={1} />
-                            <p>Click to choose a file or drag &amp; drop</p>
-                            <p className="expedite_file-limit">Max 16 GB</p>
-                            <p className="expedite_file-tip">Several files? Zip them into one first.</p>
-                        </>
-                    )}
-                </div>
+                <FileZone file={selectedFile} onFile={setSelectedFile} limit="Max 16 GB" disabled={loading} />
             </div>
 
             <div className="expedite_side">

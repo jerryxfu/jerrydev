@@ -18,9 +18,12 @@ import HangToast from "./components/HangToast/HangToast.tsx";
 const PRELOAD_RELOAD_KEY = "preload-reloaded-at";
 
 window.addEventListener("vite:preloadError", (event) => {
-    if (Date.now() - Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY) ?? 0) < 10_000) return;
-
-    sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(Date.now()));
+    try {
+        if (Date.now() - Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY) ?? 0) < 10_000) return;
+        sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(Date.now()));
+    } catch {
+        return; // storage blocked: without the timestamp a reload could loop, so the error shows instead
+    }
     event.preventDefault();
     window.location.reload();
 });
@@ -38,9 +41,15 @@ const LazyTopic = lazy(() => import("./pages/BlogPage/TopicPage.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 
-if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
-    localStorage.clear();
-    localStorage.setItem("app-version", LOCAL_STORAGE_VERSION);
+// A browser can refuse storage altogether (a "block all cookies" setting): reading it then throws, and here, before
+// anything is drawn, that would leave the page blank. The site works without it, minus what it remembers.
+try {
+    if (localStorage.getItem("app-version") !== LOCAL_STORAGE_VERSION) {
+        localStorage.clear();
+        localStorage.setItem("app-version", LOCAL_STORAGE_VERSION);
+    }
+} catch {
+    // nothing stored to clear
 }
 
 export const isDev = import.meta.env.DEV || import.meta.env.MODE === "development";

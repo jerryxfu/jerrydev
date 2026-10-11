@@ -30,24 +30,31 @@
                 stored = localStorage.getItem("themeName");
             } catch (e) {
             }
-            // in sync with THEMES in src/context/ThemeContext.tsx
-            const themes = ["light", "night", "blush", "burgundy"];
+            // Every theme in THEME_INFO (src/context/ThemeContext.tsx): its background, which must match its --bg in
+            // index.scss (Firefox paints before external CSS resolves custom properties, so it covers the gap inline),
+            // and whether it's dark.
+            const boot = {
+                light: {bg: "#fbfaf9"},
+                night: {bg: "#101010", dark: true},
+                blush: {bg: "#fff7fb"},
+                burgundy: {bg: "#200c14", dark: true},
+                glacier: {bg: "#f8fafc"},
+                latte: {bg: "#fbf8f4"},
+            };
 
-            const pref = (themes.indexOf(stored) !== -1 || stored === "auto") ? stored : "light";
+            const pref = (Object.hasOwn(boot, stored) || stored === "auto") ? stored : "light";
 
             const theme = pref === "auto"
                 ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "light")
                 : pref;
 
             document.documentElement.setAttribute("data-theme", theme);
-            // Firefox paints before external CSS resolves custom properties, so cover the gap inline.
-            // These must match --bg for each theme in index.scss.
-            const boot = {light: "#fbfaf9", night: "#101010", blush: "#fff7fb", burgundy: "#200c14"};
-            document.documentElement.style.background = boot[theme];
+            document.documentElement.setAttribute("data-scheme", boot[theme].dark ? "dark" : "light");
+            document.documentElement.style.background = boot[theme].bg;
 
             // Apply same value to prevent FOUC from OS theme.
             const themeColor = document.querySelector('meta[name="theme-color"]');
-            if (themeColor) themeColor.setAttribute("content", boot[theme]);
+            if (themeColor) themeColor.setAttribute("content", boot[theme].bg);
         })();
     </script>
     <script>

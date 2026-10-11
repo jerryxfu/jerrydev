@@ -46,7 +46,8 @@ export default function TopicPage() {
     return (
         <div className="topic">
             <Helmet>
-                <title>{name} | jerryxf</title>
+                {/* One string: React leaves a title made of several pieces empty. */}
+                <title>{`${name} | jerryxf`}</title>
                 <meta name="description" content={description} />
                 <link rel="canonical" href={`https://jerryxf.net/blog/topics/${id}`} />
             </Helmet>

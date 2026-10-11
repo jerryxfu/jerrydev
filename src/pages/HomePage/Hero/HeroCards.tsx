@@ -4,7 +4,7 @@ import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {useGSAP} from "@gsap/react";
 import Morph from "@/components/Morph/Morph.tsx";
 import useLocalClock from "@/hooks/useLocalClock.ts";
-import {THEMES, type Theme, useTheme} from "@/context/ThemeContext.tsx";
+import {THEME_INFO, THEMES, useTheme} from "@/context/ThemeContext.tsx";
 import "./HeroCards.scss";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,10 +16,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // The announcement card's text, to change whenever there's something to say.
 const ANNOUNCEMENT = "Nothing for now...";
-
-// Each theme by its --primary, the colour its mesh is built around.
-const SWATCH: Record<Theme, string> = {light: "#abcdef", night: "#104080", blush: "#f7b8d8", burgundy: "#9e1e3e"};
-const LABEL: Record<Theme, string> = {light: "Light", night: "Night", blush: "Blush", burgundy: "Burgundy"};
 
 // When the cards pop in: once the typing line has faded in (Hero.tsx starts it at 2.1s).
 const ARRIVE_AT = 2.3;
@@ -77,7 +73,8 @@ function HeroCards() {
         return () => mm.revert();
     }, {scope: root});
 
-    const themeName = themePreference === "auto" ? `Auto · ${LABEL[currentTheme]}` : LABEL[currentTheme];
+    const {label} = THEME_INFO[currentTheme];
+    const themeName = themePreference === "auto" ? `Auto · ${label}` : label;
 
     return (
         <div className="hero-cards" ref={root}>
@@ -125,14 +122,14 @@ function HeroCards() {
                                     key={theme}
                                     type="button"
                                     className={`hero-card_swatch${theme === currentTheme ? " is-on" : ""}`}
-                                    style={cssVar("--swatch", SWATCH[theme])}
-                                    aria-label={`${LABEL[theme]} theme`}
+                                    style={cssVar("--swatch", THEME_INFO[theme].swatch)}
+                                    aria-label={`${THEME_INFO[theme].label} theme`}
                                     aria-pressed={themePreference === theme}
                                     onClick={() => setTheme(theme)}
                                 />
                             ))}
-                            <Morph text={themeName} className="hero-card_theme-name" />
                         </span>
+                        <Morph text={themeName} className="hero-card_theme-name" />
                     </div>
                 </div>
             </div>

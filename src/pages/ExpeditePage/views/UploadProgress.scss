@@ -19,23 +19,6 @@
     margin: 0;
 }
 
-.expedite_progress-cancel {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.6rem;
-    border: 1px solid var(--down);
-    color: var(--down);
-    background: transparent;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: var(--fs-smm);
-
-    &:hover {
-        background: rgba(225, 72, 58, 0.1);
-    }
-}
-
 .expedite_progress-bar {
     height: 8px;
     border-radius: 4px;

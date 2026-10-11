@@ -104,10 +104,25 @@ body.homeisland-body {
     --warning: rgba(255, 234, 97, 1);
     --danger: rgba(255, 105, 97, 1);
     --info: rgba(76, 157, 250, 1);
+
+    // The status colours as text (a check that passed, an error, a Delete): --success and --danger are light, 3:1 at
+    // best on a pale page, so the light themes write them darker (4.8:1 and 5:1 or more); the dark themes use them as
+    // they are (below).
+    --success-text: rgba(21, 122, 59, 1); // #157a3b
+    --danger-text: rgba(198, 40, 40, 1); // #c62828
+}
+
+// The dark themes (data-scheme, set with data-theme by ThemeContext and index.html's boot script): the browser's own
+// controls (scrollbars, selects and their menus, checkboxes, date pickers) dark like the page, and the status colours
+// as text as they are. After :root, which it overrides.
+[data-scheme="dark"] {
+    color-scheme: dark;
+    --success-text: var(--success);
+    --danger-text: var(--danger);
 }
 
 // --secondary is the site accent: the one saturated colour in the palette, and what every focus ring,
-// link, active filter and selection ring resolves to. It is the same blue in all four themes on purpose —
+// link, active filter and selection ring resolves to. It is the same blue in every theme on purpose —
 // a token that means a different kind of colour per theme cannot be used from a theme-agnostic rule.
 //
 // There is deliberately no second decorative slot. --primary, --secondary and --accent are ranks, and a
@@ -150,10 +165,11 @@ body.homeisland-body {
     // Alpha on the colour, not opacity on the element: it touches the glyphs and leaves borders,
     // backgrounds and children alone, which is the part that actually mattered.
     //
-    // The percentages differ per theme because each ladder was tuned by hand. --text-6 happens to be
-    // --text-2 at 40% in all four; --text-5 needs 57/45/48/45. Blush is the one inexact fit: its ladder
-    // gains saturation as it fades, which a straight mix toward transparent cannot follow, so --text-5
-    // there lands about 10 points less pink than the solid value did.
+    // The percentages differ per theme. --text-6 is --text-2 at 40% in every theme; --text-5 is the share that
+    // reaches 4.5:1 on --bg, --bg-lt and --bg-da (2026-10-11, it was 2.5 to 3.4:1): 69/60/73/61/70/71 (light, night,
+    // blush, burgundy, glacier, latte). --text-4 stays a step above it (5.4:1 or more; night, blush and burgundy
+    // moved up for it). Blush is the one inexact fit: its ladder gains saturation as it fades, which a straight mix
+    // toward transparent cannot follow, so --text-5 there is a little less pink than a solid value would be.
     //
     // --text-6 is below AA (2.1-2.8:1 depending on theme) and is for decoration only: calendar weekday
     // initials, separators, a placeholder. Anything the reader has to read stops at --text-5.
@@ -162,7 +178,7 @@ body.homeisland-body {
     --text-2: rgba(52, 52, 52, 1);
     --text-3: rgba(86, 86, 86, 1);
     --text-4: rgba(100, 100, 100, 1);
-    --text-5: color-mix(in srgb, var(--text-2) 57%, transparent);
+    --text-5: color-mix(in srgb, var(--text-2) 69%, transparent);
     --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(138, 138, 138, 0.5);
@@ -171,6 +187,7 @@ body.homeisland-body {
     --shadow-lt: rgba(160, 160, 160, 0.08);
 
     --hero-glow: rgba(238, 248, 252, 0.40);
+    --horizon: rgb(255, 255, 255); // the hero's horizon light: the waves, the squares' glow
 }
 
 [data-theme="night"] {
@@ -204,8 +221,8 @@ body.homeisland-body {
     --text: rgba(251, 250, 249, 1);
     --text-2: rgba(200, 200, 200, 1);
     --text-3: rgba(160, 160, 160, 1);
-    --text-4: rgba(130, 130, 130, 1);
-    --text-5: color-mix(in srgb, var(--text-2) 45%, transparent);
+    --text-4: rgba(142, 142, 142, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 60%, transparent);
     --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(0, 0, 0, 0.6);
@@ -214,6 +231,7 @@ body.homeisland-body {
     --shadow-lt: rgba(0, 0, 0, 0.12);
 
     --hero-glow: rgba(238, 248, 252, 0.40);
+    --horizon: rgb(176, 208, 255);
 }
 
 [data-theme="blush"] {
@@ -247,8 +265,8 @@ body.homeisland-body {
     --text: rgba(63, 29, 50, 1);
     --text-2: rgba(90, 48, 73, 1);
     --text-3: rgba(122, 74, 102, 1);
-    --text-4: rgba(154, 106, 134, 1);
-    --text-5: color-mix(in srgb, var(--text-2) 48%, transparent);
+    --text-4: rgba(132, 84, 112, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 73%, transparent);
     --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(190, 120, 160, 0.50);
@@ -257,6 +275,7 @@ body.homeisland-body {
     --shadow-lt: rgba(205, 150, 180, 0.09);
 
     --hero-glow: rgba(255, 238, 247, 0.40);
+    --horizon: rgb(255, 255, 255);
 }
 
 // Burgundy: a dark theme.
@@ -295,8 +314,8 @@ body.homeisland-body {
     --text: rgba(248, 238, 242, 1);
     --text-2: rgba(216, 194, 202, 1);
     --text-3: rgba(180, 152, 164, 1);
-    --text-4: rgba(150, 122, 134, 1);
-    --text-5: color-mix(in srgb, var(--text-2) 45%, transparent);
+    --text-4: rgba(165, 137, 149, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 61%, transparent);
     --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
 
     --shadow-daa: rgba(0, 0, 0, 0.6);
@@ -305,6 +324,104 @@ body.homeisland-body {
     --shadow-lt: rgba(0, 0, 0, 0.14);
 
     --hero-glow: rgba(255, 234, 240, 0.35);
+    --horizon: rgb(255, 196, 214);
+}
+
+// Glacier: a light theme, after the iPhone 18 Pro's Glacier, a pale blue that reads as a chilled silver (sampled from
+// Apple's photo: hue 213-217, 17-37% saturation). Light's blue with about half the saturation, at the phone's hue and
+// a little lighter than its wallpaper so it reads icier: #c9d6e8, --primary and the mesh's base. Its greys are cool
+// slate, its surfaces and shadows tinted with the same deep blue. Text ladder within a few hundredths of Light's
+// contrast (--text-4 5.7:1 on --bg, --secondary 4.7:1).
+[data-theme="glacier"] {
+    --primary: rgba(201, 214, 232, 1); // #c9d6e8, hsl(215 40% 85%)
+    --primary-lt: rgba(212, 222, 237, 1);
+    --primary-ltx: rgba(226, 233, 243, 1);
+    --primary-da: rgba(185, 201, 223, 1);
+
+    --secondary: rgba(59, 104, 227, 1);
+    --secondary-lt: rgba(93, 133, 234, 1);
+    --secondary-da: rgba(28, 73, 206, 1);
+
+    --accent: rgba(208, 212, 225, 1);
+    --accent-lt: rgba(223, 226, 236, 1);
+    --accent-da: rgba(194, 198, 214, 1);
+
+    --bg: rgba(248, 250, 252, 1);
+    --bg-lt: rgba(253, 254, 254, 1);
+    --bg-da: rgba(241, 244, 248, 1);
+
+    --border-lt: rgba(230, 234, 239, 1);
+    --border: rgba(215, 221, 228, 1);
+    --border-da: rgba(207, 213, 222, 1);
+
+    --surface-lt: rgba(23, 42, 69, 0.015);
+    --surface: rgba(23, 42, 69, 0.03);
+    --surface-da: rgba(23, 42, 69, 0.05);
+    --surface-daa: rgba(23, 42, 69, 0.28);
+
+    --text-strong: rgba(20, 27, 36, 1);
+    --text: rgba(25, 32, 42, 1);
+    --text-2: rgba(45, 54, 67, 1);
+    --text-3: rgba(74, 85, 100, 1);
+    --text-4: rgba(90, 100, 114, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 70%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
+
+    --shadow-daa: rgba(120, 139, 165, 0.5);
+    --shadow-da: rgba(130, 148, 172, 0.20);
+    --shadow: rgba(140, 157, 180, 0.10);
+    --shadow-lt: rgba(140, 157, 180, 0.08);
+
+    --hero-glow: rgba(236, 242, 252, 0.40);
+    --horizon: rgb(244, 248, 255);
+}
+
+// Latte: a light theme, cozy and warm rather than dark (Jerry), like a caramel latte: --primary a latte tan
+// (#d8bb97, hsl(33 45% 72%), the mesh's base, a little deeper than the other light themes' hero), a cream page,
+// espresso browns for text, milk foam for --accent. Contrast as Light's: --text-4 5.6:1 on --bg, --secondary 4.6:1,
+// Expedite's red 4.56:1 (the reason the cream is no deeper), and text on the hero the same as on Light's.
+[data-theme="latte"] {
+    --primary: rgba(216, 187, 151, 1); // #d8bb97
+    --primary-lt: rgba(221, 197, 166, 1);
+    --primary-ltx: rgba(231, 212, 188, 1);
+    --primary-da: rgba(206, 171, 131, 1);
+
+    --secondary: rgba(59, 104, 227, 1);
+    --secondary-lt: rgba(93, 133, 234, 1);
+    --secondary-da: rgba(28, 73, 206, 1);
+
+    --accent: rgba(239, 227, 200, 1);
+    --accent-lt: rgba(246, 238, 218, 1);
+    --accent-da: rgba(230, 212, 179, 1);
+
+    --bg: rgba(251, 248, 244, 1);
+    --bg-lt: rgba(253, 252, 249, 1);
+    --bg-da: rgba(246, 241, 234, 1);
+
+    --border-lt: rgba(235, 227, 219, 1);
+    --border: rgba(224, 215, 204, 1);
+    --border-da: rgba(215, 204, 193, 1);
+
+    --surface-lt: rgba(72, 42, 20, 0.015);
+    --surface: rgba(72, 42, 20, 0.03);
+    --surface-da: rgba(72, 42, 20, 0.05);
+    --surface-daa: rgba(72, 42, 20, 0.28);
+
+    --text-strong: rgba(37, 26, 19, 1);
+    --text: rgba(43, 31, 23, 1);
+    --text-2: rgba(70, 53, 43, 1);
+    --text-3: rgba(99, 82, 69, 1);
+    --text-4: rgba(114, 97, 85, 1);
+    --text-5: color-mix(in srgb, var(--text-2) 71%, transparent);
+    --text-6: color-mix(in srgb, var(--text-2) 40%, transparent);
+
+    --shadow-daa: rgba(150, 115, 84, 0.5);
+    --shadow-da: rgba(160, 125, 95, 0.20);
+    --shadow: rgba(170, 135, 105, 0.10);
+    --shadow-lt: rgba(170, 135, 105, 0.08);
+
+    --hero-glow: rgba(255, 243, 228, 0.40);
+    --horizon: rgb(255, 246, 234);
 }
 
 .nav-spacer {
@@ -353,7 +470,7 @@ p {
 }
 
 // One focus ring for the whole site. Previously this only existed on the navbar, so every link, card and filter elsewhere fell back to the UA default
-// which is a thin blue line that disappears against night and burgundy. --secondary is the one saturated colour in the palette, so it stays visible in all four.
+// which is a thin blue line that disappears against night and burgundy. --secondary is the one saturated colour in the palette, so it stays visible in every theme.
 // Modern browsers follow the element's own border-radius here, so no radius is set: it would override whatever the focused component uses.
 :focus-visible {
     outline: 2px solid var(--secondary);

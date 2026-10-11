@@ -61,9 +61,10 @@ function putWithProgress(
 }
 
 async function abortUpload(apiBaseUrl: string, code: string): Promise<void> {
-    // No signal, this runs because the main signal aborted; must still reach the server
+    // No signal, this runs because the main signal aborted; must still reach the server, even from a page that's closing
+    // (keepalive: Expedite aborts the upload when the tab closes).
     try {
-        await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {method: "DELETE"});
+        await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {method: "DELETE", keepalive: true});
     } catch { /* best-effort; R2 lifecycle reaps orphaned parts anyway */
     }
 }
