@@ -36,7 +36,6 @@ const PAGES: Head[] = [
     },
     {path: "/supericu", name: "SuperICU", description: "A tool to preview ICU data in a patient monitor-like interface."},
     {path: "/elements", name: "Elements", description: "Coming soon.", noindex: true},
-    {path: "/cheatsheet/waveform", name: "Waveform and SIG names", description: "ECG leads, where they go and what they see.", noindex: true},
 ];
 
 // Every page with its own HTML file. Drafts are left out the way the post page leaves them out: in production they're a dead end.

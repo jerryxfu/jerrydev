@@ -322,7 +322,7 @@ export const projects: Project[] = [
     // Still to come, from the old card list:
     // Cyclic (sleep cycle calculator and periods tracker, 🌀 Concept, 2025-12-28, iOS & Android)
     // Pulse (screen time micro-session limiter, 🌀 Concept, 2026-04-20, iOS & Android)
-    // Cheatsheet (/cheatsheet, 🧩 MVP), TechDashboard (pit dashboard for FRC, 🌀 Concept),
+    // TechDashboard (pit dashboard for FRC, 🌀 Concept),
     // MegaCSV (/megacsv, 🌀 Concept), Itinerary (public transit, 🌀 Concept)
 ];
 

@@ -7,6 +7,7 @@ import {Mdx} from "@/assets/projects/mdx.tsx";
 // Tags are a closed set, so a typo fails `tsc` instead of quietly rendering a filter chip that matches nothing. Declaration order here is the order the chips render in on /blog.
 export const TAGS = [
     "ai",
+    "cheatsheet",
     "devlog",
     "excel",
     "gaming",
@@ -152,7 +153,7 @@ export const posts: Post[] = [
         title: "Aide-mémoire Limelight",
         description: "Les réglages, les clés NetworkTables et les appels LimelightLib qu'on cherche toujours, sur une page.",
         date: postDate("2026-08-30"),
-        tags: ["robotics", "vision", "notes"],
+        tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
     },
@@ -161,7 +162,7 @@ export const posts: Post[] = [
         title: "Repères, unités et conventions",
         description: "Quel axe pointe où, dans WPILib et dans les Limelight, et comment passer d'un repère à l'autre sans inverser un signe.",
         date: postDate("2026-08-30"),
-        tags: ["robotics", "vision", "notes"],
+        tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
     },
@@ -170,7 +171,7 @@ export const posts: Post[] = [
         title: "Boîte à outils mathématiques",
         description: "Vecteurs, matrices, rotations, coordonnées homogènes et la notation Σ : tout ce que les leçons supposent, au même endroit.",
         date: postDate("2026-08-30"),
-        tags: ["robotics", "notes"],
+        tags: ["robotics", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
     },
@@ -179,9 +180,17 @@ export const posts: Post[] = [
         title: "Checklist de débogage vision",
         description: "Le tag n'est pas détecté, la pose saute, la latence explose : par quoi commencer, dans l'ordre.",
         date: postDate("2026-08-30"),
-        tags: ["robotics", "vision", "notes"],
+        tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
+    },
+    {
+        slug: "cheatsheet-waveform",
+        title: "Waveform and SIG names",
+        description: "ECG leads and the other signals on a patient monitor: what each one measures and where it comes from.",
+        date: postDate("2026-10-11"),
+        tags: ["med", "cheatsheet"],
+        lang: "en",
     },
     // region python
     {

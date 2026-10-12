@@ -29,7 +29,6 @@ window.addEventListener("vite:preloadError", (event) => {
 
 const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
 const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
-const LazyWaveform = lazy(() => import("./pages/cheatsheet/Waveform.tsx"));
 const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
@@ -150,7 +149,6 @@ root.render(
                     <Route path="/time">{renderLazy(<LazyTime />)}</Route>
                     <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
                     <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
-                    <Route path="/cheatsheet/waveform">{renderLazy(<LazyWaveform />)}</Route>
                     <Route><NotFoundPage /></Route>
                 </Switch>
             </ThemeProvider>
