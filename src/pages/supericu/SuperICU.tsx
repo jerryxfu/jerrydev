@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {Helmet} from "react-helmet-async";
 import "./SuperICU.scss";
 import type {AlertItem, Vitals} from "./sim";
 import {ecgTemplate, plethTemplate, respTemplate, useDemoVitals} from "./sim";
@@ -278,13 +277,6 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
 
     return (
         <div className="super-icu">
-            <Helmet>
-                <title>SuperICU | jerryxf</title>
-                <meta name="description"
-                      content="A tool to preview ICU data in a patient monitor-like interface." />
-                <link rel="canonical" href="https://jerryxf.net/supericu" />
-            </Helmet>
-
             <div className="super-icu-core">
                 <div className="top-bar">
                     SuperICU

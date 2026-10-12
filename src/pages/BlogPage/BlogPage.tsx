@@ -1,5 +1,4 @@
 import {Fragment} from "react";
-import {Helmet} from "react-helmet-async";
 import {Link} from "wouter";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Footer from "@/components/Footer/Footer.tsx";
@@ -19,13 +18,6 @@ export default function BlogPage() {
 
     return (
         <div className="blog">
-            <Helmet>
-                <title>Blog | jerryxf</title>
-                <meta name="description"
-                      content="Writing about the things I discover, build, and learn along the way" />
-                <link rel="canonical" href="https://jerryxf.net/blog" />
-            </Helmet>
-
             <Navbar isShrunk={true} stagger={true} animate={false} />
 
             <main className="blog_container">

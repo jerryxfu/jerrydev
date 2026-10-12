@@ -1,5 +1,4 @@
 import React from "react";
-import {Helmet} from "react-helmet-async";
 
 type ECGLead = { lead: string, placement: string, view: string };
 
@@ -25,10 +24,6 @@ const precordial_leads: ECGLead[] = [
 export default function Waveform() {
     return (
         <div className="layout-column">
-            <Helmet>
-                <meta name="robots" content="noindex" />
-            </Helmet>
-
             <h1>WAVEFORM AND SIG NAMES</h1>
             <h2>ECG Leads - Electrocardiogram</h2>
             <div className="layout-row">

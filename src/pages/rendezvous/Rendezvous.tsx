@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {ArrowLeft} from "lucide-react";
-import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Rendezvous.scss";
@@ -229,13 +228,6 @@ export default function Rendezvous() {
 
     return (
         <div className="rv">
-            <Helmet>
-                <title>Rendezvous 📌 | jerryxf</title>
-                <meta name="description"
-                      content="Find the best time for your group to meet. Share availabilities and schedule events effortlessly." />
-                <link rel="canonical" href="https://jerryxf.net/rendezvous" />
-            </Helmet>
-
             <Navbar isShrunk={true} />
             <div className="nav-spacer" />
 

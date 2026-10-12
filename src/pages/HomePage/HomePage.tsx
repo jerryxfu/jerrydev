@@ -1,5 +1,4 @@
 import "./HomePage.scss";
-import {Helmet} from "react-helmet-async";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Hero from "./Hero/Hero.tsx";
 import Squares from "./Seam/Squares.tsx";
@@ -21,12 +20,6 @@ export default function HomePage() {
     return (
         <div className="homepage">
             {/*<OpeningAnimation/>*/}
-            <Helmet>
-                <title>jerryxf</title>
-                <meta name="description"
-                      content="Hi there, I'm Jerry!" />
-                <link rel="canonical" href="https://jerryxf.net/" />
-            </Helmet>
             <Navbar isHero={true} />
             <main id="main">
                 <Hero />

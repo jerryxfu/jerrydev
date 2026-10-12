@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+# Expedite and Rendezvous links (?code=...) open someone's drop or event, and opening a drop uses up one of its views.
+Disallow: /*?code=
 
 Sitemap: https://jerryxf.net/sitemap.xml

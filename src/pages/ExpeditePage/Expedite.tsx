@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
 import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio} from "lucide-react";
-import {Helmet} from "react-helmet-async";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "./Expedite.scss";
@@ -700,13 +699,6 @@ export default function Expedite() {
             className={`expedite${receiving ? " expedite--bare" : ""}`}
             {...pageDrag.handlers}
         >
-            <Helmet>
-                <title>Expedite 📦 | jerryxf</title>
-                <meta name="description"
-                      content="Quickly share files and text snippets with other people or across your own devices." />
-                <link rel="canonical" href="https://jerryxf.net/expedite" />
-            </Helmet>
-
             {!receiving && (
                 <>
                     <Navbar isShrunk={true} />

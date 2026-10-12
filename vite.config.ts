@@ -1,6 +1,6 @@
 import {execSync} from "node:child_process";
 import {fileURLToPath, URL} from "node:url";
-import {defineConfig} from "vite";
+import {defineConfig, type Plugin, runnerImport} from "vite";
 import react from "@vitejs/plugin-react";
 import mdx from "@mdx-js/rollup";
 import rehypeShiki from "@shikijs/rehype";
@@ -25,6 +25,46 @@ const BUILD_COMMIT = (() => {
     }
 })();
 
+const SRC = fileURLToPath(new URL("./src", import.meta.url));
+
+// What the build needs from src/head.ts (typed here because the app's files aren't part of this config's TypeScript project).
+type HeadModule = {
+    PAGE_HEADS: { path: string }[];
+    renderPage(template: string, head: { path: string }): string;
+    sitemap(): string;
+};
+
+// Gives every page its own HTML file (expedite.html, blog/<slug>.html, ...) carrying its title, description and address
+// from src/head.ts, and writes sitemap.xml from the same list. Link previews and most search engines read only that HTML,
+// so without it every page looked like the home page to them. Cloudflare Pages serves /expedite from expedite.html,
+// and still sends any other address to index.html.
+function pageHeads(): Plugin {
+    return {
+        name: "page-heads",
+        apply: "build",
+        enforce: "post",
+        async generateBundle(_, bundle) {
+            const index = bundle["index.html"];
+            if (index?.type !== "asset") throw new Error("page-heads: index.html is missing from the bundle");
+            const template = typeof index.source === "string" ? index.source : new TextDecoder().decode(index.source);
+
+            // Through Vite rather than a plain import: the blog's lists use the "@" alias, image imports and import.meta.glob.
+            const {module: head} = await runnerImport<HeadModule>("/src/head.ts", {
+                root: fileURLToPath(new URL(".", import.meta.url)),
+                resolve: {alias: {"@": SRC}},
+                logLevel: "error",
+            });
+
+            for (const page of head.PAGE_HEADS) {
+                const html = head.renderPage(template, page);
+                if (page.path === "/") index.source = html;
+                else this.emitFile({type: "asset", fileName: `${page.path.slice(1)}.html`, source: html});
+            }
+            this.emitFile({type: "asset", fileName: "sitemap.xml", source: head.sitemap()});
+        },
+    };
+}
+
 export default defineConfig({
     // Replaced in the source at build time. Declared for TypeScript in src/types/env.d.ts.
     define: {
@@ -33,7 +73,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": fileURLToPath(new URL("./src", import.meta.url)),
+            "@": SRC,
         },
     },
     plugins: [
@@ -102,7 +142,8 @@ export default defineConfig({
             workbox: {
                 // Only the shell and fonts. Hashed JS and CSS moved to runtimeCaching below, where cacheWillUpdate can reject a host's HTML fallback.
                 // The precache has no such hook: it accepts any 200 and, since PrecacheStrategy checks the cache before fetching, a bad entry is never re-fetched and survives every later deploy.
-                globPatterns: ["**/*.{html,woff2}"],
+                // index.html only: the pages' own copies (pageHeads) differ from it in their head alone, and offline every page boots from it.
+                globPatterns: ["index.html", "**/*.woff2"],
                 // KaTeX ships 20 woff2 faces and the glob above would precache every one, so a visitor who only ever
                 // sees the home page still pays ~340KB on service worker install for maths they never read. They are
                 // excluded here and picked up cache-first on demand by the font rule in runtimeCaching instead.
@@ -186,7 +227,8 @@ export default defineConfig({
                     }
                 ]
             }
-        })
+        }),
+        pageHeads(),
     ],
     build: {
         rollupOptions: {

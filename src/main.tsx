@@ -1,7 +1,6 @@
 import {lazy, type ReactNode, StrictMode, Suspense, useEffect} from "react";
 import {createRoot} from "react-dom/client";
 import {Route, Switch, useLocation} from "wouter";
-import {HelmetProvider} from "react-helmet-async";
 
 import "@fontsource-variable/outfit/index.css";
 import "./index.scss";
@@ -104,6 +103,25 @@ function ScrollToTop() {
     return null;
 }
 
+// The title and the tags search engines read, for the page on screen (src/head.ts). The built HTML already has them for
+// the page it was loaded as; this keeps them right as the app moves on, and marks unknown addresses as not found.
+// Imported when needed: head.ts reads the blog's post list, which the home page's first chunk leaves out (see useLatestPost).
+function PageHead() {
+    const [pathname] = useLocation();
+
+    useEffect(() => {
+        void import("./head.ts").then(({applyHead, headFor}) => {
+            const head = headFor(pathname);
+            if (!head && isDev) console.warn(`No entry for ${pathname} in src/head.ts: fine on a 404, otherwise add the page there.`);
+            applyHead(head);
+        }).catch(() => {
+            // Offline, or a deploy swapped the chunk out: the tags already there stay.
+        });
+    }, [pathname]);
+
+    return null;
+}
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
     throw new Error("Root element not found");
@@ -113,29 +131,29 @@ const root = createRoot(rootElement);
 root.render(
     <StrictMode>
         <ErrorBoundary>
-            <HelmetProvider>
-                <ThemeProvider>
-                    <ScrollToTop />
-                    <OfflineToast />
-                    <HangToast />
-                    <Switch>
-                        <Route path="/"><HomePage /></Route>
-                        <Route path="/blog">{renderLazy(<LazyBlog />)}</Route>
-                        {/* Ahead of /blog/:slug. They differ in segment count so the order is not load-bearing,
-                            but keeping it first documents that topics are not posts. */}
-                        <Route path="/blog/topics/:topic">{renderLazy(<LazyTopic />)}</Route>
-                        <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
-                        <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
-                        <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
-                        <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>
-                        <Route path="/time">{renderLazy(<LazyTime />)}</Route>
-                        <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
-                        <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
-                        <Route path="/cheatsheet/waveform">{renderLazy(<LazyWaveform />)}</Route>
-                        <Route><NotFoundPage /></Route>
-                    </Switch>
-                </ThemeProvider>
-            </HelmetProvider>
+            <ThemeProvider>
+                <ScrollToTop />
+                <PageHead />
+                <OfflineToast />
+                <HangToast />
+                {/* Each route needs its entry in src/head.ts, or search engines are told it doesn't exist. */}
+                <Switch>
+                    <Route path="/"><HomePage /></Route>
+                    <Route path="/blog">{renderLazy(<LazyBlog />)}</Route>
+                    {/* Ahead of /blog/:slug. They differ in segment count so the order is not load-bearing,
+                        but keeping it first documents that topics are not posts. */}
+                    <Route path="/blog/topics/:topic">{renderLazy(<LazyTopic />)}</Route>
+                    <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
+                    <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
+                    <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
+                    <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>
+                    <Route path="/time">{renderLazy(<LazyTime />)}</Route>
+                    <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
+                    <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
+                    <Route path="/cheatsheet/waveform">{renderLazy(<LazyWaveform />)}</Route>
+                    <Route><NotFoundPage /></Route>
+                </Switch>
+            </ThemeProvider>
         </ErrorBoundary>
     </StrictMode>
 );

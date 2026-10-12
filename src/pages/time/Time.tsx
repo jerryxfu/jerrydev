@@ -1,5 +1,4 @@
 import {useState} from "react";
-import {Helmet} from "react-helmet-async";
 import {ExternalLink} from "lucide-react";
 import {type TabId, TABS} from "./types.ts";
 import UnixConverter from "./tabs/UnixConverter.tsx";
@@ -12,13 +11,6 @@ export default function Time() {
 
     return (
         <div className="time">
-            <Helmet>
-                <title>Time | jerryxf</title>
-                <meta name="description"
-                      content="Unix converter, countdown, stopwatch, date calculator, and local time info — a clean set of time tools." />
-                <link rel="canonical" href="https://jerryxf.net/time" />
-            </Helmet>
-
             <div className="time_container">
                 <a href="/" className="time_home-link">
                     <ExternalLink size={13} />

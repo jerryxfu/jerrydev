@@ -1,4 +1,3 @@
-import {Helmet} from "react-helmet-async";
 import {Link, useParams} from "wouter";
 import {ArrowLeft} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
@@ -45,13 +44,6 @@ export default function TopicPage() {
 
     return (
         <div className="topic">
-            <Helmet>
-                {/* One string: React leaves a title made of several pieces empty. */}
-                <title>{`${name} | jerryxf`}</title>
-                <meta name="description" content={description} />
-                <link rel="canonical" href={`https://jerryxf.net/blog/topics/${id}`} />
-            </Helmet>
-
             <Navbar isShrunk={true} stagger={false} animate={false} />
 
             <main className="topic_container">

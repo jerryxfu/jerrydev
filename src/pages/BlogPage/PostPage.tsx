@@ -1,5 +1,4 @@
 import {Suspense, useRef} from "react";
-import {Helmet} from "react-helmet-async";
 import {Link, useParams} from "wouter";
 import {ArrowLeft, ArrowRight, ArrowUp} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
@@ -68,19 +67,6 @@ export default function PostPage() {
 
     return (
         <div className="post">
-            <Helmet>
-                {/* One string: React leaves a title made of several pieces empty. */}
-                <title>{`${post.title} | jerryxf`}</title>
-                <meta name="description" content={post.description} />
-                <link rel="canonical" href={`https://jerryxf.net/blog/${post.slug}`} />
-                <meta property="og:type" content="article" />
-                <meta property="og:title" content={post.title} />
-                <meta property="og:description" content={post.description} />
-                {/* Only an asset URL can be an og:image; interpolating an element would emit "[object Object]". */}
-                {typeof post.image === "string" &&
-                    <meta property="og:image" content={`https://jerryxf.net${post.image}`} />}
-            </Helmet>
-
             {/* No navbar while reading. The 404 branch above keeps one, because a dead end needs a way out; a real post
                 has the back link and prev/next, and the chrome only competes with the prose. Everything that used to
                 offset it — the container padding, the heading scroll-margins, and $nav-h in PostToc.scss — came down
