@@ -8,7 +8,6 @@ import {TextPlugin} from "gsap/TextPlugin";
 import "@/assets/styles/gradient-meshes.scss";
 import "./Hero.scss";
 import {texts} from "./texts.ts";
-import HeroCards from "./HeroCards.tsx";
 import {graphemes} from "@/utils.ts";
 import {useTheme} from "../../../context/ThemeContext.tsx";
 
@@ -252,7 +251,6 @@ export default function Hero() {
                     </p>
                 </div>
 
-                <HeroCards />
             </div>
         </>
     );

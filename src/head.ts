@@ -19,7 +19,10 @@ export type Head = {
 };
 
 const PAGES: Head[] = [
-    {path: "/", name: SITE_NAME, description: "Hi there, I'm Jerry!"},
+    {
+        path: "/", name: SITE_NAME,
+        description: "Hi, I'm Jerry. I build things in robotics, AI, medicine and code, and share them here: my projects, a blog, and tools like Expedite and Rendezvous.",
+    },
     {path: "/blog", name: "Blog", description: "Writing about the things I discover, build, and learn along the way"},
     {
         path: "/expedite", name: "Expedite 📦",
@@ -32,7 +35,7 @@ const PAGES: Head[] = [
     {path: "/scheduler", name: "Scheduler", description: "View and compare schedules"},
     {
         path: "/time", name: "Time",
-        description: "Unix converter, countdown, stopwatch, date calculator, and local time info — a clean set of time tools.",
+        description: "Time tools on one page: a Unix time converter, a countdown, a stopwatch, a date calculator and world clocks.",
     },
     {path: "/supericu", name: "SuperICU", description: "A tool to preview ICU data in a patient monitor-like interface."},
     {path: "/elements", name: "Elements", description: "Coming soon.", noindex: true},

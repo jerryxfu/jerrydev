@@ -1,9 +1,9 @@
 import React, {createContext, type ReactNode, useContext, useEffect, useState, useSyncExternalStore} from "react";
 import {Coffee, Flower2, type LucideIcon, Moon, Snowflake, Sun, Wine} from "lucide-react";
 
-// Every theme, in the order the toggle cycles through them: its name and icon (the toggle, the hero's theme card), its
-// swatch in the theme card (the --primary its mesh is built around), and whether its background is dark (to resolve
-// "auto", for data-scheme, which the styles that change only in the dark go by, and for components that swap assets).
+// Every theme, in the order the toggle cycles through them: its name and icon (the toggle), and whether its background
+// is dark (to resolve "auto", for data-scheme, which the styles that change only in the dark go by, and for components
+// that swap assets).
 // Adding a theme, four steps:
 // 1. an entry here
 // 2. a [data-theme="name"] block in index.scss
@@ -11,13 +11,13 @@ import {Coffee, Flower2, type LucideIcon, Moon, Snowflake, Sun, Wine} from "luci
 // 4. its background, and whether it's dark, in the boot map in index.html
 // Only 1 is type checked. The rest fail silently, so work the list.
 export const THEME_INFO = {
-    light: {label: "Light", icon: Sun, swatch: "#abcdef", dark: false},
-    night: {label: "Night", icon: Moon, swatch: "#104080", dark: true},
-    blush: {label: "Blush", icon: Flower2, swatch: "#f7b8d8", dark: false},
-    burgundy: {label: "Burgundy", icon: Wine, swatch: "#9e1e3e", dark: true},
-    glacier: {label: "Glacier", icon: Snowflake, swatch: "#c9d6e8", dark: false},
-    latte: {label: "Latte", icon: Coffee, swatch: "#d8bb97", dark: false},
-} satisfies Record<string, {label: string; icon: LucideIcon; swatch: string; dark: boolean}>;
+    light: {label: "Light", icon: Sun, dark: false},
+    night: {label: "Night", icon: Moon, dark: true},
+    blush: {label: "Blush", icon: Flower2, dark: false},
+    burgundy: {label: "Burgundy", icon: Wine, dark: true},
+    glacier: {label: "Glacier", icon: Snowflake, dark: false},
+    latte: {label: "Latte", icon: Coffee, dark: false},
+} satisfies Record<string, {label: string; icon: LucideIcon; dark: boolean}>;
 export type Theme = keyof typeof THEME_INFO;
 export const THEMES = Object.keys(THEME_INFO) as Theme[];
 

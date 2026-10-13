@@ -7,7 +7,7 @@ import "./ThemeToggle.scss";
 
 // Cycles through every theme in THEME_INFO + "auto".
 // The icon and the name beside it reflect the user's preference (includes "auto"), while the actual colors follow the
-// resolved theme. The name changes as the hero's theme card's does (Morph).
+// resolved theme. The name changes with Morph.
 
 export default function ThemeToggle() {
     const {themePreference, currentTheme, toggleTheme} = useTheme();

@@ -1,14 +1,16 @@
-export type TabId = "unix" | "countdown" | "stopwatch" | "calculator" | "local";
+import {CalendarDays, Clock, Hourglass, type LucideIcon, Timer} from "lucide-react";
+
+export type TabId = "time" | "countdown" | "stopwatch" | "calculator";
 
 export interface Tab {
     id: TabId;
     label: string;
+    icon: LucideIcon;
 }
 
 export const TABS: Tab[] = [
-    {id: "unix", label: "Unix"},
-    {id: "countdown", label: "Countdown"},
-    {id: "stopwatch", label: "Stopwatch"},
-    {id: "calculator", label: "Date calc"},
-    {id: "local", label: "Local time"},
+    {id: "time", label: "Time", icon: Clock},
+    {id: "countdown", label: "Countdown", icon: Hourglass},
+    {id: "stopwatch", label: "Stopwatch", icon: Timer},
+    {id: "calculator", label: "Date calc", icon: CalendarDays},
 ];

@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from "react";
+import useShortcuts from "../useShortcuts.ts";
 import "./Stopwatch.scss";
 
 interface Lap {
@@ -62,29 +63,36 @@ export default function Stopwatch() {
         });
     };
 
+    useShortcuts({
+        Space: running ? stop : start,
+        l: elapsed > 0 ? lap : undefined,
+        r: elapsed > 0 ? reset : undefined,
+    });
+
     return (
-        <div className="stopwatch">
-            <div className="time_mono stopwatch_display">{fmt(elapsed, 2)}</div>
+        <div className={`stopwatch ${running ? "is-running" : ""}`}>
+            <div className="time_num stopwatch_display">{fmt(elapsed, 2)}</div>
 
             <div className="stopwatch_controls">
                 {!running ? (
-                    <button className="stopwatch_btn primary" onClick={start}>
+                    <button className="time_btn time_btn--primary time_btn--big" onClick={start}>
                         {elapsed > 0 ? "Resume" : "Start"}
                     </button>
                 ) : (
-                    <button className="stopwatch_btn danger" onClick={stop}>Stop</button>
+                    <button className="time_btn time_btn--danger time_btn--big" onClick={stop}>Stop</button>
                 )}
-                <button className="stopwatch_btn" onClick={lap} disabled={elapsed === 0}>Lap</button>
-                <button className="stopwatch_btn" onClick={reset} disabled={elapsed === 0}>Reset</button>
+                <button className="time_btn time_btn--big" onClick={lap} disabled={elapsed === 0}>Lap</button>
+                <button className="time_btn time_btn--big" onClick={reset} disabled={elapsed === 0}>Reset</button>
             </div>
+            <p className="time_keys">Space starts and stops. L marks a lap, R resets.</p>
 
             {laps.length > 0 && (
                 <div className="stopwatch_laps">
                     {[...laps].reverse().map((l) => (
                         <div className="stopwatch_lap" key={l.index}>
                             <span className="stopwatch_lap-n">#{l.index}</span>
-                            <span className="time_mono stopwatch_lap-split">+{fmt(l.split, 3)}</span>
-                            <span className="time_mono stopwatch_lap-total">{fmt(l.total, 3)}</span>
+                            <span className="time_num stopwatch_lap-split">+{fmt(l.split, 3)}</span>
+                            <span className="time_num stopwatch_lap-total">{fmt(l.total, 3)}</span>
                         </div>
                     ))}
                 </div>

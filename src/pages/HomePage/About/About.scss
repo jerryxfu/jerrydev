@@ -1,13 +1,212 @@
 .about {
 }
 
-// The measure that used to sit on .about itself. Moved down to the prose so the contact block below it
-// can use the section's full width — an 80% section would have squeezed that two-column layout for a
-// constraint that only ever existed to keep this paragraph readable.
-.about_intro {
-    width: 80%;
+// The text and the highlights side by side: the text takes the room, the highlights a narrow column of small tiles.
+// The section's title is in the same grid, so the highlights start on the row of its "Welcome!" and their heading sits
+// level with it (Jerry). One column below 900px: the title, "Welcome!", the text, then the highlights.
+.about_split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+        "title ."
+        "desc  side"
+        "intro side";
+    column-gap: 2.5rem;
+    align-items: start;
 
-    @media screen and (max-width: 768px) {
-        width: 100%;
+    > .section-title-text {
+        grid-area: title;
     }
+
+    > .section-title-description {
+        grid-area: desc;
+    }
+
+    > .about_intro {
+        grid-area: intro;
+    }
+
+    > .highlights {
+        grid-area: side;
+    }
+
+    @media screen and (max-width: 900px) {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        grid-template-areas: "title" "desc" "intro" "side";
+
+        > .highlights {
+            margin-top: 2rem;
+        }
+    }
+}
+
+.about_intro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+
+    p {
+        margin: 0;
+    }
+
+    a {
+        color: var(--secondary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+}
+
+// --- Highlights (Highlights.tsx) ---
+
+// As narrow when stacked under the text as beside it: the tiles stay small.
+.highlights {
+    max-width: 28rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+// A section title and its description (SectionTitle.scss), much smaller: the same weight and colours.
+.highlights_head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.highlights_heading {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 350;
+    line-height: 1.2;
+    color: var(--text-strong);
+}
+
+.highlights_description {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-3);
+
+    a {
+        color: var(--secondary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+}
+
+// Three small tiles in a row.
+.highlights_list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// The picture on top, a link; the name and a line under it.
+.highlights_card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm); // as the site's other cards
+    overflow: hidden;
+    background: var(--bg-lt);
+}
+
+// The whole picture, never cropped, over a blurred copy of itself (as in Projects.scss).
+.highlights_media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(var(--surface-da), var(--surface-da)) var(--bg-lt);
+
+    img {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    // The arrow in the corner, on hover or focus.
+    svg {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        box-sizing: content-box;
+        padding: 4px;
+        border-radius: var(--r-full);
+        background-color: color-mix(in srgb, var(--bg-lt) 88%, transparent);
+        box-shadow: 0 0 0 1px var(--border), 0 2px 6px -2px var(--shadow-da);
+        color: var(--text-strong);
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    &:hover svg,
+    &:focus-visible svg {
+        opacity: 1;
+        transform: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: -2px;
+    }
+}
+
+.highlights_backdrop {
+    object-fit: cover;
+    filter: blur(14px) saturate(1.25);
+    transform: scale(1.25);
+    opacity: 0.6;
+}
+
+.highlights_img {
+    object-fit: contain;
+    transition: transform 0.35s ease;
+
+    .highlights_media:hover & {
+        transform: scale(1.04);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        .highlights_media:hover & {
+            transform: none;
+        }
+    }
+}
+
+.highlights_text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0.6rem 0.6rem;
+}
+
+.highlights_title {
+    margin: 0;
+    font-size: var(--fs-base);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--text-strong);
+}
+
+// Two lines at most.
+.highlights_sub {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: var(--fs-xs);
+    line-height: 1.35;
+    color: var(--text-3);
 }

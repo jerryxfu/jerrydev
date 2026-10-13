@@ -1,0 +1,138 @@
+.rangecal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.rangecal_nav {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+
+    button {
+        display: flex;
+        align-items: center;
+        padding: 0.35rem;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-3);
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+
+        &:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+    }
+}
+
+.rangecal_month {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.rangecal_nav .rangecal_today {
+    padding: 0.25rem 0.55rem;
+    font-size: var(--fs-xs);
+    border: 1px solid var(--border);
+}
+
+// No gap across a row, so the range reads as one band from day to day.
+.rangecal_grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 2px;
+}
+
+.rangecal_weekday {
+    padding: 0.3rem 0;
+    text-align: center;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-5);
+}
+
+// The band is the day's own background, from the middle of the first day to the middle of the last; the two ends get
+// the accent's dot.
+.rangecal_day {
+    --band: color-mix(in srgb, var(--secondary) 14%, transparent);
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    span {
+        width: 2.2rem;
+        height: 2.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.12s, color 0.12s;
+    }
+
+    &:hover span {
+        background: var(--surface-da);
+        color: var(--text);
+    }
+
+    &.is-outside {
+        color: var(--text-5);
+    }
+
+    &.is-today span {
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--secondary) 60%, transparent);
+    }
+
+    &.is-in {
+        background: var(--band);
+    }
+
+    &.is-lo {
+        background: linear-gradient(90deg, transparent 50%, var(--band) 50%);
+    }
+
+    &.is-hi {
+        background: linear-gradient(90deg, var(--band) 50%, transparent 50%);
+    }
+
+    &.is-lo.is-hi {
+        background: transparent;
+    }
+
+    &.is-lo span,
+    &.is-hi span {
+        background: var(--secondary);
+        color: var(--bg-lt);
+        font-weight: 600;
+    }
+}
+
+// Only the first day picked: the range under the pointer, paler, until the second click.
+.rangecal_grid.is-preview .rangecal_day {
+    --band: color-mix(in srgb, var(--secondary) 7%, transparent);
+
+    &.is-lo:not(:hover) span,
+    &.is-hi:not(:hover) span {
+        background: var(--secondary);
+    }
+
+    &:hover span {
+        background: color-mix(in srgb, var(--secondary) 35%, transparent);
+        color: var(--text);
+    }
+}

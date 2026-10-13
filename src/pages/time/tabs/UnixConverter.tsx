@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useState} from "react";
+import {copyText} from "@/utils.ts";
 import "./UnixConverter.scss";
 
 type Unit = "s" | "ms";
@@ -45,22 +46,23 @@ export default function UnixConverter() {
 
     return (
         <div className="unix">
-            <div className="unix_live">
-                <span className="unix_live-label">Current Unix time</span>
-                <span className="time_mono unix_live-value" onClick={() => navigator.clipboard.writeText(String(live))}>
+            <div className="time_card unix_live">
+                <p className="time_label">Current Unix time</p>
+                <button className="time_num unix_live-value" title="Copy" onClick={() => void copyText(String(live))}>
                     {live}
-                </span>
-                <div className="unix_unit-toggle">
-                    <button className={unit === "s" ? "active" : ""} onClick={() => setUnit("s")}>seconds</button>
-                    <button className={unit === "ms" ? "active" : ""} onClick={() => setUnit("ms")}>ms</button>
+                </button>
+                <div className="time_toggle" role="group" aria-label="Unit">
+                    <button className={unit === "s" ? "active" : ""} aria-pressed={unit === "s"} onClick={() => setUnit("s")}>seconds</button>
+                    <button className={unit === "ms" ? "active" : ""} aria-pressed={unit === "ms"} onClick={() => setUnit("ms")}>ms</button>
                 </div>
             </div>
 
             <div className="unix_grid">
-                <div className="unix_card">
-                    <label className="unix_card-label">Timestamp → date</label>
+                <div className="time_card">
+                    <label className="time_label" htmlFor="unix-ts">Timestamp → date</label>
                     <input
-                        className="time_mono unix_input"
+                        id="unix-ts"
+                        className="time_num time_input"
                         placeholder={String(nowUnix(unit))}
                         value={tsInput}
                         onChange={(e) => setTsInput(e.target.value.replace(/[^\d-]/g, ""))}
@@ -70,23 +72,24 @@ export default function UnixConverter() {
                         <div className="unix_out">
                             <Row label="Local" value={parsed.toLocaleString()} />
                             <Row label="UTC" value={parsed.toUTCString()} />
-                            <Row label="ISO 8601" value={parsed.toISOString()} mono />
+                            <Row label="ISO 8601" value={parsed.toISOString()} code />
                             <Row label="Relative" value={relative(parsed)} />
                         </div>
                     )}
                 </div>
 
-                <div className="unix_card">
-                    <label className="unix_card-label">Date → timestamp</label>
+                <div className="time_card">
+                    <label className="time_label" htmlFor="unix-date">Date → timestamp</label>
                     <input
-                        className="unix_input"
+                        id="unix-date"
+                        className="time_input"
                         type="datetime-local"
                         value={dateInput}
                         onChange={(e) => setDateInput(e.target.value)}
                     />
                     {computedTs !== null && (
                         <div className="unix_out">
-                            <Row label={unit === "s" ? "Unix (s)" : "Unix (ms)"} value={String(computedTs)} mono copy />
+                            <Row label={unit === "s" ? "Unix (s)" : "Unix (ms)"} value={String(computedTs)} copy />
                         </div>
                     )}
                 </div>
@@ -95,16 +98,18 @@ export default function UnixConverter() {
     );
 }
 
-function Row({label, value, mono, copy}: { label: string; value: string; mono?: boolean; copy?: boolean }) {
+// A timestamp to copy is a button; ISO 8601 shows in the code font.
+function Row({label, value, code, copy}: { label: string; value: string; code?: boolean; copy?: boolean }) {
     return (
         <div className="unix_row">
             <span className="unix_row-label">{label}</span>
-            <span
-                className={`unix_row-value ${mono ? "time_mono" : ""} ${copy ? "is-copy" : ""}`}
-                onClick={copy ? () => navigator.clipboard.writeText(value) : undefined}
-            >
-                {value}
-            </span>
+            {copy ? (
+                <button className="time_num unix_row-value is-copy" title="Copy" onClick={() => void copyText(value)}>
+                    {value}
+                </button>
+            ) : (
+                <span className={`unix_row-value ${code ? "time_code" : ""}`}>{value}</span>
+            )}
         </div>
     );
 }

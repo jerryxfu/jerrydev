@@ -33,32 +33,6 @@ export function when(iso: string): string {
     return `on ${at.toLocaleDateString()} at ${time}`;
 }
 
-// Puts text on the clipboard; true once it's there. The Clipboard API first. Where there's none (an http address, like
-// the dev server's on the network) or it refuses, the old way: a hidden text box, selected and copied, then the focus
-// back where it was.
-export async function copyText(text: string): Promise<boolean> {
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch {
-        const focused = document.activeElement as HTMLElement | null;
-        const box = document.createElement("textarea");
-        box.value = text;
-        box.readOnly = true;
-        box.style.cssText = "position: fixed; top: 0; left: 0; opacity: 0;";
-        document.body.append(box);
-        box.select();
-        try {
-            return document.execCommand("copy");
-        } catch {
-            return false;
-        } finally {
-            box.remove();
-            focused?.focus({preventScroll: true});
-        }
-    }
-}
-
 export function getDropUrl(code: string): string {
     return `${window.location.origin}/expedite?code=${code}`;
 }

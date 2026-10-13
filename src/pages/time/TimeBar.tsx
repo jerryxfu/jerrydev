@@ -1,4 +1,5 @@
-import {useEffect, useState} from "react";
+import {type CSSProperties, useEffect, useState} from "react";
+import {ChevronDown} from "lucide-react";
 import "./TimeBar.scss";
 
 interface Progress {
@@ -31,7 +32,8 @@ function computeProgress(now: Date): Progress[] {
     ];
 }
 
-export default function TimeBar() {
+// The clock, and the year, month, week and day so far: folded or not, as the page says (Time.tsx), and by hand.
+export default function TimeBar({open, onToggle}: { open: boolean; onToggle: () => void }) {
     const [now, setNow] = useState(() => new Date());
 
     useEffect(() => {
@@ -45,25 +47,39 @@ export default function TimeBar() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     return (
-        <div className="timebar">
+        // A click anywhere on the card opens or folds the bars (Jerry). The chevron is the button for the keyboard and
+        // screen readers; its own click reaches the card's, so it has none.
+        <div className="time_card timebar" onClick={onToggle}>
             <div className="timebar_clock">
-                <span className="time_mono timebar_time">{time}</span>
+                <span className="time_num timebar_time">{time}</span>
                 <div className="timebar_meta">
                     <span className="timebar_date">{date}</span>
                     <span className="timebar_tz">{tz}</span>
                 </div>
+                <button
+                    className={`timebar_toggle ${open ? "is-open" : ""}`}
+                    aria-expanded={open}
+                    aria-controls="timebar-bars"
+                    aria-label="Year, month, week and day"
+                >
+                    <ChevronDown size={18} aria-hidden />
+                </button>
             </div>
 
-            <div className="timebar_bars">
-                {progress.map((p) => (
-                    <div className="timebar_bar-row" key={p.label}>
-                        <span className="timebar_bar-label">{p.label}</span>
-                        <div className="timebar_bar">
-                            <div className="timebar_bar-fill" style={{width: `${p.pct}%`}} />
-                        </div>
-                        <span className="time_mono timebar_bar-pct">{p.pct.toFixed(1)}%</span>
+            <div className={`timebar_fold ${open ? "is-open" : ""}`} id="timebar-bars" inert={!open}>
+                <div>
+                    <div className="timebar_bars">
+                        {progress.map((p, i) => (
+                            <div className="timebar_bar-row" key={p.label} style={{"--i": i} as CSSProperties}>
+                                <span className="timebar_bar-label">{p.label}</span>
+                                <div className="timebar_bar">
+                                    <div className="timebar_bar-fill" style={{width: `${p.pct}%`}} />
+                                </div>
+                                <span className="time_num timebar_bar-pct">{p.pct.toFixed(1)}%</span>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     );

@@ -1,57 +1,31 @@
 .unix {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    padding-top: 1.5rem;
+    gap: 1rem;
 }
 
 .unix_live {
-    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 1rem;
     flex-wrap: wrap;
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    gap: 0.6rem 1rem;
 }
 
-.unix_live-label {
-    font-size: var(--fs-smm);
-    opacity: 0.55;
-}
-
+// The live value, copied on a click.
 .unix_live-value {
+    margin-right: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-family: inherit;
     font-size: var(--fs-xl);
     font-weight: 600;
     cursor: pointer;
-    margin-right: auto;
+    transition: color 0.15s;
 
     &:hover {
-        opacity: 0.7;
-    }
-}
-
-.unix_unit-toggle {
-    display: flex;
-    gap: 0.25rem;
-
-    button {
-        padding: 0.3rem 0.7rem;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        background: transparent;
-        color: inherit;
-        font-family: inherit;
-        font-size: var(--fs-smm);
-        cursor: pointer;
-        opacity: 0.5;
-        transition: opacity 0.15s, background 0.15s;
-
-        &.active {
-            opacity: 1;
-            background: color-mix(in srgb, var(--time-accent) 14%, transparent);
-            border-color: color-mix(in srgb, var(--time-accent) 35%, transparent);
-        }
+        color: var(--text-3);
     }
 }
 
@@ -59,42 +33,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+    align-items: start;
 
     @media (max-width: 640px) {
         grid-template-columns: 1fr;
-    }
-}
-
-.unix_card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1.1rem;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-}
-
-.unix_card-label {
-    font-size: var(--fs-smm);
-    font-weight: 500;
-    opacity: 0.7;
-}
-
-.unix_input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: transparent;
-    color: inherit;
-    font-family: inherit;
-    font-size: var(--fs-base);
-    outline: none;
-    transition: border-color 0.15s;
-
-    &:focus {
-        border-color: var(--border-da);
     }
 }
 
@@ -107,24 +49,32 @@
 .unix_row {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     gap: 0.75rem;
     font-size: var(--fs-sm);
 }
 
 .unix_row-label {
-    opacity: 0.45;
     flex-shrink: 0;
+    color: var(--text-4);
 }
 
 .unix_row-value {
     text-align: right;
     word-break: break-all;
+    color: var(--text-2);
 
     &.is-copy {
+        padding: 0;
+        border: none;
+        background: none;
+        font-family: inherit;
+        font-size: inherit;
         cursor: pointer;
+        transition: color 0.15s;
 
         &:hover {
-            opacity: 0.7;
+            color: var(--text-4);
         }
     }
 }

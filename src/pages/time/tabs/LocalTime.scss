@@ -1,0 +1,156 @@
+.localtime {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 1rem;
+    align-items: start;
+
+    @media (max-width: 720px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.localtime_zone {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.localtime_out {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.localtime_row-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: var(--fs-sm);
+}
+
+.localtime_row-label {
+    flex-shrink: 0;
+    color: var(--text-4);
+}
+
+.localtime_row-value {
+    text-align: right;
+    color: var(--text-2);
+}
+
+.localtime_note {
+    margin: 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-3);
+}
+
+.localtime_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.localtime_at {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+
+    .time_input {
+        width: auto;
+        height: 2.3rem;
+    }
+
+    .time_btn {
+        padding: 0.45rem 0.8rem;
+    }
+}
+
+.localtime_list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.localtime_row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+        padding-top: 0.2rem;
+    }
+}
+
+.localtime_place {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    margin-right: auto;
+}
+
+.localtime_city {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.localtime_meta {
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+}
+
+.localtime_clock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.localtime_time {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.localtime_day {
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+}
+
+.localtime_remove {
+    display: flex;
+    padding: 0.3rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-5);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+
+    &:hover {
+        color: var(--text-2);
+        background: var(--surface);
+    }
+}
+
+.localtime_add {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.localtime_error {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--danger-text);
+}

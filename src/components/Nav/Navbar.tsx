@@ -132,9 +132,9 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
             // made the bar the island only once it was over. clearProps hands top back to CSS.
             void gsap.from(nav, {
                 top: () => -nav.offsetHeight,
-                duration: 1.5,
+                duration: 1.45,
                 delay: ENTRY_DELAY,
-                ease: "elastic.out(1,0.95)",
+                ease: "elastic.out(1,0.94)",
                 clearProps: "top",
             });
         }

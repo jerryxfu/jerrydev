@@ -1,0 +1,162 @@
+// The calendar's card a little wider than the other.
+.datecalc {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+
+    @media (max-width: 680px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.datecalc_status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    min-height: 1.9rem;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+.datecalc_clear {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+        background: var(--surface);
+        color: var(--text);
+    }
+}
+
+.datecalc_check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    cursor: pointer;
+
+    input {
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+        accent-color: var(--secondary);
+        cursor: pointer;
+    }
+}
+
+.datecalc_field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+
+    span {
+        font-size: var(--fs-smm);
+        color: var(--text-4);
+    }
+}
+
+// Add or Subtract: two halves of one control, the chosen one in the accent's tint.
+.datecalc_sign {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        height: 2.75rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text-3);
+        font-family: inherit;
+        font-size: var(--fs-sm);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+        &:hover {
+            background: var(--surface);
+            color: var(--text-2);
+        }
+
+        &.active {
+            border-color: var(--secondary);
+            background: color-mix(in srgb, var(--secondary) 8%, transparent);
+            color: var(--text);
+            font-weight: 500;
+
+            svg {
+                color: var(--secondary);
+            }
+        }
+    }
+}
+
+// The four amounts, all there at once: 2 days, 3 weeks, 4 months and 5 years in one go.
+.datecalc_amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
+}
+
+.datecalc_amount {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+
+    input {
+        flex: 1;
+        min-width: 0;
+        text-align: right;
+    }
+
+    span {
+        width: 3.6rem;
+    }
+}
+
+.datecalc_out {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    transition: opacity 0.2s;
+
+    // The last range's numbers, while a new one is being picked.
+    &.is-stale {
+        opacity: 0.4;
+    }
+}
+
+.datecalc_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    min-height: 1.5em; // empty before the first range, the same height as with a value
+    font-size: var(--fs-sm);
+}
+
+.datecalc_row-label {
+    flex-shrink: 0;
+    color: var(--text-4);
+}
+
+.datecalc_row-value {
+    text-align: right;
+    color: var(--text-2);
+}

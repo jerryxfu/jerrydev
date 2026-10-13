@@ -477,15 +477,6 @@ p {
     outline-offset: 2px;
 }
 
-.layout-row {
-    display: flex;
-    flex-direction: row;
-
-    justify-content: flex-start;
-    align-items: stretch;
-    width: 100%;
-}
-
 // Read by screen readers, never seen. For text that is drawn some other way on screen, like Morph's letters.
 .visually-hidden {
     position: absolute !important;

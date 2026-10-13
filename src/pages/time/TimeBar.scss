@@ -1,25 +1,72 @@
+// The clock, and how far through the year, month, week and day we are. Its frame is .time_card (Time.scss). No gap:
+// the bars' fold carries its own space above, so a folded card ends right under the clock.
 .timebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1.1rem 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--surface);
+    gap: 0;
+    cursor: pointer;
 }
 
+// Opens and folds the bars: a chevron at the end of the clock's row, turned up while they show.
+.timebar_toggle {
+    align-self: center;
+    margin-left: auto;
+    display: flex;
+    padding: 0.4rem;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-4);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    svg {
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    &:hover {
+        background: var(--surface);
+        color: var(--text);
+    }
+
+    &.is-open svg {
+        transform: rotate(180deg);
+    }
+}
+
+// Folds as the countdown's buttons do: the row closes to nothing (grid-template-rows), what's in it clipped. The bars'
+// space above sits inside the wrapper (.timebar_bars' padding), since a padding of the wrapper itself couldn't close.
+.timebar_fold {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    > * {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    &.is-open {
+        grid-template-rows: 1fr;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+// The date and the zone centred on the big clock.
 .timebar_clock {
     display: flex;
-    align-items: baseline;
-    gap: 1rem;
+    align-items: center;
+    gap: 0.6rem 1rem;
     flex-wrap: wrap;
 }
 
 .timebar_time {
-    font-size: 2.4rem;
+    font-size: 3rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     line-height: 1;
+    color: var(--text);
 }
 
 .timebar_meta {
@@ -30,18 +77,19 @@
 
 .timebar_date {
     font-size: var(--fs-sm);
-    opacity: 0.75;
+    color: var(--text-2);
 }
 
 .timebar_tz {
     font-size: var(--fs-xs);
-    opacity: 0.4;
+    color: var(--text-4);
 }
 
 .timebar_bars {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.5rem 1.25rem;
+    gap: 0.55rem 1.5rem;
+    padding-top: 1.1rem;
 
     @media (max-width: 560px) {
         grid-template-columns: 1fr;
@@ -51,12 +99,12 @@
 .timebar_bar-row {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.65rem;
 }
 
 .timebar_bar-label {
     font-size: var(--fs-smm);
-    opacity: 0.6;
+    color: var(--text-3);
     width: 3rem;
     flex-shrink: 0;
 }
@@ -70,15 +118,45 @@
 }
 
 .timebar_bar-fill {
+    position: relative;
     height: 100%;
-    background: var(--time-accent);
+    background: var(--secondary);
     border-radius: 3px;
+    overflow: hidden;
     transition: width 0.5s linear;
+
+    // The hero separator's glow (runGlow in Hero.tsx), once, as the page opens: a soft white light 3/7 of the fill
+    // long slides through it, from before its left end to past its right one, so it only ever shows on the fill.
+    // A transform on a small box: nothing for Firefox to repaint. Right away and quicker than the hero's (Jerry: no
+    // wait before it moves, and faster), one bar 0.1s after the other (--i, TimeBar.tsx).
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: calc(100% * 3 / 7);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+        transform: translateX(-100%);
+        // sine.inOut, as the hero's.
+        animation: timebar-glow 1.2s cubic-bezier(0.37, 0, 0.63, 1) calc(var(--i, 0) * 0.1s) both;
+
+        @media (prefers-reduced-motion: reduce) {
+            display: none;
+        }
+    }
+}
+
+// From just before the fill to just past it: the light is 3/7 of the fill, so the fill is 7/3 of the light.
+@keyframes timebar-glow {
+    to {
+        transform: translateX(calc(100% * 7 / 3));
+    }
 }
 
 .timebar_bar-pct {
     font-size: var(--fs-xs);
-    opacity: 0.55;
+    color: var(--text-4);
     width: 3rem;
     text-align: right;
     flex-shrink: 0;
