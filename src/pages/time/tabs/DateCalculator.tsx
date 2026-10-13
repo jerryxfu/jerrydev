@@ -1,6 +1,6 @@
 import {useMemo, useState} from "react";
 import {Minus, Plus} from "lucide-react";
-import Morph from "@/components/Morph/Morph.tsx";
+import Roll from "@/components/Roll/Roll.tsx";
 import {daysBetween, daysInMonth, isoDay, parseDay} from "../utils.ts";
 import RangeCalendar from "./RangeCalendar.tsx";
 import "./DateCalculator.scss";
@@ -13,10 +13,6 @@ const shortDate = (date: Date) => date.toLocaleDateString([], {weekday: "short",
 const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
 
 const addDays = (date: Date, n: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
-
-// The days a range counts: up to its last day, or through it.
-const countDays = ([from, to]: [string, string], withEnd: boolean) =>
-    daysBetween(parseDay(from) ?? new Date(), parseDay(to) ?? new Date()) + (withEnd ? 1 : 0);
 
 // The same day of the month, or the month's last day when it has fewer: Jan 31 + 1 month is Feb 28 (or 29).
 function addMonths(date: Date, n: number): Date {
@@ -53,8 +49,6 @@ export default function DateCalculator() {
     const [second, setSecond] = useState<string | null>(null);
     const [range, setRange] = useState<[string, string] | null>(null);
     const [withEnd, setWithEnd] = useState(false);
-    // Which way the results roll when they change: up when the range grows, down when it shrinks (Morph, Jerry).
-    const [direction, setDirection] = useState<"up" | "down">("up");
 
     // Add or subtract.
     const [start, setStart] = useState(() => isoDay(new Date()));
@@ -68,7 +62,6 @@ export default function DateCalculator() {
             setSecond(null);
         } else {
             const next: [string, string] = first <= day ? [first, day] : [day, first];
-            setDirection(range && countDays(next, withEnd) < countDays(range, withEnd) ? "down" : "up");
             setSecond(day);
             setRange(next);
         }
@@ -125,19 +118,16 @@ export default function DateCalculator() {
                     <input
                         type="checkbox"
                         checked={withEnd}
-                        onChange={(e) => {
-                            setWithEnd(e.target.checked);
-                            setDirection(e.target.checked ? "up" : "down");
-                        }}
+                        onChange={(e) => setWithEnd(e.target.checked)}
                     />
                     Count the end day too
                 </label>
 
                 <div className={`datecalc_out ${picking ? "is-stale" : ""}`}>
-                    <Row label="Total" value={span ? plural(span.days, "day") : ""} direction={direction} />
-                    <Row label="In weeks" value={span?.weeks ?? ""} direction={direction} />
-                    <Row label="In months" value={span?.months ?? ""} direction={direction} />
-                    <Row label="Weekdays" value={span ? plural(span.weekdays, "day") : ""} suffix=", Monday to Friday" direction={direction} />
+                    <Row label="Total" value={span ? plural(span.days, "day") : ""} roll />
+                    <Row label="In weeks" value={span?.weeks ?? ""} roll />
+                    <Row label="In months" value={span?.months ?? ""} roll />
+                    <Row label="Weekdays" value={span ? plural(span.weekdays, "day") : ""} suffix=", Monday to Friday" roll />
                 </div>
             </div>
 
@@ -186,13 +176,14 @@ export default function DateCalculator() {
     );
 }
 
-// With a direction, the value morphs when it changes (the range's results); the suffix stays put.
-function Row({label, value, suffix, direction}: { label: string; value: string; suffix?: string; direction?: "up" | "down" }) {
+// With roll, the value's numbers roll when they change (the range's results) and its words fade in (Roll); the suffix
+// stays put.
+function Row({label, value, suffix, roll}: { label: string; value: string; suffix?: string; roll?: boolean }) {
     return (
         <div className="datecalc_row">
             <span className="datecalc_row-label">{label}</span>
             <span className="time_num datecalc_row-value">
-                {direction ? <Morph text={value} direction={direction} /> : value}
+                {roll ? <Roll text={value} /> : value}
                 {value && suffix}
             </span>
         </div>

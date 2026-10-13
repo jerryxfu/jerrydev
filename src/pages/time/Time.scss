@@ -104,7 +104,7 @@
     gap: 1rem;
 }
 
-// While the countdown or the stopwatch runs, what's above it steps back (Jerry's idea); it comes back under the pointer
+// While the countdown, the stopwatch or the sync pattern runs, what's above it steps back (Jerry's idea); it comes back under the pointer
 // or the keyboard, and once it's paused, stopped or done.
 .time_header,
 .timebar,
@@ -112,7 +112,7 @@
     transition: opacity 0.6s ease;
 }
 
-.time:has(.countdown_dial.is-running, .stopwatch.is-running) {
+.time:has(.countdown_dial.is-running, .stopwatch.is-running, .sync.is-running) {
     .time_header,
     .timebar,
     .time_tabs {

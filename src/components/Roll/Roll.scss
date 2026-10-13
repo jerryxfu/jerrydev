@@ -1,0 +1,90 @@
+// Roll.tsx. The words fade; a number's changed digits roll in their window, the old ones leaving as the new arrive.
+.roll_fade {
+    animation: roll-fade 0.25s ease-out;
+}
+
+.roll_figure {
+    display: inline-block;
+}
+
+.roll_window {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+
+.roll_new,
+.roll_old {
+    display: inline-block;
+    animation: 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+// Out of the window once it has rolled, but still in the page until the next change: never part of a selection.
+.roll_old {
+    position: absolute;
+    top: 0;
+    right: 0;
+    user-select: none;
+}
+
+.roll_window.is-up {
+    .roll_new {
+        animation-name: roll-from-below;
+    }
+
+    .roll_old {
+        animation-name: roll-to-above;
+    }
+}
+
+.roll_window.is-down {
+    .roll_new {
+        animation-name: roll-from-above;
+    }
+
+    .roll_old {
+        animation-name: roll-to-below;
+    }
+}
+
+@keyframes roll-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes roll-from-below {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes roll-to-above {
+    to {
+        transform: translateY(-100%);
+    }
+}
+
+@keyframes roll-from-above {
+    from {
+        transform: translateY(-100%);
+    }
+}
+
+@keyframes roll-to-below {
+    to {
+        transform: translateY(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .roll_fade,
+    .roll_new {
+        animation: none;
+    }
+
+    .roll_old {
+        display: none;
+    }
+}

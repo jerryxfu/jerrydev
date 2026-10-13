@@ -16,8 +16,6 @@ gsap.registerPlugin(ScrollTrigger);
 //
 //     <Morph text={status} />                        changes morph, the first text is simply there
 //     <Morph text="24 projects since 2021" reveal /> the first text also blurs in once it scrolls into view
-//     <Morph text={count} direction="up" />          the other way: the old letters rise, the new come up from below
-//                                                    (a number going up, as an odometer turns; "down" is the default)
 
 // In seconds: the old letters going, and the step between one and the next; how long after they start going the new
 // ones start coming; the new letters coming. And how far both travel, as a share of a letter's height.
@@ -39,11 +37,7 @@ function place(el: HTMLElement, text: string) {
     el.replaceChildren(...graphemes(text).map(letter));
 }
 
-type Direction = "up" | "down";
-
-function morph(el: HTMLElement, to: string, direction: Direction) {
-    // Down: the old letters drop and the new come from above. Up: the reverse.
-    const way = direction === "up" ? -1 : 1;
+function morph(el: HTMLElement, to: string) {
     const next = graphemes(to);
     // Letters still leaving from the change before are on their way out, not part of the text.
     const shown = Array.from(el.querySelectorAll<HTMLElement>(":scope > .morph_char:not(.is-leaving)"));
@@ -72,7 +66,7 @@ function morph(el: HTMLElement, to: string, direction: Direction) {
             gsap.set(char, {position: "absolute", left: spots[i]!.left - origin.left, top: spots[i]!.top - origin.top});
         });
         gsap.to(leaving, {
-            opacity: 0, yPercent: way * MORPH.travel, filter: "blur(4px)", duration: MORPH.out, ease: "power2.in",
+            opacity: 0, yPercent: MORPH.travel, filter: "blur(4px)", duration: MORPH.out, ease: "power2.in",
             stagger: MORPH.outStagger, onComplete: () => leaving.forEach((char) => char.remove()),
         });
     }
@@ -82,8 +76,8 @@ function morph(el: HTMLElement, to: string, direction: Direction) {
         el.append(char);
         return char;
     });
-    // The first time, every letter comes in from a little further, and quicker.
-    gsap.fromTo(arriving, {opacity: 0, yPercent: -way * (swap ? MORPH.travel : 40), filter: "blur(4px)"}, {
+    // The first time, every letter comes in from a little higher, and quicker.
+    gsap.fromTo(arriving, {opacity: 0, yPercent: swap ? -MORPH.travel : -40, filter: "blur(4px)"}, {
         opacity: 1, yPercent: 0, filter: "blur(0px)", duration: swap ? MORPH.in : 0.45, ease: "power3.out",
         stagger: swap ? MORPH.inStagger : 0.015, delay: swap ? MORPH.gap : 0, clearProps: "filter,transform",
     });
@@ -95,11 +89,9 @@ type Props = {
     className?: string;
     // Blur the first text in when it scrolls into view, instead of having it there from the start.
     reveal?: boolean;
-    // Which way the letters go when the text changes; "down" unless said.
-    direction?: Direction;
 };
 
-export default function Morph({text, as: Tag = "span", className, reveal = false, direction = "down"}: Props) {
+export default function Morph({text, as: Tag = "span", className, reveal = false}: Props) {
     const letters = useRef<HTMLSpanElement>(null);
     // Whether the first text is in. Until it is, a new text only replaces what will arrive.
     const placed = useRef(false);
@@ -121,7 +113,7 @@ export default function Morph({text, as: Tag = "span", className, reveal = false
             once: true,
             onEnter: () => {
                 el.style.visibility = "";
-                morph(el, pending.current, "down");
+                morph(el, pending.current);
                 placed.current = true;
             },
         });
@@ -131,8 +123,8 @@ export default function Morph({text, as: Tag = "span", className, reveal = false
     useLayoutEffect(() => {
         pending.current = text;
         const el = letters.current;
-        if (el && placed.current) morph(el, text, direction);
-    }, [text, direction]);
+        if (el && placed.current) morph(el, text);
+    }, [text]);
 
     return (
         <Tag className={className ? `morph ${className}` : "morph"}>

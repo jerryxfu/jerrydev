@@ -1,0 +1,47 @@
+.sync {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+// Dark whatever the theme, as the pattern (pattern.ts's BACKGROUND), so the corners match before the first frame.
+.sync_stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0a0a0a;
+    outline: none;
+
+    // The browser stretches it over the screen; the pattern keeps its 16:9 inside. No pointer over the picture.
+    &:fullscreen {
+        border-radius: 0;
+        cursor: none;
+    }
+}
+
+.sync_canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.sync_controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+// The two lines under the buttons sit closer together than the column's gap.
+.sync_note {
+    margin: -0.75rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+    text-align: center;
+
+    + .time_keys {
+        margin-top: -1.1rem;
+    }
+}

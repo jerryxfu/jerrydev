@@ -9,6 +9,7 @@ import Stopwatch from "./tabs/Stopwatch.tsx";
 import Countdown from "./tabs/Countdown.tsx";
 import DateCalculator from "./tabs/DateCalculator.tsx";
 import LocalTime from "./tabs/LocalTime.tsx";
+import SyncPattern from "./tabs/SyncPattern.tsx";
 
 export default function Time() {
     const [tab, setTab] = useState<TabId>("time");
@@ -58,6 +59,7 @@ export default function Time() {
                     {tab === "countdown" && <Countdown />}
                     {tab === "stopwatch" && <Stopwatch />}
                     {tab === "calculator" && <DateCalculator />}
+                    {tab === "sync" && <SyncPattern />}
                 </div>
             </div>
         </div>

@@ -13,7 +13,7 @@ export default function About() {
                 <SectionTitle text={"About Me"} description={"Welcome!"} />
                 <div className="about_intro text-body">
                     <p>
-                        Hi, I'm Jerry and I do things. Here are some things I find worth sharing. I will more in this About Me section one day..
+                        Hi, I'm Jerry and I do things. Here are some things I find worth sharing. I will write more in this About Me section one day..
                     </p>
                     {/*<p>*/}
                     {/*    Hi, I'm Jerry and I do things. Mostly where code meets medicine, robotics and AI. I'm an aspiring*/}

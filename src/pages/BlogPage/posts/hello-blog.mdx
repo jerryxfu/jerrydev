@@ -9,7 +9,7 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
 
 ````ts
 {
-    "why-rag-is-mid",          // must match the filename, anywhere under posts/
+    slug: "why-rag-is-mid",          // must match the filename, anywhere under posts/
     title: "Why RAG is mid",
     description: "Card copy, and the meta description on the post page.",
     date: postDate("2026-09-01"),   // NOT new Date() (see below)
@@ -54,7 +54,7 @@ things at once: which posts belong to it, what order the topic page lists them i
 resolve to at the bottom of a post.
 
 ````ts
-[
+posts: [
     {chapter: "Python", break: true},
     "python-basics",
     "python-going-further",
@@ -71,7 +71,7 @@ lesson is the first Git one, which is not a next lesson in any sense. Use it whe
 A marker with **no** `chapter` is a break and nothing else — it stops prev/next without starting a new heading:
 
 ````ts
-{"Excel", break: true},
+{chapter: "Excel", break: true},
 "excel-formulas",
 {break: true},          // same chapter, but not the lesson after it
 "excel-formulas-es",
@@ -135,7 +135,7 @@ Omit `image` entirely and the card runs its text the full width.
 import {Mdx} from "@/assets/projects/mdx.tsx";
 
 {
-    "hello-blog",
+    slug: "hello-blog",
     image: <Mdx />,
 }
 ````
@@ -375,7 +375,7 @@ Add `specialLink` to a project entry in `Projects.tsx` and a banner will show at
 
 ````ts
 {
-    "*.jerryxf.net",
+    title: "*.jerryxf.net",
     description: "This portfolio website, the blog, as well as the API that empowers other projects.",
     specialLink: "/blog/hello-blog",
 }
@@ -390,7 +390,7 @@ destination is not a post:
 
 ````ts
 {
-    "https://github.com/jerryxfu/guide",
+    specialLink: "https://github.com/jerryxfu/guide",
     specialLinkText: "View on GitHub",
 }
 ````
