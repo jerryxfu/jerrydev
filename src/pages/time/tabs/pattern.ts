@@ -18,17 +18,25 @@ const FLASH_FOR = 0.05; // of a second: 50 ms, 3 frames at 60 Hz, so a 30 fps ca
 
 // The layout, in hundredths of the picture's height. The picture is 16:9, so it's WIDE of them across.
 const WIDE = 1600 / 9;
-const PIE = {x: 51, y: 43, r: 28};
-const BALL = {x: 105, top: 15, bottom: 71, w: 10, r: 4};
-const SQUARE = {x: 150, y: 27, size: 22};
-const RING = {x: 150, y: 59, r: 11};
+const PIE = {x: 51, y: 37, r: 25};
+const BALL = {x: 105, top: 12, bottom: 62, w: 10, r: 4};
+const SQUARE = {x: 150, y: 22, size: 20};
+const RING = {x: 150, y: 51, r: 10};
+const STRIP = {x: 19, y: 75, w: 142, h: 5}; // from the pie's left tick to the right column's edge
 const TIMECODE = {x: WIDE / 2, y: 93, size: 10};
 const STATS = {x: SQUARE.x + SQUARE.size / 2, y: TIMECODE.y, size: 3.5}; // under the right column, on the timecode's line
 
-// t is the wall clock in milliseconds (Date.now()'s time); font is a CSS font family, the page's own; stats is
-// frameCounter's text, or nothing.
+// What frameCounter has measured: the frame rate, the frames missed, and the strip's cell for this frame.
+export interface Frames {
+    fps: number;
+    dropped: number;
+    lit: number;
+}
+
+// t is the wall clock in milliseconds (Date.now()'s time); font is a CSS font family, the page's own; frames is
+// frameCounter's reading, null before it has one.
 export function drawPattern(
-    ctx: CanvasRenderingContext2D, t: number, width: number, height: number, font: string, stats: string,
+    ctx: CanvasRenderingContext2D, t: number, width: number, height: number, font: string, frames: Frames | null,
 ): void {
     const second = Math.floor(t / 1000);
     const p = (t - second * 1000) / 1000; // how far into the second, 0 to 1
@@ -47,8 +55,9 @@ export function drawPattern(
     ball(ctx, p);
     flash(ctx, p);
     ring(ctx, p);
+    strip(ctx, frames);
     timecode(ctx, second, p, font);
-    if (stats) corner(ctx, stats, font);
+    if (frames) corner(ctx, `${frames.fps} fps · ${frames.dropped} dropped`, font);
 
     ctx.restore();
 }
@@ -127,6 +136,20 @@ function ring(ctx: CanvasRenderingContext2D, p: number) {
     ctx.globalAlpha = 1;
 }
 
+// One cell per frame of the second, lit in turn, the first with the second's start. A photo with a slow shutter of the
+// screen at the end of the chain shows every frame it showed: a dark cell is a frame it dropped, a doubly bright one a
+// frame it showed twice. Every tenth cell is a little lighter, to count by. Sixty cells until the rate is measured.
+function strip(ctx: CanvasRenderingContext2D, frames: Frames | null) {
+    const {x, y, w, h} = STRIP;
+    const count = frames?.fps ?? 60;
+    const pitch = w / count;
+    const gap = Math.min(0.4, pitch * 0.2);
+    for (let k = 0; k < count; k++) {
+        ctx.fillStyle = k === frames?.lit ? WHITE : k % 10 === 0 ? LINE : TRACK;
+        ctx.fillRect(x + k * pitch, y, pitch - gap, h);
+    }
+}
+
 // The time of day to the millisecond: take one photo of two screens, and the difference is the delay.
 function timecode(ctx: CanvasRenderingContext2D, second: number, p: number, font: string) {
     const date = new Date(second * 1000);
@@ -192,28 +215,43 @@ function line(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number,
     ctx.stroke();
 }
 
-// The frame rate and the frames missed, from the gaps between animation frames. The usual gap is the mean of the last
-// 60 near their median (timers are rounded to the ms, so a 60 Hz screen's gaps read 16 and 17); a gap of one and a half
-// of it or more means frames were missed.
+// The frame rate, the frames missed and the strip's cell, from the gaps between animation frames (now, the frame's
+// timestamp) and the wall clock (t). The usual gap is the mean of the last 60 within half of their median (timers are
+// rounded to the ms, so a 60 Hz screen's gaps read 16 and 17; frames missed make the longer ones); a gap of one and a
+// half of it or more means frames were missed.
 export function frameCounter() {
     let gaps: number[] = [];
     let last: number | null = null;
     let usual = 0;
+    let fps = 0; // the usual gap as a whole rate, moved only when it's off by 3/4 (144 Hz measures 143.6 at times)
     let dropped = 0;
+    let lit = -1;
     return {
-        frame(now: number) {
+        frame(now: number, t: number) {
+            const steps = last === null || !usual ? 0 : Math.max(1, Math.round((now - last) / usual)); // frames since the last
             if (last !== null) {
-                const gap = now - last;
-                if (usual && gap > usual * 1.5) dropped += Math.round(gap / usual) - 1;
-                gaps.push(gap);
+                if (steps > 1) dropped += steps - 1;
+                gaps.push(now - last);
                 if (gaps.length > 60) gaps.shift();
                 if (gaps.length >= 10) {
                     const median = [...gaps].sort((a, b) => a - b)[gaps.length >> 1] ?? 0;
-                    const near = gaps.filter((g) => Math.abs(g - median) <= median / 4);
+                    const near = gaps.filter((g) => Math.abs(g - median) < median / 2);
                     usual = near.reduce((sum, g) => sum + g, 0) / near.length;
                 }
             }
             last = now;
+            if (!usual) return;
+            if (Math.abs(1000 / usual - fps) > 0.75) fps = Math.round(1000 / usual);
+
+            // The strip moves one cell per frame, so a frame missed leaves a dark cell. It's kept within one cell of
+            // the wall clock's count (which frame of the second this is, at the whole rate: the measured gap's small
+            // error would add up over a second), and put back on it past that (after a hidden tab, or on a 59.94 Hz
+            // screen, once in half a minute). Taking the clock's count every frame would flicker at a cell's edge,
+            // where timers' rounding tips it either way.
+            const clock = Math.floor(((t % 1000) * fps) / 1000) % fps;
+            const next = (lit + steps) % fps;
+            const off = Math.abs(next - clock);
+            lit = lit < 0 || Math.min(off, fps - off) > 1 ? clock : next;
         },
         // A hidden tab gets no frames: that pause isn't a drop.
         pause() {
@@ -223,8 +261,10 @@ export function frameCounter() {
             gaps = [];
             last = null;
             usual = 0;
+            fps = 0;
             dropped = 0;
+            lit = -1;
         },
-        text: () => (usual ? `${Math.round(1000 / usual)} fps · ${dropped} dropped` : ""),
+        read: (): Frames | null => (usual ? {fps, dropped, lit} : null),
     };
 }

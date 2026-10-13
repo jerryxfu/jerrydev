@@ -7,7 +7,7 @@ import _jerryxf from "@/assets/projects/jerryxf.jpeg";
 import _conditioner from "@/assets/projects/conditioner.jpeg";
 import _kahootBot from "@/assets/projects/kahootbot.mp4";
 import _weatherStation from "@/assets/projects/weather_station.jpeg";
-import _endPortal from "@/assets/projects/end_portal.jpg";
+// import _endPortal from "@/assets/projects/end_portal.jpg";
 import _supericu from "@/assets/projects/supericu.jpeg";
 import _doublestartyre from "@/assets/projects/doublestartyre.jpeg";
 import _scorekeeper from "@/assets/projects/scorekeeper.jpeg";
@@ -26,6 +26,7 @@ import _vite_dark from "@/assets/projects/vite_dark.jpeg";
 import _hiddengarden from "@/assets/projects/hiddengarden.jpeg";
 import _guides from "@/assets/projects/guides.jpeg";
 import _stats from "@/assets/projects/stats.jpeg";
+import _time from "@/assets/projects/time.jpeg";
 
 // The projects, as data. Projects.tsx renders them as a grid of small cards you can filter by tag, each opening into
 // the full card; the status board reads the same list, so a status changes in one place.
@@ -129,6 +130,16 @@ export const projects: Project[] = [
         description: "BapUtils is a lightweight Minecraft Fabric mod for Hypixel Skyblock that provides various quality of life utilities. The update to Minecraft version 26.2 is underway",
         footer: "/bap",
         categories: ["mods"],
+    },
+    {
+        title: "Time",
+        subTitle: "Clocks, timers, date math and an A/V sync test",
+        image: _time,
+        chipText: "🟢 Stable",
+        date: day("2026-06-10"),
+        description: "A webpage of time tools: a Unix time converter, world clocks, a countdown, a stopwatch, a date calculator and an A/V sync test pattern for checking display lag.",
+        url: "/time",
+        categories: ["web", "tools"],
     },
     {
         title: "Scheduler",
@@ -308,16 +319,6 @@ export const projects: Project[] = [
         date: day("2024-05-18"),
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
         categories: ["ai", "archived"],
-    },
-    {
-        title: "Time",
-        subTitle: "Date/time tools",
-        image: _endPortal,
-        chipText: "🧩 MVP",
-        date: day("2026-06-10"),
-        description: "A webpage with various date and time calculators, timers, time zone converters and a stopwatch.",
-        url: "/time",
-        categories: ["web", "tools"],
     },
     // Still to come, from the old card list:
     // Cyclic (sleep cycle calculator and periods tracker, 🌀 Concept, 2025-12-28, iOS & Android)

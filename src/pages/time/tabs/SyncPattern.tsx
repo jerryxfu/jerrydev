@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {Maximize, Volume2, VolumeX} from "lucide-react";
 import useShortcuts from "../useShortcuts.ts";
-import {drawPattern, frameCounter} from "./pattern.ts";
+import {drawPattern, frameCounter, type Frames} from "./pattern.ts";
 import "./SyncPattern.scss";
 
 let offset: number | null = null; // Date.now() minus performance.now()
@@ -46,7 +46,7 @@ export default function SyncPattern() {
     const stageRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const timeRef = useRef<number | null>(null); // the moment last drawn, kept on screen once stopped
-    const statsRef = useRef("");                 // the frame counter's text, kept with it
+    const framesRef = useRef<Frames | null>(null); // the frame counter's reading, kept with it
     const audioRef = useRef<AudioContext | null>(null); // only while the beep is heard: running and not muted
     const beepedRef = useRef(0); // the last second whose beep is set
     const canFullscreen = document.fullscreenEnabled; // not on an iPhone
@@ -59,7 +59,7 @@ export default function SyncPattern() {
         const font = getComputedStyle(canvas).fontFamily;
         const paint = () => {
             timeRef.current ??= wallTime(performance.now());
-            drawPattern(ctx, timeRef.current, canvas.width, canvas.height, font, statsRef.current);
+            drawPattern(ctx, timeRef.current, canvas.width, canvas.height, font, framesRef.current);
         };
 
         // The screen's own pixels, up to 2 per CSS pixel (a 4K screen draws fewer); redrawn when the box changes size.
@@ -90,14 +90,14 @@ export default function SyncPattern() {
         let frame = 0;
         const tick = (now: number) => {
             timeRef.current = wallTime(now);
-            counter.frame(now);
-            statsRef.current = counter.text();
+            counter.frame(now, timeRef.current);
+            framesRef.current = counter.read();
             paint();
             setBeep(now, timeRef.current);
             frame = requestAnimationFrame(tick);
         };
         if (running) {
-            statsRef.current = "";
+            framesRef.current = null;
             document.addEventListener("visibilitychange", onVisibility);
             document.addEventListener("fullscreenchange", onFullscreen);
             frame = requestAnimationFrame(tick);
