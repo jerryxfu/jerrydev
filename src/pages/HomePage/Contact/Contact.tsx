@@ -96,7 +96,7 @@ export default function Contact() {
                         <div className="contact_work-content">
                             <p className="contact_work-blurb">
                                 I build websites, apps, and tools for people, case by case depending on scope and timing.
-                                If you have something in mind, an email is the best place to start.
+                                If you have something in mind, even a completely different project, an email is the best place to start.
                             </p>
 
                             {/*<a*/}

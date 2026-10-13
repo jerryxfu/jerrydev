@@ -1,4 +1,5 @@
 import "./About.scss";
+import {Link} from "wouter";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import Contact from "../Contact/Contact.tsx";
 import Friends from "@/components/Friends/Friends.tsx";
@@ -11,33 +12,38 @@ export default function About() {
         <div className="section about">
             <div className="about_split">
                 <SectionTitle text={"About Me"} description={"Welcome!"} />
-                <div className="about_intro text-body">
+                <div className="about_intro prose">
                     <p>
-                        Hi, I'm Jerry and I do things. Here are some things I find worth sharing. I will write more in this About Me section one day..
+                        Hi, I'm Jerry, and I do things. Here are the ones I think are worth sharing.
                     </p>
-                    {/*<p>*/}
-                    {/*    Hi, I'm Jerry and I do things. Mostly where code meets medicine, robotics and AI. I'm an aspiring*/}
-                    {/*    physician-engineer, based in Montréal.*/}
-                    {/*</p>*/}
-                    {/*<p>*/}
-                    {/*    On the medicine side, I'm a research assistant at the CHUM Research Centre, where I study the lungs*/}
-                    {/*    with ultrasound. I'm also building <Link href="/blog/topics/medive">MEDIVE</Link>, an AI that suggests*/}
-                    {/*    diagnoses from symptoms written in plain words.*/}
-                    {/*</p>*/}
-                    {/*<p>*/}
-                    {/*    In robotics, I mentor FIRST Robotics team 3990, the team I was a student on. I teach programming,*/}
-                    {/*    computer vision and machine learning. With the team, I've been to 11 competitions, 3 of them World*/}
-                    {/*    Championships.*/}
-                    {/*</p>*/}
-                    {/*<p>*/}
-                    {/*    The rest of the time, I make the tools I wish existed, like the ones on this site, and I write about*/}
-                    {/*    what I learn on the <Link href="/blog">blog</Link>.*/}
-                    {/*</p>*/}
+                    <p>
+                        Most of what I do sits somewhere between robotics, medicine and AI.
+                    </p>
+                    <p>
+                        For robotics, I mentor FIRST Robotics team 3990, the same team I was on as a student. I teach
+                        programming, computer vision and machine learning. With the team, I've been to 11 competitions,
+                        and 3 of them were World Championships.
+                    </p>
+                    <p>
+                        For medicine, I do research at the CHUM Research Centre (University of Montreal hospital). I work on a project where we
+                        analyze lungs with ultrasound imaging. I'm also building <Link href="/blog/topics/medive">MEDIVE</Link>, a personal research
+                        project where I'm trying to get an AI to suggest diagnoses from symptoms written in plain words.
+                    </p>
+                    <p>
+                        Also, my favorite food is burgers. My favorite color is a pale cornflower blue, which is conveniently
+                        #abcdef, but honestly, I like all pastel colors.
+                    </p>
+                    <p>
+                        The rest of the time, I make the tools I wish existed. You can find some of them on this site.
+                    </p>
                 </div>
-                <Highlights />
+                {/* The right column: the highlighted projects, then the people I build with. */}
+                <div className="about_side">
+                    <Highlights />
+                    <Friends />
+                </div>
             </div>
             <Contact />
-            <Friends />
         </div>
     );
 };

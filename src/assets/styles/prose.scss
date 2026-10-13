@@ -1,14 +1,11 @@
 // Styles for MDX output, shared by every page that renders a .mdx file — blog posts and the
-// standalone legal pages. Prose is left aligned; images center.
+// standalone legal pages. Prose is left aligned; images center. The reading basics (size, spacing, colour, links,
+// lists) are .prose in index.scss, for any page's text; this adds what MDX output needs on top.
 //
 // Lifted wholesale out of PostPage.scss when the second call site appeared. Two rules in here are
 // blog-shaped and simply inert elsewhere: the heading scroll-margins are tuned for the post contents
 // bar, and the Shiki dark-theme override only matters on a page with fenced code.
 .prose {
-    font-size: var(--fs-md);
-    line-height: 1.75;
-    color: var(--text-2);
-
     h2, h3, h4 {
         margin: 2.25rem 0 0.75rem;
         font-weight: 600;
@@ -55,38 +52,6 @@
 
     h4 {
         font-size: var(--fs-lg);
-    }
-
-    p {
-        margin: 0 0 1.15rem;
-        line-height: inherit;
-    }
-
-    a {
-        color: var(--secondary);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
-        transition: color 0.15s ease, text-decoration-color 0.15s ease;
-
-        &:hover {
-            color: var(--secondary-da);
-            text-decoration-color: var(--secondary);
-        }
-    }
-
-    ul, ol {
-        margin: 0 0 1.15rem;
-        padding-left: 1.35rem;
-    }
-
-    li {
-        margin-bottom: 0.35rem;
-    }
-
-    strong {
-        font-weight: 600;
-        color: var(--text-strong);
     }
 
     img {

@@ -1,7 +1,8 @@
 .about {
 }
 
-// The text and the highlights side by side: the text takes the room, the highlights a narrow column of small tiles.
+// The text and a narrow column side by side: the text takes the room, the column holds small tiles (the highlights,
+// then the people I build with).
 // The section's title is in the same grid, so the highlights start on the row of its "Welcome!" and their heading sits
 // level with it (Jerry). One column below 900px: the title, "Welcome!", the text, then the highlights.
 .about_split {
@@ -27,7 +28,7 @@
         grid-area: intro;
     }
 
-    > .highlights {
+    > .about_side {
         grid-area: side;
     }
 
@@ -36,33 +37,28 @@
         grid-template-rows: none;
         grid-template-areas: "title" "desc" "intro" "side";
 
-        > .highlights {
+        > .about_side {
             margin-top: 2rem;
         }
     }
 }
 
-.about_intro {
+// As narrow when stacked under the text as beside it: the tiles stay small.
+.about_side {
+    max-width: 28rem;
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
+    gap: 2rem;
+}
 
-    p {
-        margin: 0;
-    }
-
-    a {
-        color: var(--secondary);
-        text-decoration: underline;
-        text-underline-offset: 2px;
-    }
+// Set as .prose (index.scss); no room after its last paragraph, so the space before Contact is Contact's own.
+.about_intro > :last-child {
+    margin-bottom: 0;
 }
 
 // --- Highlights (Highlights.tsx) ---
 
-// As narrow when stacked under the text as beside it: the tiles stay small.
 .highlights {
-    max-width: 28rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;

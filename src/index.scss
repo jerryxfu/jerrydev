@@ -462,11 +462,12 @@ h4 {
     line-height: 1.18;
 }
 
+// No line-height of its own: a paragraph takes its container's (1.5 by default, from :root), so a text class set on a
+// wrapper (.text-body, .prose) reaches the paragraphs inside it. A 1.38 here used to beat them all.
 p {
     margin: 0;
     //color: var(--text);
     transition: color 450ms;
-    line-height: 1.38;
 }
 
 // One focus ring for the whole site. Previously this only existed on the navbar, so every link, card and filter elsewhere fell back to the UA default
@@ -527,6 +528,46 @@ p {
     // --text-6 is itself --text-2 at 40%, so this is exactly what the rule used to say inline.
     // The mix just lives in the ladder now instead of being repeated at the call site.
     color: var(--text-6);
+}
+
+// Text to read, paragraphs of it: the blog's posts and About's intro. Roomier than the site's short copy (1.5, from
+// :root), a step softer, its links underlined. prose.scss adds what posts need on top (headings, pictures, code).
+.prose {
+    font-size: var(--fs-md);
+    line-height: 1.75;
+    color: var(--text-2);
+
+    p {
+        margin: 0 0 1.15rem;
+        line-height: inherit;
+    }
+
+    a {
+        color: var(--secondary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: color-mix(in srgb, var(--secondary) 40%, transparent);
+        transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+        &:hover {
+            color: var(--secondary-da);
+            text-decoration-color: var(--secondary);
+        }
+    }
+
+    ul, ol {
+        margin: 0 0 1.15rem;
+        padding-left: 1.35rem;
+    }
+
+    li {
+        margin-bottom: 0.35rem;
+    }
+
+    strong {
+        font-weight: 600;
+        color: var(--text-strong);
+    }
 }
 
 .text-underline {

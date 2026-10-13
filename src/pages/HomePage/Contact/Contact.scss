@@ -2,10 +2,10 @@
 // what used to come from .section's padding, and it is what keeps the two subsection headings from
 // reading as a continuation of the paragraph above them.
 .contact {
-    margin-top: 2.25rem;
+    margin-top: 3.5rem;
 
     @media screen and (max-width: 768px) {
-        margin-top: 1.5rem;
+        margin-top: 2.5rem;
     }
 }
 
@@ -17,9 +17,10 @@
     align-items: flex-start;
     gap: 2rem;
 
+    // Stacked, "Work with me" gets the same room above it as "Find me online".
     @media screen and (max-width: 900px) {
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 2.5rem;
     }
 }
 

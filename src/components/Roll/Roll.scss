@@ -14,10 +14,14 @@
     vertical-align: bottom;
 }
 
+// Longhands, not the shorthand: without a name, the build's minifier rewrites `animation: 0.22s ... both` as
+// `animation: none`, and the rolls below then last 0s (the old digits stayed on top of the new ones).
 .roll_new,
 .roll_old {
     display: inline-block;
-    animation: 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-duration: 0.22s;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation-fill-mode: both;
 }
 
 // Out of the window once it has rolled, but still in the page until the next change: never part of a selection.

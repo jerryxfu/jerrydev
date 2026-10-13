@@ -38,6 +38,7 @@ export default function Footer() {
             category: "Tools",
             content: [
                 {text: "Expedite", url: "/expedite", decorator: <p>📦</p>},
+                {text: "Time", url: "/time", decorator: <p>⏱️</p>},
                 {text: "Scheduler", url: "/scheduler", decorator: <p>🗓️</p>},
                 {text: "Rendezvous", url: "/rendezvous", decorator: <>📌</>},
 
@@ -81,9 +82,9 @@ export default function Footer() {
                 {/* Which build this is, from vite.config.ts's define. The date is the build's, so in dev it's when the
                     server started, which is why it says so instead. */}
                 <p className="footer_colophon">
-                    Built with React, GSAP and the Outfit
-                    typeface. {import.meta.env.DEV ? "Running locally" : `Last deployed ${buildAge(__BUILD_TIME__)}`},
-                    from <code>{__BUILD_COMMIT__}</code>.
+                    {import.meta.env.DEV ? "Running locally" : `Last deployed ${buildAge(__BUILD_TIME__)}`},
+                    from commit <code>{__BUILD_COMMIT__}</code>. Built with TypeScript React, GSAP, and the Outfit
+                    typeface.
                 </p>
                 {/* The site's own "do not press": a lamp that changes colour with each debug mode. */}
                 <button onClick={cycle} className="footer_debug-button" data-mode={mode}>

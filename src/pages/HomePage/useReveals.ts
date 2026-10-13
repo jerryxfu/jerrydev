@@ -4,26 +4,15 @@ import {useGSAP} from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// What fades up into place as it comes on screen, in the order of the page. Not the experience timeline, which has its
-// own way in, nor the posts, which load later; the projects' cards by their inner box, which their filter animates too.
+// What fades up into place as it comes on screen: the titles' blocks only, their descriptions with them (the section
+// titles' own words rise in Rise.tsx). The content under them, cards and text, stays put, as before the rework (Jerry).
 const REVEALED = [
     ".section-title-description",
-    ".about_intro",
     ".subtitle-text",
     ".subtitle-description",
-    ".contact_grid > *",
-    ".contact_work-body",
-    ".friends_card",
-    ".skills_grid > *",
-    ".skills_text",
-    ".projects_controls",
-    ".projects-item_inner",
-    ".board",
-    ".blog-section_intro",
-    ".blog-section_feed",
 ];
 
-// The home page's content, below the hero, comes in quietly: each block rises 18px as it fades in, those that come on
+// The home page's titles, below the hero, come in quietly: each block rises 18px as it fades in, those that come on
 // screen together one after the other. Once, and nothing with reduced motion. After a jump down the page, what it went
 // past is simply there, so what's on screen doesn't wait its turn behind everything above it (2s and more, before).
 //
