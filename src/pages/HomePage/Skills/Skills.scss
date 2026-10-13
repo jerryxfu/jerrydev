@@ -60,3 +60,13 @@
 .skills_languages-card {
     height: auto;
 }
+
+// In the card's place when it can't load (Skills.tsx), in the room it held, so nothing moves.
+.skills_languages-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    height: 285px;
+    margin: 0;
+}

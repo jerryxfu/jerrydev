@@ -38,6 +38,8 @@ const CELL_IN = 0.25;
 // How fast a cell's shown level follows its level, per frame, and how much the flow glows where it's brightest.
 const FOLLOW = 0.2;
 const EMBER = 0.3;
+// With reduced motion, the moment of the flow (seconds) that stays as the one still frame.
+const STILL = 30;
 
 const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const hash = (x: number, y: number, z: number) => {
@@ -154,6 +156,10 @@ export default function Squares({children}: { children?: ReactNode }) {
         // The scroll, in hero heights; and how far the pour has got, from 0 to 1.
         let scrolled = 0;
         let poured = 0;
+        // The flow's clock. With reduced motion it stops at `STILL`, the cells all out: one still frame, drawn again on
+        // a resize or a new theme.
+        let still: number | null = null;
+        const now = () => still ?? gsap.globalTimeline.time();
 
         const draw = (time: number) => {
             if (!ctx) return;
@@ -228,7 +234,7 @@ export default function Squares({children}: { children?: ReactNode }) {
         let frame = 0;
         let last = 0;
         const tick = () => {
-            const time = gsap.globalTimeline.time();
+            const time = now();
             const dt = clamp(time - last, 0, 0.1);
             last = time;
             const before = poured;
@@ -241,7 +247,7 @@ export default function Squares({children}: { children?: ReactNode }) {
         const wake = () => {
             if (ticking) return;
             ticking = true;
-            last = gsap.globalTimeline.time();
+            last = now();
             gsap.ticker.add(tick);
         };
         const sleep = () => {
@@ -251,7 +257,7 @@ export default function Squares({children}: { children?: ReactNode }) {
 
         layout();
         sync();
-        draw(gsap.globalTimeline.time());
+        draw(now());
         // Measured again whenever the hero or this room changes size (a zoom, a phone's toolbar, a window), or the screen's
         // pixel ratio does (a zoom that keeps the size), once per frame at most.
         let pending = 0;
@@ -259,7 +265,7 @@ export default function Squares({children}: { children?: ReactNode }) {
             cancelAnimationFrame(pending);
             pending = requestAnimationFrame(() => {
                 layout();
-                draw(gsap.globalTimeline.time());
+                draw(now());
             });
         };
         const sizes = new ResizeObserver(relayout);
@@ -308,6 +314,14 @@ export default function Squares({children}: { children?: ReactNode }) {
                 near = false;
                 drift(false);
                 run.kill();
+            };
+        });
+        mm.add("(prefers-reduced-motion: reduce)", () => {
+            still = STILL;
+            poured = 1;
+            draw(still);
+            return () => {
+                still = null;
             };
         });
 

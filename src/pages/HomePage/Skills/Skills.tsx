@@ -1,3 +1,4 @@
+import {useState} from "react";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import {isDarkTheme, useTheme} from "@/context/ThemeContext.tsx";
 import "./Skills.scss";
@@ -87,6 +88,8 @@ const LANGUAGES_CARD = "https://github-stats.jerryxf.net/api/top-langs/?username
 
 export default function Skills() {
     const {currentTheme} = useTheme();
+    // On some networks Vercel's automatic protection answers the card with its checkpoint, which a picture can't pass.
+    const [cardFailed, setCardFailed] = useState(false);
     return (
         <div className="section skills">
             <SectionTitle
@@ -111,15 +114,20 @@ export default function Skills() {
                 </div>
                 <div className="skills_text">
                     <h2 style={{fontWeight: 400}}>Github top languages</h2>
-                    <img
-                        className="skills_languages-card"
-                        src={isDarkTheme(currentTheme) ? `${LANGUAGES_CARD}&text_color=c8c8c8` : LANGUAGES_CARD}
-                        alt="Github languages card"
-                        width={300}
-                        height={285}
-                        loading="lazy"
-                        decoding="async"
-                        fetchPriority="low" />
+                    {cardFailed ? (
+                        <p className="skills_languages-fallback text-caption">The card didn't load.</p>
+                    ) : (
+                        <img
+                            className="skills_languages-card"
+                            src={isDarkTheme(currentTheme) ? `${LANGUAGES_CARD}&text_color=c8c8c8` : LANGUAGES_CARD}
+                            alt="Github languages card"
+                            width={300}
+                            height={285}
+                            loading="lazy"
+                            decoding="async"
+                            fetchPriority="low"
+                            onError={() => setCardFailed(true)} />
+                    )}
                 </div>
             </div>
         </div>

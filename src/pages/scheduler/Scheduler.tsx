@@ -98,7 +98,12 @@ const Scheduler: React.FC = () => {
             const s = findSchedule(homeIslandId);
             if (s) return [s];
         }
-        const savedId = localStorage.getItem(STORAGE_KEY);
+        let savedId: string | null = null;
+        try {
+            savedId = localStorage.getItem(STORAGE_KEY);
+        } catch {
+            // storage refused
+        }
         if (savedId) {
             const s = findSchedule(savedId);
             if (s) return [s];
@@ -142,7 +147,11 @@ const Scheduler: React.FC = () => {
     // Persist selection
     useEffect(() => {
         if (!comparisonMode && selectedSchedules[0]) {
-            localStorage.setItem(STORAGE_KEY, selectedSchedules[0].id);
+            try {
+                localStorage.setItem(STORAGE_KEY, selectedSchedules[0].id);
+            } catch {
+                // not remembered
+            }
         }
     }, [selectedSchedules, comparisonMode]);
 

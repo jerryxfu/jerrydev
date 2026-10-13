@@ -12,6 +12,7 @@ import JoinView from "./views/JoinView.tsx";
 import RespondView from "./views/RespondView.tsx";
 import ResultView from "./views/ResultView.tsx";
 import Navbar from "@/components/Nav/Navbar.tsx";
+import {copyText} from "@/utils.ts";
 
 // --- GSAP transition helpers ---
 function animateIn(el: HTMLElement | null, delay = 0) {
@@ -204,12 +205,15 @@ export default function Rendezvous() {
     }, []);
 
     const copyToClipboard = async (text: string, field: string, e?: React.MouseEvent) => {
+        // Read before waiting: React clears it once the click is handled.
         const btn = e?.currentTarget as HTMLElement | null;
+        // Green and "Copied" only once it's really copied.
+        if (!await copyText(text)) return;
+
         if (btn) {
             btn.classList.add("rv_btn--success");
             setTimeout(() => btn.classList.remove("rv_btn--success"), 1500);
         }
-        await navigator.clipboard.writeText(text);
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 2000);
     };
