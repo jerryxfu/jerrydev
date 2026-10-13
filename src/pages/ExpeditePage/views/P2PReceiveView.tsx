@@ -103,7 +103,8 @@ export default function P2PReceiveView(
                             <ul>
                                 <li>You'll pick a save location first. The file is written there as it arrives.</li>
                                 <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
-                                <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).</li>
+                                <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).
+                                </li>
                                 <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
                             </ul>
                         </div>

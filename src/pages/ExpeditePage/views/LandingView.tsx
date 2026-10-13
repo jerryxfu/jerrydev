@@ -59,7 +59,15 @@ function toCode(input: string): string {
 }
 
 // A tile: a click opens its screen. File and Direct P2P also take a dropped file, and open their screen with it.
-function Tile({type, label, note, icon: Icon, onSelect, onDropFile, dragging}: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
+function Tile({
+                  type,
+                  label,
+                  note,
+                  icon: Icon,
+                  onSelect,
+                  onDropFile,
+                  dragging
+              }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
     const takesFiles = type !== "text";
     const drag = useFileDrag((file) => {
         if (type !== "text") onDropFile(type, file);
@@ -166,7 +174,8 @@ export default function LandingView(
                     <div className="expedite_landing-notice">
                         <MonitorSmartphone size={22} strokeWidth={1.4} />
                         <p className="expedite_landing-notice-text">
-                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g. Google Chrome,
+                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g.
+                            Google Chrome,
                             Edge, Opera, Brave, etc.) on computer. Sending works anywhere.
                         </p>
                     </div>

@@ -6,9 +6,9 @@ import "./Expedite.scss";
 
 import {
     DEFAULT_SETTINGS,
+    type DownloadCheck,
     type DropMeta,
     type DropSettings,
-    type DownloadCheck,
     type DropType,
     EMPTY_P2P_STATUS,
     isP2PReceiveSupported,
@@ -26,7 +26,7 @@ import ResultView from "./views/ResultView.tsx";
 import P2PSendView from "./views/P2PSendView.tsx";
 import P2PReceiveView from "./views/P2PReceiveView.tsx";
 import {uploadFile} from "./uploadEngine.ts";
-import {type Hashing, hashBlob} from "./sha256.ts";
+import {hashBlob, type Hashing} from "./sha256.ts";
 import {resolveLanguage} from "./highlight.ts";
 import {useFileDrag} from "./useFileDrag.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
@@ -300,7 +300,8 @@ export default function Expedite() {
         // The file's SHA-256, alongside the upload. The upload waits for it at the end, unless the sender skips it.
         setHashProgress(0);
         const hashing = hashBlob(selectedFile, setHashProgress);
-        let skip = () => {};
+        let skip = () => {
+        };
         const skipped = new Promise<null>((resolve) => {
             skip = () => resolve(null);
         });
@@ -708,7 +709,8 @@ export default function Expedite() {
             )}
 
             {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). */}
-            <div className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}`}>
+            <div
+                className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}`}>
                 <header className="expedite_header">
                     {view !== "landing" && (
                         <button className="expedite_back" onClick={reset}>

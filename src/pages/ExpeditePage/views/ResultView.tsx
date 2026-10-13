@@ -7,6 +7,7 @@ import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./
 import {isLanguage, languageLabel} from "../highlight.ts";
 import {characterCount, wordStats} from "./TextStats.tsx";
 import "./ResultView.scss";
+
 interface ResultViewProps {
     result: DropMeta;
     copiedField: string | null;
@@ -222,7 +223,8 @@ export default function ResultView(
                                 onClick={() => picker.current?.click()}
                                 disabled={check === "checking"}
                             >
-                                {check === "match" ? <CircleCheck size={14} /> : check === "mismatch" ? <CircleX size={14} /> : <Fingerprint size={14} />}
+                                {check === "match" ? <CircleCheck size={14} /> : check === "mismatch" ? <CircleX size={14} /> :
+                                    <Fingerprint size={14} />}
                                 Hash check
                             </button>
                             <input

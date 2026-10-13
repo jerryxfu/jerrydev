@@ -25,7 +25,8 @@ la bordure noire a du blanc autour, peu importe le mur sur lequel le tag est col
 ces 36 bits encodent un nombre : l'identifiant du tag.
 
 {/* Fond blanc opaque, volontairement : pas de className="diagram", sinon le tag s'affiche à l'envers sur les thèmes sombres. */}
-<img src={_figure_tag_anatomy} alt="Un tag 36h11 annoté : bordure blanche, bordure noire, grille de données 6 × 6, et la taille de 165,1 mm mesurée sur le carré noir" />
+<img src={_figure_tag_anatomy}
+     alt="Un tag 36h11 annoté : bordure blanche, bordure noire, grille de données 6 × 6, et la taille de 165,1 mm mesurée sur le carré noir" />
 
 Contrairement à un code QR, un tag ne contient presque rien. Pas d'adresse web, pas de texte, juste un numéro. Et c'est
 voulu : moins il y a de bits à lire, plus on peut les lire de loin, et plus on peut les protéger contre les erreurs de
@@ -162,7 +163,8 @@ Remarquez que les cases à l'intérieur du tag donnent aussi des frontières (un
 par exemple). Elles deviennent des candidats elles aussi. Ce n'est pas grave : elles seront éliminées plus loin, au
 décodage, parce qu'elles ne contiennent pas de code valide.
 
-<img src={_figure_detector_debug_4} alt="Étape 4 : les frontières entre une composante noire et une composante blanche, une couleur par paire; les étapes suivantes sont estompées" />
+<img src={_figure_detector_debug_4}
+     alt="Étape 4 : les frontières entre une composante noire et une composante blanche, une couleur par paire; les étapes suivantes sont estompées" />
 
 ### Étape 5 : ajuster un quadrilatère (*quad fitting*)
 

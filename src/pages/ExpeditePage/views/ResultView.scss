@@ -131,6 +131,7 @@
     &::selection {
         background: color-mix(in srgb, var(--secondary) 28%, transparent);
     }
+
     outline: none;
     transition: border-color 0.15s;
 

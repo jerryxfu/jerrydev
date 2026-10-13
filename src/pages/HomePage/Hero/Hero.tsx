@@ -176,7 +176,11 @@ export default function Hero() {
 
         // Spans rather than SplitText's default divs, which aren't allowed inside an h2 or a p. Hero.scss makes them
         // inline blocks, as split-type's were, since an inline box ignores transforms.
-        const subtitleSplit = subtitleRef.current ? SplitText.create(subtitleRef.current, {type: "chars", tag: "span", charsClass: "hero_split"}) : null;
+        const subtitleSplit = subtitleRef.current ? SplitText.create(subtitleRef.current, {
+            type: "chars",
+            tag: "span",
+            charsClass: "hero_split"
+        }) : null;
 
         tl.from(subtitleSplit?.chars ?? [], {
             y: "-100%",

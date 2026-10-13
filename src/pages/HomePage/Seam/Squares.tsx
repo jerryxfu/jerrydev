@@ -45,6 +45,7 @@ const hash = (x: number, y: number, z: number) => {
     h = Math.imul(h ^ (h >>> 13), 1103515245);
     return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
+
 // Smooth value noise in three dimensions (the third one is time), from 0 to 1.
 function noise(x: number, y: number, z: number) {
     const xi = Math.floor(x);
@@ -71,9 +72,9 @@ const flow = (c: number, r: number, depth: number, t: number) =>
     (noise(c * 0.35, (r - t * 1.8) * 0.25, t * 0.2) - 0.5) * (0.35 + 1.05 * depth)
     + (noise(c * 0.9, (r - t * 2.6) * 0.7, t * 0.5) - 0.5) * 0.2;
 
-type Cell = {x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number};
+type Cell = { x: number; y: number; c: number; r: number; noise: number; delay: number; shown: number };
 
-export default function Squares({children}: {children?: ReactNode}) {
+export default function Squares({children}: { children?: ReactNode }) {
     const root = useRef<HTMLDivElement>(null);
     const {currentTheme} = useTheme();
 
@@ -270,10 +271,12 @@ export default function Squares({children}: {children?: ReactNode}) {
             ratio = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
             ratio.addEventListener("change", onRatio);
         };
+
         function onRatio() {
             watchRatio();
             relayout();
         }
+
         watchRatio();
 
         // A new theme: its colours, the ground following the page's fade, and the reflection's new mesh in step again.

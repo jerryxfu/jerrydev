@@ -5,8 +5,8 @@ La moitié des bogues de vision sont des bogues de convention : un $Y$ dans le m
 des radians. Cette page existe pour qu'on n'ait pas à les redécouvrir à chaque saison.
 
 <Callout kind="important" label="TODO">
-Vérifier chaque convention contre la documentation de la saison avant de publier, et ajouter un schéma par repère.
-Compléter la section « Chez nous » avec les choix de l'équipe.
+    Vérifier chaque convention contre la documentation de la saison avant de publier, et ajouter un schéma par repère.
+    Compléter la section « Chez nous » avec les choix de l'équipe.
 </Callout>
 
 ## WPILib
@@ -27,9 +27,9 @@ $Y+$ va vers la gauche quand on regarde le terrain depuis la station bleue, $Z+$
 dans les objets WPILib, en **radians**.
 
 <Callout kind="note">
-WPILib recommande de garder l'origine bleue toute la saison (*always blue origin*) plutôt que de la déplacer selon
-l'alliance. C'est ce que supposent les AprilTags, PathPlanner, Choreo et l'affichage `Field2d`. Le prix : inverser les
-commandes du pilote quand on est rouge.
+    WPILib recommande de garder l'origine bleue toute la saison (*always blue origin*) plutôt que de la déplacer selon
+    l'alliance. C'est ce que supposent les AprilTags, PathPlanner, Choreo et l'affichage `Field2d`. Le prix : inverser les
+    commandes du pilote quand on est rouge.
 </Callout>
 
 Les objets à connaître :
@@ -56,8 +56,8 @@ Les Limelight ont leurs propres repères, et deux d'entre eux ne ressemblent pas
 | Field space (WPIBlue) | Origine bleue de WPILib | Long du terrain | Court du terrain | Vers le haut |
 
 <Callout kind="warning">
-Le *robot space* du Limelight a $Y+$ vers la **droite**; celui de WPILib a $Y+$ vers la **gauche**. La pose de la caméra
-entrée dans l'interface Limelight suit la convention Limelight. C'est la source d'erreur classique.
+    Le *robot space* du Limelight a $Y+$ vers la **droite**; celui de WPILib a $Y+$ vers la **gauche**. La pose de la caméra
+    entrée dans l'interface Limelight suit la convention Limelight. C'est la source d'erreur classique.
 </Callout>
 
 Les clés `botpose_wpiblue` et `botpose_orb_wpiblue` sont déjà exprimées dans le repère du terrain de WPILib, origine
@@ -105,8 +105,8 @@ Optional<Pose3d> tag7 = layout.getTagPose(7);
 ```
 
 <Callout kind="tip">
-Pour vérifier une convention, poser le robot à un endroit connu, orienté vers $X+$, et lire la pose : les signes doivent
-tomber juste avant de chercher plus loin.
+    Pour vérifier une convention, poser le robot à un endroit connu, orienté vers $X+$, et lire la pose : les signes doivent
+    tomber juste avant de chercher plus loin.
 </Callout>
 
 ---

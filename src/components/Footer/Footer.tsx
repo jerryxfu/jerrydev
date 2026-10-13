@@ -47,7 +47,11 @@ export default function Footer() {
             // The same people as the friends block in About, from the same list. Lazy, as pictures from other sites
             // are, so a friend's site that hangs can't hold back the page's load event (why: HomePage/useReveals.ts).
             category: "Special mentions",
-            content: friendList.map((friend) => ({text: friend.site, url: friend.url, decorator: <img src={friend.icon} alt="" loading="lazy" onError={hideBrokenIcon} />})),
+            content: friendList.map((friend) => ({
+                text: friend.site,
+                url: friend.url,
+                decorator: <img src={friend.icon} alt="" loading="lazy" onError={hideBrokenIcon} />
+            })),
         }
     ];
 
@@ -77,7 +81,8 @@ export default function Footer() {
                 {/* Which build this is, from vite.config.ts's define. The date is the build's, so in dev it's when the
                     server started, which is why it says so instead. */}
                 <p className="footer_colophon">
-                    Built with React, GSAP and the Outfit typeface. {import.meta.env.DEV ? "Running locally" : `Last deployed ${buildAge(__BUILD_TIME__)}`},
+                    Built with React, GSAP and the Outfit
+                    typeface. {import.meta.env.DEV ? "Running locally" : `Last deployed ${buildAge(__BUILD_TIME__)}`},
                     from <code>{__BUILD_COMMIT__}</code>.
                 </p>
                 {/* The site's own "do not press": a lamp that changes colour with each debug mode. */}

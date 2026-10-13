@@ -171,156 +171,163 @@ if abs(x - target) < 1e-9:
 Integers have no such problem and no size limit: `2 ** 1000` works fine.
 
 <details>
-<summary><strong>Technical explanation of why floating-point rounding error (0.1+0.2).</strong></summary>
+    <summary><strong>Technical explanation of why floating-point rounding error (0.1+0.2).</strong></summary>
 
-<br />
+    <br />
 
-Short version: your CPU stores numbers in **base 2**, and one tenth is not representable in base 2, for the same reason one third isn't representable in base 10.
+    Short version: your CPU stores numbers in **base 2**, and one tenth is not representable in base 2, for the same reason one third isn't representable in
+    base 10.
 
-### The rule
+    ### The rule
 
-A fraction terminates in base *b* only if the prime factors of its denominator all divide *b*.
+    A fraction terminates in base *b* only if the prime factors of its denominator all divide *b*.
 
-- Base 10 = 2 × 5, so it handles halves and fifths exactly. `1/3` becomes `0.3333...` forever.
-- Base 2 = 2, so it handles halves only. **`1/10` becomes `0.0001100110011...` forever.**
+    - Base 10 = 2 × 5, so it handles halves and fifths exactly. `1/3` becomes `0.3333...` forever.
+    - Base 2 = 2, so it handles halves only. **`1/10` becomes `0.0001100110011...` forever.**
 
-`0.5`, `0.25`, `0.75` are exact. `0.1`, `0.2`, `0.3` are not, and actually never were: the decimal you typed in the code was rounded to the nearest
-representable binary value the moment Python ran into it.
+    `0.5`, `0.25`, `0.75` are exact. `0.1`, `0.2`, `0.3` are not, and actually never were: the decimal you typed in the code was rounded to the nearest
+    representable binary value the moment Python ran into it.
 
-### What actually gets stored
+    ### What actually gets stored
 
-A Python `float` is an IEEE 754 **binary64**, the same 8 bytes your CPU's floating-point unit works on. One sign bit, 11 exponent bits, 52 stored mantissa bits:
+    A Python `float` is an IEEE 754 **binary64**, the same 8 bytes your CPU's floating-point unit works on. One sign bit, 11 exponent bits, 52 stored mantissa
+    bits:
 
-```text
-value = (-1)^sign × 1.mantissa × 2^(exponent - 1023)
-```
+    ```text
+    value = (-1)^sign × 1.mantissa × 2^(exponent - 1023)
+    ```
 
-So `0.1` is stored as the nearest binary64 to one tenth, which is slightly too big:
+    So `0.1` is stored as the nearest binary64 to one tenth, which is slightly too big:
 
-```python
->> > from decimal import Decimal
->> > Decimal(0.1)  # the EXACT value sitting in memory
-Decimal('0.1000000000000000055511151231257827021181583404541015625')
+    ```python
+    >> > from decimal import Decimal
+    >> > Decimal(0.1) # the EXACT value sitting in memory
+    Decimal('0.1000000000000000055511151231257827021181583404541015625')
 
->> > (0.1).hex()  # the raw binary, in hexadecimal
-'0x1.999999999999ap-4'  # 0x1999... is 0.1's repeating pattern
+    >> > (0.1).hex() # the raw binary, in hexadecimal
+    '0x1.999999999999ap-4' # 0x1999... is 0.1's repeating pattern
 
->> > (0.1).as_integer_ratio()
-(3602879701896397, 36028797018963968)  # the exact fraction it really is
-```
+    >> > (0.1).as_integer_ratio()
+    (3602879701896397, 36028797018963968) # the exact fraction it really is
+    ```
 
-That `...a` on the end of the hex is the rounding — the true pattern repeats `9999` forever and has to stop somewhere.
+    That `...a` on the end of the hex is the rounding — the true pattern repeats `9999` forever and has to stop somewhere.
 
-### The addition itself
+    ### The addition itself
 
-`a + b` on two floats compiles down to **one CPU instruction**: `ADDSD` on x86-64, `FADD` on ARM. The hardware:
+    `a + b` on two floats compiles down to **one CPU instruction**: `ADDSD` on x86-64, `FADD` on ARM. The hardware:
 
-1. lines up the exponents,
-2. adds the 53-bit mantissas,
-3. renormalizes,
-4. **rounds the result to the nearest representable binary64.**
+    1. lines up the exponents,
+    2. adds the 53-bit mantissas,
+    3. renormalizes,
+    4. **rounds the result to the nearest representable binary64.**
 
-Four cycles or so. Step 4 is where the famous surprise comes from: the answer is correct to within half a bit, but that's not the same as correct.
+    Four cycles or so. Step 4 is where the famous surprise comes from: the answer is correct to within half a bit, but that's not the same as correct.
 
-```python
->> > Decimal(0.1 + 0.2)
-Decimal('0.3000000000000000444089209850062616169452667236328125')
->> > Decimal(0.3)
-Decimal('0.299999999999999988897769753748434595763683319091796875')
-```
+    ```python
+    >> > Decimal(0.1 + 0.2)
+    Decimal('0.3000000000000000444089209850062616169452667236328125')
+    >> > Decimal(0.3)
+    Decimal('0.299999999999999988897769753748434595763683319091796875')
+    ```
 
-Two different bit patterns, so `==` says False. Nothing went wrong; you asked whether two slightly-wrong approximations of different things happened to land on
-the same approximation, and they didn't.
+    Two different bit patterns, so `==` says False. Nothing went wrong; you asked whether two slightly-wrong approximations of different things happened to land
+    on
+    the same approximation, and they didn't.
 
-### The example above is a fun case
+    ### The example above is a fun case
 
-```python
->> > 0.1 + 0.2 == 0.3  # False
->> > 0.1 + 0.3 == 0.4  # True  (!)
-```
+    ```python
+    >> > 0.1 + 0.2 == 0.3 # False
+    >> > 0.1 + 0.3 == 0.4 # True (!)
+    ```
 
-`0.1 + 0.3` works, but not because it's more correct. In fact, both inputs are wrong, the sum is wrong, and the rounding at step 4 just happens to land on the
-same bit pattern that `0.4` rounds to. Luck, not accuracy.
+    `0.1 + 0.3` works, but not because it's more correct. In fact, both inputs are wrong, the sum is wrong, and the rounding at step 4 just happens to land on
+    the
+    same bit pattern that `0.4` rounds to. Luck, not accuracy.
 
-### Error accumulates
+    ### Error accumulates
 
-One operation is off by ~1e-17. Do it a thousand times and the errors compound:
+    One operation is off by ~1e-17. Do it a thousand times and the errors compound:
 
-```python
->> > total = 0.0
->> > for _ in range(1000):
+    ```python
+    >> > total = 0.0
+    >> > for _ in range(1000):
     ...
-total += 0.1
->> > total
-99.9999999999986  # not 100.0
+    total += 0.1
+    >> > total
+    99.9999999999986 # not 100.0
 
->> > import math
->> > math.fsum([0.1] * 1000)
-100.0  # fsum tracks the lost bits and adds them back
-```
+    >> > import math
+    >> > math.fsum([0.1] * 1000)
+    100.0 # fsum tracks the lost bits and adds them back
+    ```
 
 </details>
 
 <details>
-<summary><strong>Decimal: doing base 10 in software</strong></summary>
+    <summary><strong>Decimal: doing base 10 in software</strong></summary>
 
-<br />
+    <br />
 
-`decimal.Decimal` stores a number as **an integer coefficient plus a base-10 exponent**: `123.45` is literally `12345 × 10⁻²`. Since the arithmetic happens in
-base 10, anything you can write as a decimal is stored exactly.
+    `decimal.Decimal` stores a number as **an integer coefficient plus a base-10 exponent**: `123.45` is literally `12345 × 10⁻²`. Since the arithmetic happens
+    in
+    base 10, anything you can write as a decimal is stored exactly.
 
-```python
->> > from decimal import Decimal
->> > Decimal("0.1") + Decimal("0.2") == Decimal("0.3")
-True
->> > sum([Decimal("0.1")] * 1000)
-Decimal('100.0')
-```
+    ```python
+    >> > from decimal import Decimal
+    >> > Decimal("0.1") + Decimal("0.2") == Decimal("0.3")
+    True
+    >> > sum([Decimal("0.1")] * 1000)
+    Decimal('100.0')
+    ```
 
-**Always construct from a string.** `Decimal(0.1)` converts the already-broken float and faithfully preserves all 55 wrong digits. `Decimal("0.1")` is the exact
-tenth.
+    **Always construct from a string.** `Decimal(0.1)` converts the already-broken float and faithfully preserves all 55 wrong digits. `Decimal("0.1")` is the
+    exact
+    tenth.
 
-### How it runs
+    ### How it runs
 
-There's no CPU instruction for this. CPython's `decimal` module is a C library (libmpdec) that stores digits in arrays and implements addition as a **software
-loop with carries**: the long addition you learned in school, on 9-digit chunks. Hundreds of instructions instead of one.
+    There's no CPU instruction for this. CPython's `decimal` module is a C library (libmpdec) that stores digits in arrays and implements addition as a
+    **software
+    loop with carries**: the long addition you learned in school, on 9-digit chunks. Hundreds of instructions instead of one.
 
-In practice the gap is smaller than that sounds, because Python's interpreter overhead dominates either way:
+    In practice the gap is smaller than that sounds, because Python's interpreter overhead dominates either way:
 
-```text
-                              per op        summing 10k values
-float (hardware)              ~17 ns              96 µs
-Decimal (software base 10)    ~39 ns             333 µs   ~3.5x slower
-numpy float (hardware, no                          3.6 µs   27x faster
-  interpreter per element)
-```
+    ```text
+    per op summing 10k values
+    float (hardware) ~17 ns 96 µs
+    Decimal (software base 10) ~39 ns 333 µs ~3.5x slower
+    numpy float (hardware, no 3.6 µs 27x faster
+    interpreter per element)
+    ```
 
-So Decimal costs you a few times, not a hundred times — unless you're in NumPy, where floats get vectorized and Decimal isn't an option at all.
+    So Decimal costs you a few times, not a hundred times — unless you're in NumPy, where floats get vectorized and Decimal isn't an option at all.
 
-### Precision is configurable
+    ### Precision is configurable
 
-Floats are stuck at 53 bits (~15–17 decimal digits). Decimal isn't:
+    Floats are stuck at 53 bits (~15–17 decimal digits). Decimal isn't:
 
-```python
->> > from decimal import getcontext
->> > getcontext().prec = 50
->> > Decimal(1) / Decimal(3)
-Decimal('0.33333333333333333333333333333333333333333333333333')
-```
+    ```python
+    >> > from decimal import getcontext
+    >> > getcontext().prec = 50
+    >> > Decimal(1) / Decimal(3)
+    Decimal('0.33333333333333333333333333333333333333333333333333')
+    ```
 
-You also get control over rounding mode, and signals that raise an error on inexact results instead of silently rounding, which is the actual reason finance
-uses it. Note that `1/3` still doesn't terminate: base 10 fixes fifths, not thirds.
+    You also get control over rounding mode, and signals that raise an error on inexact results instead of silently rounding, which is the actual reason finance
+    uses it. Note that `1/3` still doesn't terminate: base 10 fixes fifths, not thirds.
 
-### When to use which
+    ### When to use which
 
-| Use        | For                                                                                                                                     |
-|------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `float`    | almost everything: science, graphics, statistics, ML. Fast, hardware-native, and 1e-16 error is far below your measurement error anyway |
-| `Decimal`  | money, and anywhere a spec dictates decimal rounding (tax, billing, accounting)                                                         |
-| `Fraction` | exact rational arithmetic. `Fraction(1,3) * 3 == 1` exactly. ~30x slower than float                                                     |
+    | Use | For |
+    |------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+    | `float` | almost everything: science, graphics, statistics, ML. Fast, hardware-native, and 1e-16 error is far below your measurement error anyway |
+    | `Decimal` | money, and anywhere a spec dictates decimal rounding (tax, billing, accounting) |
+    | `Fraction` | exact rational arithmetic. `Fraction(1,3) * 3 == 1` exactly. ~30x slower than float |
 
-**Rule of thumb:** if the number came from measuring the physical world, use `float` and compare with a tolerance. If it came from a legal or financial
-document, don't use `float`.
+    **Rule of thumb:** if the number came from measuring the physical world, use `float` and compare with a tolerance. If it came from a legal or financial
+    document, don't use `float`.
 
 </details>
 

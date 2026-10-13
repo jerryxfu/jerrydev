@@ -5,7 +5,7 @@ A quick-reference guide for common Excel formulas — math, stats, and the basic
 🇪🇸 [Leer en español](/blog/excel-formulas-es)
 
 <Callout kind="tip">
-Every formula starts with `=`. Excel evaluates whatever comes after it as a calculation, not plain text.
+    Every formula starts with `=`. Excel evaluates whatever comes after it as a calculation, not plain text.
 </Callout>
 
 ---
@@ -20,7 +20,7 @@ Every formula starts with `=`. Excel evaluates whatever comes after it as a calc
 | Mixed (row locked)    | `A$1`   | Row stays, column changes     |
 
 <Callout kind="important">
-Press <strong>F4</strong> while editing a formula to cycle through reference types (`A1` → `$A$1` → `A$1` → `$A1`). Saves a lot of typing.
+    Press <strong>F4</strong> while editing a formula to cycle through reference types (`A1` → `$A$1` → `A$1` → `$A1`). Saves a lot of typing.
 </Callout>
 
 **When to use `$`:** any time you're dragging a formula across cells but want it to always point at the *same* cell (like a tax rate or a fixed total).
@@ -43,7 +43,8 @@ Press <strong>F4</strong> while editing a formula to cycle through reference typ
 | Percentage       | `%`    | `=A1*10%` | 10% of A1      |
 
 <Callout kind="note">
-Excel follows standard order of operations (PEMDAS). Use parentheses `()` to control what calculates first: `=(A1+A2)*B1` vs `=A1+A2*B1` give different results.
+    Excel follows standard order of operations (PEMDAS). Use parentheses `()` to control what calculates first: `=(A1+A2)*B1` vs `=A1+A2*B1` give different
+    results.
 </Callout>
 
 ### Example: calculating tax on a purchase
@@ -67,7 +68,8 @@ it in one line:
 Both approaches land on the same number — the multi-row version is easier to audit later, the one-liner is faster to write once you trust it.
 
 <Callout kind="tip">
-Keep tax rates in their own cells (like `B2`/`B3` above) instead of typing `5%` directly into a formula. If a rate changes, you only update it in one place instead of hunting through every formula that uses it.
+    Keep tax rates in their own cells (like `B2`/`B3` above) instead of typing `5%` directly into a formula. If a rate changes, you only update it in one place
+    instead of hunting through every formula that uses it.
 </Callout>
 
 ---
@@ -110,7 +112,8 @@ Add a second condition — say you only want coffee sales over 50 — with `SUMI
 ```
 
 <Callout kind="note">
-`SUMIF` takes one condition. `SUMIFS` takes multiple. The argument order is also different between them — `SUMIF` puts the sum range last, `SUMIFS` puts it first. Easy mix-up, worth double-checking.
+    `SUMIF` takes one condition. `SUMIFS` takes multiple. The argument order is also different between them — `SUMIF` puts the sum range last, `SUMIFS` puts it
+    first. Easy mix-up, worth double-checking.
 </Callout>
 
 ---
@@ -153,7 +156,7 @@ Add a second condition — say you only want coffee sales over 50 — with `SUMI
 | `IFERROR` | Returns a fallback value if formula errors  | `=IFERROR(A1/B1,"N/A")`               |
 
 <Callout kind="tip">
-Nest `IF` inside `IF` for multiple outcomes, but if you're nesting more than 2–3, switch to `IFS` — it's much easier to read.
+    Nest `IF` inside `IF` for multiple outcomes, but if you're nesting more than 2–3, switch to `IFS` — it's much easier to read.
 </Callout>
 
 ```text
@@ -173,15 +176,17 @@ Nest `IF` inside `IF` for multiple outcomes, but if you're nesting more than 2�
 | `INDEX` + `MATCH` | Flexible lookup combo, works in any direction                               | `=INDEX(D1:D10,MATCH(A1,B1:B10,0))` |
 
 <Callout kind="warning">
-`VLOOKUP`'s last argument should almost always be `FALSE` (exact match). Leaving it blank or `TRUE` can silently return the wrong value if your data isn't sorted.
+    `VLOOKUP`'s last argument should almost always be `FALSE` (exact match). Leaving it blank or `TRUE` can silently return the wrong value if your data isn't
+    sorted.
 </Callout>
 
 <Callout kind="note">
-If your version of Excel has `XLOOKUP`, prefer it over `VLOOKUP` — it can look left, doesn't break when columns are inserted, and has a built-in "not found" fallback:
+    If your version of Excel has `XLOOKUP`, prefer it over `VLOOKUP` — it can look left, doesn't break when columns are inserted, and has a built-in "not found"
+    fallback:
 
-```text
-=XLOOKUP(A1,B1:B10,D1:D10,"Not found")
-```
+    ```text
+    =XLOOKUP(A1,B1:B10,D1:D10,"Not found")
+    ```
 </Callout>
 
 ### Example: looking up a price from a product list
@@ -208,7 +213,8 @@ The `XLOOKUP` version is a bit more readable since you point directly at the two
 ```
 
 <Callout kind="tip">
-If you're referencing a cell instead of typing the product name directly — like `=VLOOKUP(D1,A2:B4,2,FALSE)` — you can drag that formula down a list of products in column D and it'll look each one up automatically.
+    If you're referencing a cell instead of typing the product name directly — like `=VLOOKUP(D1,A2:B4,2,FALSE)` — you can drag that formula down a list of
+    products in column D and it'll look each one up automatically.
 </Callout>
 
 ---
@@ -251,7 +257,8 @@ If you're referencing a cell instead of typing the product name directly — lik
 | `#NAME?`  | Excel doesn't recognize the function name (typo?)          |
 
 <Callout kind="caution">
-Wrap risky formulas in `IFERROR()` before sharing a sheet with others — a stray `#DIV/0!` looks unprofessional and can break downstream formulas that reference it.
+    Wrap risky formulas in `IFERROR()` before sharing a sheet with others — a stray `#DIV/0!` looks unprofessional and can break downstream formulas that
+    reference it.
 </Callout>
 
 ```text

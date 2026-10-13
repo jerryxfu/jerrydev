@@ -26,18 +26,54 @@ const GONE_AT = 0.5;
 // What a slide or a drift could bring into view carries on out of sight: the long shapes a quarter of the width past
 // each side, on curves of their own (they go up to 18% across and drift 4% more), the hill and the blob 100 past their
 // edge, everything down to 560.
-type Shape = {d: string; line?: boolean; strength: number; drift: "a" | "b" | "c" | "d"; sink: number; side: number; enter: number};
+type Shape = { d: string; line?: boolean; strength: number; drift: "a" | "b" | "c" | "d"; sink: number; side: number; enter: number };
 const SHAPES: Shape[] = [
     // A long wave across the whole width, behind, its crests uneven and rising to the right edge.
-    {d: "M-400 560 L-400 345 C-330 318 -120 352 0 330 C160 300 300 362 470 348 C640 334 760 258 960 268 C1160 278 1260 362 1420 302 C1500 272 1560 206 1600 186 C1660 156 1760 118 1860 150 C1920 170 1960 220 2000 240 L2000 560 Z", strength: 0.1, drift: "b", sink: 0.8, side: 0.14, enter: 0},
+    {
+        d: "M-400 560 L-400 345 C-330 318 -120 352 0 330 C160 300 300 362 470 348 C640 334 760 258 960 268 C1160 278 1260 362 1420 302 C1500 272 1560 206 1600 186 C1660 156 1760 118 1860 150 C1920 170 1960 220 2000 240 L2000 560 Z",
+        strength: 0.1,
+        drift: "b",
+        sink: 0.8,
+        side: 0.14,
+        enter: 0
+    },
     // A lower one in front, on another rhythm.
-    {d: "M-400 560 L-400 430 C-300 455 -120 405.6 0 420 C200 444 360 380 560 394 C760 408 860 462 1060 442 C1260 422 1380 376 1600 402 C1710 415 1840 440 2000 405 L2000 560 Z", strength: 0.14, drift: "d", sink: 0.3, side: -0.16, enter: 0.36},
+    {
+        d: "M-400 560 L-400 430 C-300 455 -120 405.6 0 420 C200 444 360 380 560 394 C760 408 860 462 1060 442 C1260 422 1380 376 1600 402 C1710 415 1840 440 2000 405 L2000 560 Z",
+        strength: 0.14,
+        drift: "d",
+        sink: 0.3,
+        side: -0.16,
+        enter: 0.36
+    },
     // A hill rising from the left edge.
-    {d: "M-100 560 L-100 342 L0 300 C90 262 230 228 380 246 C560 268 640 380 720 500 L760 560 Z", strength: 0.12, drift: "a", sink: 0.65, side: -0.3, enter: 0.24},
+    {
+        d: "M-100 560 L-100 342 L0 300 C90 262 230 228 380 246 C560 268 640 380 720 500 L760 560 Z",
+        strength: 0.12,
+        drift: "a",
+        sink: 0.65,
+        side: -0.3,
+        enter: 0.24
+    },
     // A rounder one hugging the right edge, higher up.
-    {d: "M1700 32 L1600 40 C1520 46 1430 98 1420 182 C1410 266 1470 320 1600 330 L1700 338 Z", strength: 0.16, drift: "c", sink: 1, side: 0.3, enter: 0.12},
+    {
+        d: "M1700 32 L1600 40 C1520 46 1430 98 1420 182 C1410 266 1470 320 1600 330 L1700 338 Z",
+        strength: 0.16,
+        drift: "c",
+        sink: 1,
+        side: 0.3,
+        enter: 0.12
+    },
     // A long line sweeping across, down and up and down again.
-    {d: "M-400 230 C-300 160 -136 181 -10 190 C200 205 400 420 640 410 S1000 215 1210 250 S1490 450 1610 440 C1682 434 1880 420 2000 330", line: true, strength: 0.5, drift: "d", sink: 0.7, side: 0.18, enter: 0.2},
+    {
+        d: "M-400 230 C-300 160 -136 181 -10 190 C200 205 400 420 640 410 S1000 215 1210 250 S1490 450 1610 440 C1682 434 1880 420 2000 330",
+        line: true,
+        strength: 0.5,
+        drift: "d",
+        sink: 0.7,
+        side: 0.18,
+        enter: 0.2
+    },
 ];
 
 // The light that runs along the line now and then, like the glow along the hero's separator: a window of its gradient
@@ -79,7 +115,12 @@ export default function Waves() {
                 const shape = SHAPES[i];
                 if (!shape) return;
                 if (!shape.line) {
-                    intro.from(layer, {y: () => el.offsetHeight * shape.sink, x: () => (el.offsetWidth * shape.side) / 2, duration: ENTER, ease: "power3.out"}, shape.enter);
+                    intro.from(layer, {
+                        y: () => el.offsetHeight * shape.sink,
+                        x: () => (el.offsetWidth * shape.side) / 2,
+                        duration: ENTER,
+                        ease: "power3.out"
+                    }, shape.enter);
                     return;
                 }
                 // The line: a clip opening from just before its left end to past its right one (with room around the
@@ -125,7 +166,8 @@ export default function Waves() {
                         {shape.line && (
                             <>
                                 <defs>
-                                    <linearGradient id="waves-light" ref={light} gradientUnits="userSpaceOnUse" x1={LIGHT_FROM} y1="0" x2={LIGHT_FROM + LIGHT} y2="0">
+                                    <linearGradient id="waves-light" ref={light} gradientUnits="userSpaceOnUse" x1={LIGHT_FROM} y1="0"
+                                                    x2={LIGHT_FROM + LIGHT} y2="0">
                                         <stop offset="0" stopOpacity="0" />
                                         <stop offset="0.5" />
                                         <stop offset="1" stopOpacity="0" />

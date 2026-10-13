@@ -99,7 +99,7 @@ const escapeHtml = (text: string): string =>
 // At build time: the built index.html with this page's tags in place of its <!-- page head --> comment.
 // The home page also names the site for Google, which shows that name above its results.
 export const renderPage = (template: string, head: Head): string => {
-    if (!template.includes("<!-- page head -->") || !template.includes('<html lang="en">')) {
+    if (!template.includes("<!-- page head -->") || !template.includes("<html lang=\"en\">")) {
         throw new Error("index.html lost its <!-- page head --> comment or its <html lang=\"en\">");
     }
     const tags = [
@@ -113,7 +113,7 @@ export const renderPage = (template: string, head: Head): string => {
         })}</script>`);
     }
     return template
-        .replace('<html lang="en">', `<html lang="${head.lang ?? "en"}">`)
+        .replace("<html lang=\"en\">", `<html lang="${head.lang ?? "en"}">`)
         .replace("<!-- page head -->", tags.join("\n    "));
 };
 

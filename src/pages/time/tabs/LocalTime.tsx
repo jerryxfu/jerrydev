@@ -56,6 +56,7 @@ const cityOf = (zone: string) => zone.slice(zone.lastIndexOf("/") + 1).replace(/
 
 // A zone's wall clock at a moment, by its parts. One formatter per zone: making them is the slow part.
 const formatters = new Map<string, Intl.DateTimeFormat>();
+
 function wallClock(zone: string, at: Date) {
     let format = formatters.get(zone);
     if (!format) {

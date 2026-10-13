@@ -42,7 +42,8 @@ ExpeditePage/
     P2PProgress         phase ladder + transfer stats (presentational, no hooks)
 ```
 
-`Expedite.tsx` owns every piece of state and every network call, but one: `FilePreview` reads the start of a text file to show it. The views are presentational and take callbacks. Transfer engines are plain async functions
+`Expedite.tsx` owns every piece of state and every network call, but one: `FilePreview` reads the start of a text file to show it. The views are presentational
+and take callbacks. Transfer engines are plain async functions
 taking an options object with callbacks and an `AbortSignal` — same shape as
 `uploadEngine.ts`, deliberately.
 

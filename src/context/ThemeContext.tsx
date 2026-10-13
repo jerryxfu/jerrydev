@@ -17,7 +17,7 @@ export const THEME_INFO = {
     burgundy: {label: "Burgundy", icon: Wine, dark: true},
     glacier: {label: "Glacier", icon: Snowflake, dark: false},
     latte: {label: "Latte", icon: Coffee, dark: false},
-} satisfies Record<string, {label: string; icon: LucideIcon; dark: boolean}>;
+} satisfies Record<string, { label: string; icon: LucideIcon; dark: boolean }>;
 export type Theme = keyof typeof THEME_INFO;
 export const THEMES = Object.keys(THEME_INFO) as Theme[];
 
