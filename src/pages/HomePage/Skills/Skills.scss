@@ -37,6 +37,12 @@
         justify-content: center;
         //align-items: center;
     }
+
+    // The cards two to a row on a phone (SkillCard.scss).
+    @media screen and (max-width: 480px) {
+        width: 100%;
+        gap: 0.5rem;
+    }
 }
 
 .skills_text {

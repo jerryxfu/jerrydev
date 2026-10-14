@@ -17,14 +17,21 @@ export const FRIENDS = {
         site: "raphdf201.net",
         url: "https://www.raphdf201.net/",
         icon: "https://avatars.githubusercontent.com/u/77933281?s=144",
-        blurb: "Team 3990, and one third of TechNexus.",
+        blurb: "Team 3990, 1/3 of TechNexus, and the most {backend-like} website",
     },
     samy: {
         name: "Samy",
         site: "samyth.dev",
         url: "https://samyth.dev/",
         icon: "https://samyth.dev/favicon.svg",
-        blurb: "Team 3990, one third of TechNexus, and the coziest website I know.",
+        blurb: "Team 3990, 1/3 of TechNexus, and the coziest website 🍂",
+    },
+    ludovic: {
+        name: "Ludovic",
+        site: "ludot.dev",
+        url: "https://ludot.dev/",
+        icon: "https://ludot.dev/assets/img/favicon.svg",
+        blurb: "Team 3990, CAD, mechanics and machining",
     },
 } satisfies Record<string, Friend>;
 

@@ -18,6 +18,19 @@
         margin: 0.25rem 0.30rem;
         padding: 0 0.1rem;
     }
+
+    // On a phone, two to a row sharing its width (.skills_grid centres an odd last one), as tall as their text; one to
+    // a row where two of 150px don't fit (a 320px screen).
+    @media screen and (max-width: 480px) {
+        box-sizing: border-box;
+        flex: 0 0 calc((100% - 0.5rem) / 2);
+        min-width: 150px;
+        width: auto;
+        height: auto;
+        min-height: 4rem;
+        margin: 0;
+        padding-right: 0.5rem;
+    }
 }
 
 .skillcard_image {
@@ -47,10 +60,19 @@
     @media screen and (max-width: 768px) {
         font-size: var(--fs-base);
     }
+
+    // Out of the chip's way on a phone's narrow card.
+    @media screen and (max-width: 480px) {
+        padding-right: 1.9rem;
+    }
 }
 
 .skillcard_content {
     //flex: 1;
+
+    @media screen and (max-width: 480px) {
+        min-width: 0;
+    }
 }
 
 .skillcard_description {
@@ -62,7 +84,6 @@
     position: absolute !important;
     top: 10px;
     right: 10px;
-    background-color: color-mix(in srgb, var(--accent-lt) 78%, transparent) !important;
 
     @media screen and (max-width: 768px) {
         top: 2px;

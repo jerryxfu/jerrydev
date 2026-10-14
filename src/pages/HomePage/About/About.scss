@@ -13,7 +13,7 @@
         "title ."
         "desc  side"
         "intro side";
-    column-gap: 2.5rem;
+    column-gap: 3.5rem; // the text's longest lines run to its edge: room enough that they don't crowd the tiles
     align-items: start;
 
     > .section-title-text {

@@ -1,14 +1,13 @@
 import "./Chip.scss";
 
-export default function Chip({children, size = "sm", transparent = false, className = ""}: {
+// No fill, only a hairline outline: chips sit on cards. One over a picture would need a fill of its own.
+export default function Chip({children, size = "sm", className = ""}: {
     children: React.ReactNode;
     size?: "xs" | "sm" | "md" | "lg";
-    // No fill, only a hairline outline: for a chip that sits on a card rather than over a picture.
-    transparent?: boolean;
     className?: string;
 }) {
     return (
-        <span className={`chip chip-${size}${transparent ? " chip-transparent" : ""} ${className}`}>
+        <span className={`chip chip-${size} ${className}`}>
             {children}
         </span>
     );

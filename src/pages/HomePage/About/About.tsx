@@ -17,7 +17,7 @@ export default function About() {
                         Hi, I'm Jerry, and I do things. Here are the ones I think are worth sharing.
                     </p>
                     <p>
-                        Most of what I do sits somewhere between robotics, medicine and AI.
+                        I'm interested in robotics, medicine and AI, and especially the places where they overlap.
                     </p>
                     <p>
                         For robotics, I mentor FIRST Robotics team 3990, the same team I was on as a student. I teach

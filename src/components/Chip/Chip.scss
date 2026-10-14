@@ -2,8 +2,7 @@
     display: inline-flex;
     align-items: center;
     border-radius: var(--r-sm);
-    background: var(--chip-bg, rgba(0, 0, 0, 0.08));
-    color: var(--chip-color, inherit);
+    box-shadow: inset 0 0 0 1px var(--border-da);
     font-weight: 450;
     line-height: 1;
 
@@ -25,10 +24,5 @@
     &-lg {
         padding: 0.40rem 0.80rem;
         font-size: var(--fs-base);
-    }
-
-    &-transparent {
-        background: transparent;
-        box-shadow: inset 0 0 0 1px var(--border-da);
     }
 }

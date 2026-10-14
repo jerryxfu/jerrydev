@@ -15,7 +15,8 @@ import _kotlin from "../../../assets/skills/kotlin.svg";
 
 const tech_stack = [
     {
-        name: "JavaScript/TS",
+        // An invisible break after the slash: on a phone's narrow card it wraps there, out of the chip's way.
+        name: "JavaScript/​TS",
         color: "#2f74c010",
         description: "React, APIs, scripting, DiscordJS",
         iconUrl: _javascript,
@@ -33,7 +34,7 @@ const tech_stack = [
     {
         name: "Java",
         color: "#a6eaff10",
-        description: "Robots (WPILib), Minecraft Forge modding",
+        description: "Robots (WPILib), Minecraft modding",
         iconUrl: _java,
         chipText: "5/5",
         url: "https://www.java.com/en/"
@@ -41,7 +42,7 @@ const tech_stack = [
     {
         name: "Kotlin",
         color: "#e6a6ff10",
-        description: "Kotlin Multiplatform, Minecraft modding",
+        description: "Kotlin Multiplatform",
         iconUrl: _kotlin,
         chipText: "3/5",
         url: "https://kotlinlang.org/"

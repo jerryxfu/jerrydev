@@ -410,7 +410,7 @@ function ProjectItem({project, dark, open, onToggle, onClose}: {
                         {project.categories.map((tag) => <span key={tag}>#{tag}</span>)}
                     </span>
                     {project.chipText && (
-                        <span className="projects-card_chip" data-part><Chip size="xs" transparent>{project.chipText}</Chip></span>
+                        <span className="projects-card_chip" data-part><Chip size="xs">{project.chipText}</Chip></span>
                     )}
                     <span className="projects-card_foot" data-part>
                         {project.footer && `${project.footer} | `}
