@@ -1,0 +1,341 @@
+Overleaf is LaTeX in the browser. You write plain text with commands in it, and Overleaf compiles it into a PDF. This page
+shows how a project fits together, with the code for each part.
+
+## A project
+
+```text
+main.tex          the spine: what comes in which order
+setup.tex         the preamble: packages and your own commands
+references.bib    the sources
+sections/
+  01_intro.tex
+  02_method.tex
+figures/          pictures, as PDF or PNG
+tables/           tables, one file each
+```
+
+To start one from your computer: **New Project → Upload Project**, then a zip with `main.tex` at the top. Overleaf
+compiles the file set as **Main document** (in the Menu).
+
+| Shortcut | Does |
+|---|---|
+| `Ctrl` + `Enter` (`Cmd` on a Mac) | Recompile |
+| `Ctrl` + `/` | Comment or uncomment the selected lines |
+| Double-click the PDF | Jump to that line of the code |
+
+---
+
+## The skeleton
+
+```latex
+\documentclass[12pt,a4paper]{article}   % the kind of document
+\input{setup}                           % the preamble, kept in its own file
+
+\title{How does GPT-2 represent numbers?}
+\author{}
+\date{\today}
+
+\begin{document}                        % nothing before this prints
+\maketitle
+\tableofcontents
+
+\input{sections/01_intro}               % pastes that file right here
+\input{sections/02_method}
+
+\printbibliography                      % the reference list
+
+\appendix
+\input{sections/appendix}
+\end{document}
+```
+
+`\input` reads a file as if its text were typed in its place. The order of the `\input` lines is the order of the
+document. To leave a section out for a moment, put `%` in front of its line.
+
+## The preamble
+
+Everything between `\documentclass` and `\begin{document}`. It prints nothing: it loads packages and defines commands.
+
+```latex
+\usepackage[margin=2.5cm]{geometry}   % margins
+\usepackage{setspace}
+\doublespacing                         % or \onehalfspacing
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}                   % the font
+\usepackage{amsmath,amssymb,amsthm}    % maths, symbols, theorems
+\usepackage{graphicx}                  % pictures
+\graphicspath{{figures/}}              % where the pictures are
+\usepackage{booktabs}                  % clean table lines
+\usepackage{xcolor}                    % colours
+\usepackage[hidelinks]{hyperref}       % clickable references: load it last
+```
+
+---
+
+## Text
+
+```latex
+\section{Method}\label{sec:method}     % numbered: 2 Method
+\subsection{The data}                  % 2.1 The data
+\section*{Acknowledgements}            % the * means no number
+
+\emph{stressed}   \textbf{bold}   \texttt{code}
+
+``double quotes'' and `single'         % never type " in LaTeX
+pages 10--99                           % -- is the dash for ranges
+Figure~\ref{fig:wheel}                 % ~ is a space that never breaks a line
+
+% a comment: LaTeX ignores the rest of the line
+```
+
+A blank line starts a new paragraph. Spaces and single line breaks in the code make no difference.
+
+```latex
+\begin{itemize}          % bullets
+  \item a point
+  \item another point
+\end{itemize}
+
+\begin{enumerate}        % 1, 2, 3
+  \item first
+  \item second
+\end{enumerate}
+```
+
+Ten characters mean something to LaTeX. To print them:
+
+| To print | Write |
+|---|---|
+| `%` | `\%` |
+| `$` | `\$` |
+| `&` | `\&` |
+| `#` | `\#` |
+| `_` | `\_` |
+| `{` and `}` | `\{` and `\}` |
+| `~` | `\textasciitilde` |
+| `^` | `\textasciicircum` |
+| `\` | `\textbackslash` |
+
+---
+
+## Maths
+
+```latex
+The line $y = \beta_0 + \beta_1 x$ fits best.   % inline: inside a sentence
+
+\[
+  R^2 = 1 - \frac{\mathrm{SS}_{\mathrm{res}}}{\mathrm{SS}_{\mathrm{tot}}}   % on its own line, no number
+\]
+
+\begin{equation}\label{eq:euler}                % on its own line, numbered
+  e^{i\theta} = \cos\theta + i\sin\theta
+\end{equation}
+```
+
+Several lines, lined up on the `&`:
+
+```latex
+\begin{align}
+  z_a z_b &= e^{i\omega a} e^{i\omega b} \notag \\   % \notag: no number on this line
+          &= e^{i\omega(a + b)} = z_{a+b} \label{eq:add}
+\end{align}
+```
+
+`\\` ends a line. `align*` numbers no line at all. `gather` centres each line instead of lining them up.
+
+```latex
+\begin{gather}
+  S_{xx} = \sum_i x_i^2, \qquad S_{xy} = \sum_i x_i y_i \\
+  \beta_1 = \frac{S_{xy}}{S_{xx}}
+\end{gather}
+
+D(n) =
+\begin{cases}
+  1 & \text{if } n \text{ has two digits}, \\
+  0 & \text{otherwise}
+\end{cases}
+```
+
+| Write | Get |
+|---|---|
+| `x^2`, `x_i`, `x_{ij}^2` | $x^2$, $x_i$, $x_{ij}^2$ |
+| `\frac{a}{b}`, `\sqrt{x}` | $\frac{a}{b}$, $\sqrt{x}$ |
+| `\sum_{i=1}^{m} y_i` | $\sum_{i=1}^{m} y_i$ |
+| `\bar{x}`, `\hat{y}`, `\mathbf{v}` | $\bar{x}$, $\hat{y}$, $\mathbf{v}$ |
+| `\lvert z \rvert`, `\mathbb{R}` | $\lvert z \rvert$, $\mathbb{R}$ |
+| `\approx`, `\le`, `\neq`, `\iff` | $\approx$, $\le$, $\neq$, $\iff$ |
+| `a \equiv b \pmod{10}` | $a \equiv b \pmod{10}$ |
+| `\text{if } n > 0` | $\text{if } n > 0$ |
+| `a \, b`, `a \quad b`, `a \qquad b` | $a \, b$, $a \quad b$, $a \qquad b$ |
+
+Spaces you type in maths are ignored. `\,`, `\quad` and `\qquad` are how you add them.
+
+### Your own commands
+
+They go in the preamble.
+
+```latex
+\DeclareMathOperator{\cis}{cis}           % an upright name, like \sin: \cis\theta
+\newcommand{\VE}{\mathrm{VE}}              % a shortcut: \VE
+\newcommand{\abs}[1]{\lvert #1 \rvert}     % with one argument: \abs{x}
+\numberwithin{equation}{section}           % equations numbered (2.1), (2.2), (3.1)
+```
+
+---
+
+## Labels and references
+
+```latex
+\section{Method}\label{sec:method}
+
+\begin{equation}\label{eq:ve}
+  ...
+\end{equation}
+
+As Section~\ref{sec:method} shows, \eqref{eq:ve} ...   % prints: Section 3 ... (3.2)
+```
+
+`\ref` prints the number. `\eqref` adds the brackets. When things move, every number follows by itself.
+
+LaTeX needs two runs for this. The first writes every label down, the second reads them back. Until then the PDF shows
+`??`. Overleaf runs it as many times as needed.
+
+| Prefix | For |
+|---|---|
+| `sec:` | sections |
+| `eq:` | equations |
+| `fig:` | figures |
+| `tab:` | tables |
+| `app:` | appendices |
+
+---
+
+## Figures
+
+```latex
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{fig1_validation.pdf}
+  \caption{What the figure shows, in one sentence.}\label{fig:validation}
+\end{figure}
+```
+
+- `[htbp]`: here, top of a page, bottom, or a page of figures. LaTeX puts it where it fits. That is called floating.
+- The `\label` goes **after** the `\caption`: the caption is what creates the number.
+- `width=0.6\linewidth` for a smaller one.
+- PDF pictures stay sharp at any zoom. PNG is fine for photos.
+- `\usepackage[section]{placeins}` stops a figure from floating past the end of its section.
+
+---
+
+## Tables
+
+```latex
+\begin{table}[htbp]
+  \centering
+  \caption{Variance explained by each rule.}\label{tab:results}
+  \begin{tabular}{lcc}           % one letter per column: l left, c centre, r right
+    \toprule
+    rule   & bare & space \\      % & separates cells, \\ ends the row
+    \midrule
+    linear & 12.3 & 45.6  \\
+    log    & 12.1 & 44.9  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+```
+
+Captions go above tables and below figures. A table too wide for the page:
+
+```latex
+\usepackage{adjustbox}                        % preamble
+\adjustbox{max width=\linewidth}{%
+  \begin{tabular}{lcccccc} ... \end{tabular}}
+```
+
+A table written by a script goes in with `\input{tables/results}`. Regenerate it; never edit it by hand.
+
+---
+
+## Citations
+
+The sources live in `references.bib`, one entry each:
+
+```text
+@inproceedings{mu2018,
+  author    = {Mu, J. and Viswanath, P.},
+  title     = {All-but-the-Top: Simple and Effective Postprocessing for Word Representations},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  date      = {2018},
+}
+```
+
+```latex
+\usepackage[style=authoryear,backend=biber]{biblatex}   % preamble
+\addbibresource{references.bib}
+
+\parencite{mu2018}      % (Mu and Viswanath 2018)
+\textcite{mu2018}       % Mu and Viswanath (2018), inside a sentence
+\printbibliography      % the list, sorted, with only what you cited
+```
+
+The `.bib` file can hold sources you have not cited yet. They stay out of the list.
+
+---
+
+## Theorems and proofs
+
+```latex
+\newtheorem{result}{Result}[section]   % preamble: Result 3.1, 3.2, ...
+
+\begin{result}\label{res:luck}
+  On average, luck alone explains exactly $k/(m - 1)$.
+\end{result}
+
+\begin{proof}
+  ...                                  % ends with a small square
+\end{proof}
+```
+
+---
+
+## Switches
+
+A yes/no flag that shows or hides part of the document.
+
+```latex
+\newif\ifexamples        % preamble: creates the flag
+\examplestrue            % change to \examplesfalse, then recompile
+
+\ifexamples
+  ...a worked example...
+\fi
+```
+
+---
+
+## The appendix
+
+```latex
+\appendix                                     % sections are now A, B, C
+\setcounter{table}{0}
+\renewcommand{\thetable}{A\arabic{table}}     % tables A1, A2, ...
+\renewcommand{\theHtable}{A\arabic{table}}    % keeps hyperref's links unique
+```
+
+---
+
+## When it breaks
+
+Click an error in the log and Overleaf jumps to its line. Fix the first error first: the others often follow from it.
+
+| Message | Usual cause | Fix |
+|---|---|---|
+| `Undefined control sequence` | A typo in a command, or its package is not loaded | Check the spelling, add the `\usepackage` |
+| `Missing $ inserted` | Maths outside maths mode, often a `_` or `^` in plain text | Wrap it in `$ $`, or write `\_` |
+| `Missing } inserted` | A brace never closed | Count the braces on that line |
+| `File not found` | Wrong folder or name | Names are case-sensitive |
+| `??` in the PDF | A reference not resolved yet, or a missing label | Recompile, then check the `\label` |
+| `Citation undefined` | The key is not in the `.bib`, or Biber has not run | Check the key, recompile |
+| `Overfull \hbox` | A line too wide for the page (a warning) | Split the equation, or shorten the line |
+| `Compile timed out` | Too slow for the free plan | Lighter packages (TikZ and tcolorbox are heavy), or Draft mode in the Recompile menu |

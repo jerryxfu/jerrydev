@@ -1,0 +1,181 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx";
+
+[spotify_player](https://github.com/aome510/spotify-player) is a Spotify client that runs in the terminal. This is how I got it
+working on a Mac in October 2026, after Spotify's February 2026 API changes. Written against
+v0.25.1, installed from Homebrew.
+
+## What you need
+
+- Spotify Premium. The built-in speaker does not work without it.
+- Homebrew.
+- A real terminal window. I use Ghostty. Started from inside an editor or an AI agent's shell, the player fails with
+`The cursor position could not be read within a normal duration`.
+
+## Install
+
+```bash
+brew install spotify_player
+spotify_player --version
+```
+
+## Make your own Spotify app
+
+By default the player talks to Spotify's Web API through ncspot's client ID. Every user of the player shares that ID, so
+Spotify rate limits it. You see this as `429 Too Many Requests` and pages stuck on "Loading...". Your own app gets its own limit.
+
+1. Open the [Spotify developer dashboard](https://developer.spotify.com/dashboard) and create an app.
+2. Add the redirect URI `http://127.0.0.1:8989/login`. It has to match exactly.
+3. Tick **Web API**. I also ticked Web Playback SDK, iOS and Android. I have not tested whether those are needed.
+4. Under **User Management**, add the email of your own Spotify account.
+5. Copy the **Client ID**.
+
+The new app starts in development mode. That is fine for one person, but Spotify blocks a few things for development mode apps.
+They are listed in [What still does not work](#what-still-does-not-work).
+
+## Configure
+
+The config lives in `~/.config/spotify-player/app.toml`. Set these two lines:
+
+```bash
+client_id = "paste-your-client-id-here"
+ncspot_only_get_endpoints = []
+```
+
+The first line is the obvious one. The second is the one that took me a morning to find.
+
+Even with your own client ID, the player sends **every playlist request** to the shared ncspot ID. That is the default
+value of `ncspot_only_get_endpoints`, which is `["me/playlists", "playlists/"]`. The reason is in Spotify's rules: for a playlist
+you do not own, a development mode app gets an answer with the songs missing, and no error. With no error, the player has
+nothing to fall back on, so it skips your app for playlists altogether.
+
+The cost is that the shared ID is always busy. In my log it was rate limited on its very first request, after a nine hour break.
+Emptying the list sends playlist requests to your app first. Your own playlists then load straight away.
+
+Every other request already goes to your app first. If your app is refused with a 4xx error, the player retries the same
+request once with ncspot.
+
+## Log in
+
+```bash
+spotify_player authenticate
+```
+
+Three login pages open in the browser, one after the other. Accept all three:
+
+1. Your own app.
+2. ncspot, the fallback.
+3. "Spotify for Desktop". This one is the session for the built-in speaker.
+
+Run it again whenever you change `client_id`.
+
+## Run
+
+```bash
+spotify_player
+```
+
+The Mac now shows up as a Spotify Connect device called `spotify-player`, so your phone can play to it too.
+
+## Using it as a remote
+
+The player can also control music playing on another device, like a phone with AirPods connected. Start playing on the
+phone first. The player picks it up and controls it from there.
+
+Switching devices from inside the player with `D` did not work for me, in either direction. Spotify accepted the request
+every time, but the music stayed where it was. Starting playback on the device you want is the reliable way.
+
+## What still does not work
+
+These come from Spotify's rules for development mode apps, plus one bug in the player. No setting fixes them.
+
+| Page | Works? | Why |
+| --- | --- | --- |
+| Your own playlists | Yes | After the `ncspot_only_get_endpoints` change |
+| Liked songs, albums, library, top tracks | Yes | |
+| Current playing page | Mostly | Works when the music comes from your own playlist or an album |
+| Playlists made by other people | No | Spotify only sends their songs to development mode apps for playlists you own or collaborate on |
+| Artist pages | No | Spotify removed artist top tracks for development mode apps, and the player will not show the page without them |
+
+The artist page has a second problem. The player asks for 50 albums per page, and Spotify now allows at most 10. Spotify answers
+`400 Invalid limit`. Both of these need a fix in the player itself.
+
+Workarounds:
+
+- For someone else's playlist, use "Add to other playlist" in the Spotify app to make a copy you own.
+- Or play it from your phone and pick `spotify-player` as the speaker. Playback works for anything. Only the pages are limited.
+- For an artist, open their albums from your library.
+
+The source for the rules is Spotify's
+[February 2026 migration guide](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide).
+
+## Debugging
+
+Each run writes a log to `~/.cache/spotify-player/`. For more detail, start the player like this:
+
+```bash
+RUST_LOG=spotify_player=debug spotify_player
+```
+
+What the log lines mean:
+
+| Log line | Meaning |
+| --- | --- |
+| `Spotify Web API rate limit encountered` | 429. The player waits as long as Spotify says, then retries up to 2 times |
+| `Custom Spotify Web API request failed; retrying with ncspot client` | Your app was refused. The status code after it says why |
+| `Using custom Spotify Web API client with ncspot fallback` | Your client ID was picked up |
+| `librespot_connect::spirc: ... 400 Bad Request` | Seen at startup, while the speaker took over a song. Playback carried on, so I ignore it |
+
+<Callout kind="warning">
+Never paste `credentials.json` or any `*_token.json` from that folder anywhere. They are your logins. The logs are safe to read,
+but check them for long random strings before you share them.
+</Callout>
+
+To check whether Spotify accepts a request from your own app, without the player in the way, call the API with your own token.
+This reads the token into a variable and never prints it. Start the player once first so the token is fresh. Tokens last an hour.
+
+```bash
+T=$(jq -r .access_token ~/.cache/spotify-player/YOUR_CLIENT_ID_token.json)
+R=$(curl -s -w '\n%{http_code}' -H "Authorization: Bearer $T" "https://api.spotify.com/v1/playlists/PLAYLIST_ID?market=from_token")
+unset T
+echo "HTTP ${R##*$'\n'}"
+echo "${R%$'\n'*}" | jq -c '{error: .error.message, name, owner: .owner.id, songs: (.items.items // [] | length)}'
+```
+
+`HTTP 200` with songs means your app can read that playlist. `403` means Spotify refuses it by policy. `429` means rate limited.
+`401` means the token expired.
+
+## Shortcuts
+
+These are the defaults. `C-s` means Ctrl and S together. `g y` means press g, then y.
+
+| Key | Action |
+| --- | --- |
+| `space` | Play or pause |
+| `n` / `p` | Next / previous track |
+| `+` / `-` | Volume up / down |
+| `_` | Mute |
+| `>` / `<` | Seek forward / back |
+| `C-s` | Shuffle |
+| `C-r` | Repeat |
+| `enter` | Play or open the selected item |
+| `j` / `k` | Move down / up (arrow keys work too) |
+| `g g` / `G` | Jump to the top / bottom |
+| `/` | Filter the current list |
+| `g s` | Search page |
+| `u p` | Your playlists |
+| `u A` | Your saved albums |
+| `u a` | Artists you follow |
+| `g y` | Liked songs |
+| `g l` | Library |
+| `g space` | Current playing page |
+| `l` | Lyrics |
+| `z` | Show the queue |
+| `Z` | Add the selected item to the queue |
+| `D` | Switch device |
+| `backspace` | Previous page |
+| `esc` | Close a popup |
+| `?` | Every shortcut, in the app |
+| `q` | Quit |
+
+The player can also be driven from another terminal while it runs, for example `spotify_player playback next` or
+`spotify_player playback play-pause`.

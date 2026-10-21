@@ -192,6 +192,14 @@ export const posts: Post[] = [
         tags: ["med", "cheatsheet"],
         lang: "en",
     },
+    {
+        slug: "cheatsheet-overleaf",
+        title: "Overleaf and LaTeX",
+        description: "How an Overleaf project fits together, from the preamble to the references, with the code for each part.",
+        date: postDate("2026-10-16"),
+        tags: ["notes", "cheatsheet"],
+        lang: "en",
+    },
     // region python
     {
         slug: "python-basics",
@@ -252,6 +260,14 @@ export const posts: Post[] = [
         lang: "en",
     },
     // endregion
+    {
+        slug: "spotify-player-setup",
+        title: "spotify_player on a Mac: setup and fixes",
+        description: "Your own Spotify app, the one config line that makes playlists load, what Spotify still blocks, and the shortcuts worth knowing.",
+        date: postDate("2026-10-21"),
+        tags: ["notes", "cheatsheet"],
+        lang: "en",
+    },
     {
         slug: "excel-formulas",
         title: "Excel formula handbook",
