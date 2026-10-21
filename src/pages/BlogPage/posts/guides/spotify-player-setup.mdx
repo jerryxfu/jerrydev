@@ -81,6 +81,10 @@ The Mac now shows up as a Spotify Connect device called `spotify-player`, so you
 The player can also control music playing on another device, like a phone with AirPods connected. Start playing on the
 phone first. The player picks it up and controls it from there.
 
+Pick new songs from a playlist or an album. The player starts those the normal way, and the phone switches to them. Songs
+from an artist page go out as a plain list of songs instead, and my phone stopped playing when it got one. Liked Songs, top
+tracks and search results are sent the same way, so expect the same problem there. I have not tested those.
+
 Switching devices from inside the player with `D` did not work for me, in either direction. Spotify accepted the request
 every time, but the music stayed where it was. Starting playback on the device you want is the reliable way.
 
@@ -94,7 +98,7 @@ These come from Spotify's rules for development mode apps, plus one bug in the p
 | Liked songs, albums, library, top tracks | Yes | |
 | Current playing page | Mostly | Works when the music comes from your own playlist or an album |
 | Playlists made by other people | No | Spotify only sends their songs to development mode apps for playlists you own or collaborate on |
-| Artist pages | No | Spotify removed artist top tracks for development mode apps, and the player will not show the page without them |
+| Artist pages | Slow | Spotify removed artist top tracks for development mode apps, so the page waits for the shared ncspot ID. That took 40 to 80 seconds for me |
 
 The artist page has a second problem. The player asks for 50 albums per page, and Spotify now allows at most 10. Spotify answers
 `400 Invalid limit`. Both of these need a fix in the player itself.
