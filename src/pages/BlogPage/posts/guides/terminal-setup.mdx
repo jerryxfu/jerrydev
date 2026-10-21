@@ -140,7 +140,39 @@ PDF previews need poppler. Without it, the preview pane shows "failed to start p
 
 ```bash
 brew install poppler
+pdftoppm -v
 ```
+
+`pdftoppm -v` prints a version number if poppler is in place. In the preview, `J` and `K` (Shift+j and Shift+k) flip through
+the pages of a PDF.
+
+#### Bigger previews
+
+Image previews stay small, because yazi caps them at 600 by 900 pixels. Resizing the window does not help, and there is no
+default key for a full-screen preview.
+
+The fix is a config file at `~/.config/yazi/yazi.toml`. It does not exist until you make it:
+
+```text
+[mgr]
+ratio = [1, 3, 4]
+
+[preview]
+max_width = 1600
+max_height = 2400
+```
+
+- `ratio` sets the widths of the three columns: parent folder, current folder, preview. The default is `[1, 4, 3]`.
+`[1, 3, 4]` gives the preview half the screen.
+- `max_width` and `max_height` are the image size limits in pixels.
+
+yazi caches its previews. If the new size does not show up, clear the cache and start yazi again:
+
+```bash
+ya cache clear
+```
+
+Older guides say `yazi --clear-cache`. That flag no longer exists in yazi 26.9.1. `ya` comes with yazi from Homebrew.
 
 ### bat, eza and gh
 
