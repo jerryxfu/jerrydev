@@ -285,6 +285,22 @@ export const posts: Post[] = [
         lang: "es",
     },
     {
+        slug: "terminal-setup",
+        title: "My Mac terminal setup",
+        description: "Ghostty, LazyVim, a handful of command line tools, and Julia with units. How to install each one and what you should see.",
+        date: postDate("2026-10-21"),
+        tags: ["notes"],
+        lang: "en",
+    },
+    {
+        slug: "cheatsheet-terminal",
+        title: "Terminal cheat sheet",
+        description: "Keys and commands for Ghostty, LazyVim, yazi, btop, ripgrep, fd and Julia, grouped by tool.",
+        date: postDate("2026-10-21"),
+        tags: ["notes", "cheatsheet"],
+        lang: "en",
+    },
+    {
         slug: "medive-devlog2",
         title: "MEDIVE Devlog #2: ",
         description: "",

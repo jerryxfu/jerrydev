@@ -110,7 +110,7 @@ export default defineConfig({
                     // looks like a mistake rather than a choice. Shiki special-cases it, so unlike
                     // every other entry here it costs no grammar. There is no `gitignore` grammar in
                     // the bundle at all — that one is written as `bash`, which gets the # comments right.
-                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex", "text"],
+                    langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex", "julia", "text"],
                 }]],
             }),
         },

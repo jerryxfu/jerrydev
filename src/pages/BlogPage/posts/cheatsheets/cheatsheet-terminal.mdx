@@ -1,0 +1,170 @@
+Keys and commands only. The walkthrough is in [My Mac terminal setup](/blog/terminal-setup).
+
+## Ghostty
+
+### Tabs
+
+| Key | Does |
+| --- | --- |
+| `Cmd+T` | New tab |
+| `Cmd+Shift+[` / `]` | Previous / next tab |
+| `Cmd+1` to `8` | Jump to tab |
+| `Cmd+9` | Last tab |
+
+### Splits
+
+| Key | Does |
+| --- | --- |
+| `Cmd+D` | Split right |
+| `Cmd+Shift+D` | Split down |
+| `Cmd+[` / `]` | Previous / next split |
+| `Cmd+Option+arrows` | Move focus |
+| `Cmd+Shift+Enter` | Zoom split |
+| `Cmd+Ctrl+arrows` | Resize |
+| `Cmd+Ctrl+=` | Equalize |
+
+### Windows
+
+| Key | Does |
+| --- | --- |
+| `Cmd+N` | New window |
+| `Cmd+W` | Close split or tab |
+| `Cmd+Shift+W` | Close window |
+| `Cmd+Enter` | Fullscreen |
+| `Cmd+Q` | Quit |
+
+### Text and config
+
+| Key | Does |
+| --- | --- |
+| `Cmd+K` | Clear |
+| `Cmd+Plus` / `Minus` | Font size |
+| `Cmd+0` | Reset font size |
+| `Cmd+F` | Search |
+| `Cmd+,` | Open config |
+| `Cmd+Shift+,` | Reload config |
+| `Cmd+Shift+P` | Command palette |
+
+| Command | Does |
+| --- | --- |
+| `ghostty +list-keybinds` | Every key |
+| `ghostty +list-actions` | Every action |
+
+## LazyVim
+
+| Key | Does |
+| --- | --- |
+| `Space` | Menu of all keys |
+| `Space Space` | Find file |
+| `Space f r` | Recent files |
+| `Space /` | Search text |
+| `Space e` | Tree, project root |
+| `Space E` | Tree, current folder |
+| `Ctrl+h` / `Ctrl+l` | Tree / file |
+| `Ctrl+s` | Save |
+| `Space b d` | Close file |
+| `Space b b` | Last file |
+| `Space b o` | Close other files |
+| `Space q q` | Quit |
+
+### In the tree
+
+| Key | Does |
+| --- | --- |
+| `j` / `k` | Move |
+| `Enter` | Open |
+| `a` | Add |
+| `r` | Rename |
+| `d` | Delete |
+
+### Plain Vim
+
+| Key | Does |
+| --- | --- |
+| `i` / `Esc` | Type / stop typing |
+| `u` / `Ctrl+r` | Undo / redo |
+| `:w` / `:q` | Save / quit |
+| `:wq` / `:q!` | Save and quit / quit without saving |
+| `h` `j` `k` `l` | Move |
+| `w` | Next word |
+| `gg` / `G` | Top / bottom |
+
+## ripgrep
+
+| Command | Does |
+| --- | --- |
+| `rg word` | Search in files |
+| `rg -i word` | Ignore case |
+| `rg word -g "*.tsx"` | Only .tsx files |
+
+## fd
+
+| Command | Does |
+| --- | --- |
+| `fd name` | Find by name |
+| `fd -e md` | By extension |
+| `fd -t d` | Folders only |
+
+## yazi
+
+| Key | Does |
+| --- | --- |
+| `h` `j` `k` `l` | Move |
+| `.` | Hidden files |
+| `/` | Find in this folder |
+| `s` | Search names (fd) |
+| `S` | Search contents (rg) |
+| `Space` | Select |
+| `y` / `p` | Copy / paste |
+| `~` | Help |
+| `q` | Quit |
+
+## btop
+
+| Key | Does |
+| --- | --- |
+| Arrows | Move in the list |
+| `f` | Filter |
+| `k` | Kill process (careful) |
+| `q` | Quit |
+
+## glow
+
+| Command | Does |
+| --- | --- |
+| `glow file.md` | Print formatted |
+| `glow -p file.md` | Open in a pager, `q` quits |
+| `glow` | List markdown files here |
+
+## Other tools
+
+| Command | Does |
+| --- | --- |
+| `bat file` | `cat` with colors |
+| `eza` | `ls` with colors |
+| `gh` | GitHub |
+| `fastfetch` | System info |
+
+## Julia
+
+| Type | Does |
+| --- | --- |
+| `]` | Package mode |
+| `Backspace` | Leave package mode |
+| `add Unitful` | Install (package mode) |
+| `using Unitful` | Load, once per session |
+| `5u"m"` | 5 meters |
+| `uconvert(u"km/hr", x)` | Convert |
+| `uconvert(u"K", 25.0u"°C")` | °C to K |
+| `log(x)` | ln |
+| `log10(x)` | Log base 10 (pH) |
+| `log(b, x)` | Log base b |
+| `log.([1, 10])` | Log of each item |
+| `log(T_f / T_i)` | Log needs no units |
+| `/` not `//` | `//` is a fraction |
+
+| Command | Does |
+| --- | --- |
+| `juliaup update` | Update Julia |
+| `rm Unitful`, `add Unitful` | Reinstall package |
+| `activate --temp` | Throwaway environment |

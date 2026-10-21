@@ -1,0 +1,265 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx";
+
+I wanted the terminal on my Mac to feel more like an Arch Linux setup. This is what I ended up with: Ghostty as the terminal,
+LazyVim for quick edits, a handful of command line tools, and Julia for chemistry with real units. Each section has the install
+command and what you should see.
+
+All the keys are also on one page in the [terminal cheat sheet](/blog/cheatsheet-terminal).
+
+Setup: MacBook Air, macOS, zsh, Homebrew, Ghostty 1.3.1.
+
+## Ghostty
+
+Ghostty is the terminal itself. It was already installed (`brew install --cask ghostty`). Open it and you get a shell, with tabs
+and splits built in.
+
+The basics: `Cmd+T` opens a tab, `Cmd+D` splits right, `Cmd+Shift+D` splits down, and `Cmd+W` closes the split or tab you are in.
+`Cmd+,` opens the config file, and `Cmd+Shift+,` reloads it after you save. On my Mac the file is
+`~/Library/Application Support/com.mitchellh.ghostty/config.ghostty`.
+
+To see every key and action on your own version:
+
+```bash
+ghostty +list-keybinds
+ghostty +list-actions
+```
+
+### Splits cannot be moved
+
+There is no action to swap or move a split once it exists. To fix a layout, close the split and make a new one.
+
+The order you split in decides the layout. For two splits on top and one wide split at the bottom:
+
+1. Split down first with `Cmd+Shift+D`.
+2. Go back to the top split and split it right with `Cmd+D`.
+
+The other order gives a bottom split that is not full width.
+
+### Moving tabs
+
+Tabs can be moved with `move_tab`, but it has no default key. These two lines in the config add `Cmd+Shift+Left` and
+`Cmd+Shift+Right`:
+
+```text
+keybind = super+shift+arrow_left=move_tab:-1
+keybind = super+shift+arrow_right=move_tab:1
+```
+
+It moves whole tabs, not splits.
+
+## LazyVim
+
+I code in JetBrains IDEs with the Vim plugin. Neovim with LazyVim is only for viewing and editing files quickly from the terminal.
+
+```bash
+brew install neovim
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+rm -rf ~/.config/nvim/.git
+nvim
+```
+
+The first start installs the plugins, then shows the LazyVim start screen.
+
+`Space` is the key to remember. It opens the which-key menu, which lists what every key after it does. So you can type
+`Space`, wait, and read.
+
+### Finding and opening files
+
+- `Space Space` finds a file by name.
+- `Space f r` lists recent files.
+- `Space /` searches for text in all files.
+- `Space e` opens the file tree at the project root. `Space E` opens it at the current folder.
+
+In the tree, `j` and `k` move, `Enter` opens, `a` adds a file, `r` renames and `d` deletes. `Ctrl+h` and `Ctrl+l` jump between
+the tree and the file.
+
+### Saving and closing
+
+`Ctrl+s` saves. `Space b d` closes the current file only, `Space b b` goes back to the last file, and `Space b o` closes all the
+others. `Space q q` quits nvim.
+
+Closing the last file leaves an empty, unnamed buffer. That is normal. Nvim cannot have zero buffers.
+
+### Plain Vim
+
+The classic keys still work: `i` to type, `Esc` to stop, `u` to undo, `Ctrl+r` to redo, and `:w`, `:q`, `:wq` and `:q!` to save
+and quit. Move with `h` `j` `k` `l`, jump a word with `w`, and go to the top or bottom with `gg` and `G`.
+
+## Command line tools
+
+### ripgrep
+
+Searches for text inside files.
+
+```bash
+brew install ripgrep
+rg import
+```
+
+You get each file that matches, with the matching lines and their line numbers. The command is `rg`, not `ripgrep`.
+
+```bash
+rg -i word              # ignore case
+rg word -g "*.tsx"      # only .tsx files
+```
+
+It skips hidden files and anything in `.gitignore`.
+
+### fd
+
+Finds files by name.
+
+```bash
+brew install fd
+fd tsx
+```
+
+You get a list of matching paths.
+
+```bash
+fd -e md     # by extension
+fd -t d      # folders only
+```
+
+### yazi
+
+A file manager you drive with the keyboard. It has a preview pane.
+
+```bash
+brew install yazi
+yazi
+```
+
+You see three columns: the parent folder, the current folder, and a preview of whatever is selected. `h` `j` `k` `l` move,
+`.` shows hidden files, `Space` selects, `y` copies, `p` pastes, and `q` quits.
+
+`/` finds a file by name in the current folder. `s` searches names in all subfolders with fd, and `S` searches inside files
+with ripgrep. `~` or `F1` opens the help.
+
+PDF previews need poppler. Without it, the preview pane shows "failed to start pdftoppm".
+
+```bash
+brew install poppler
+```
+
+### bat, eza and gh
+
+I already had these.
+
+```bash
+brew install bat eza gh
+```
+
+- `bat` is `cat` with colors and line numbers.
+- `eza` is `ls` with colors and a tree view.
+- `gh` is GitHub from the command line.
+
+### fastfetch
+
+Prints system info next to a logo. Good for screenshots.
+
+```bash
+brew install fastfetch
+fastfetch
+```
+
+### btop
+
+A live view of CPU, memory, disk, network and processes.
+
+```bash
+brew install btop
+btop
+```
+
+Move through the process list with the arrow keys. `f` filters and `q` quits.
+
+<Callout kind="warning">
+`k` kills the selected process. Check what is selected first.
+</Callout>
+
+fastfetch's memory percentage looks scary. btop shows the memory that is actually available. macOS keeps spare memory as cache,
+so a high number there is normal.
+
+### glow
+
+Shows a markdown file formatted in the terminal.
+
+```bash
+brew install glow
+glow README.md
+```
+
+On my Mac this prints the file and exits, because the pager is off in glow's settings. `glow -p README.md` opens it in a pager
+instead, and `q` quits. `glow` on its own opens a list of the markdown files in the current folder.
+
+## Julia with units
+
+I tried Julia for chemistry because it can carry units through a calculation.
+
+```bash
+curl -fsSL https://install.julialang.org | sh
+```
+
+This installs juliaup, which manages Julia versions, and the latest Julia. Open a new terminal and run `julia`. You get a
+`julia>` prompt.
+
+### Unitful
+
+Julia has no built-in units. The Unitful package adds them. Install it once:
+
+1. Start `julia`.
+2. Press `]`. The prompt changes to package mode.
+3. Type `add Unitful`.
+4. Press `Backspace` to go back to `julia>`.
+
+Then run `using Unitful` once per session, or put it at the top of a script. You can also put it in
+`~/.julia/config/startup.jl` so it loads every time, but Julia then starts slower.
+
+```julia
+using Unitful
+
+d = 100u"m"
+t = 9.58u"s"
+uconvert(u"km/hr", d / t)     # 37.578288100208766 km hr⁻¹
+```
+
+Julia refuses to mix units that do not match. `5u"m" + 3u"s"` gives
+`DimensionError: 5 m and 3 s are not dimensionally compatible.`
+
+### Logs
+
+- `log(x)` is the natural log, ln.
+- `log10`, `log2` and `log(base, x)` cover the rest. `log(2, 8)` is `3.0`.
+- Add a dot to apply one to a whole list: `log.([1, 10, 100])`.
+- pH uses `log10`, not `log`: `-log10(1e-3)` is `3.0`.
+
+### Gotchas for chemistry
+
+- `log` needs a value with no units. Divide by a reference with the same unit first, for example `log(T_f / T_i)`.
+- Use `/`, not `//`. `//` makes exact fractions and fails on decimals.
+- Use kelvin. `uconvert(u"K", 25.0u"°C")` gives `298.15 K`. Write `25.0`, not `25`. With `25` you get the exact fraction
+`5963//20 K`, which is the same number but hard to read.
+
+### Example: entropy change
+
+```julia
+using Unitful
+
+n   = 2u"mol"
+Cp  = 29.1u"J/(mol*K)"
+T_i = 300u"K"
+T_f = 350u"K"
+
+ΔS = n * Cp * log(T_f / T_i)    # 8.971569565946437 J K⁻¹
+```
+
+The units come out as J/K on their own.
+
+### When something breaks
+
+- Update Julia: `juliaup update`.
+- Reinstall a package: in package mode, `rm Unitful`, then `add Unitful`.
+- Version conflicts: in package mode, `activate --temp`, then `add Unitful`. This uses a throwaway environment.
+
+Julia came from juliaup, not Homebrew. `brew install julia` would add a second, separate copy.
