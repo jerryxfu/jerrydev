@@ -45,12 +45,12 @@
     flex-wrap: wrap;
     gap: 0.5rem;
 
-    // A little tighter on a phone, so the five fit in two rows rather than three.
+    // A little tighter on a phone, so the six fit in two rows rather than three (from a 375px screen).
     @media (max-width: 560px) {
         gap: 0.4rem;
 
         .time_tab {
-            padding: 0.45rem 0.7rem;
+            padding: 0.45rem 0.65rem;
         }
     }
 }

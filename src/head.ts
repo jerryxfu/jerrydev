@@ -35,7 +35,7 @@ const PAGES: Head[] = [
     {path: "/scheduler", name: "Scheduler", description: "View and compare schedules"},
     {
         path: "/time", name: "Time",
-        description: "Time tools on one page: a Unix time converter, a countdown, a stopwatch, a date calculator, world clocks and an A/V sync test pattern.",
+        description: "Time tools on one page: a Unix time converter, a countdown, a stopwatch, a date calculator, world clocks, an A/V sync test pattern and a Discord timestamp generator.",
     },
     {path: "/supericu", name: "SuperICU", description: "A tool to preview ICU data in a patient monitor-like interface."},
     {path: "/elements", name: "Elements", description: "Coming soon.", noindex: true},

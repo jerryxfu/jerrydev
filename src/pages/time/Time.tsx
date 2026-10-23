@@ -10,6 +10,7 @@ import Countdown from "./tabs/Countdown.tsx";
 import DateCalculator from "./tabs/DateCalculator.tsx";
 import LocalTime from "./tabs/LocalTime.tsx";
 import SyncPattern from "./tabs/SyncPattern.tsx";
+import DiscordTimestamp from "./tabs/DiscordTimestamp.tsx";
 
 export default function Time() {
     const [tab, setTab] = useState<TabId>("time");
@@ -60,6 +61,12 @@ export default function Time() {
                     {tab === "stopwatch" && <Stopwatch />}
                     {tab === "calculator" && <DateCalculator />}
                     {tab === "sync" && <SyncPattern />}
+                    {/* Small tools, a card each. */}
+                    {tab === "tools" && (
+                        <div className="time_stack">
+                            <DiscordTimestamp />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

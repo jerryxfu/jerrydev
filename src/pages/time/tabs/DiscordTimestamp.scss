@@ -1,0 +1,57 @@
+// The date and time, then Now beside it.
+.discord_pick {
+    display: flex;
+    gap: 0.5rem;
+
+    .time_input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.discord_note {
+    margin: 0;
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+}
+
+.discord_list {
+    display: flex;
+    flex-direction: column;
+}
+
+// One style: how it looks on the left, its code on the right (under it on a narrow screen). The whole line copies.
+.discord_row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.15rem 1rem;
+    padding: 0.55rem 0.6rem;
+    margin: 0 -0.6rem;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: var(--surface);
+    }
+}
+
+.discord_preview {
+    color: var(--text);
+}
+
+.discord_code {
+    color: var(--text-4);
+
+    &.is-copied {
+        color: var(--success-text);
+    }
+}

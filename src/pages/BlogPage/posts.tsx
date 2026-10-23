@@ -301,6 +301,14 @@ export const posts: Post[] = [
         lang: "en",
     },
     {
+        slug: "cheatsheet-local-llm",
+        title: "Local LLM cheat sheet (Ollama)",
+        description: "Ollama on a MacBook Air: the three models I run, the aliases that give them a bigger context, and every command on one page.",
+        date: postDate("2026-10-23"),
+        tags: ["ai", "notes", "cheatsheet"],
+        lang: "en",
+    },
+    {
         slug: "medive-devlog2",
         title: "MEDIVE Devlog #2: ",
         description: "",

@@ -16,7 +16,7 @@ import _kotlin from "../../../assets/skills/kotlin.svg";
 const tech_stack = [
     {
         // An invisible break after the slash: on a phone's narrow card it wraps there, out of the chip's way.
-        name: "JavaScript/​TS",
+        name: "JavaScript/TS",
         color: "#2f74c010",
         description: "React, APIs, scripting, DiscordJS",
         iconUrl: _javascript,
