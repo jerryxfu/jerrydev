@@ -62,11 +62,11 @@ function animateOut(el: HTMLElement | null): Promise<void> {
     });
 }
 
-// Each kind of drop's heading, with its icon (as on the landing page's tiles), on all of its screens.
-const TITLES: Record<DropType, { icon: LucideIcon; text: string }> = {
-    text: {icon: FileText, text: "Send text"},
-    file: {icon: FileIcon, text: "Send a file"},
-    p2p: {icon: Radio, text: "Send directly (P2P)"},
+// Each kind of drop's heading, with its icon (as on the landing page's tiles): the sender's, then the receiver's.
+const TITLES: Record<DropType, { icon: LucideIcon; send: string; receive: string }> = {
+    text: {icon: FileText, send: "Send text", receive: "Receive text"},
+    file: {icon: FileIcon, send: "Send a file", receive: "Receive a file"},
+    p2p: {icon: Radio, send: "Send directly (P2P)", receive: "Receive directly (P2P)"},
 };
 
 // Receiver-side auto-recovery: how often to look for the sender's relay
@@ -686,16 +686,16 @@ export default function Expedite() {
         await handleSelect(type);
     };
 
-    // The kind of drop on screen, whose heading it shows: the same while it's written, once it's made and when it's
-    // received. The landing page is Expedite itself.
+    // Someone receiving a drop came for it, not for the site: no navbar on those screens.
+    const receiving = view === "result" || view === "p2p-receive";
+    // The kind of drop on screen, whose heading it shows: the sender's while it's written and once it's made, the
+    // receiver's when it's received. The landing page is Expedite itself.
     const kind: DropType | null =
         view === "composing" || view === "created" ? dropType
             : view === "p2p-send" ? "p2p"
-                : (view === "result" || view === "p2p-receive") && result ? result.type
+                : receiving && result ? result.type
                     : null;
     const title = kind ? TITLES[kind] : null;
-    // Someone receiving a drop came for it, not for the site: no navbar on those screens.
-    const receiving = view === "result" || view === "p2p-receive";
 
     return (
         <div
@@ -722,7 +722,7 @@ export default function Expedite() {
                     {title ? (
                         <h1 className="expedite_title" data-kind={kind ?? undefined}>
                             <title.icon size={30} strokeWidth={1.6} aria-hidden />
-                            {title.text}
+                            {receiving ? title.receive : title.send}
                         </h1>
                     ) : (
                         <h1>Expedite 📦</h1>

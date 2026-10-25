@@ -23,23 +23,30 @@ interface LandingViewProps {
     onCopy: (text: string, field: string, e?: MouseEvent) => void;
 }
 
-// `help` is the long-form answer behind the question mark. Optional because only
-// the mode people actually have to choose between needs one.
 type TileInfo = {
-    type: DropType; label: string; note: string; desc: string; icon: typeof File; help?: ReactNode;
+    type: DropType; label: string; note: string; icon: typeof File;
 };
 
 const TILES: TileInfo[] = [
+    {type: "text", label: "Text", note: "text or code", icon: FileText},
+    {type: "file", label: "File", note: "up to 16 GB", icon: File},
+    {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
+];
+
+// The ways to send, as the list under the tiles describes them: Text and File together, Direct P2P, the terminal.
+// `help` is the long-form answer behind the question mark. Optional because only the mode people actually have to
+// choose between needs one.
+type ModeInfo = {
+    id: string; label: string; desc: string; help?: ReactNode;
+};
+
+const MODES: ModeInfo[] = [
     {
-        type: "text", label: "Text", note: "text or code", icon: FileText,
-        desc: "Stored in the cloud, up to 500 KB. Expires between 1 minute and 24 hours.",
+        id: "cloud", label: "Text & File",
+        desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 1 minute and 24 hours.",
     },
     {
-        type: "file", label: "File", note: "up to 16 GB", icon: File,
-        desc: "Uploaded to the cloud, up to 16 GB. Expires between 1 minute and 24 hours.",
-    },
-    {
-        type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio,
+        id: "p2p", label: "Direct P2P",
         desc: "Sent directly from one device to the other. Nothing stored online, no size limit. Faster.",
         help: (
             <>
@@ -54,10 +61,11 @@ const TILES: TileInfo[] = [
             </>
         ),
     },
+    {
+        id: "terminal", label: "Terminal",
+        desc: "Any file up to 16 GB. Up to 32 MB for a command's piped output (save it to a file first if it's bigger). Expires after 12 hours, no view limit.",
+    },
 ];
-
-// A way to send, as the list under the tiles describes it: the tiles', then the terminal's.
-type ModeInfo = Pick<TileInfo, "label" | "desc" | "help"> & { type: DropType | "terminal" };
 
 // Sending from a terminal, a tab per system and way: a file through the script, or a command's output piped. Each copy
 // stops at its placeholder: the file's path goes after it (typed, or a file dragged in), or it goes after the command.
@@ -167,11 +175,7 @@ export default function LandingView(
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
     // in a floating bubble would run off the side of a phone.
-    const [openHelp, setOpenHelp] = useState<ModeInfo["type"] | null>(null);
-    const modes: ModeInfo[] = [...TILES, {
-        type: "terminal", label: "Terminal",
-        desc: "Any file up to 16 GB. Up to 32 MB for a command's piped output (save it to a file first if it's bigger). Expires after 12 hours, no view limit.",
-    }];
+    const [openHelp, setOpenHelp] = useState<string | null>(null);
 
     return (
         <div className="expedite_landing">
@@ -188,18 +192,18 @@ export default function LandingView(
                 <SendCommands copiedField={copiedField} onCopy={onCopy} />
 
                 <dl className="expedite_landing-modes">
-                    {modes.map(({type, label, desc, help}) => (
-                        <div key={type} className="expedite_mode">
+                    {MODES.map(({id, label, desc, help}) => (
+                        <div key={id} className="expedite_mode">
                             <dt className="expedite_mode-term">
                                 {label}
                                 {help && (
                                     <button
                                         type="button"
                                         className="expedite_help-toggle"
-                                        aria-expanded={openHelp === type}
-                                        aria-controls={`expedite-help-${type}`}
+                                        aria-expanded={openHelp === id}
+                                        aria-controls={`expedite-help-${id}`}
                                         aria-label={`Which mode should I use? (${label})`}
-                                        onClick={() => setOpenHelp(openHelp === type ? null : type)}
+                                        onClick={() => setOpenHelp(openHelp === id ? null : id)}
                                     >
                                         <CircleQuestionMark size={14} strokeWidth={2} />
                                     </button>
@@ -209,8 +213,8 @@ export default function LandingView(
                                 may only group a <dt> with its <dd>. */}
                             <dd className="expedite_mode-desc">
                                 {desc}
-                                {help && openHelp === type && (
-                                    <div className="expedite_help-panel" id={`expedite-help-${type}`}>
+                                {help && openHelp === id && (
+                                    <div className="expedite_help-panel" id={`expedite-help-${id}`}>
                                         {help}
                                     </div>
                                 )}

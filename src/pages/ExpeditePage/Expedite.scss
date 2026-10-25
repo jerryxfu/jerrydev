@@ -1,5 +1,7 @@
+// At least a screen tall, the footer at its bottom. The window scrolls, as on the site's other pages: when the page
+// scrolled itself, its scrollbar sat inside html's reserved gutter (index.scss) and pushed the centred navbar 7.5px left.
 .expedite {
-    height: 100dvh;
+    min-height: 100dvh;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -7,16 +9,9 @@
     justify-content: flex-start;
     padding: 0.6rem 1.5rem 0;
     position: relative;
-    overflow-y: auto;
 
     @media screen and (max-width: 768px) {
         padding: 0.5rem 1.25rem 3rem;
-    }
-
-    // Nothing in the page's column gives way when it runs taller than the screen (a PDF, a long file): the navbar's
-    // spacer, which has no content to hold it, shrank to nothing and slid the Back link and the title under the bar.
-    > * {
-        flex-shrink: 0;
     }
 }
 
@@ -220,7 +215,7 @@
 
 .expedite_footer {
     text-align: center;
-    padding: 0.5rem 0 0.75rem;
+    padding: 0.25rem 0 0.75rem;
 
     p {
         margin: 0;
