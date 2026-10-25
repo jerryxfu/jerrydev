@@ -258,7 +258,8 @@ routes/expedite/
 clear of zsh's `?`).
 - `curl -T <file> https://api.jerryxf.net/expedite/raw/` (curl adds the file's name after the slash) or `<command> | curl -T - …/raw/` sends it in one request.
   A pipe is a text drop when it's UTF-8 text without a NUL byte, 500 KB at most; anything else a file drop, nameless for a pipe (it downloads as
-  `expedite-CODE`). The API stores the file in R2 itself and computes its SHA-256. The answer's first line is the code.
+  `expedite-CODE`). The API stores the file in R2 itself and computes its SHA-256. The answer: "Upload successful. Drop expires in 12h.", then the
+  code, its page and the command to get it back, a line each.
 - One request carries 32 MB at most: Cloud Run refuses a bigger body (Cloudflare, one over 100 MB) with its own 413, before Express runs. So a bigger file
   goes the page's way, straight to R2, through the scripts in the site's `public/`: `curl -fsSL https://jerryxf.net/expedite.sh | sh -s <file>` (macOS, Linux,
   WSL, Git Bash) and `& ([scriptblock]::Create((irm https://jerryxf.net/expedite.ps1))) <file>` (PowerShell, a script block so the execution policy doesn't

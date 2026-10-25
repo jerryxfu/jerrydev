@@ -29,12 +29,13 @@ if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
 $file = Get-Item -LiteralPath $Path
 
 if ($file.Length -le 32000000) {
+    Write-Host "Uploading..."
     (Ask @{Method = "Put"; Uri = "$api/$([uri]::EscapeDataString($file.Name))"; InFile = $file.FullName}).TrimEnd()
     return
 }
 
 # The SHA-256, for the receiver's hash check.
-Write-Host "Computing its SHA-256..."
+Write-Host "Computing SHA-256..."
 $sha = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLower()
 
 $answer = (Ask @{Method = "Post"; Uri = "$api/start"; Body = @{name = $file.Name; size = $file.Length}}) -split "`n" | Where-Object { $_ }
@@ -43,6 +44,7 @@ $type = $answer[1]
 $links = @($answer | Select-Object -Skip 2)
 
 # A part per link, read 100 MB at a time (the API's PART_SIZE).
+Write-Host "Uploading..."
 $partSize = 100MB
 $buffer = New-Object byte[] $partSize
 $etags = @()

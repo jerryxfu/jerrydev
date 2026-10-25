@@ -18,6 +18,7 @@ fi
 
 size=$(wc -c < "$file" | tr -d ' ')
 if [ "$size" -le 32000000 ]; then
+    echo "Uploading..." >&2
     exec curl -sS -T "$file" "$api/"
 fi
 
@@ -33,7 +34,7 @@ ask() {
 }
 
 # The SHA-256, for the receiver's hash check. Left out when the system has no tool for it.
-echo "Computing its SHA-256..." >&2
+echo "Computing SHA-256..." >&2
 sha=$( (shasum -a 256 "$file" || sha256sum "$file") 2>/dev/null | cut -c1-64) || sha=""
 
 ask --data-urlencode "name=$(basename "$file")" -d "size=$size" "$api/start"
@@ -43,6 +44,7 @@ links=$(printf '%s\n' "$answer" | sed -n '3,$p')
 count=$(printf '%s\n' "$links" | wc -l | tr -d ' ')
 
 # A part per link, read 100 MB at a time (the API's PART_SIZE). The links hold ? and &: no globbing.
+echo "Uploading..." >&2
 set -f
 i=0
 etags=""

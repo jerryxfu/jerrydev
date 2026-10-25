@@ -23,10 +23,10 @@ interface ResultViewProps {
     onDelete: () => void;
 }
 
-// "1,234,567 bytes (1.2 MB)": the exact count, then the short form when it says something more.
+// "1.2 MB (1,234,567 bytes)": the short form, then the exact count. Under 1 KB, the count alone.
 function exactSize(bytes: number): string {
     const exact = `${bytes.toLocaleString()} byte${bytes === 1 ? "" : "s"}`;
-    return bytes < 1024 ? exact : `${exact} (${formatBytes(bytes)})`;
+    return bytes < 1024 ? exact : `${formatBytes(bytes)} (${exact})`;
 }
 
 function duration(secs: number): string {

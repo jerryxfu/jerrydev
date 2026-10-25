@@ -40,8 +40,9 @@ export function getDropUrl(code: string): string {
 }
 
 // The drop from a terminal, through the API's raw route: a text drop is printed, a file is saved under its name (-LOJ).
+// The flags go last, where they're easy to change (curl takes them anywhere).
 export function getCurlCommand(code: string, type: "text" | "file"): string {
-    return `curl ${type === "file" ? "-LOJ " : ""}${apiBaseUrl}/expedite/raw/${code}`;
+    return `curl ${apiBaseUrl}/expedite/raw/${code}${type === "file" ? " -LOJ" : ""}`;
 }
 
 // Sending from a terminal: a file of any size through the script (public/expedite.sh, the file after `sh -s`) or its
