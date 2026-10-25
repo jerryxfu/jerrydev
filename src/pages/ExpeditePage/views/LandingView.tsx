@@ -3,7 +3,7 @@ import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal} 
 import Button from "@/components/Button/Button.tsx";
 import {type DropType} from "../types.ts";
 import {useFileDrag} from "../useFileDrag.ts";
-import {getCurlCommand} from "../utils.ts";
+import {getCurlCommand, SEND_FILE_COMMAND, SEND_PIPE_COMMAND, SEND_PIPE_WINDOWS_COMMAND, SEND_POWERSHELL_COMMAND} from "../utils.ts";
 import CopyField from "./CopyField.tsx";
 import "./LandingView.scss";
 
@@ -56,6 +56,76 @@ const TILES: TileInfo[] = [
     },
 ];
 
+// A way to send, as the list under the tiles describes it: the tiles', then the terminal's.
+type ModeInfo = Pick<TileInfo, "label" | "desc" | "help"> & { type: DropType | "terminal" };
+
+// Sending from a terminal, a tab per system and way: a file through the script, or a command's output piped. Each copy
+// stops at its placeholder: the file's path goes after it (typed, or a file dragged in), or it goes after the command.
+// The Windows pipe is curl.exe: in Windows PowerShell 5.1, `curl` is Invoke-WebRequest (cmd and PowerShell 7 take either).
+const SEND_TABS = [
+    {
+        id: "sh", label: "macOS, Linux",
+        value: `${SEND_FILE_COMMAND} <file>`, copy: `${SEND_FILE_COMMAND} `,
+        note: "Send any file, UP TO 16 GB. Add its path after the command.",
+    },
+    {
+        id: "windows", label: "Windows",
+        value: `${SEND_POWERSHELL_COMMAND} <file>`, copy: `${SEND_POWERSHELL_COMMAND} `,
+        note: "Send any file from PowerShell, UP TO 16 GB. Add its path after the command.",
+    },
+    {
+        id: "pipe", label: "Pipe",
+        value: `<command> | ${SEND_PIPE_COMMAND}`, copy: `| ${SEND_PIPE_COMMAND}`,
+        note: "Pipe the output of a command to Expedite, UP TO 32 MB.",
+    },
+    {
+        id: "pipe-windows", label: "Pipe, Windows",
+        value: `<command> | ${SEND_PIPE_WINDOWS_COMMAND}`, copy: `| ${SEND_PIPE_WINDOWS_COMMAND}`,
+        note: "Pipe the output of a command to Expedite, UP TO 32 MB.",
+    },
+] as const;
+
+// The tabs (the composer's setting pills, UploadView.scss), the command, and when to use it. Windows' tab first on Windows.
+function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
+    const [tabId, setTabId] = useState(() => (/Windows/.test(navigator.userAgent) ? "windows" : "sh"));
+    const tab = SEND_TABS.find((t) => t.id === tabId) ?? SEND_TABS[0];
+    return (
+        <div className="expedite_landing-terminal">
+            <div className="expedite_terminal-head">
+                <span className="expedite_terminal-title" id="expedite-terminal-label">
+                    <Terminal size={18} strokeWidth={1.5} aria-hidden />
+                    Terminal
+                </span>
+                <div className="expedite_terminal-tabs" role="group" aria-labelledby="expedite-terminal-label">
+                    {SEND_TABS.map((t) => (
+                        <button
+                            key={t.id}
+                            type="button"
+                            className={`expedite_setting-pill${t.id === tab.id ? " active" : ""}`}
+                            aria-pressed={t.id === tab.id}
+                            onClick={() => setTabId(t.id)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <CopyField
+                value={tab.value}
+                copy={tab.copy}
+                label={`A command to send from a terminal (${tab.label})`}
+                copyLabel="Copy the command"
+                icon={Terminal}
+                field={`curl-${tab.id}`}
+                copiedField={copiedField}
+                onCopy={onCopy}
+                small
+            />
+            <p className="expedite_terminal-note">{tab.note}</p>
+        </div>
+    );
+}
+
 // What's typed or pasted in the code field, as a code: from a pasted link its ?code=, otherwise its letters and digits
 // (spaces and dashes dropped), five at most. A pasted link used to be cut to "HTTPS" by the field's length limit.
 function toCode(input: string): string {
@@ -84,7 +154,7 @@ function Tile({
             onClick={() => onSelect(type)}
             {...(takesFiles ? drag.handlers : {})}
         >
-            <Icon size={20} strokeWidth={1.5} />
+            <Icon size={26} strokeWidth={1.5} />
             <span className="expedite_tile-label">{label}</span>
             <span className="expedite_tile-note">{note}</span>
         </button>
@@ -97,7 +167,11 @@ export default function LandingView(
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
     // in a floating bubble would run off the side of a phone.
-    const [openHelp, setOpenHelp] = useState<DropType | null>(null);
+    const [openHelp, setOpenHelp] = useState<ModeInfo["type"] | null>(null);
+    const modes: ModeInfo[] = [...TILES, {
+        type: "terminal", label: "Terminal",
+        desc: "Any file up to 16 GB. Up to 32 MB for a command's piped output (save it to a file first if it's bigger). Expires after 12 hours, no view limit.",
+    }];
 
     return (
         <div className="expedite_landing">
@@ -111,10 +185,10 @@ export default function LandingView(
                     ))}
                 </div>
 
-                <p className="expedite_landing-hint">Or drop a file on the page.</p>
+                <SendCommands copiedField={copiedField} onCopy={onCopy} />
 
                 <dl className="expedite_landing-modes">
-                    {TILES.map(({type, label, desc, help}) => (
+                    {modes.map(({type, label, desc, help}) => (
                         <div key={type} className="expedite_mode">
                             <dt className="expedite_mode-term">
                                 {label}
@@ -175,14 +249,14 @@ export default function LandingView(
                 <p className="expedite_landing-hint">
                     Enter the code, or paste the link here or in your browser's address bar.
                 </p>
-                {/* The command with CODE for the code: the copy stops before it, for the code to be typed after. */}
+                {/* The command with <code> for the code: the copy stops before it, for the code to be typed after. */}
                 <div className="expedite_landing-terminal">
                     <p className="expedite_landing-hint">
                         In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}
                         <code className="expedite_landing-code">-L</code> to stream it):
                     </p>
                     <CopyField
-                        value={getCurlCommand("CODE", "text")}
+                        value={getCurlCommand("<code>", "text")}
                         copy={getCurlCommand("", "text")}
                         label="A command to get a drop from a terminal"
                         copyLabel="Copy the command"

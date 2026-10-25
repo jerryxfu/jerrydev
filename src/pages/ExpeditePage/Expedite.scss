@@ -5,12 +5,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 1.4rem 1.5rem 0;
+    padding: 0.6rem 1.5rem 0;
     position: relative;
     overflow-y: auto;
 
     @media screen and (max-width: 768px) {
-        padding: 1rem 1.25rem 3rem;
+        padding: 0.5rem 1.25rem 3rem;
     }
 
     // Nothing in the page's column gives way when it runs taller than the screen (a PDF, a long file): the navbar's
@@ -121,6 +121,11 @@
         flex-shrink: 0;
         color: var(--text-3);
     }
+}
+
+// The terminal's commands: JetBrains Mono, loaded with this page only (Expedite.tsx).
+.expedite {
+    --font-command: "JetBrains Mono Variable", var(--font-code);
 }
 
 // Each kind of drop's colour, on its icon (the landing tiles, the headings): File the site's accent blue, Text amber,

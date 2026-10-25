@@ -51,14 +51,16 @@
     }
 }
 
-// A command: in the code face and a size down, about as tall as a line of the text around it.
+// A command: in the commands' face and a size down, about as tall as a line of the text around it. Its characters as
+// typed: no ligatures.
 .expedite_copy-field--small {
     border-radius: 6px;
 
     .expedite_copy-field-input {
         padding: 0.4rem 0.6rem;
-        font-family: var(--font-code);
+        font-family: var(--font-command, var(--font-code));
         font-size: var(--fs-xs);
+        font-variant-ligatures: none;
     }
 
     .expedite_copy-field-btn {

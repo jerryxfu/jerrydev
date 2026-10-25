@@ -243,15 +243,29 @@ These have each cost a debugging session. They look exactly like regressions.
 ```
 routes/expedite/
   index.ts    router assembly
-  shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView
-  text.ts     POST /drop/text
-  file.ts     POST /drop/file/init, /drop/file/complete
+  shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
+  text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
+  file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts)
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn
               GET  /p2p/:code/events (SSE)
               DELETE /p2p/:code
   drops.ts    GET /drop/:code, GET /stats, DELETE /drop/:code
-  raw.ts      GET /raw/:code, for curl (mounted in routes/index.ts, outside the origin guard)
+  raw.ts      the terminal's, in plain text (mounted in routes/index.ts, outside the origin guard):
+              GET /raw/:code, PUT /raw/ and /raw/:name, POST /raw/start, POST /raw/:code/done
 ```
+
+**Sending from a terminal.** Every terminal drop lasts 12 hours, with no view limit, and is deletable: there are no options, so the commands stay short (and
+clear of zsh's `?`).
+- `curl -T <file> https://api.jerryxf.net/expedite/raw/` (curl adds the file's name after the slash) or `<command> | curl -T - …/raw/` sends it in one request.
+  A pipe is a text drop when it's UTF-8 text without a NUL byte, 500 KB at most; anything else a file drop, nameless for a pipe (it downloads as
+  `expedite-CODE`). The API stores the file in R2 itself and computes its SHA-256. The answer's first line is the code.
+- One request carries 32 MB at most: Cloud Run refuses a bigger body (Cloudflare, one over 100 MB) with its own 413, before Express runs. So a bigger file
+  goes the page's way, straight to R2, through the scripts in the site's `public/`: `curl -fsSL https://jerryxf.net/expedite.sh | sh -s <file>` (macOS, Linux,
+  WSL, Git Bash) and `& ([scriptblock]::Create((irm https://jerryxf.net/expedite.ps1))) <file>` (PowerShell, a script block so the execution policy doesn't
+  stop it). Up to 32 MB they make the one request; bigger, `POST /raw/start` (name, size) answers the code, the type and a signed link per 100 MB part, each
+  part goes to R2, and `POST /raw/:code/done` (the SHA-256, then the ETags) checks and completes the drop. Both read 100 MB parts: `PART_SIZE` changes
+  them too.
+- Tested: both scripts on 20 MB, 60 MB and 210 MB files (PowerShell 7 on macOS); Windows PowerShell 5.1 not yet.
 
 **From a terminal.** `curl https://api.jerryxf.net/expedite/raw/ABCDE` prints a text drop as it is. A file drop redirects to its download link:
 `curl -LOJ` saves it under its name (curl's `-J` takes the ASCII stand-in, so accents become `_`), `curl -L` streams it to stdout, to pipe it into a

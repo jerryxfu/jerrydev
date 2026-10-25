@@ -44,6 +44,14 @@ export function getCurlCommand(code: string, type: "text" | "file"): string {
     return `curl ${type === "file" ? "-LOJ " : ""}${apiBaseUrl}/expedite/raw/${code}`;
 }
 
+// Sending from a terminal: a file of any size through the script (public/expedite.sh, the file after `sh -s`) or its
+// PowerShell twin (public/expedite.ps1), and a command's output piped straight to the API (32 MB at most). On Windows,
+// curl.exe: Windows PowerShell's `curl` is Invoke-WebRequest.
+export const SEND_FILE_COMMAND = "curl -fsSL https://jerryxf.net/expedite.sh | sh -s";
+export const SEND_POWERSHELL_COMMAND = "& ([scriptblock]::Create((irm https://jerryxf.net/expedite.ps1)))";
+export const SEND_PIPE_COMMAND = `curl -T - ${apiBaseUrl}/expedite/raw/`;
+export const SEND_PIPE_WINDOWS_COMMAND = `curl.exe -T - ${apiBaseUrl}/expedite/raw/`;
+
 export function formatSpeed(bps: number): string {
     if (!bps || bps <= 0 || !isFinite(bps)) return "—";
     return `${formatBytes(bps)}/s`;

@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio} from "lucide-react";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
+import "@fontsource-variable/jetbrains-mono/index.css";
 import "./Expedite.scss";
 
 import {
@@ -727,7 +728,10 @@ export default function Expedite() {
                         <h1>Expedite 📦</h1>
                     )}
                     {view === "landing" && (
-                        <p className="caption-text">Share files and text snippets instantaneously!</p>
+                        <p className="caption-text">
+                            Share files and text snippets instantaneously! Pick an option below, or drop a file on this page. Terminal
+                            commands work too.
+                        </p>
                     )}
                 </header>
 
