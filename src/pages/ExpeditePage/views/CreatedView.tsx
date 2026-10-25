@@ -1,12 +1,16 @@
 import React from "react";
-import {Check, Clipboard, Link} from "lucide-react";
+import {Check, Clipboard, Link, Terminal} from "lucide-react";
 import {QRCodeSVG} from "qrcode.react";
-import {getDropUrl, timeUntil, when} from "../utils.ts";
+import Button from "@/components/Button/Button.tsx";
+import {getCurlCommand, getDropUrl, timeUntil, when} from "../utils.ts";
+import CopyField from "./CopyField.tsx";
 import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./CreatedView.scss";
 
 /** What the drop just created will do: told back under its code, so the sender knows what they made. */
 export interface CreatedInfo {
+    // Picks the curl command: a file's adds -LOJ.
+    type: "text" | "file";
     expiresAt: string;
     maxViews: number | null;
     deletable: boolean;
@@ -35,23 +39,27 @@ export default function CreatedView({code, info, copiedField, onCopy, onDone}: C
                 <p className="text-small">
                     {copiedField === "code" ? "Copied!" : `${verb} to copy the code`}
                 </p>
-                <div className="expedite_link-box">
-                    <input
-                        className="expedite_link-input text-small"
-                        aria-label="The drop's link"
-                        type="text"
-                        value={getDropUrl(code)}
-                        readOnly
-                        onFocus={(e) => e.target.select()}
+                <CopyField
+                    value={getDropUrl(code)}
+                    label="The drop's link"
+                    copyLabel="Copy the link"
+                    icon={Link}
+                    field="link"
+                    copiedField={copiedField}
+                    onCopy={onCopy}
+                />
+                {info && (
+                    <CopyField
+                        value={getCurlCommand(code, info.type)}
+                        label="A command to get the drop from a terminal"
+                        copyLabel="Copy the command"
+                        icon={Terminal}
+                        field="curl"
+                        copiedField={copiedField}
+                        onCopy={onCopy}
+                        small
                     />
-                    <button
-                        className="expedite_link-copy"
-                        aria-label={copiedField === "link" ? "Link copied" : "Copy the link"}
-                        onClick={(e) => onCopy(getDropUrl(code), "link", e)}
-                    >
-                        {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
-                    </button>
-                </div>
+                )}
 
                 {info && (
                     <p className="expedite_created-summary">
@@ -77,9 +85,9 @@ export default function CreatedView({code, info, copiedField, onCopy, onDone}: C
                 <figcaption className="text-caption">Scan to open it on another device</figcaption>
             </figure>
 
-            <button className="expedite_btn-primary expedite_btn-full" onClick={onDone}>
+            <Button variant="main" className="expedite_btn-full" onClick={onDone}>
                 Done
-            </button>
+            </Button>
 
             <p className="text-caption">Copy the code or the link now: this page won't show them again.</p>
         </div>

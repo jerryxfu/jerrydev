@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from "react";
+import Button from "@/components/Button/Button.tsx";
 import {copyText} from "@/utils.ts";
 import {isoDay, pad2} from "../utils.ts";
 import "./DiscordTimestamp.scss";
@@ -53,7 +54,7 @@ export default function DiscordTimestamp() {
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                 />
-                <button className="time_btn" onClick={() => setValue(fieldValue(new Date()))}>Now</button>
+                <Button onClick={() => setValue(fieldValue(new Date()))}>Now</Button>
             </div>
             <p className="discord_note">Discord shows it in each reader's own time zone and language. Click a line to copy it.</p>
 

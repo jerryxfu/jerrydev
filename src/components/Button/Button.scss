@@ -1,0 +1,92 @@
+// Plain: outlined, the colour of the text around it.
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: color-mix(in srgb, currentColor 4%, transparent);
+    }
+
+    &:disabled {
+        color: var(--text-5);
+        cursor: not-allowed;
+    }
+}
+
+// The one action to take on a screen. In the site's accent once it can be pressed, in plain grey until then: the pale
+// blue it had read the same both ways, faded or not (Expedite's issue #69). --bg-lt is light in the light themes and dark
+// in the dark ones, where the accent is lighter: 4.8:1 and better in all six (latte the lowest; --bg-da, a little greyer,
+// fell to 4.4 in latte, blush and glacier).
+.btn--main {
+    border-color: var(--secondary);
+    background: var(--secondary);
+    color: var(--bg-lt);
+
+    &:hover:not(:disabled) {
+        background: var(--secondary);
+        opacity: var(--opacity-hover);
+    }
+
+    &:disabled {
+        border-color: var(--border);
+        background: var(--surface-da);
+        color: var(--text-5);
+    }
+}
+
+.btn--danger {
+    color: var(--danger-text);
+    border-color: color-mix(in srgb, var(--danger) 80%, transparent);
+
+    &:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--danger) 8%, transparent);
+        border-color: color-mix(in srgb, var(--danger) 4%, transparent);
+    }
+}
+
+// The icon alone: square.
+.btn--icon {
+    padding: 0.65rem;
+}
+
+.btn--big {
+    min-width: 9.5rem;
+    padding: 1rem 2.4rem;
+    border-radius: 14px;
+    font-size: var(--fs-lg);
+
+    // Three of them side by side on a phone.
+    @media (max-width: 560px) {
+        min-width: 0;
+        padding: 0.85rem 1.3rem;
+        font-size: var(--fs-md);
+    }
+
+    // The icon alone (the countdown's mute): as tall as the others beside it, narrower, quieter. Dimmer once pressed.
+    &.btn--icon {
+        min-width: 0;
+        padding-inline: 1.1rem;
+        color: var(--text-3);
+
+        &[aria-pressed="true"] {
+            color: var(--text-5);
+        }
+
+        @media (max-width: 560px) {
+            padding-inline: 0.9rem;
+        }
+    }
+}

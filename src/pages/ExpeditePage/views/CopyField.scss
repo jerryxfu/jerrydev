@@ -1,0 +1,72 @@
+.expedite_copy-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+
+    &:focus-within {
+        background: var(--surface);
+        border-color: var(--border-da);
+    }
+}
+
+.expedite_copy-field-input {
+    flex: 1;
+    padding: 1rem 0.85rem;
+    font-size: var(--fs-lg);
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    color: var(--text-2);
+    outline: none;
+    min-width: 0;
+
+    &:focus {
+        color: var(--text);
+    }
+}
+
+.expedite_copy-field-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem;
+    border: none;
+    border-left: 1px solid var(--border);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: var(--opacity-quiet);
+    transition: opacity 0.15s, background 0.15s;
+    margin: 0 4px;
+
+    &:hover {
+        opacity: var(--opacity-hover);
+        background: var(--surface);
+        border-radius: 8px;
+    }
+}
+
+// A command: in the code face and a size down, about as tall as a line of the text around it.
+.expedite_copy-field--small {
+    border-radius: 6px;
+
+    .expedite_copy-field-input {
+        padding: 0.4rem 0.6rem;
+        font-family: var(--font-code);
+        font-size: var(--fs-xs);
+    }
+
+    .expedite_copy-field-btn {
+        padding: 0.35rem;
+        margin: 0 2px;
+
+        &:hover {
+            border-radius: 5px;
+        }
+    }
+}

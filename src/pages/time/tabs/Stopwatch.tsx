@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState} from "react";
+import Button from "@/components/Button/Button.tsx";
 import useShortcuts from "../useShortcuts.ts";
 import "./Stopwatch.scss";
 
@@ -75,14 +76,14 @@ export default function Stopwatch() {
 
             <div className="stopwatch_controls">
                 {!running ? (
-                    <button className="time_btn time_btn--primary time_btn--big" onClick={start}>
+                    <Button variant="main" size="big" onClick={start}>
                         {elapsed > 0 ? "Resume" : "Start"}
-                    </button>
+                    </Button>
                 ) : (
-                    <button className="time_btn time_btn--danger time_btn--big" onClick={stop}>Stop</button>
+                    <Button variant="danger" size="big" onClick={stop}>Stop</Button>
                 )}
-                <button className="time_btn time_btn--big" onClick={lap} disabled={elapsed === 0}>Lap</button>
-                <button className="time_btn time_btn--big" onClick={reset} disabled={elapsed === 0}>Reset</button>
+                <Button size="big" onClick={lap} disabled={elapsed === 0}>Lap</Button>
+                <Button size="big" onClick={reset} disabled={elapsed === 0}>Reset</Button>
             </div>
             <p className="time_keys">Space starts and stops. L marks a lap, R resets.</p>
 

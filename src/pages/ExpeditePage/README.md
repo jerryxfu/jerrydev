@@ -36,6 +36,7 @@ ExpeditePage/
     ResultView          retrieved text/file
     FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself)
     Disclosure          folded section (P2P's technical side), open state remembered
+    CopyField           read-only field with a copy button on its side: a drop's link, or (small) a curl command
     P2PSendView         session code, countdown, notes
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
@@ -242,14 +243,21 @@ These have each cost a debugging session. They look exactly like regressions.
 ```
 routes/expedite/
   index.ts    router assembly
-  shared.ts   config constants + generateCode, parseTtl, getUsedBytes
+  shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView
   text.ts     POST /drop/text
   file.ts     POST /drop/file/init, /drop/file/complete
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn
               GET  /p2p/:code/events (SSE)
               DELETE /p2p/:code
   drops.ts    GET /drop/:code, GET /stats, DELETE /drop/:code
+  raw.ts      GET /raw/:code, for curl (mounted in routes/index.ts, outside the origin guard)
 ```
+
+**From a terminal.** `curl https://api.jerryxf.net/expedite/raw/ABCDE` prints a text drop as it is. A file drop redirects to its download link:
+`curl -LOJ` saves it under its name (curl's `-J` takes the ASCII stand-in, so accents become `_`), `curl -L` streams it to stdout, to pipe it into a
+command. Without `-L` the view is spent, so the body gives a command with the link, which works until the drop expires. A P2P code answers 409 (it needs a
+browser). Every GET counts a view, like the page, and shares its rate limit; HEAD answers 405 so `curl -I` doesn't spend one. A chat app's link preview
+fetches the link too: share the page's link, not this one.
 
 One Mongo collection for all three types, with a TTL index on `expiresAt` that cleans expired drops, orphaned upload reservations, and abandoned p2p sessions
 alike.
@@ -284,7 +292,8 @@ generic pending check.
   `.origin` — a prefix check accepts `https://jerryxf.net.evil.com`.
 - **`showSaveFilePicker` isn't in `lib.dom.d.ts`.** It's WICG, not WHATWG; lib.dom ships the OPFS half only. Declared in `src/types/file-system-access.d.ts`.
 - **morgan logs on response finish**, so an open SSE stream produces no log line until the client disconnects. Looks like a dropped request. It isn't.
-- **`.expedite_btn-primary` has `flex: 1`** for horizontal button rows. Inside a flex column that reads as `flex-grow` and stretches the button vertically.
+- **Buttons are `components/Button`**, shared with the Time page. The main one grows (`flex: 1`) only inside `.expedite_btn-row`: on the button itself, a flex
+  column read it as `flex-grow` and stretched the button vertically.
 - **Progress bars shouldn't have CSS width transitions** when updates arrive every ~100ms; the animation restarts before it lands and the bar trails.
 - **Don't hand-write `-webkit-` prefixes.** The production CSS minifier keeps the last vendor-prefixed property, so writing `-webkit-backdrop-filter` next to
   `backdrop-filter` strips the unprefixed form in the build. Let autoprefixing do it.

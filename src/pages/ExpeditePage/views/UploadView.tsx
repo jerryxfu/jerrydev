@@ -1,5 +1,6 @@
 import React, {type ReactNode, useEffect, useId, useMemo, useRef, useState} from "react";
 import {Info} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatDuration} from "../utils.ts";
 import FilePreview from "./FilePreview.tsx";
@@ -248,21 +249,19 @@ export default function UploadView(
 
     const actions = (
         <div className="expedite_btn-row">
-            <button
-                className={`expedite_btn-secondary ${loading ? "expedite_btn-secondary--danger" : ""}`}
-                onClick={onCancel}
-            >
+            <Button variant={loading ? "danger" : "plain"} onClick={onCancel}>
                 {loading ? "Cancel upload" : "Cancel"}
-            </button>
-            <button
+            </Button>
+            <Button
                 ref={createButton}
-                className={`expedite_btn-primary${createReady ? " is-ready" : ""}`}
+                variant="main"
+                className={createReady ? "is-ready" : undefined}
                 onBlur={() => setCreateReady(false)}
                 onClick={onUpload}
                 disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
             >
                 {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}`}
-            </button>
+            </Button>
         </div>
     );
 

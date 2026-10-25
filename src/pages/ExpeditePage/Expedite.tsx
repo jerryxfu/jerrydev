@@ -278,7 +278,7 @@ export default function Expedite() {
                     return;
                 }
                 setCreatedCode(json.data.code);
-                setCreatedInfo({expiresAt: json.data.expiresAt, maxViews: settings.maxViews, deletable: settings.deletable});
+                setCreatedInfo({type: "text", expiresAt: json.data.expiresAt, maxViews: settings.maxViews, deletable: settings.deletable});
                 await transitionTo("created");
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : "Upload failed");
@@ -314,7 +314,7 @@ export default function Expedite() {
         try {
             const meta = await uploadFile(selectedFile, settings, apiBaseUrl, setUploadSnapshot, controller.signal, hash);
             setCreatedCode(meta.code);
-            setCreatedInfo({expiresAt: meta.expiresAt, maxViews: meta.maxViews, deletable: meta.deletable});
+            setCreatedInfo({type: "file", expiresAt: meta.expiresAt, maxViews: meta.maxViews, deletable: meta.deletable});
             await transitionTo("created");
         } catch (err: unknown) {
             // AbortError = user cancelled; stay on the form silently
@@ -744,6 +744,8 @@ export default function Expedite() {
                             loading={loading}
                             onRetrieve={() => retrieveDrop()}
                             p2pSupported={p2pSupported}
+                            copiedField={copiedField}
+                            onCopy={copyToClipboard}
                         />
                     )}
 

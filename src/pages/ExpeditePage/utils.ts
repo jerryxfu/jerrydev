@@ -1,3 +1,5 @@
+import {apiBaseUrl} from "../../main.tsx";
+
 // Always one decimal place
 export function formatBytes(bytes: number): string {
     if (!bytes || bytes <= 0) return "0.0 B";
@@ -35,6 +37,11 @@ export function when(iso: string): string {
 
 export function getDropUrl(code: string): string {
     return `${window.location.origin}/expedite?code=${code}`;
+}
+
+// The drop from a terminal, through the API's raw route: a text drop is printed, a file is saved under its name (-LOJ).
+export function getCurlCommand(code: string, type: "text" | "file"): string {
+    return `curl ${type === "file" ? "-LOJ " : ""}${apiBaseUrl}/expedite/raw/${code}`;
 }
 
 export function formatSpeed(bps: number): string {

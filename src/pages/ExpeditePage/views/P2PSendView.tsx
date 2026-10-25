@@ -1,11 +1,13 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {Check, Clipboard, Link, Radio} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
 import RelaySetting from "./RelaySetting.tsx";
 import FilePreview from "./FilePreview.tsx";
 import FileZone from "./FileZone.tsx";
+import CopyField from "./CopyField.tsx";
 import "./P2PSendView.scss";
 
 interface P2PSendViewProps {
@@ -101,15 +103,10 @@ export default function P2PSendView(
                         {error && <p className="expedite_error">{error}</p>}
 
                         <div className="expedite_btn-row">
-                            <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
-                            <button
-                                className="expedite_btn-primary"
-                                onClick={onStart}
-                                disabled={!selectedFile}
-                            >
-                                <Radio size={14} />
+                            <Button onClick={onCancel}>Cancel</Button>
+                            <Button variant="main" start={Radio} onClick={onStart} disabled={!selectedFile}>
                                 Get a code
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -139,23 +136,15 @@ export default function P2PSendView(
                                 {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
                             </button>
 
-                            <div className="expedite_link-box">
-                                <input
-                                    className="expedite_link-input text-small"
-                                    aria-label="The drop's link"
-                                    type="text"
-                                    value={getDropUrl(code)}
-                                    readOnly
-                                    onFocus={(e) => e.target.select()}
-                                />
-                                <button
-                                    className="expedite_link-copy"
-                                    aria-label={copiedField === "link" ? "Link copied" : "Copy the link"}
-                                    onClick={(e) => onCopy(getDropUrl(code), "link", e)}
-                                >
-                                    {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
-                                </button>
-                            </div>
+                            <CopyField
+                                value={getDropUrl(code)}
+                                label="The drop's link"
+                                copyLabel="Copy the link"
+                                icon={Link}
+                                field="link"
+                                copiedField={copiedField}
+                                onCopy={onCopy}
+                            />
 
                             {remaining != null && (
                                 <p className={`expedite_p2p-countdown${remaining <= 60 ? " is-low" : ""}`}>
@@ -185,18 +174,17 @@ export default function P2PSendView(
 
                     <div className="expedite_btn-row">
                         {retryable && status.phase === "failed" && (
-                            <button className="expedite_btn-primary" onClick={onRetry}>
+                            <Button variant="main" onClick={onRetry}>
                                 Retry with relay
-                            </button>
+                            </Button>
                         )}
-                        <button
-                            className={status.phase === "done"
-                                ? "expedite_btn-primary expedite_btn-full"
-                                : "expedite_btn-secondary expedite_btn-secondary--danger"}
+                        <Button
+                            variant={status.phase === "done" ? "main" : "danger"}
+                            className={status.phase === "done" ? "expedite_btn-full" : undefined}
                             onClick={onCancel}
                         >
                             {status.phase === "done" ? "Done" : "Close session"}
-                        </button>
+                        </Button>
                     </div>
 
                     <p className="expedite_p2p-standby">

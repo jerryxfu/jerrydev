@@ -1,4 +1,5 @@
 import {Download, MonitorSmartphone, Radio} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type DropMeta, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, timeUntil} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
@@ -69,9 +70,9 @@ export default function P2PReceiveView(
                 </div>
 
                 <div className="expedite_btn-row">
-                    <button className="expedite_btn-primary expedite_btn-full" onClick={onCancel}>
+                    <Button variant="main" className="expedite_btn-full" onClick={onCancel}>
                         Back
-                    </button>
+                    </Button>
                 </div>
             </div>
         );
@@ -112,11 +113,10 @@ export default function P2PReceiveView(
                         {error && <p className="expedite_error">{error}</p>}
 
                         <div className="expedite_btn-row">
-                            <button className="expedite_btn-secondary" onClick={onCancel}>Cancel</button>
-                            <button className="expedite_btn-primary" onClick={onAccept}>
-                                <Download size={14} />
+                            <Button onClick={onCancel}>Cancel</Button>
+                            <Button variant="main" start={Download} onClick={onAccept}>
                                 Choose location &amp; receive
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </>
@@ -142,18 +142,17 @@ export default function P2PReceiveView(
 
                     <div className="expedite_btn-row">
                         {retryable && status.phase === "failed" && (
-                            <button className="expedite_btn-primary" onClick={onRetry}>
+                            <Button variant="main" onClick={onRetry}>
                                 Try again
-                            </button>
+                            </Button>
                         )}
-                        <button
-                            className={status.phase === "done"
-                                ? "expedite_btn-primary expedite_btn-full"
-                                : "expedite_btn-secondary expedite_btn-secondary--danger"}
+                        <Button
+                            variant={status.phase === "done" ? "main" : "danger"}
+                            className={status.phase === "done" ? "expedite_btn-full" : undefined}
                             onClick={onCancel}
                         >
                             {status.phase === "done" ? "Done" : "Abort transfer"}
-                        </button>
+                        </Button>
                     </div>
 
                     <p className="expedite_p2p-standby">

@@ -1,5 +1,6 @@
 import {type CSSProperties, useEffect, useEffectEvent, useRef, useState} from "react";
 import {Volume2, VolumeX} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {chime, pad2} from "../utils.ts";
 import useShortcuts from "../useShortcuts.ts";
 import "./Countdown.scss";
@@ -197,21 +198,20 @@ export default function Countdown() {
 
             <div className="countdown_controls">
                 {phase === "idle" && (
-                    <button className="time_btn time_btn--primary time_btn--big" onClick={start} disabled={length === 0}>Start</button>
+                    <Button variant="main" size="big" onClick={start} disabled={length === 0}>Start</Button>
                 )}
-                {phase === "running" && <button className="time_btn time_btn--big" onClick={pause}>Pause</button>}
-                {phase === "paused" && <button className="time_btn time_btn--primary time_btn--big" onClick={() => run(left)}>Resume</button>}
-                {phase === "done" && <button className="time_btn time_btn--primary time_btn--big" onClick={start}>Again</button>}
-                {phase !== "idle" && <button className="time_btn time_btn--big" onClick={reset}>Reset</button>}
-                <button
-                    className="time_btn time_btn--big time_btn--icon"
+                {phase === "running" && <Button size="big" onClick={pause}>Pause</Button>}
+                {phase === "paused" && <Button variant="main" size="big" onClick={() => run(left)}>Resume</Button>}
+                {phase === "done" && <Button variant="main" size="big" onClick={start}>Again</Button>}
+                {phase !== "idle" && <Button size="big" onClick={reset}>Reset</Button>}
+                <Button
+                    size="big"
+                    start={muted ? VolumeX : Volume2}
                     aria-pressed={muted}
                     aria-label="Mute the chime"
                     title={muted ? "Chime off" : "Chime on"}
                     onClick={toggleMute}
-                >
-                    {muted ? <VolumeX size={20} aria-hidden /> : <Volume2 size={20} aria-hidden />}
-                </button>
+                />
             </div>
             <p className="time_keys">Space starts and pauses. R resets. M mutes the chime.</p>
         </div>

@@ -6,7 +6,7 @@
 
 // On a laptop the row spans the page, so Download keeps a button's size, at the end of it.
 @media (min-width: 900px) {
-    .expedite_retrieved > .expedite_btn-row > .expedite_btn-primary {
+    .expedite_retrieved > .expedite_btn-row > .btn--main {
         flex: 0 0 auto;
         margin-left: auto;
         padding-inline: 2rem;
@@ -48,10 +48,8 @@
     padding: 0.65rem 0.95rem;
     border-bottom: 1px solid var(--border);
     background: var(--surface-lt);
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-4);
 }
 
@@ -85,14 +83,13 @@
 .expedite_meta-label {
     font-size: var(--fs-xs);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
     color: var(--text-5);
 }
 
+// A long value (a file's name, a link) may break anywhere; words still break between them.
 .expedite_meta-value {
     font-size: var(--fs-sm);
-    word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 // Content label
@@ -173,6 +170,7 @@
     }
 }
 
+// The line under that value: the hash check, the curl command's note on views.
 .expedite_meta-check {
     display: flex;
     flex-wrap: wrap;
@@ -181,7 +179,6 @@
     margin-top: 0.35rem;
     font-size: var(--fs-xs);
     color: var(--text-4);
-    word-break: normal;
 
     // The progress panels' green and red (UploadProgress.scss): the theme's --success is too light for small text.
     &.is-match {
@@ -223,12 +220,12 @@
 
 // The hash check's button, once it has run: green for a copy that matches, red for one that doesn't (with its icon, for
 // those who can't tell the two colours apart). The greens and reds of the line under the hash.
-.expedite_btn-secondary.is-match {
+.btn.is-match {
     color: var(--success-text);
     border-color: color-mix(in srgb, var(--success-text) 55%, transparent);
 }
 
-.expedite_btn-secondary.is-mismatch {
+.btn.is-mismatch {
     color: var(--danger-text);
     border-color: color-mix(in srgb, var(--danger-text) 55%, transparent);
 }

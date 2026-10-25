@@ -1,9 +1,11 @@
 import React, {type ReactNode, useMemo, useRef, useState} from "react";
 import {flushSync} from "react-dom";
-import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, SlidersHorizontal, Trash2} from "lucide-react";
+import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, SlidersHorizontal, Terminal, Trash2} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type DownloadCheck, type DropMeta} from "../types.ts";
-import {formatBytes, getDropUrl, timeUntil, when} from "../utils.ts";
+import {formatBytes, getCurlCommand, getDropUrl, timeUntil, when} from "../utils.ts";
 import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./FilePreview.tsx";
+import CopyField from "./CopyField.tsx";
 import {isLanguage, languageLabel} from "../highlight.ts";
 import {characterCount, wordStats} from "./TextStats.tsx";
 import "./ResultView.scss";
@@ -83,6 +85,8 @@ export default function ResultView(
     // Opening it used the last view the sender allowed: the code is gone for anyone else.
     const lastView = result.maxViews != null && result.views >= result.maxViews;
     const isText = result.type === "text";
+    // The drop from a terminal, to pipe it into a command. Each run spends a view, so it shows only while the code works.
+    const curl = lastView ? null : getCurlCommand(result.code, isText ? "text" : "file");
     // A text drop as its lines show: a pasted file's last newline and Windows line endings don't add an empty line.
     const shownText = useMemo(() => (result.text ? linesOf(result.text) : ""), [result.text]);
     const lines = isText && result.text ? shownText.split("\n").length : info.lines;
@@ -153,6 +157,21 @@ export default function ResultView(
                                 <DownloadCheckLine check={downloadCheck} />
                             </Detail>
                         )}
+                        {curl && (
+                            <Detail label="In a terminal" wide>
+                                <CopyField
+                                    value={curl}
+                                    label="A command to get the drop from a terminal"
+                                    copyLabel="Copy the command"
+                                    icon={Terminal}
+                                    field="curl"
+                                    copiedField={copiedField}
+                                    onCopy={onCopy}
+                                    small
+                                />
+                                {result.maxViews != null && <span className="expedite_meta-check">Each run counts as a view.</span>}
+                            </Detail>
+                        )}
                     </div>
                 </section>
             </div>
@@ -181,52 +200,45 @@ export default function ResultView(
                     }}
                 >
                     <p>Delete this drop for everyone? Its code and link stop working.</p>
-                    <button className="expedite_btn-secondary" onClick={keep} autoFocus>Keep it</button>
-                    <button className="expedite_btn-secondary expedite_btn-secondary--danger" onClick={onDelete}>
-                        <Trash2 size={14} />
-                        Delete
-                    </button>
+                    <Button onClick={keep} autoFocus>Keep it</Button>
+                    <Button variant="danger" start={Trash2} onClick={onDelete}>Delete</Button>
                 </div>
             ) : (
                 <div key="actions" className="expedite_btn-row">
-                    <button
+                    <Button
                         ref={trash}
-                        className={`expedite_btn-icon ${result.deletable ? "expedite_btn-icon--danger" : "expedite_btn-icon--disabled"}`}
+                        variant={result.deletable ? "danger" : "plain"}
+                        start={Trash2}
                         onClick={() => setConfirmingDelete(true)}
                         disabled={!result.deletable}
                         title={result.deletable ? "Delete drop" : "Deletion disabled by sender"}
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                    <button
-                        className="expedite_btn-secondary"
+                    />
+                    <Button
+                        start={copiedField === "link" ? Check : Link}
                         onClick={(e) => onCopy(getDropUrl(result.code), "link", e)}
                     >
-                        {copiedField === "link" ? <Check size={14} /> : <Link size={14} />}
                         {copiedField === "link" ? "Copied" : "Link"}
-                    </button>
+                    </Button>
                     {content && (
-                        <button
-                            className="expedite_btn-secondary"
+                        <Button
+                            start={copiedField === "content" ? Check : Clipboard}
                             onClick={(e) => onCopy(content, "content", e)}
                         >
-                            {copiedField === "content" ? <Check size={14} /> : <Clipboard size={14} />}
                             {copiedField === "content" ? "Copied" : "Content"}
-                        </button>
+                        </Button>
                     )}
                     {/* The downloaded copy, picked from the device, checked against the hash (the line under it says how
                         it went): the page never sees the download, which the browser's own downloader saves. */}
                     {result.sha256 && (
                         <>
-                            <button
-                                className={`expedite_btn-secondary${check === "match" ? " is-match" : check === "mismatch" ? " is-mismatch" : ""}`}
+                            <Button
+                                className={check === "match" ? "is-match" : check === "mismatch" ? "is-mismatch" : undefined}
+                                start={check === "match" ? CircleCheck : check === "mismatch" ? CircleX : Fingerprint}
                                 onClick={() => picker.current?.click()}
                                 disabled={check === "checking"}
                             >
-                                {check === "match" ? <CircleCheck size={14} /> : check === "mismatch" ? <CircleX size={14} /> :
-                                    <Fingerprint size={14} />}
                                 Hash check
-                            </button>
+                            </Button>
                             <input
                                 ref={picker}
                                 type="file"
@@ -239,10 +251,7 @@ export default function ResultView(
                             />
                         </>
                     )}
-                    <button className="expedite_btn-primary" onClick={onDownload}>
-                        <Download size={14} />
-                        Download
-                    </button>
+                    <Button variant="main" start={Download} onClick={onDownload}>Download</Button>
                 </div>
             )}
 

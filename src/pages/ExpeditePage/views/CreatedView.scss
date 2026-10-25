@@ -32,7 +32,7 @@
             grid-area: qr;
         }
 
-        > .expedite_btn-primary {
+        > .btn--main {
             grid-area: done;
         }
 
@@ -71,59 +71,6 @@
     font-weight: 600;
     letter-spacing: 0.3em;
     font-family: "Outfit Variable", monospace;
-}
-
-.expedite_link-box {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.15s;
-
-    &:focus-within {
-        background: var(--surface);
-        border-color: var(--border-da);
-    }
-}
-
-.expedite_link-input {
-    flex: 1;
-    padding: 1rem 0.85rem;
-    font-size: var(--fs-lg);
-    border: none;
-    background: transparent;
-    font-family: inherit;
-    color: var(--text-2);
-    outline: none;
-    min-width: 0;
-
-    &:focus {
-        color: var(--text);
-    }
-}
-
-.expedite_link-copy {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.9rem;
-    border: none;
-    border-left: 1px solid var(--border);
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    opacity: var(--opacity-quiet);
-    transition: opacity 0.15s, background 0.15s;
-    margin: 0 4px;
-
-    &:hover {
-        opacity: var(--opacity-hover);
-        background: var(--surface);
-        border-radius: 8px;
-    }
 }
 
 .expedite_qr {

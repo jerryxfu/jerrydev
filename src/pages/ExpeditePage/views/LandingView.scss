@@ -28,6 +28,19 @@
     color: var(--text-3);
 }
 
+// The curl command under Receive: its line, then the command, close together.
+.expedite_landing-terminal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.expedite_landing-code {
+    font-family: var(--font-code);
+    font-size: 0.95em;
+    color: var(--text-2);
+}
+
 .expedite_landing-modes {
     margin: 0;
     display: flex;
@@ -262,12 +275,4 @@
     &:focus {
         border-color: var(--border-da);
     }
-}
-
-// .expedite_btn-primary carries flex: 1 for the horizontal button rows. This
-// section is a flex column, where that reads as flex-grow and stretches the
-// button to fill the leftover height. Padding is left at the shared default so
-// the button matches every other primary button on the page.
-.expedite_landing-section .expedite_btn-primary {
-    flex: 0 0 auto;
 }

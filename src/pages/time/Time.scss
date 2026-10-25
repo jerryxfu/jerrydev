@@ -210,78 +210,6 @@
     }
 }
 
-// Buttons as Expedite's: the one action in the accent, the others outlined.
-.time_btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    padding: 0.65rem 1.3rem;
-    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
-    border-radius: 8px;
-    background: transparent;
-    color: inherit;
-    font-family: inherit;
-    font-size: var(--fs-sm);
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
-
-    &:hover:not(:disabled) {
-        background: color-mix(in srgb, currentColor 4%, transparent);
-    }
-
-    &:disabled {
-        color: var(--text-5);
-        cursor: not-allowed;
-    }
-}
-
-.time_btn--primary {
-    border-color: var(--secondary);
-    background: var(--secondary);
-    color: var(--bg-lt);
-
-    &:hover:not(:disabled) {
-        background: var(--secondary);
-        opacity: var(--opacity-hover);
-    }
-}
-
-// The stopwatch's and the countdown's own buttons: big, the main thing to press on their screen.
-.time_btn--big {
-    min-width: 9.5rem;
-    padding: 1rem 2.4rem;
-    border-radius: 14px;
-    font-size: var(--fs-lg);
-
-    // Three of them side by side on a phone.
-    @media (max-width: 560px) {
-        min-width: 0;
-        padding: 0.85rem 1.3rem;
-        font-size: var(--fs-md);
-    }
-}
-
-// A big button with only an icon (the countdown's mute): square-ish, beside the others.
-.time_btn--icon {
-    min-width: 0;
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
-    color: var(--text-3);
-
-    &[aria-pressed="true"] {
-        color: var(--text-5);
-    }
-
-    @media (max-width: 560px) {
-        min-width: 0;
-        padding-left: 0.9rem;
-        padding-right: 0.9rem;
-    }
-}
-
 // Which keys do what, under a tool's buttons. Only where there's a keyboard to speak of: not on a touch screen.
 .time_keys {
     margin: 0;
@@ -290,14 +218,5 @@
 
     @media (hover: none) {
         display: none;
-    }
-}
-
-.time_btn--danger {
-    color: var(--danger-text);
-    border-color: color-mix(in srgb, var(--danger) 80%, transparent);
-
-    &:hover:not(:disabled) {
-        background: color-mix(in srgb, var(--danger) 8%, transparent);
     }
 }

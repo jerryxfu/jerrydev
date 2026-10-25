@@ -1,7 +1,10 @@
-import {type ReactNode, useState} from "react";
-import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio} from "lucide-react";
+import {type MouseEvent, type ReactNode, useState} from "react";
+import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type DropType} from "../types.ts";
 import {useFileDrag} from "../useFileDrag.ts";
+import {getCurlCommand} from "../utils.ts";
+import CopyField from "./CopyField.tsx";
 import "./LandingView.scss";
 
 interface LandingViewProps {
@@ -16,6 +19,8 @@ interface LandingViewProps {
     loading: boolean;
     onRetrieve: () => void;
     p2pSupported: boolean;
+    copiedField: string | null;
+    onCopy: (text: string, field: string, e?: MouseEvent) => void;
 }
 
 // `help` is the long-form answer behind the question mark. Optional because only
@@ -87,7 +92,7 @@ function Tile({
 }
 
 export default function LandingView(
-    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pSupported}: LandingViewProps
+    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pSupported, copiedField, onCopy}: LandingViewProps
 ) {
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
@@ -158,17 +163,36 @@ export default function LandingView(
 
                 {error && <p className="expedite_error">{error}</p>}
 
-                <button
-                    className="expedite_btn-primary expedite_btn-full"
+                <Button
+                    variant="main"
+                    className="expedite_btn-full"
                     onClick={onRetrieve}
                     disabled={loading || code.trim().length < 5}
                 >
                     {loading ? "Resolving..." : "Retrieve"}
-                </button>
+                </Button>
 
                 <p className="expedite_landing-hint">
                     Enter the code, or paste the link here or in your browser's address bar.
                 </p>
+                {/* The command with CODE for the code: the copy stops before it, for the code to be typed after. */}
+                <div className="expedite_landing-terminal">
+                    <p className="expedite_landing-hint">
+                        In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}
+                        <code className="expedite_landing-code">-L</code> to stream it):
+                    </p>
+                    <CopyField
+                        value={getCurlCommand("CODE", "text")}
+                        copy={getCurlCommand("", "text")}
+                        label="A command to get a drop from a terminal"
+                        copyLabel="Copy the command"
+                        icon={Terminal}
+                        field="curl"
+                        copiedField={copiedField}
+                        onCopy={onCopy}
+                        small
+                    />
+                </div>
 
                 {!p2pSupported && (
                     <div className="expedite_landing-notice">

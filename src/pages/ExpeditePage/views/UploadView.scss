@@ -321,21 +321,9 @@
     pointer-events: none;
 }
 
-.expedite_btn-secondary--danger {
-    color: var(--danger-text);
-    border-color: color-mix(in srgb, var(--danger) 80%, transparent);
-
-    &:hover {
-        &:hover {
-            background: color-mix(in srgb, var(--danger) 8%, transparent);
-            border-color: color-mix(in srgb, var(--danger) 4%, transparent);
-        }
-    }
-}
-
 // The Create button reached by ⌘/Ctrl+Enter from the text box: the site's focus ring (index.scss), drawn outright, since
 // a browser may judge that focus wasn't from the keyboard and leave it unringed. Enter then sends.
-.expedite_btn-primary.is-ready {
+.btn--main.is-ready {
     outline: 2px solid var(--secondary);
     outline-offset: 2px;
 }

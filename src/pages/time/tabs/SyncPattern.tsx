@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {Maximize, Volume2, VolumeX} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import useShortcuts from "../useShortcuts.ts";
 import {drawPattern, frameCounter, type Frames} from "./pattern.ts";
 import "./SyncPattern.scss";
@@ -183,28 +184,20 @@ export default function SyncPattern() {
 
             <div className="sync_controls">
                 {running ? (
-                    <button className="time_btn time_btn--danger time_btn--big" onClick={stop}>Stop</button>
+                    <Button variant="danger" size="big" onClick={stop}>Stop</Button>
                 ) : (
-                    <button className="time_btn time_btn--primary time_btn--big" onClick={start}>Start</button>
+                    <Button variant="main" size="big" onClick={start}>Start</Button>
                 )}
-                <button
-                    className="time_btn time_btn--big time_btn--icon"
+                <Button
+                    size="big"
+                    start={muted ? VolumeX : Volume2}
                     aria-pressed={muted}
                     aria-label="Mute the beep"
                     title={muted ? "Beep off" : "Beep on"}
                     onClick={toggleMute}
-                >
-                    {muted ? <VolumeX size={20} aria-hidden /> : <Volume2 size={20} aria-hidden />}
-                </button>
+                />
                 {canFullscreen && (
-                    <button
-                        className="time_btn time_btn--big time_btn--icon"
-                        aria-label="Fullscreen"
-                        title="Fullscreen"
-                        onClick={fullscreen}
-                    >
-                        <Maximize size={20} aria-hidden />
-                    </button>
+                    <Button size="big" start={Maximize} aria-label="Fullscreen" title="Fullscreen" onClick={fullscreen} />
                 )}
             </div>
             <p className="sync_note">Every part repeats once a second, in step with this device's clock. It flashes once a second.</p>

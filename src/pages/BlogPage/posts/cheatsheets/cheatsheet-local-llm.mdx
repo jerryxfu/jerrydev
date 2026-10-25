@@ -1,7 +1,8 @@
 import Callout from "@/pages/BlogPage/components/Callout.tsx";
 
 My own notes for running language models on my laptop, with no account and no network. A MacBook Air M5 with 16 GB of
-RAM, and [Ollama](https://ollama.com) from Homebrew. Correct as of October 2026.
+RAM, and [Ollama](https://ollama.com) from Homebrew. It also covers driving a model as an agent against my own targets.
+Correct as of October 2026.
 
 Ollama serves the models over an OpenAI compatible API at `http://localhost:11434`. Only one model sits in memory at a
 time. It swaps on demand, and unloads after about 5 minutes of idling.
@@ -25,21 +26,27 @@ The left column is the nickname I made, not the name you pull. The aliases are s
 
 | Nickname | Model | Context | For |
 | --- | --- | --- | --- |
-| `wrn3-7b` | WhiteRabbitNeo V3 7B | 16K | Security and CTF work. Security tuned and low refusal |
-| `qwen3-14b` | Qwen3 14B, abliterated | 8K | Main chat model, for ideas and projects. About 14 tokens/sec, about 10 GB in memory |
-| `qwen3-8b` | Qwen3 8B, abliterated | 16K | Lighter and faster. The fallback when other apps need the RAM |
+| `qwen3-8b` | Qwen3 8B, abliterated | 16K | The agent driver and everyday model. Fastest, about 26 tokens/sec |
+| `qwen3-14b` | Qwen3 14B, abliterated | 8K | Harder reasoning, for chat and tougher agent runs. About 14 tokens/sec, about 10 GB in memory |
+| `wrn3-7b` | WhiteRabbitNeo V3 7B | 16K | Security chat only. Knows the material but cannot drive an agent, so plain questions, not the brain |
 
 <Callout kind="note">
 **Abliterated** is an instruct model with its refusal behaviour surgically removed, so it answers instead of saying it
-cannot help with that.
+cannot help with that. For authorized lab work the plain Qwen3 rarely refuses either, so this is a convenience, not a must.
+</Callout>
+
+<Callout kind="note">
+The security model is for reading, not for driving. WhiteRabbitNeo answers security questions well, but in an agent loop
+it writes the tool call as plain text instead of a real one, and it does not adapt across steps. Qwen3 drives the loop.
+So the pattern is Qwen3 as the brain, WhiteRabbitNeo as a thing you ask.
 </Callout>
 
 ## Pull the models
 
 ```bash
-ollama pull hf.co/bartowski/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-GGUF:Q4_K_M
-ollama pull huihui_ai/qwen3-abliterated:14b
 ollama pull huihui_ai/qwen3-abliterated:8b
+ollama pull huihui_ai/qwen3-abliterated:14b
+ollama pull hf.co/bartowski/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-GGUF:Q4_K_M
 ```
 
 <Callout kind="tip">
@@ -121,13 +128,110 @@ answer = client.chat.completions.create(
 )
 ```
 
+## Driving models as agents
+
+Ollama only serves the model. To have it probe a target, run something, read the result and pick the next step, you
+need a harness on top. I tried a few:
+
+- **CAI**. Now archived and unmaintained, and it carries a known tool-calling CVE. Skipped.
+- **Strix**. Capable, but heavy and slow with a local model. Its own docs say models under 70B struggle in it. Built for
+a hosted model, not a 16 GB laptop.
+- **smolagents**. A small library, not an app. The model writes Python, the library runs it, feeds the result back, and
+repeats. Light, runs local models, and the code style suits a small model. This is the one I use.
+
+Set it up in its own venv:
+
+```bash
+uv venv ~/experiments/harness/.venv --python 3.12
+uv pip install --python ~/experiments/harness/.venv/bin/python "smolagents[litellm]" requests
+```
+
+A minimal `harness.py`:
+
+```python
+from smolagents import CodeAgent, LiteLLMModel
+
+model = LiteLLMModel(
+    model_id="ollama_chat/qwen3-8b",
+    api_base="http://localhost:11434",
+    api_key="ollama",
+    max_tokens=3000,   # cap the output so a thinking spiral cannot run away
+)
+
+agent = CodeAgent(
+    model=model,
+    tools=[],
+    executor_type="local",   # no Docker sandbox, lighter on 16 GB
+    additional_authorized_imports=["requests", "re", "json", "base64"],
+    max_steps=10,
+)
+
+print(agent.run(
+    "Authorized local lab. Probe http://127.0.0.1:8001, find the vuln, read the flag."
+))
+```
+
+```bash
+~/experiments/harness/.venv/bin/python harness.py
+```
+
+<Callout kind="tip">
+Use `ollama_chat/<name>`, not `ollama/<name>`. The chat form sends real tool calls. And the context grows every step,
+so a small model slows down fast in a long run. Cap the output, keep each result short, and steer it instead of leaving
+it alone.
+</Callout>
+
+## Isolating the agent
+
+With `executor_type="local"` the model's Python runs in my venv, under smolagents' import allowlist, which blocks `os`,
+`subprocess` and the dangerous builtins. The venv keeps packages tidy but is not a security boundary. For real
+confinement without the memory cost of a container, I wrap it in macOS Seatbelt, which stops the code writing anywhere
+outside scratch:
+
+```text
+; harness.sb
+(version 1)
+(allow default)
+(deny file-write*)
+(allow file-write*
+  (subpath "/private/tmp")
+  (subpath "/Users/jerry/.cache")
+  (literal "/dev/null"))
+```
+
+```bash
+sandbox-exec -f harness.sb ~/experiments/harness/.venv/bin/python harness.py
+```
+
+Reads and network stay open, so it is write confinement, not a full jail. Enough for my own targets on my own machine.
+
+## MLX and LM Studio
+
+Ollama runs GGUF through llama.cpp. On Apple Silicon, MLX is a bit faster, but Ollama only turns its MLX backend on at
+32 GB and up, so on this 16 GB Mac it stays on llama.cpp. For MLX here, [LM Studio](https://lmstudio.ai) is the way, and
+it has a GUI for chatting.
+
+Measured on this M5, Qwen3 8B at 4-bit:
+
+| Runner | Decode |
+| --- | --- |
+| Ollama, llama.cpp | about 26 tokens/sec |
+| LM Studio, MLX | about 28 tokens/sec |
+
+So about 10% for interactive use. Not a game changer. I keep Ollama as the backbone, since it is a background server
+that scripts and the harness talk to, and reach for LM Studio when I want the GUI or that bit of speed.
+
 ## Gotchas
 
 - One model loads at a time. Switching nicknames costs a few seconds of reload.
 - 16 GB is tight for the 14B and it leans on swap. Close the heavy apps, Xcode first. The 8B is the comfortable
 everyday option.
-- Qwen3 thinks out loud before answering. `/set nothink` stops that.
+- Qwen3 thinks out loud before answering. `/set nothink` stops that. In an agent loop that thinking is also what fills
+the context and slows each step, so cap the output.
+- A long autonomous run on a local model will crawl and can stall as the context grows. Keep runs short, or steer them.
+- The model will sometimes claim success it did not earn. Mine reported a flag that looked right but was invented, when its real payload had errored. Always check the result against the known answer, never trust what the agent says.
 
 ## Later
 
-Bigger models on a desktop with an RTX 4090, reached from the laptop over Tailscale. Not built yet.
+Bigger models on a desktop with an RTX 4090, reached from the laptop over Tailscale. That is where the heavier
+harnesses, like OpenHands, and a proper sandbox make sense. Not built yet.

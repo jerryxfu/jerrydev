@@ -1,5 +1,6 @@
 import {type FormEvent, useEffect, useMemo, useState} from "react";
 import {X} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {daysBetween, pad2} from "../utils.ts";
 import "./LocalTime.scss";
 
@@ -176,7 +177,7 @@ export default function LocalTime() {
                             value={picked || `${pad2(now.getHours())}:${pad2(now.getMinutes())}`}
                             onChange={(e) => setPicked(e.target.value)}
                         />
-                        {picked && <button className="time_btn" onClick={() => setPicked("")}>Now</button>}
+                        {picked && <Button onClick={() => setPicked("")}>Now</Button>}
                     </div>
                 </div>
 
@@ -223,7 +224,7 @@ export default function LocalTime() {
                     <datalist id="localtime-zones">
                         {ALL_ZONES.map((zone) => <option key={zone} value={zone} />)}
                     </datalist>
-                    <button className="time_btn" type="submit" disabled={!adding.trim()}>Add</button>
+                    <Button type="submit" disabled={!adding.trim()}>Add</Button>
                 </form>
                 {error && <p className="localtime_error">{error}</p>}
             </div>

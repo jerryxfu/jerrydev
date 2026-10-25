@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {ArrowDown, ArrowUp} from "lucide-react";
+import Button from "@/components/Button/Button.tsx";
 import {type PartState, type UploadSnapshot} from "../types.ts";
 import {formatBytes, formatEta, formatSpeed} from "../utils.ts";
 import "./UploadProgress.scss";
@@ -134,7 +135,7 @@ export default function UploadProgress({snapshot, hashProgress, onSkipHash}: Pro
             {waitingForHash && (
                 <div className="expedite_progress-hash">
                     <p>Uploaded. Its SHA-256 is {hashPct}% done, so the receiver can check their download against it.</p>
-                    <button type="button" className="expedite_btn-secondary" onClick={onSkipHash}>Skip</button>
+                    <Button onClick={onSkipHash}>Skip</Button>
                 </div>
             )}
 
