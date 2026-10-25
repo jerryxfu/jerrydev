@@ -260,7 +260,7 @@ export default function UploadView(
                 onClick={onUpload}
                 disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
             >
-                {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}`}
+                {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}${settings.deletable ? " · deletable" : ""}`}
             </Button>
         </div>
     );
