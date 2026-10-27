@@ -25,6 +25,7 @@ export interface ReceiveOptions {
     /** Acquired from showSaveFilePicker inside the click gesture, before this runs. */
     handle: FileSystemFileHandle;
     apiBaseUrl: string;
+    /** Offer the relay beside the direct routes. Off only once the month's relay quota is spent. */
     useTurn: boolean;
     onStatus: (status: P2PStatus) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
@@ -33,6 +34,9 @@ export interface ReceiveOptions {
 
 /** How long to wait for the sender's data channel after posting the answer. */
 const CHANNEL_TIMEOUT_MS = 30_000;
+
+/** How long CTRL_DONE gets to reach the sender before this side closes anyway. */
+const DONE_GRACE_MS = 5_000;
 
 /**
  * Receive a file over a direct data channel, streaming straight to disk.
@@ -196,6 +200,10 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
         if (channel.readyState === "open") channel.send(CTRL_DONE);
 
         emit({phase: "done", degraded: false, detail: `${fileName} written · ${received} B`});
+
+        // Closing at once could cut CTRL_DONE off before it leaves, and the sender only counts the file delivered once
+        // it hears it. The sender closes the channel when it does.
+        await waitForClose(channel, DONE_GRACE_MS, signal);
     } catch (err: unknown) {
         // Abort the sink so a partial file is discarded rather than left behind
         // looking like a complete download.
@@ -238,7 +246,7 @@ function waitForRemoteChannel(pc: RTCPeerConnection, status: P2PStatus, signal: 
         const onIce = (): void => {
             if (pc.iceConnectionState === "failed") {
                 cleanup();
-                reject(new P2PError(describeIceFailure(pc, status), true));
+                reject(new P2PError(describeIceFailure(pc, status)));
             }
         };
         const onChannel = (ev: RTCDataChannelEvent): void => {
@@ -260,12 +268,29 @@ function waitForRemoteChannel(pc: RTCPeerConnection, status: P2PStatus, signal: 
         };
         const timer = window.setTimeout(() => {
             cleanup();
-            reject(new P2PError(`No data channel after ${CHANNEL_TIMEOUT_MS / 1000}s — sender unreachable`, true));
+            reject(new P2PError(`No data channel after ${CHANNEL_TIMEOUT_MS / 1000}s — sender unreachable`));
         }, CHANNEL_TIMEOUT_MS);
 
         pc.addEventListener("datachannel", onChannel);
         pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);
+    });
+}
+
+/** Resolve once the channel closes, after `ms`, or on abort, whichever comes first. */
+function waitForClose(channel: RTCDataChannel, ms: number, signal: AbortSignal): Promise<void> {
+    if (channel.readyState === "closed") return Promise.resolve();
+
+    return new Promise((resolve) => {
+        const done = (): void => {
+            window.clearTimeout(timer);
+            channel.removeEventListener("close", done);
+            signal.removeEventListener("abort", done);
+            resolve();
+        };
+        const timer = window.setTimeout(done, ms);
+        channel.addEventListener("close", done);
+        signal.addEventListener("abort", done);
     });
 }
 

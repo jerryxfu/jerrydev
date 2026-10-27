@@ -3,28 +3,18 @@ import Button from "@/components/Button/Button.tsx";
 import {type DropMeta, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, timeUntil} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
-import RelaySetting from "./RelaySetting.tsx";
 import "./P2PReceiveView.scss";
 
 interface P2PReceiveViewProps {
     meta: DropMeta;
     supported: boolean;
-    useTurn: boolean;
-    setUseTurn: (value: boolean) => void;
     status: P2PStatus;
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
-    /** ICE failed -> the sender may republish with a relay; offer a re-check. */
-    retryable: boolean;
-    /** Monthly relay quota spent, the TURN toggle is off-limits. */
+    /** Monthly relay quota spent: transfers are direct only. */
     relayDisabled: boolean;
-    /** This attempt is the automatic relay fallback — annotates the progress readout. */
-    relayRetry: boolean;
-    // The recovery countdown, while it waits for the sender to come back.
-    wait: string | null;
     onAccept: () => void;
-    onRetry: () => void;
     onCancel: () => void;
 }
 
@@ -32,18 +22,12 @@ export default function P2PReceiveView(
     {
         meta,
         supported,
-        useTurn,
-        setUseTurn,
         status,
         snapshot,
         running,
         error,
-        retryable,
         relayDisabled,
-        relayRetry,
-        wait,
         onAccept,
-        onRetry,
         onCancel
     }: P2PReceiveViewProps
 ) {
@@ -97,8 +81,6 @@ export default function P2PReceiveView(
                     </div>
 
                     <div className="expedite_side">
-                        <RelaySetting useTurn={useTurn} setUseTurn={setUseTurn} relayDisabled={relayDisabled} />
-
                         <div className="expedite_p2p-notes">
                             <p className="expedite_p2p-notes-title">How does this work?</p>
                             <ul>
@@ -107,6 +89,9 @@ export default function P2PReceiveView(
                                 <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).
                                 </li>
                                 <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
+                                {relayDisabled && (
+                                    <li>This month's relay quota is used up, so transfers are direct-only until it resets.</li>
+                                )}
                             </ul>
                         </div>
 
@@ -128,24 +113,11 @@ export default function P2PReceiveView(
                         {meta.fileName ?? "unnamed"} · {formatBytes(meta.size)}
                     </p>
 
-                    <P2PProgress status={status} snapshot={snapshot} role="receive" relayRetry={relayRetry} wait={wait} />
+                    <P2PProgress status={status} snapshot={snapshot} role="receive" />
 
                     {error && <p className="expedite_error">{error}</p>}
 
-                    {retryable && status.phase === "failed" && (
-                        <p className="expedite_p2p-standby">
-                            A direct route could not be found and the automatic relay
-                            retry didn't go through. Ask the sender to restart the
-                            transfer, then try again with the same code.
-                        </p>
-                    )}
-
                     <div className="expedite_btn-row">
-                        {retryable && status.phase === "failed" && (
-                            <Button variant="main" onClick={onRetry}>
-                                Try again
-                            </Button>
-                        )}
                         <Button
                             variant={status.phase === "done" ? "main" : "danger"}
                             className={status.phase === "done" ? "expedite_btn-full" : undefined}

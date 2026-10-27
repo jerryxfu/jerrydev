@@ -81,14 +81,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Under the phase: the relay retry note, which reads as a subtitle rather than fine print. */
-.expedite_p2p-detail {
-    font-size: var(--fs-md);
-    line-height: 1.45;
-    color: var(--text-2);
-    word-break: break-word;
-}
-
 /* In the connection details: what the engines are doing right now (the code, the signalling, the ICE state). */
 .expedite_p2p-trace {
     margin: 0;
@@ -96,13 +88,6 @@
     line-height: 1.45;
     color: var(--text-3);
     word-break: break-word;
-}
-
-/* Amber, matching the "in flight" phase tone — the point is that this is a
-   wait, not a failure. */
-.expedite_p2p-detail-retry {
-    color: var(--wait);
-    font-weight: 600;
 }
 
 /* Transfer bar (mirrors UploadProgress) */

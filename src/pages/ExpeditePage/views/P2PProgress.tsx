@@ -9,18 +9,6 @@ interface Props {
     snapshot: P2PSnapshot | null;
     /** "send" shows outbound wording, "receive" inbound. */
     role: "send" | "receive";
-    /**
-     * The current attempt is the automatic relay fallback. Tacks a note onto the
-     * headline so a red flash followed by a long amber wait reads as "working on
-     * it" rather than "dead, abort now". Lives outside P2PStatus because the
-     * engines overwrite `detail` on every phase change and would wipe it.
-     */
-    relayRetry?: boolean;
-    /**
-     * The receiver's recovery countdown, shown under the bar rather than with the engines' trace in the connection
-     * details: a number that moves is what tells "still working" from "hung" over the 90s wait.
-     */
-    wait?: string | null;
 }
 
 const PHASE_LABEL: Record<P2PPhase, string> = {
@@ -59,7 +47,7 @@ const LADDER: P2PPhase[] = [
     "gathering", "signalling", "awaiting-peer", "negotiating", "connected", "transferring", "done",
 ];
 
-export default function P2PProgress({status, snapshot, role, relayRetry = false, wait = null}: Props) {
+export default function P2PProgress({status, snapshot, role}: Props) {
     // Throughput is measured in the transfer engine and arrives on the snapshot.
     const speed = snapshot?.speedBps ?? 0;
 
@@ -81,7 +69,7 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
     const tone = status.degraded && !isError ? "err" : PHASE_TONE[status.phase];
     const waiting = WAITING.includes(status.phase);
 
-    // Where the transfer died, recorded by the engines; a retry resets it.
+    // Where the transfer died, recorded by the engines; a new transfer resets it.
     const failIdx = status.failedAt ? LADDER.indexOf(status.failedAt) : -1;
 
     return (
@@ -90,8 +78,7 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
             <div className="expedite_p2p-ladder">
                 {LADDER.map((phase, i) => {
                     // On failure: the chip where it died turns red, everything
-                    // else resets to gray. A retry walks the ladder again and
-                    // overwrites the red with normal progression.
+                    // else resets to gray.
                     const state = status.phase === "failed"
                         ? (i === failIdx ? "failed" : "idle")
                         : isError
@@ -110,12 +97,6 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
 
             <div className={`expedite_p2p-headline${isError ? " is-error" : ""}`}>
                 <span className="expedite_p2p-phase">{PHASE_LABEL[status.phase]}</span>
-                {/* The note rides along only while the connection is still being
-                    built. Once it's up (or genuinely dead) it drops off on its
-                    own, so nothing upstream has to remember to clear the flag. */}
-                {relayRetry && waiting && (
-                    <span className="expedite_p2p-detail expedite_p2p-detail-retry">retrying using TURN...</span>
-                )}
             </div>
 
             {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}
@@ -126,8 +107,6 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
                     </div>
                 </div>
             )}
-
-            {wait && <p className="expedite_p2p-trace">{wait}</p>}
 
             {/* Transfer bar */}
             {snapshot && (
@@ -153,19 +132,19 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
                 <dl className="expedite_p2p-stats">
                     <div className="expedite_p2p-stat">
                         <dt>
-                            <span className="expedite_p2p-stat-name">Candidates</span>
-                            <span className="expedite_p2p-stat-desc">The routes ICE gathered</span>
+                            <span className="expedite_p2p-stat-name">WebRTC ICE candidates </span>
+                            <span className="expedite_p2p-stat-desc">Possible connection points</span>
                         </dt>
                         <dd>
-                            {status.candidates.host} host · {status.candidates.srflx} srflx · {status.candidates.relay} relay
-                            {status.remoteCandidates && <> · peer {totalCandidates(status.remoteCandidates)}</>}
+                            {status.candidates.host} host, {status.candidates.srflx} srflx, {status.candidates.relay} relay
+                            {status.remoteCandidates && <>, peer {totalCandidates(status.remoteCandidates)}</>}
                         </dd>
                     </div>
 
                     <div className="expedite_p2p-stat">
                         <dt>
-                            <span className="expedite_p2p-stat-name">Pair</span>
-                            <span className="expedite_p2p-stat-desc">The route the data is taking</span>
+                            <span className="expedite_p2p-stat-name">Route</span>
+                            <span className="expedite_p2p-stat-desc">Validated ICE candidate pair</span>
                         </dt>
                         <dd>
                             {status.pair ? `${status.pair} ${status.relayed ? "(relayed)" : "(direct)"}` : "—"}
@@ -175,7 +154,7 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
                     <div className="expedite_p2p-stat">
                         <dt>
                             <span className="expedite_p2p-stat-name">RTT</span>
-                            <span className="expedite_p2p-stat-desc">The round trip time to the peer</span>
+                            <span className="expedite_p2p-stat-desc">Round trip time to the peer</span>
                         </dt>
                         <dd>{status.rttMs != null ? `${status.rttMs} ms` : "—"}</dd>
                     </div>
@@ -183,7 +162,7 @@ export default function P2PProgress({status, snapshot, role, relayRetry = false,
                     <div className="expedite_p2p-stat">
                         <dt>
                             <span className="expedite_p2p-stat-name">SCTP max</span>
-                            <span className="expedite_p2p-stat-desc">largest message the channel accepts</span>
+                            <span className="expedite_p2p-stat-desc">Largest message the channel accepts</span>
                         </dt>
                         <dd>{status.maxMessageSize != null ? `${status.maxMessageSize} B` : "—"}</dd>
                     </div>

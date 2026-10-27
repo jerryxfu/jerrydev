@@ -27,13 +27,8 @@ const CHANNEL_TIMEOUT_MS = 30_000;
 export interface SendOptions {
     file: globalThis.File;
     apiBaseUrl: string;
+    /** Offer the relay beside the direct routes. Off only once the month's relay quota is spent. */
     useTurn: boolean;
-    /**
-     * Re-create the session under this code instead of minting a new one.
-     * Used by the relay retry so the receiver's code stays valid; also keeps
-     * the code stable across expiry rotations within a retried session.
-     */
-    reuseCode?: string;
     onStatus: (status: P2PStatus) => void;
     onCode: (code: string, expiresAt: string) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
@@ -75,7 +70,7 @@ export async function sendP2P(opts: SendOptions): Promise<void> {
 }
 
 async function runSession(opts: SendOptions): Promise<SessionOutcome> {
-    const {file, apiBaseUrl, useTurn, reuseCode, onStatus, onCode, onSnapshot, signal} = opts;
+    const {file, apiBaseUrl, useTurn, onStatus, onCode, onSnapshot, signal} = opts;
 
     const status: P2PStatus = {...EMPTY_P2P_STATUS, candidates: {...EMPTY_P2P_STATUS.candidates}};
     const emit = (patch: Partial<P2PStatus>): void => {
@@ -149,7 +144,6 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
                 fileName: file.name,
                 fileSize: file.size,
                 mimeType: file.type || "application/octet-stream",
-                ...(reuseCode ? {reuseCode} : {}),
             }),
             signal,
         });
@@ -337,7 +331,7 @@ function waitForChannelOpen(
         const onIce = (): void => {
             if (pc.iceConnectionState === "failed") {
                 cleanup();
-                reject(new P2PError(describeIceFailure(pc, status), true));
+                reject(new P2PError(describeIceFailure(pc, status)));
             }
         };
         const onAbort = (): void => {
@@ -349,7 +343,7 @@ function waitForChannelOpen(
         // especially when the peer has already torn down its side.
         const timer = window.setTimeout(() => {
             cleanup();
-            reject(new P2PError(describeIceFailure(pc, status), true));
+            reject(new P2PError(describeIceFailure(pc, status)));
         }, CHANNEL_TIMEOUT_MS);
         channel.addEventListener("open", onOpen);
         pc.addEventListener("iceconnectionstatechange", onIce);
@@ -433,7 +427,7 @@ async function pumpFile(
         channel.send(CTRL_EOF);
         emit({phase: "transferring", detail: "all chunks sent · waiting for receiver ack"});
 
-        await waitForAck(channel, signal);
+        await waitForAck(channel, pc, signal);
 
         // Buffer has drained and the receiver confirmed the write; pin to 100% rather than leaving the bar parked at 99.x.
         onSnapshot({
@@ -453,14 +447,18 @@ async function pumpFile(
     }
 }
 
-/** Wait for the receiver to confirm it finished writing to disk. */
-function waitForAck(channel: RTCDataChannel, signal: AbortSignal): Promise<void> {
+/**
+ * Wait for the receiver to confirm it finished writing to disk. Only its CTRL_DONE counts: a channel that closes first,
+ * or a connection that fails, means it stopped before the file was saved (a full disk, a closed tab), even with every
+ * byte sent. No timeout: writing the last of a big file can take a while, and a dead peer fails ICE on its own.
+ */
+function waitForAck(channel: RTCDataChannel, pc: RTCPeerConnection, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
         const cleanup = (): void => {
             channel.removeEventListener("message", onMessage);
             channel.removeEventListener("close", onClose);
+            pc.removeEventListener("iceconnectionstatechange", onIce);
             signal.removeEventListener("abort", onAbort);
-            window.clearTimeout(timer);
         };
         const onMessage = (ev: MessageEvent): void => {
             if (ev.data === CTRL_DONE) {
@@ -468,24 +466,23 @@ function waitForAck(channel: RTCDataChannel, signal: AbortSignal): Promise<void>
                 resolve();
             }
         };
-
-        // A clean close after EOF means the receiver is done; treat it as an ack.
         const onClose = (): void => {
             cleanup();
-            resolve();
+            reject(new P2PError("The receiver closed before confirming the file was saved"));
+        };
+        const onIce = (): void => {
+            if (pc.iceConnectionState !== "failed") return;
+            cleanup();
+            reject(new P2PError("Connection lost before the receiver confirmed the file was saved"));
         };
         const onAbort = (): void => {
             cleanup();
             reject(new DOMException("Cancelled", "AbortError"));
         };
-        // Don't hang forever if the ack is lost; the bytes are already delivered.
-        const timer = window.setTimeout(() => {
-            cleanup();
-            resolve();
-        }, 30_000);
 
         channel.addEventListener("message", onMessage);
         channel.addEventListener("close", onClose);
+        pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);
     });
 }

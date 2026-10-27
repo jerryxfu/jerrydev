@@ -49,6 +49,13 @@ export const GATHER_TIMEOUT_MS = 5000;
 export const GATHER_TIMEOUT_TURN_MS = 9000;
 
 /**
+ * Once the first relay candidate is in, how long the others get. They come within a few hundred ms of each other (the
+ * TLS ones last), and one server can take 40 s to give up: on a network that drops IPv4 UDP to port 443, Cloudflare's
+ * turn:...:443?transport=udp does, and gathering never completes before it.
+ */
+const RELAY_GRACE_MS = 1000;
+
+/**
  * Rolling throughput meter.
  *
  * Never drops below two samples, so it keeps reporting a rate even when updates
@@ -75,18 +82,16 @@ export function createRateMeter(windowMs = 5000) {
 }
 
 export class P2PError extends Error {
-    /** True for ICE/connectivity failures — the class of error a relay retry can fix. */
-    readonly ice: boolean;
-
-    constructor(message: string, ice = false) {
+    constructor(message: string) {
         super(message);
         this.name = "P2PError";
-        this.ice = ice;
     }
 }
 
 /**
- * Build the ICE server list. TURN is opt-in ,if the credential mint fails the caller is told,
+ * Build the ICE server list. The relay (TURN) is offered from the start, beside the direct routes: ICE ranks direct pairs
+ * above relayed ones, so it only carries the file when no direct route answers, and there is no failed attempt to wait
+ * out first. Off only once the month's relay quota is spent. If the credential mint fails the caller is told,
  * so the UI can say "TURN unavailable, STUN only" instead of leaving someone to wonder why a relay never appeared.
  */
 export async function buildIceServers(
@@ -125,7 +130,8 @@ export function createPeer(servers: RTCIceServer[]): RTCPeerConnection {
 }
 
 /**
- * Resolve once ICE gathering finishes, or after the timeout.
+ * Resolve once ICE gathering finishes, RELAY_GRACE_MS after the first relay
+ * candidate, or after the timeout.
  *
  * The timeout matters: a blocked STUN server leaves gathering in "gathering"
  * indefinitely. Host candidates alone can carry a same-LAN transfer, but only
@@ -136,18 +142,30 @@ export function waitForGathering(pc: RTCPeerConnection, timeoutMs = GATHER_TIMEO
 
     return new Promise((resolve) => {
         let settled = false;
+        let grace = 0;
         const done = (): void => {
             if (settled) return;
             settled = true;
             pc.removeEventListener("icegatheringstatechange", onChange);
+            pc.removeEventListener("icecandidate", onCandidate);
             window.clearTimeout(timer);
+            window.clearTimeout(grace);
             resolve();
         };
         const onChange = (): void => {
             if (pc.iceGatheringState === "complete") done();
         };
+        const startGrace = (): void => {
+            if (!grace) grace = window.setTimeout(done, RELAY_GRACE_MS);
+        };
+        const onCandidate = (e: RTCPeerConnectionIceEvent): void => {
+            if (e.candidate?.type === "relay") startGrace();
+        };
         const timer = window.setTimeout(done, timeoutMs);
         pc.addEventListener("icegatheringstatechange", onChange);
+        pc.addEventListener("icecandidate", onCandidate);
+        // A pooled relay candidate can already be in the description.
+        if (pc.localDescription?.sdp.includes(" typ relay")) startGrace();
     });
 }
 
@@ -179,8 +197,8 @@ export interface PairInfo {
 /**
  * Read the nominated candidate pair out of getStats().
  *
- * This is what makes the TURN toggle legible. Reports whether the transfer
- * is actually direct or being relayed, rather than leaving the switch a mystery.
+ * Reports whether the transfer is actually direct or being relayed, since the
+ * relay is always on offer and the browser picks.
  */
 export async function readSelectedPair(pc: RTCPeerConnection): Promise<PairInfo | null> {
     let report: RTCStats | undefined;

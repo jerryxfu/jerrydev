@@ -99,7 +99,10 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
 ### Why it works the way it does
 
 **Non-trickle ICE.** Both sides finish gathering candidates before sending their SDP, so signalling is three messages instead of a candidate stream. Costs 1–3s
-up front and makes the server much simpler. Gathering is capped at 5s (9s when TURN is on, since relay allocation needs an extra round trip).
+up front and makes the server much simpler. Gathering is capped at 9s with the relay (its allocation needs an extra round trip), 5s without it, and ends 1s
+after the first relay candidate: the rest come within a few hundred ms of it, while one server can take 40s to give up (`turn:...:443?transport=udp`, on a
+network that drops IPv4 UDP to port 443; seen 2026-10-27, it held every gathering to the 9s cap). An answerer that finds a working route while gathering
+(both ends on one machine) stops there, so its answer can carry host candidates only. That's Chrome, and harmless: the route already works.
 
 **Sender creates the code.** Matches text and file drops, matches the WebRTC convention that the offerer initiates, and means the session doc can carry
 `fileName`/`fileSize`/`mimeType` for the receiver's preview and save dialog.
@@ -138,6 +141,9 @@ Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't b
 via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
+Only `CTRL_DONE` counts as delivered: a channel that closes first, or ICE failing, fails the transfer on the sender too (the receiver's disk filling up after the
+last byte went out used to show as delivered). So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
+the receiver closes anyway after 5s.
 
 Receiver writes are serialised through a promise chain — `write()` is async and message events are not, so without it a fast sender interleaves writes and
 scrambles the file.
@@ -147,22 +153,21 @@ sections defeated the speed calculation and made the two screens disagree.
 
 ### TURN
 
-Off by default, toggled per side. **Only one side needs it on** — a relay candidate is a public reachable address, so the peer without TURN can pair against it
+Offered from the start on both sides, unless the month's relay quota is spent. Relay candidates are gathered with the others, and ICE ranks pairs by type (host
+above srflx above relay), so the relay only carries the file when no direct pair answers. The fallback is instant: no failed attempt to wait out, no second
+round. The quota counts relayed bytes, so a transfer that goes direct uses none of it.
+
+**One side's relay is enough** (a failed credential mint, say): a relay candidate is a public reachable address, so the peer without TURN can pair against it
 using an ordinary srflx candidate. Verified on real traffic: a 128 MB transfer completed `relay ↔ srflx` with the receiver reporting `0 relay` locally.
 
 Credentials are minted server-side (`config/turn.ts`), cached in-process, and **URLs on port 53 are stripped**: Cloudflare returns alternate ports, browsers
 block 53, and with non-trickle gathering a hanging URL delays the whole SDP and can cost the relay candidates entirely.
 
-`getStats()` reports the nominated pair, so the UI says whether the transfer is actually direct or relayed rather than leaving the toggle a mystery.
+`getStats()` reports the nominated pair, so the UI says whether the transfer is actually direct or relayed.
 
-The **auto relay fallback** is the primary mechanism; the toggle is a shortcut, not a permission. On an ICE failure the sender republishes under the *same code*
-with TURN forced and the receiver polls for the new session, reusing the already-granted file handle. `p2pRelayRetry` in `Expedite.tsx` drives a
-"retrying using TURN…" note on the progress readout — it is a **separate prop, not a field on `P2PStatus`**, because the engines overwrite `status.detail` on
-every phase change and would wipe it within milliseconds.
-
-`setUseTurn(true)` is deliberately **not** called on a relay retry. `retryWithTurn` is passed as a parameter and short-circuits both the engine call and the
-auto-retry guard, so flipping the state only had the effect of leaving the toggle stuck on for the rest of the tab session — which silently masked repeat direct
-failures by sending every subsequent transfer straight to relay.
+Until 2026-10-27 the relay was opt-in, with an automatic retry: the direct attempt had to fail first (up to 30s), then the sender republished under the same
+code with TURN and the receiver polled for it. Offering it from the start replaced the retry, the polling and the "Force TURN relay" switch (which never forced
+anything: it only added the relay as an option). The API's `reuseCode` on `/p2p/init` is left over from that retry.
 
 ---
 
@@ -240,7 +245,7 @@ start the transfer in the Expedite tab
 while it's still running, WITHOUT closing the Expedite tab -> Create Dump -> Download
 ```
 
-`"PeerConnections": {}` means it was captured too late. Take three: during negotiation, at the failure, after the relay retry.
+`"PeerConnections": {}` means it was captured too late. Take two: during negotiation, and once a pair is picked (or ICE has failed).
 
 **2. Read the remote description.** `.local` in the remote host candidates plus
 `checking -> disconnected -> failed` is the mDNS diagnosis above, confirmed.
@@ -339,7 +344,7 @@ Live rooms' items add their `size` (texts and files).
 
 - `candidates` — **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
   the one-side-is-enough note. `peer N` matching the other side's published total means signalling is healthy.
-- `pair` — `(direct)` vs `(relayed)`. Toggling TURN on and still seeing `(direct)`
+- `pair` — `(direct)` vs `(relayed)`. Relay candidates gathered and still `(direct)`
   means a direct path was found and preferred. Working as intended.
     - `host ↔ host` — both sides resolved each other's mDNS, or both published raw IPs.
     - `host ↔ prflx` — **direct, via peer-reflexive discovery.** One side's address was learned from an inbound connectivity check rather than the SDP. Expected
@@ -385,7 +390,6 @@ For P2P, the test topologies are not equally informative and the easy-sounding o
 | Two devices, different networks | srflx hole punching | **The actual common case, and the least tested.** Never touches mDNS. Phone on cellular -> laptop is the cheapest way to run it.    |
 
 Verified end to end as of 2026-08-08: 5 GB Firefox -> Chrome; 1 GB Firefox -> Chrome; 128 MB relayed `relay ↔ srflx` cross-device at 8.5–9.5 MB/s with exact
-candidate reconciliation both directions; 128 MB direct `host ↔ prflx` at 9.5 MB/s; iOS Safari -> desktop Chrome; automatic relay recovery reusing the granted
-file handle without user action.
+candidate reconciliation both directions; 128 MB direct `host ↔ prflx` at 9.5 MB/s; iOS Safari -> desktop Chrome.
 
 Still untested: mobile hotspot topology, and a genuinely cross-network transfer between two different physical sites.

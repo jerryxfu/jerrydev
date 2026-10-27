@@ -4,7 +4,6 @@ import Button from "@/components/Button/Button.tsx";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
-import RelaySetting from "./RelaySetting.tsx";
 import FilePreview from "./FilePreview.tsx";
 import FileZone from "./FileZone.tsx";
 import CopyField from "./CopyField.tsx";
@@ -13,24 +12,17 @@ import "./P2PSendView.scss";
 interface P2PSendViewProps {
     selectedFile: globalThis.File | null;
     setSelectedFile: (file: globalThis.File | null) => void;
-    useTurn: boolean;
-    setUseTurn: (value: boolean) => void;
     code: string | null;
     expiresAt: string | null;
     status: P2PStatus;
     snapshot: P2PSnapshot | null;
     running: boolean;
     error: string | null;
-    /** ICE failed without a relay in play -> offer the relay retry. */
-    retryable: boolean;
-    /** Monthly relay quota spent, the TURN toggle is off-limits. */
+    /** Monthly relay quota spent: transfers are direct only. */
     relayDisabled: boolean;
-    /** This attempt is the automatic relay fallback — annotates the progress readout. */
-    relayRetry: boolean;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: React.MouseEvent) => void;
     onStart: () => void;
-    onRetry: () => void;
     onCancel: () => void;
 }
 
@@ -61,9 +53,9 @@ function mmss(secs: number): string {
 
 export default function P2PSendView(
     {
-        selectedFile, setSelectedFile, useTurn, setUseTurn, code, expiresAt,
-        status, snapshot, running, error, retryable, relayDisabled, relayRetry,
-        copiedField, onCopy, onStart, onRetry, onCancel,
+        selectedFile, setSelectedFile, code, expiresAt,
+        status, snapshot, running, error, relayDisabled,
+        copiedField, onCopy, onStart, onCancel,
     }: P2PSendViewProps
 ) {
     const remaining = useCountdown(expiresAt);
@@ -98,14 +90,15 @@ export default function P2PSendView(
                             </p>
                         </div>
 
-                        <RelaySetting useTurn={useTurn} setUseTurn={setUseTurn} relayDisabled={relayDisabled} />
-
                         <div className="expedite_p2p-notes">
                             <p className="expedite_p2p-notes-title">Before you start</p>
                             <ul>
                                 <li>Keep this tab open and awake for the whole transfer. Closing it kills the connection.</li>
                                 <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer.</li>
                                 <li>Nothing is stored in the cloud during transfer because it's a one-time peer-to-peer transfer.</li>
+                                {relayDisabled && (
+                                    <li>This month's relay quota is used up, so transfers are direct-only until it resets.</li>
+                                )}
                             </ul>
                         </div>
 
@@ -169,24 +162,11 @@ export default function P2PSendView(
                         </p>
                     )}
 
-                    <P2PProgress status={status} snapshot={snapshot} role="send" relayRetry={relayRetry} />
+                    <P2PProgress status={status} snapshot={snapshot} role="send" />
 
                     {error && <p className="expedite_error">{error}</p>}
 
-                    {retryable && status.phase === "failed" && (
-                        <p className="expedite_p2p-standby">
-                            No direct route was found, and the automatic relay retry
-                            failed too. Retrying attempts the relay again. If this keeps
-                            failing, both ends may be offline or blocked.
-                        </p>
-                    )}
-
                     <div className="expedite_btn-row">
-                        {retryable && status.phase === "failed" && (
-                            <Button variant="main" onClick={onRetry}>
-                                Retry with relay
-                            </Button>
-                        )}
                         <Button
                             variant={status.phase === "done" ? "main" : "danger"}
                             className={status.phase === "done" ? "expedite_btn-full" : undefined}
