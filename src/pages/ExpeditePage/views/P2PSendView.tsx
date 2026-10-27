@@ -93,11 +93,14 @@ export default function P2PSendView(
                         <div className="expedite_p2p-notes">
                             <p className="expedite_p2p-notes-title">Before you start</p>
                             <ul>
-                                <li>Keep this tab open and awake for the whole transfer. Closing it kills the connection.</li>
-                                <li>The recipient needs a Chromium-based browser (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer.</li>
-                                <li>Nothing is stored in the cloud during transfer because it's a one-time peer-to-peer transfer.</li>
+                                <li>Keep this tab open and awake for the whole transfer. Closing it will stop the transfer.</li>
+                                <li>The recipient needs a computer. For files over 1 GB, they will also need a Chromium-based browser (e.g. Google
+                                    Chrome, Edge, Opera, Brave, etc.).
+                                </li>
+                                <li>Nothing is stored in the cloud during transfer because it's a (one-time) peer-to-peer transfer.</li>
                                 {relayDisabled && (
-                                    <li>This month's relay quota is used up, so transfers are direct-only until it resets.</li>
+                                    <li>TURN relay not available. This month's relay quota is used up, so transfers are direct-only until it
+                                        resets.</li>
                                 )}
                             </ul>
                         </div>

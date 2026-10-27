@@ -51,10 +51,11 @@
     border-radius: 10px;
     background: transparent;
     color: inherit;
-    font-family: var(--font-command);
+    // As a drop's code once made (CreatedView.scss), at the bar's size.
+    font-family: "Outfit Variable", monospace;
     font-size: var(--fs-lgg);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.2em;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
 
@@ -273,14 +274,13 @@
     flex-direction: column;
     gap: 0.75rem;
     min-width: 0;
-    // Less at the sides, for the cards' width: the header and the composer keep in line with them.
-    padding: 0.85rem 0.55rem;
+    padding: 0.35rem 0.7rem;
     // The line and glow's colour: their person's, grey while they're away (the dot by their name keeps theirs).
     --frame: var(--member);
     border: 2px solid color-mix(in srgb, var(--frame) 80%, transparent);
     border-radius: 12px;
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--frame) 30%, transparent),
-    0 0 6px color-mix(in srgb, var(--frame) 18%, transparent);
+    0 0 4px color-mix(in srgb, var(--frame) 18%, transparent);
     transition: background 0.15s, border-color 0.15s;
 
     &.is-away {

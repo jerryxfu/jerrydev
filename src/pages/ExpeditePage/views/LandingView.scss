@@ -75,7 +75,7 @@
 }
 
 .expedite_landing-code {
-    font-family: var(--font-command, var(--font-code));
+    font-family: var(--font-code);
     font-variant-ligatures: none;
     font-size: 0.95em;
     color: var(--text-2);
@@ -161,14 +161,21 @@
 }
 
 // Same warning recipe as .expedite_p2p-blocked in P2PReceiveView, on one line.
+// Receiving Direct P2P on this browser: limited to 1 GB (yellow, Firefox and Safari), or not at all (orange, phones and
+// tablets).
 .expedite_landing-notice {
+    --notice: var(--warning);
     display: flex;
     align-items: center;
     gap: 0.65rem;
     padding: 0.75rem 0.9rem;
-    border: 1px solid color-mix(in srgb, var(--warning) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--notice) 50%, transparent);
     border-radius: 10px;
-    background: color-mix(in srgb, var(--warning) 8%, transparent);
+    background: color-mix(in srgb, var(--notice) 8%, transparent);
+
+    &.is-blocked {
+        --notice: color-mix(in srgb, var(--warning), var(--danger));
+    }
 
     // Stops the icon collapsing once the text wraps to a second line.
     svg {
@@ -253,8 +260,9 @@
     }
 }
 
-// A soft line in the gap before Direct P2P: what goes through the cloud (Text, File, Live), then Direct P2P. From the
-// padding box: half the grid's gap, the border, then half the line. None two by two, where it would split a row.
+// A soft line in the gap before Direct P2P: the drops (Text, File), then what happens with both people there (Direct P2P,
+// Live). From the padding box: half the grid's gap, the border, then half the line. None two by two, where the rows
+// already split them.
 .expedite_tile[data-kind="p2p"] {
     position: relative;
 

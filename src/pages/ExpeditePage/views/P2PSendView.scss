@@ -44,13 +44,8 @@
     line-height: 1.55;
 }
 
-/* Notes block */
+/* Notes block: plain, like the explanation */
 .expedite_p2p-notes {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.85rem 1rem;
-    background: var(--surface);
-
     ul {
         margin: 0.5rem 0 0;
         padding-left: 1.15rem;
@@ -60,33 +55,27 @@
     }
 
     li {
-        font-size: var(--fs-sm);
-        color: var(--text-3);
+        font-size: var(--fs-base);
+        color: var(--text-2);
         line-height: 1.55;
     }
 }
 
-// What the mode does: plain text, no box, and darker than the notes' captions (it's the screen's explanation).
-.expedite_p2p-about-title {
-    margin: 0;
-    text-transform: uppercase;
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    color: var(--text-2);
-}
-
-.expedite_p2p-about {
-    margin: 0.5rem 0 0;
-    font-size: var(--fs-sm);
-    color: var(--text-2);
-    line-height: 1.55;
-}
-
+// The titles of the blocks beside the file (Explanation, Before you start, How does this work?): a bit bigger than
+// their text.
+.expedite_p2p-about-title,
 .expedite_p2p-notes-title {
     margin: 0;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-md);
     font-weight: 600;
-    color: var(--text-4);
+    color: var(--text-2);
+}
+
+// What the mode does.
+.expedite_p2p-about {
+    margin: 0.5rem 0 0;
+    font-size: var(--fs-base);
+    color: var(--text-2);
+    line-height: 1.55;
 }

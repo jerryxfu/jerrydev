@@ -12,13 +12,14 @@ import {
     type DropSettings,
     type DropType,
     EMPTY_P2P_STATUS,
-    isP2PReceiveSupported,
+    P2P_MEMORY_MAX,
+    p2pReceiveMode,
     type P2PSnapshot,
     type P2PStatus,
     type UploadSnapshot,
     type ViewMode
 } from "./types.ts";
-import {formatBytes} from "./utils.ts";
+import {formatBytes, saveBlob} from "./utils.ts";
 import {copyText} from "@/utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
@@ -113,7 +114,9 @@ export default function Expedite() {
     const [p2pRunning, setP2pRunning] = useState(false);
     const p2pAbortRef = useRef<AbortController | null>(null);
     const p2pCodeRef = useRef<string | null>(null);
-    const p2pSupported = isP2PReceiveSupported();
+    const p2pMode = p2pReceiveMode();
+    // A drop received in memory (no save picker), kept to save again until leaving it.
+    const [p2pReceived, setP2pReceived] = useState<Blob | null>(null);
 
     // --- Live room ---
     const live = useLiveRoom();
@@ -190,6 +193,7 @@ export default function Expedite() {
         setP2pRunning(false);
         setP2pSnapshot(null);
         setP2pStatus(freshStatus());
+        setP2pReceived(null);
 
         await animateOut(viewRef.current);
         // Out of a live room, once it has faded: the seat stays yours until the room ends, and its link opens it again.
@@ -408,21 +412,23 @@ export default function Expedite() {
 
     // --- Direct P2P: receive ---
     const acceptP2PReceive = async () => {
-        if (!result?.offer || !window.showSaveFilePicker) return;
+        if (!result?.offer || p2pMode === "none" || (p2pMode === "memory" && result.size > P2P_MEMORY_MAX)) return;
         setError(null);
+        const fileName = result.fileName ?? `expedite-${result.code}`;
 
         // showSaveFilePicker must be the first await in this handler for the user gesture, and any prior await would spend it.
-        let handle: FileSystemFileHandle;
-        try {
-            handle = await window.showSaveFilePicker({
-                suggestedName: result.fileName ?? `expedite-${result.code}`,
-            });
-        } catch (err: unknown) {
-            // Dismissing the picker isn't an error worth reporting.
-            if ((err as Error).name !== "AbortError") {
-                setError(err instanceof Error ? err.message : "Could not open save location");
+        // Without it (Firefox, Safari), the file is kept in memory and saved once complete.
+        let handle: FileSystemFileHandle | null = null;
+        if (window.showSaveFilePicker) {
+            try {
+                handle = await window.showSaveFilePicker({suggestedName: fileName});
+            } catch (err: unknown) {
+                // Dismissing the picker isn't an error worth reporting.
+                if ((err as Error).name !== "AbortError") {
+                    setError(err instanceof Error ? err.message : "Could not open save location");
+                }
+                return;
             }
-            return;
         }
 
         setP2pSnapshot(null);
@@ -433,10 +439,10 @@ export default function Expedite() {
         p2pAbortRef.current = controller;
 
         try {
-            await receiveP2P({
+            const received = await receiveP2P({
                 code: result.code,
                 offer: result.offer,
-                fileName: result.fileName ?? `expedite-${result.code}`,
+                fileName,
                 fileSize: result.size,
                 handle,
                 apiBaseUrl,
@@ -445,6 +451,11 @@ export default function Expedite() {
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
             });
+            // Received in memory: to the downloads, as any download (Safari may ask first). Kept for Save again.
+            if (received) {
+                setP2pReceived(received);
+                saveBlob(received, fileName);
+            }
         } catch (err: unknown) {
             if ((err as Error).name !== "AbortError") {
                 setError(err instanceof Error ? err.message : "Transfer failed");
@@ -459,14 +470,7 @@ export default function Expedite() {
 
         // Text: build blob locally
         if (result.type === "text" && result.text) {
-            const blob = new Blob([result.text], {type: "text/plain"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `expedite-${result.code}.txt`;
-            a.click();
-            // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
-            setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            saveBlob(new Blob([result.text], {type: "text/plain"}), `expedite-${result.code}.txt`);
             return;
         }
 
@@ -628,7 +632,7 @@ export default function Expedite() {
                             error={error}
                             loading={loading}
                             onRetrieve={() => retrieveDrop()}
-                            p2pSupported={p2pSupported}
+                            p2pMode={p2pMode}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
                         />
@@ -692,13 +696,14 @@ export default function Expedite() {
                     {view === "p2p-receive" && result && (
                         <P2PReceiveView
                             meta={result}
-                            supported={p2pSupported}
+                            mode={p2pMode}
                             status={p2pStatus}
                             snapshot={p2pSnapshot}
                             running={p2pRunning}
                             error={error}
                             relayDisabled={relayBlocked}
                             onAccept={acceptP2PReceive}
+                            onSave={p2pReceived ? () => saveBlob(p2pReceived, result.fileName ?? `expedite-${result.code}`) : undefined}
                             onCancel={reset}
                         />
                     )}

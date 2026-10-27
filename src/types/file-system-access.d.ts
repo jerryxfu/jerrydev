@@ -7,7 +7,7 @@
  *
  * Used by Expedite's Direct P2P receiver to stream a transfer straight to disk.
  * Chromium desktop only — call sites must feature-detect first
- * (see isP2PReceiveSupported in pages/ExpeditePage/types.ts).
+ * (see p2pReceiveMode in pages/ExpeditePage/types.ts).
  */
 
 interface SaveFilePickerAcceptType {

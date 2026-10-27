@@ -30,6 +30,11 @@
     font-variant-ligatures: none;
 }
 
+// The browser's own style gives <code> its default monospace, which would lay the copy out in another font than the box.
+.expedite_editor-colours code {
+    font-family: inherit;
+}
+
 // Sized by its text (field-sizing) within the plain text box's limits (UploadView.scss); the frame follows it.
 .expedite_editor-input {
     position: relative;

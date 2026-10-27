@@ -148,9 +148,10 @@
     }
 }
 
-// The terminal's commands: JetBrains Mono, loaded with this page only (Expedite.tsx).
+// Code and the terminal's commands: JetBrains Mono, loaded with this page only (Expedite.tsx), then the site's own stack
+// (index.scss): a variable can't name itself.
 .expedite {
-    --font-command: "JetBrains Mono Variable", var(--font-code);
+    --font-code: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 // Each kind of drop's colour, on its icon (the landing tiles, the headings): File the site's accent blue, Text amber,

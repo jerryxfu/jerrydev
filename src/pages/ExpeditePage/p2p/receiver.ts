@@ -22,8 +22,11 @@ export interface ReceiveOptions {
     offer: string;
     fileName: string;
     fileSize: number;
-    /** Acquired from showSaveFilePicker inside the click gesture, before this runs. */
-    handle: FileSystemFileHandle;
+    /**
+     * Acquired from showSaveFilePicker inside the click gesture, before this runs. Null where there's no picker (Firefox,
+     * Safari): the file is kept in memory and handed back.
+     */
+    handle: FileSystemFileHandle | null;
     apiBaseUrl: string;
     /** Offer the relay beside the direct routes. Off only once the month's relay quota is spent. */
     useTurn: boolean;
@@ -38,14 +41,25 @@ const CHANNEL_TIMEOUT_MS = 30_000;
 /** How long CTRL_DONE gets to reach the sender before this side closes anyway. */
 const DONE_GRACE_MS = 5_000;
 
+/** In memory, the chunks are copied into a Blob every this many bytes. */
+const MEMORY_BLOCK_BYTES = 16 * 1024 * 1024;
+
+/** Where the file is written as it arrives: the picked file on disk, or memory. */
+interface Sink {
+    write(data: ArrayBuffer): Promise<void>;
+    close(): Promise<void>;
+    abort(): Promise<void>;
+}
+
 /**
  * Receive a file over a direct data channel, streaming straight to disk.
  *
- * Every chunk goes to a FileSystemWritableFileStream, so nothing accumulates in
- * memory and there is no practical size ceiling. This is the only supported
- * receive path (browsers without showSaveFilePicker are gated out before reaching here).
+ * With a handle, every chunk goes to a FileSystemWritableFileStream, so nothing
+ * accumulates in memory and there is no practical size ceiling. Without one, the
+ * file is kept in memory (memorySink) and returned once complete, for the page
+ * to save; the page only does that up to P2P_MEMORY_MAX.
  */
-export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
+export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
     const {
         code, offer, fileName, fileSize, handle,
         apiBaseUrl, useTurn, onStatus, onSnapshot, signal,
@@ -63,7 +77,8 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
     };
 
     let pc: RTCPeerConnection | null = null;
-    let writable: FileSystemWritableFileStream | null = null;
+    let writable: Sink | null = null;
+    let memory: ReturnType<typeof memorySink> | null = null;
     let statsTimer = 0;
 
     let received = 0;
@@ -166,7 +181,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
 
         // Open the sink only once bytes are actually about to flow, so a failed
         // negotiation doesn't leave a zero-byte file sitting on disk.
-        writable = await handle.createWritable();
+        writable = handle ? await handle.createWritable() : (memory = memorySink());
 
         emit({phase: "transferring", detail: `receiving ${fileName}`});
         startedAt = Date.now();
@@ -204,6 +219,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<void> {
         // Closing at once could cut CTRL_DONE off before it leaves, and the sender only counts the file delivered once
         // it hears it. The sender closes the channel when it does.
         await waitForClose(channel, DONE_GRACE_MS, signal);
+        return memory?.blob() ?? null;
     } catch (err: unknown) {
         // Abort the sink so a partial file is discarded rather than left behind
         // looking like a complete download.
@@ -275,6 +291,36 @@ function waitForRemoteChannel(pc: RTCPeerConnection, status: P2PStatus, signal: 
         pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);
     });
+}
+
+/**
+ * The file kept in memory, where there's no save picker. The chunks are copied into a Blob every MEMORY_BLOCK_BYTES, so
+ * they can go: memory stays near the file's size, where one Blob of every chunk at the end would briefly hold it twice.
+ */
+function memorySink(): Sink & { blob: () => Blob } {
+    const blocks: Blob[] = [];
+    let chunks: ArrayBuffer[] = [];
+    let bytes = 0;
+    const flush = (): void => {
+        if (chunks.length === 0) return;
+        blocks.push(new Blob(chunks));
+        chunks = [];
+        bytes = 0;
+    };
+    return {
+        write: async (data) => {
+            chunks.push(data);
+            bytes += data.byteLength;
+            if (bytes >= MEMORY_BLOCK_BYTES) flush();
+        },
+        close: async () => flush(),
+        abort: async () => {
+            blocks.length = 0;
+            chunks = [];
+        },
+        // A Blob of Blobs refers to them, without copying.
+        blob: () => new Blob(blocks),
+    };
 }
 
 /** Resolve once the channel closes, after `ms`, or on abort, whichever comes first. */

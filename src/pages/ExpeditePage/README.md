@@ -110,9 +110,16 @@ network that drops IPv4 UDP to port 443; seen 2026-10-27, it held every gatherin
 **SSE, not polling.** The sender may hold a code for ten minutes. Polling that would blow through the rate limiter; one long-lived `EventSource` doesn't.
 Headers are flushed immediately so Cloudflare's ~100s time-to-headers limit never applies, with heartbeat comments every 25s for intermediate proxies.
 
-**Receiving is Chromium desktop only.** The gate is `"showSaveFilePicker" in
-window`. Every other browser would have to buffer the whole file in memory and fall over past a gigabyte, so it's refused up front rather than failing at 80%.
-Chrome on Android doesn't ship the picker either, so one feature detect covers mobile too. **Sending works everywhere** — it only needs `File.slice()`.
+**Receiving depends on the browser** (`p2pReceiveMode` in `types.ts`, since 2026-10-27):
+
+- **disk**: `"showSaveFilePicker" in window` (Chromium on a computer). Streams to the picked file, no size limit.
+- **memory**: other browsers on a computer (Firefox, Safari). No picker, so the file is kept in the tab, up to `P2P_MEMORY_MAX` (1 GB), and saved to the
+  downloads once complete, with a Save again button in case the browser didn't (Safari may ask first). The receiver copies the chunks into a Blob every 16 MB,
+  so memory stays near the file's size rather than doubling at the end. Bigger drops are refused up front rather than failing at 80%.
+- **none**: phones and tablets, detected as `(pointer: coarse)` (an iPad passes for a Mac otherwise). They pause a page when the screen locks or another app
+  comes up, and iOS closes a tab that holds too much. Chrome on Android has no picker either.
+
+**Sending works everywhere**: it only needs `File.slice()`.
 
 **The save picker must be the first `await` in its click handler.** It requires a user gesture, and any earlier `await` spends it. Sequence is: enter code ->
 click Receive -> picker opens -> *then* negotiate.
@@ -283,7 +290,7 @@ These have each cost a debugging session. They look exactly like regressions.
   `"STUN host lookup received error"` against both Cloudflare and Google STUN on an IPv6 interface, while the IPv4 srflx gathers fine, is normal on a
   v4-only-reachable network. It costs gathering time, not connectivity.
 - **`showSaveFilePicker` needs a secure context.** Testing dev builds cross-device over `http://<lan-ip>` from `vite --host` makes it disappear and the receiver
-  hits the unsupported screen before WebRTC is involved. Test against prod, or give dev a local cert.
+  falls back to memory mode (1 GB at most), in Chrome too. Test against prod, or give dev a local cert.
 
 ---
 

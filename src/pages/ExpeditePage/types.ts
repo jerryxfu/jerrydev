@@ -177,7 +177,19 @@ export const EMPTY_P2P_STATUS: P2PStatus = {
     error: null,
 };
 
-/** Receiving streams to disk via showSaveFilePicker. */
-export function isP2PReceiveSupported(): boolean {
-    return typeof window !== "undefined" && "showSaveFilePicker" in window;
+/** The most a Direct P2P drop received in memory can be. */
+export const P2P_MEMORY_MAX = 1024 ** 3;
+
+/**
+ * How this browser receives a Direct P2P drop. "disk": straight to a file picked first, with showSaveFilePicker (Chromium
+ * on a computer). "memory": kept in the tab, up to P2P_MEMORY_MAX, and saved to the downloads once complete (Firefox,
+ * Safari). "none": phones and tablets (a finger for main pointer), which pause a page when the screen locks or another
+ * app comes up, and close a tab that holds too much.
+ */
+export type P2PReceiveMode = "disk" | "memory" | "none";
+
+export function p2pReceiveMode(): P2PReceiveMode {
+    if (typeof window === "undefined") return "none";
+    if ("showSaveFilePicker" in window) return "disk";
+    return window.matchMedia("(pointer: coarse)").matches ? "none" : "memory";
 }

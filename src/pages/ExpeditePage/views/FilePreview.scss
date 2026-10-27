@@ -59,6 +59,8 @@
         overflow-y: hidden;
         padding: 0.75rem 0;
         font-family: var(--font-code);
+        // The characters as sent: JetBrains Mono would join != or => into one sign.
+        font-variant-ligatures: none;
         font-size: var(--fs-xs);
         line-height: 1.55;
         tab-size: 4;
@@ -71,6 +73,8 @@
         display: block;
         min-width: max-content;
         padding-right: 1rem;
+        // The pre's, not the browser's default monospace for <code>.
+        font-family: inherit;
     }
 
     .line {

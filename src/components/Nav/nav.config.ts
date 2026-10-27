@@ -58,10 +58,9 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Blog", href: "#blog"},
     ],
     [
-        {type: "link", label: "Blog 📝", href: "/blog"},
         {type: "link", label: "Expedite 📦", href: "/expedite"},
-        {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
         {type: "link", label: "Time ⏱️", href: "/time"},
+        {type: "link", label: "Rendezvous 📌", href: "/rendezvous"},
         {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"},
         // {
         //     type: "branch",

@@ -1,7 +1,7 @@
 import {type MouseEvent, type ReactNode, useState} from "react";
 import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
-import {type DropType} from "../types.ts";
+import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {useFileDrag} from "../useFileDrag.ts";
 import {getCurlCommand, SEND_FILE_COMMAND, SEND_PIPE_COMMAND, SEND_PIPE_WINDOWS_COMMAND, SEND_POWERSHELL_COMMAND} from "../utils.ts";
 import CopyField from "./CopyField.tsx";
@@ -18,7 +18,8 @@ interface LandingViewProps {
     error: string | null;
     loading: boolean;
     onRetrieve: () => void;
-    p2pSupported: boolean;
+    // How this browser receives Direct P2P drops: the notice below says so when it's limited (memory) or can't (none).
+    p2pMode: P2PReceiveMode;
     copiedField: string | null;
     onCopy: (text: string, field: string, e?: MouseEvent) => void;
 }
@@ -30,11 +31,11 @@ type TileInfo = {
 const TILES: TileInfo[] = [
     {type: "text", label: "Text", note: "text or code", icon: FileText},
     {type: "file", label: "File", note: "up to 16 GB", icon: File},
-    {type: "live", label: "Live", note: "up to 5 people", icon: Users},
     {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
+    {type: "live", label: "Live", note: "up to 5 people", icon: Users},
 ];
 
-// The tiles' ways to send, as the list under them describes them: Text and File together, then Live, then Direct P2P.
+// The tiles' ways to send, as the list under them describes them: Text and File together, then Direct P2P, then Live.
 // `help` is the long-form answer behind the question mark. Optional because only the mode people actually have to
 // choose between needs one.
 type ModeInfo = {
@@ -45,10 +46,6 @@ const MODES: ModeInfo[] = [
     {
         id: "cloud", label: "Text & File",
         desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 1 minute and 24 hours.",
-    },
-    {
-        id: "live", label: "Live",
-        desc: "A room for up to 5 people, for an hour. Anything someone pastes or drops shows up for everyone, as it happens.",
     },
     {
         id: "p2p", label: "Direct P2P",
@@ -65,6 +62,10 @@ const MODES: ModeInfo[] = [
                 </p>
             </>
         ),
+    },
+    {
+        id: "live", label: "Live",
+        desc: "A room for up to 5 people, for an hour. Anything someone pastes or drops shows up for everyone, as it happens.",
     },
 ];
 
@@ -173,7 +174,7 @@ function Tile({
 }
 
 export default function LandingView(
-    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pSupported, copiedField, onCopy}: LandingViewProps
+    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
 ) {
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
@@ -257,13 +258,18 @@ export default function LandingView(
                     Enter the code, or paste the link here or in your browser's address bar.
                 </p>
 
-                {!p2pSupported && (
-                    <div className="expedite_landing-notice">
+                {p2pMode !== "disk" && (
+                    <div className={`expedite_landing-notice${p2pMode === "none" ? " is-blocked" : ""}`}>
                         <MonitorSmartphone size={22} strokeWidth={1.4} />
                         <p className="expedite_landing-notice-text">
-                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g.
-                            Google Chrome,
-                            Edge, Opera, Brave, etc.) on computer. Sending works anywhere.
+                            {p2pMode === "none" ? (
+                                <><strong>Direct P2P drops can't be received on a phone or tablet.</strong> Sending works anywhere.</>
+                            ) : (
+                                <>
+                                    <strong>Direct P2P drops are limited to 1 GB on this browser.</strong> Bigger ones need a Chromium-based browser
+                                    (e.g. Google Chrome, Edge, Opera, Brave, etc.) on a computer. Sending works anywhere.
+                                </>
+                            )}
                         </p>
                     </div>
                 )}

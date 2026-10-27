@@ -9,6 +9,8 @@ interface Props {
     snapshot: P2PSnapshot | null;
     /** "send" shows outbound wording, "receive" inbound. */
     role: "send" | "receive";
+    /** Received in memory (no save picker), not written to disk as it arrives. */
+    inMemory?: boolean;
 }
 
 const PHASE_LABEL: Record<P2PPhase, string> = {
@@ -47,7 +49,7 @@ const LADDER: P2PPhase[] = [
     "gathering", "signalling", "awaiting-peer", "negotiating", "connected", "transferring", "done",
 ];
 
-export default function P2PProgress({status, snapshot, role}: Props) {
+export default function P2PProgress({status, snapshot, role, inMemory = false}: Props) {
     // Throughput is measured in the transfer engine and arrives on the snapshot.
     const speed = snapshot?.speedBps ?? 0;
 
@@ -173,7 +175,7 @@ export default function P2PProgress({status, snapshot, role}: Props) {
                                 <dt>
                                     <span className="expedite_p2p-stat-name">Chunks</span>
                                     <span className="expedite_p2p-stat-desc">
-                                        {role === "send" ? "pieces handed to the channel" : "pieces written to disk"}
+                                        {role === "send" ? "pieces handed to the channel" : inMemory ? "pieces received" : "pieces written to disk"}
                                     </span>
                                 </dt>
                                 <dd>
