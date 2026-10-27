@@ -1,5 +1,5 @@
-export type DropType = "text" | "file" | "p2p";
-export type ViewMode = "landing" | "composing" | "created" | "result" | "p2p-send" | "p2p-receive";
+export type DropType = "text" | "file" | "p2p" | "live";
+export type ViewMode = "landing" | "composing" | "created" | "result" | "p2p-send" | "p2p-receive" | "live";
 
 export interface DropSettings {
     deletable: boolean;
@@ -28,6 +28,47 @@ export interface DropMeta {
     /** The file's SHA-256 (hex) as the sender's browser computed it while uploading; absent if skipped. */
     sha256?: string;
     offer?: string; // (p2p only, SDP offer from the sender)
+}
+
+// --- Live rooms ---
+
+/** Someone in a live room, as everyone in it sees them. */
+export interface LiveMember {
+    id: string;
+    name: string;
+    /** Their box's colour, 0 to the room's seats - 1: unique in the room. */
+    color: number;
+    /** They have the room open. */
+    online: boolean;
+}
+
+/** What someone put in their box: a text, or a file (coming in while it's "pending"). */
+export interface LiveItem {
+    id: string;
+    memberId: string;
+    kind: "text" | "file";
+    status: "pending" | "complete";
+    size: number;
+    createdAt: string;
+    /** A text recognized as code: its highlighting language (Shiki's id). */
+    language?: string;
+    text?: string;
+    fileName?: string | null;
+    mimeType?: string | null;
+    /** A finished file's links, signed until the room ends. */
+    fileUrl?: string;
+    downloadUrl?: string;
+}
+
+/** A room as the page opens it: the room, and who you are in it (your token, when the API just gave it). */
+export interface LiveRoom {
+    code: string;
+    createdAt: string;
+    expiresAt: string;
+    seats: number;
+    ownerId: string;
+    members: LiveMember[];
+    me: { id: string; token?: string };
 }
 
 export const DEFAULT_SETTINGS: DropSettings = {

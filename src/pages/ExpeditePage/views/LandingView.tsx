@@ -1,5 +1,5 @@
 import {type MouseEvent, type ReactNode, useState} from "react";
-import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal} from "lucide-react";
+import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropType} from "../types.ts";
 import {useFileDrag} from "../useFileDrag.ts";
@@ -30,10 +30,11 @@ type TileInfo = {
 const TILES: TileInfo[] = [
     {type: "text", label: "Text", note: "text or code", icon: FileText},
     {type: "file", label: "File", note: "up to 16 GB", icon: File},
+    {type: "live", label: "Live", note: "up to 5 people", icon: Users},
     {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
 ];
 
-// The tiles' ways to send, as the list under them describes them: Text and File together, then Direct P2P.
+// The tiles' ways to send, as the list under them describes them: Text and File together, then Live, then Direct P2P.
 // `help` is the long-form answer behind the question mark. Optional because only the mode people actually have to
 // choose between needs one.
 type ModeInfo = {
@@ -44,6 +45,10 @@ const MODES: ModeInfo[] = [
     {
         id: "cloud", label: "Text & File",
         desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 1 minute and 24 hours.",
+    },
+    {
+        id: "live", label: "Live",
+        desc: "A room for up to 5 people, for an hour. Anything someone pastes or drops shows up for everyone, as it happens.",
     },
     {
         id: "p2p", label: "Direct P2P",
@@ -138,7 +143,8 @@ function toCode(input: string): string {
     return (fromLink?.[1] ?? input.replace(/[^A-Za-z0-9]/g, "").slice(0, 5)).toUpperCase();
 }
 
-// A tile: a click opens its screen. File and Direct P2P also take a dropped file, and open their screen with it.
+// A tile: a click opens its screen (Live's makes a room first). File and Direct P2P also take a dropped file, and open
+// their screen with it.
 function Tile({
                   type,
                   label,
@@ -148,9 +154,9 @@ function Tile({
                   onDropFile,
                   dragging
               }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
-    const takesFiles = type !== "text";
+    const takesFiles = type === "file" || type === "p2p";
     const drag = useFileDrag((file) => {
-        if (type !== "text") onDropFile(type, file);
+        if (type === "file" || type === "p2p") onDropFile(type, file);
     });
     return (
         <button

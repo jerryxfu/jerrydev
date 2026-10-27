@@ -130,6 +130,34 @@ export async function uploadFile(
     const data = initJson.data;
     const code: string = data.code;
 
+    try {
+        const parts = await putToR2(file, data, onProgress, signal);
+        return await finalize(apiBaseUrl, code, parts, settings, hash ? await hash() : null, signal);
+    } catch (err) {
+        // Any failure or cancellation: tell the server to abort + free the reservation
+        await abortUpload(apiBaseUrl, code);
+        throw err;
+    }
+}
+
+/** How the API says a file goes up: one signed PUT, or a multipart upload's signed part links. */
+export type UploadPlan =
+    | { mode: "single"; uploadUrl: string }
+    | { mode: "multipart"; partSize: number; partUrls: { partNumber: number; url: string }[] };
+
+/**
+ * Puts a file into R2 by the API's signed links: a file drop's, or a live room's file. Resolves with the parts' ETags
+ * in order, which the API needs to finish a multipart upload (none for a single PUT). Telling the API it's done, or
+ * that it was given up, is the caller's.
+ */
+export async function putToR2(
+    file: File,
+    plan: UploadPlan,
+    onProgress: (s: UploadSnapshot) => void,
+    signal: AbortSignal
+): Promise<{ partNumber: number; etag: string }[]> {
+    const contentType = file.type || "application/octet-stream";
+
     // progress plumbing
     const parts: PartProgress[] = [];
     let lastEmit = 0;
@@ -138,102 +166,93 @@ export async function uploadFile(
         if (!force && now - lastEmit < 100) return;
         lastEmit = now;
         onProgress({
-            mode: data.mode,
+            mode: plan.mode,
             parts: parts.map((p) => ({...p})),
             uploadedBytes: parts.reduce((s, p) => s + p.loaded, 0),
             totalBytes: file.size
         });
     };
 
-    try {
-        if (data.mode === "single") {
-            const only: PartProgress = {partNumber: 1, state: "uploading", loaded: 0, total: file.size};
-            parts.push(only);
-            emit(true);
-            await putWithProgress(data.uploadUrl, file, contentType,
-                (loaded) => {
-                    only.loaded = loaded;
-                    emit();
-                }, signal);
-            only.loaded = file.size;
-            only.state = "done";
-            emit(true);
-            return await finalize(apiBaseUrl, code, [], settings, hash ? await hash() : null, signal);
-        }
-
-        // multipart
-        const partSize: number = data.partSize;
-        const partUrls: { partNumber: number; url: string }[] = data.partUrls;
-        const etags = new Map<number, string>();
-
-        for (const pu of partUrls) {
-            const start = (pu.partNumber - 1) * partSize;
-            const end = Math.min(start + partSize, file.size);
-            parts.push({partNumber: pu.partNumber, state: "queued", loaded: 0, total: end - start});
-        }
+    if (plan.mode === "single") {
+        const only: PartProgress = {partNumber: 1, state: "uploading", loaded: 0, total: file.size};
+        parts.push(only);
         emit(true);
-
-        const uploadOne = async (pu: { partNumber: number; url: string }) => {
-            const p = parts[pu.partNumber - 1];
-            if (!p) throw new Error(`No progress slot for part ${pu.partNumber}`);
-            const start = (pu.partNumber - 1) * partSize;
-            const end = Math.min(start + partSize, file.size);
-            const blob = file.slice(start, end);
-
-            for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-                if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-                try {
-                    p.state = "uploading";
-                    p.loaded = 0;
-                    emit(true);
-                    const etag = await putWithProgress(pu.url, blob, null,
-                        (loaded) => {
-                            p.loaded = loaded;
-                            emit();
-                        }, signal);
-                    p.loaded = end - start;
-                    p.state = "done";
-                    emit(true);
-                    etags.set(pu.partNumber, etag);
-                    return;
-                } catch (err) {
-                    if (signal.aborted || (err as Error).name === "AbortError") throw err;
-                    if (attempt === MAX_ATTEMPTS) {
-                        p.state = "failed";
-                        emit(true);
-                        throw err;
-                    }
-                    p.state = "retrying";
-                    p.loaded = 0;
-                    emit(true);
-                    if (!navigator.onLine) await waitForOnline(30_000);
-                    await sleep(BACKOFF_MS[attempt - 1] ?? 10_000);
-                }
-            }
-        };
-
-        // parallel pool (shared cursor; single-threaded JS so nextIdx++ is safe)
-        let nextIdx = 0;
-        const worker = async () => {
-            while (true) {
-                if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-                const pu = partUrls[nextIdx++];
-                if (!pu) return;
-                await uploadOne(pu);
-            }
-        };
-        await Promise.all(
-            Array.from({length: Math.min(CONCURRENCY, partUrls.length)}, () => worker())
-        );
-
-        const ordered = [...etags.entries()]
-            .sort((a, b) => a[0] - b[0])
-            .map(([partNumber, etag]) => ({partNumber, etag}));
-        return await finalize(apiBaseUrl, code, ordered, settings, hash ? await hash() : null, signal);
-
-    } catch (err) {
-        // Any failure or cancellation: tell the server to abort + free the reservation
-        await abortUpload(apiBaseUrl, code);
-        throw err;
+        await putWithProgress(plan.uploadUrl, file, contentType,
+            (loaded) => {
+                only.loaded = loaded;
+                emit();
+            }, signal);
+        only.loaded = file.size;
+        only.state = "done";
+        emit(true);
+        return [];
     }
+
+    // multipart
+    const {partSize, partUrls} = plan;
+    const etags = new Map<number, string>();
+
+    for (const pu of partUrls) {
+        const start = (pu.partNumber - 1) * partSize;
+        const end = Math.min(start + partSize, file.size);
+        parts.push({partNumber: pu.partNumber, state: "queued", loaded: 0, total: end - start});
+    }
+    emit(true);
+
+    const uploadOne = async (pu: { partNumber: number; url: string }) => {
+        const p = parts[pu.partNumber - 1];
+        if (!p) throw new Error(`No progress slot for part ${pu.partNumber}`);
+        const start = (pu.partNumber - 1) * partSize;
+        const end = Math.min(start + partSize, file.size);
+        const blob = file.slice(start, end);
+
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+            try {
+                p.state = "uploading";
+                p.loaded = 0;
+                emit(true);
+                const etag = await putWithProgress(pu.url, blob, null,
+                    (loaded) => {
+                        p.loaded = loaded;
+                        emit();
+                    }, signal);
+                p.loaded = end - start;
+                p.state = "done";
+                emit(true);
+                etags.set(pu.partNumber, etag);
+                return;
+            } catch (err) {
+                if (signal.aborted || (err as Error).name === "AbortError") throw err;
+                if (attempt === MAX_ATTEMPTS) {
+                    p.state = "failed";
+                    emit(true);
+                    throw err;
+                }
+                p.state = "retrying";
+                p.loaded = 0;
+                emit(true);
+                if (!navigator.onLine) await waitForOnline(30_000);
+                await sleep(BACKOFF_MS[attempt - 1] ?? 10_000);
+            }
+        }
+    };
+
+    // parallel pool (shared cursor; single-threaded JS so nextIdx++ is safe)
+    let nextIdx = 0;
+    const worker = async () => {
+        while (true) {
+            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+            const pu = partUrls[nextIdx++];
+            if (!pu) return;
+            await uploadOne(pu);
+        }
+    };
+    await Promise.all(
+        Array.from({length: Math.min(CONCURRENCY, partUrls.length)}, () => worker())
+    );
+
+    return [...etags.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([partNumber, etag]) => ({partNumber, etag}));
 }

@@ -89,6 +89,15 @@ export default function P2PSendView(
                     </div>
 
                     <div className="expedite_side">
+                        {/* What this mode does, in plain words, before the technical side folded under Advanced. */}
+                        <div>
+                            <p className="expedite_p2p-about-title">Explanation</p>
+                            <p className="expedite_p2p-about">
+                                Your file goes straight from this device to the other one, like AirDrop. Nothing is uploaded first.
+                                You get a code, the other person enters it, and the file arrives while both pages stay open.
+                            </p>
+                        </div>
+
                         <RelaySetting useTurn={useTurn} setUseTurn={setUseTurn} relayDisabled={relayDisabled} />
 
                         <div className="expedite_p2p-notes">

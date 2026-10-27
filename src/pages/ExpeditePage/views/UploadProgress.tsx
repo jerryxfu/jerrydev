@@ -18,7 +18,8 @@ const SPEED_WINDOW_MS = 3000;
 type Sample = { t: number; loaded: number };
 type Dir = "up" | "down" | "flat";
 
-const STATE_LETTER: Record<PartState, string> = {
+// Also a live room's part squares (LiveView).
+export const STATE_LETTER: Record<PartState, string> = {
     queued: "Q", uploading: "U", done: "D", retrying: "R", failed: "F"
 };
 

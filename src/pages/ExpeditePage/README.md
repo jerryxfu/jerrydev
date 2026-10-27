@@ -1,14 +1,15 @@
 # Expedite
 
-Short-lived file and text sharing. Three transfer types and one five-character code.
+Short-lived file and text sharing. Four types and one five-character code.
 
-| Type   | Path the bytes take               | Size ceiling | Lives for    |
-|--------|-----------------------------------|--------------|--------------|
-| `text` | JSON body -> MongoDB              | 500 KB       | 1 min – 24 h |
-| `file` | Presigned PUT -> Cloudflare R2    | 16 GB        | 1 min – 24 h |
-| `p2p`  | WebRTC data channel, peer to peer | none         | session only |
+| Type   | Path the bytes take                        | Size ceiling               | Lives for    |
+|--------|--------------------------------------------|----------------------------|--------------|
+| `text` | JSON body -> MongoDB                       | 500 KB                     | 1 min – 24 h |
+| `file` | Presigned PUT -> Cloudflare R2             | 16 GB                      | 1 min – 24 h |
+| `p2p`  | WebRTC data channel, peer to peer          | none                       | session only |
+| `live` | a room's items: texts in MongoDB, files R2 | 500 KB a text, 1 GB a file | 1 h          |
 
-Codes are 5 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no I/O/0/1). Uniqueness is checked across all three types, so `GET /drop/:code` resolves any of them
+Codes are 5 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no I/O/0/1). Uniqueness is checked across all the types, so `GET /drop/:code` resolves any of them
 and the UI decides what to render from the returned `type`.
 
 ---
@@ -20,13 +21,16 @@ ExpeditePage/
   Expedite.tsx          orchestrator: view state, all fetch calls, engine wiring
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
   utils.ts              formatting helpers (formatBytes, formatEta, ...)
-  uploadEngine.ts       R2 upload: single PUT or multipart, with progress
+  uploadEngine.ts       R2 upload: single PUT or multipart, with progress (putToR2, shared with live rooms' files)
   sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's saved copy (picked after the download) checked against it
   highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, Auto's guess at pasted code's language, and the code box's line-by-line colouring (only the lines an edit changes)
   p2p/
     peer.ts             shared WebRTC plumbing, rate meter, protocol constants
     sender.ts           offer -> publish -> wait -> stream file
     receiver.ts         answer -> receive -> stream to disk
+  live/
+    room.ts             a live room's API calls, its stream, and your seats (tokens in localStorage, by code)
+    useLiveRoom.ts      the room as the page has it: members, items, your files going up, and what to do in it
   views/
     LandingView         send tiles + retrieve field
     UploadView          text/file composer + settings
@@ -41,12 +45,47 @@ ExpeditePage/
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
     P2PProgress         phase ladder + transfer stats (presentational, no hooks)
+    LiveView            a live room: its bar, a box per person (side by side on a laptop, a tab each on a phone)
 ```
 
-`Expedite.tsx` owns every piece of state and every network call, but one: `FilePreview` reads the start of a text file to show it. The views are presentational
+`Expedite.tsx` owns every piece of state and every network call, but two: `FilePreview` reads the start of a text file to show it, and a live room's are
+`useLiveRoom`'s (Expedite holds it). The views are presentational
 and take callbacks. Transfer engines are plain async functions
 taking an options object with callbacks and an `AbortSignal` — same shape as
 `uploadEngine.ts`, deliberately.
+
+---
+
+## Live rooms
+
+A room for live work: one code, up to 5 people (its creator included) for an hour from its creation. Each person has a box; what they paste or drop
+anywhere on the page goes into theirs, and everyone sees every box fill. Files are 1 GB at most (a bigger one is a File drop's), texts 500 KB, both
+counted in the 50 GB cap while the room lasts. One network sends 200 of them in 10 minutes at most (`liveItemLimiter`), texts and files together.
+
+- **Seats.** Opening the code (the Live tile makes one, the retrieve field or the link joins) takes a seat, and you can't watch without one: the 5 is
+  really 5 people. The API answers a token, kept in localStorage by code (`expedite:live`): a reload, or the link opened again in the same browser, puts
+  you back in your seat. Back keeps it; Leave frees it and deletes what you sent. The creator can't leave: they end the room, or remove someone (their
+  seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
+- **Names.** A random animal from the API's nickname generator; click yours to change it.
+- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a stream open in the last 40 s) and
+  the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
+  twice but never miss one. A text, or a finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped
+  stream reconnects on its own and sends everything again; the page keeps the links it has, or every picture would download again.
+- **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent (Enter on a laptop, the
+  Send button on a phone). The Paste button reads the clipboard (`navigator.clipboard.read`): a phone's way to paste a picture.
+- **Text** is checked for code with the composer's guess (`resolveLanguage(AUTO, …)`): code shows highlighted (its first 5 lines, until Show all),
+  anything else plain, a lone link as a link.
+- **Files**, once in: a picture shows (16rem tall at most); a video or a sound, `FilePreview`'s player (only its start loads, until it plays); a
+  text file, its first 5 lines (`FilePreview`'s `mini`: a Range request for 4 KB). A PDF opens from its name, in a new tab: a viewer per card
+  would be heavy, and too narrow to read. Anything else: its name, size and Download.
+- **Boxes** glow in their person's colour, and the glow pulses while they send a file (a ring's opacity only; steady with reduced motion). Your own
+  file shows its percent, bytes sent and parts (File mode's squares, beside the time) until it's in; the others see "Sending...".
+- **Arriving.** An item someone else sends flashes their colour once (none with reduced motion). On a phone, a tab with something unseen gets a dot;
+  while the tab is hidden, its title counts what came in.
+- **The bar** (code, link, QR code, time left, people, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop, under it
+  on a phone.
+- **Leaving the page** stops the stream and the files going up; a file given up is deleted (keepalive), so nobody sees it coming forever. A page
+  that goes without saying so (a crash, a lost network): its files still coming are deleted once its person has been away 40 s (the stream's check).
 
 ---
 
@@ -245,10 +284,13 @@ routes/expedite/
   index.ts    router assembly
   shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
   text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
-  file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts)
+  file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts), signUpload (and live.ts)
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn
               GET  /p2p/:code/events (SSE)
               DELETE /p2p/:code
+  live.ts     POST /live, /live/:code/join, /live/:code/items, /live/:code/items/:id/complete
+              PATCH and DELETE /live/:code/members/:id, DELETE /live/:code/items/:id, DELETE /live/:code
+              GET  /live/:code/events (SSE)
   drops.ts    GET /drop/:code, GET /stats, DELETE /drop/:code
   raw.ts      the terminal's, in plain text (mounted in routes/index.ts, outside the origin guard):
               GET /raw/:code, PUT /raw/ and /raw/:name, POST /raw/start, POST /raw/:code/done
@@ -275,14 +317,16 @@ command. Without `-L` the view is spent, so the body gives a command with the li
 browser). Every GET counts a view, like the page, and shares its rate limit; HEAD answers 405 so `curl -I` doesn't spend one. A chat app's link preview
 fetches the link too: share the page's link, not this one.
 
-One Mongo collection for all three types, with a TTL index on `expiresAt` that cleans expired drops, orphaned upload reservations, and abandoned p2p sessions
-alike.
+One Mongo collection for all the types, with a TTL index on `expiresAt` that cleans expired drops, orphaned upload reservations, abandoned p2p sessions
+and ended live rooms alike. A live room's items are a second collection (`LiveItem`), with the room's expiry and their own TTL index; their R2 objects are
+left to the bucket's lifecycle rule (nothing links to them by then).
 
 `status` means different things per type, which is the one genuinely confusing part: for `file`, `pending` means the upload isn't verified and the drop is
 invisible. For `p2p`, `pending` means the session is **live and waiting for a receiver**. The `p2p` branch in `GET /drop/:code` must therefore come before the
 generic pending check.
 
 `getUsedBytes()` only sums `fileSize` when `type === "file"`, so p2p sessions contribute nothing to the 50 GB cap. Nothing about a direct transfer touches R2.
+Live rooms' items add their `size` (texts and files).
 
 ---
 

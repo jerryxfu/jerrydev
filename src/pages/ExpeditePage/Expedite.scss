@@ -24,6 +24,15 @@
     }
 }
 
+// A live room: a little closer still, for its boxes.
+.expedite--live {
+    padding-top: calc(env(safe-area-inset-top) + 1rem);
+
+    @media screen and (max-width: 768px) {
+        padding-top: calc(env(safe-area-inset-top) + 0.75rem);
+    }
+}
+
 // Container. Narrow on a phone; from a laptop's width every view takes the same room as the landing page, and the
 // views use it with two columns (.expedite_split, below) rather than stretching one.
 .expedite_container {
@@ -43,6 +52,11 @@
     // A P2P session under way: one column, readable at this width.
     .expedite_container--narrow {
         max-width: 800px;
+    }
+
+    // A live room: up to five boxes side by side.
+    .expedite_container--wide {
+        max-width: 1440px;
     }
 }
 
@@ -106,6 +120,22 @@
     }
 }
 
+// A live room's header: from a laptop's width, its bar (LiveView's LiveBar) beside the title, Back above both, so the
+// boxes start higher. On a phone the bar stays under the title.
+@media (min-width: 900px) {
+    .expedite_header--live {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        column-gap: 2rem;
+
+        > .expedite_back {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+    }
+}
+
 // A screen's heading: its kind's icon, then what it is.
 .expedite_title {
     display: flex;
@@ -124,15 +154,18 @@
 }
 
 // Each kind of drop's colour, on its icon (the landing tiles, the headings): File the site's accent blue, Text amber,
-// Direct P2P red. Darker on the light themes, so a thin icon stays clear on a pale page (4.5:1 or more in every theme).
+// Direct P2P red, Live violet. Darker on the light themes, so a thin icon stays clear on a pale page (4.5:1 or more in
+// every theme).
 .expedite {
     --kind-text: #b45309;
     --kind-file: var(--secondary);
     --kind-p2p: #dc2626;
+    --kind-live: #7c3aed;
 
     [data-scheme="dark"] & {
         --kind-text: #fbbf24;
         --kind-p2p: var(--danger);
+        --kind-live: #a78bfa;
     }
 }
 
@@ -146,6 +179,10 @@
 
 [data-kind="p2p"] > svg {
     color: var(--kind-p2p);
+}
+
+[data-kind="live"] > svg {
+    color: var(--kind-live);
 }
 
 .expedite_back {

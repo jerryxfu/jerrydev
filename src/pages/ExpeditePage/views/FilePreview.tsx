@@ -29,6 +29,8 @@ interface FilePreviewProps {
     /** The file itself, when it was picked on this device: its text is read from it rather than fetched. */
     file?: File | null;
     onInfo?: (info: PreviewInfo) => void;
+    /** A small preview (a live room's card): a text file's first MINI_LINES lines only, read from its first bytes. */
+    mini?: boolean;
 }
 
 const IMAGE = ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico"];
@@ -37,7 +39,7 @@ const AUDIO = ["mp3", "wav", "ogg", "oga", "opus", "m4a", "aac", "flac"];
 
 // The extension decides first: the browser's guess at a type is often wrong for code (a TypeScript file comes as an
 // MPEG video, video/mp2t, and many come as nothing at all). The type is for files without a known extension.
-function kindOf(name: string, mimeType?: string | null): Kind | null {
+export function kindOf(name: string, mimeType?: string | null): Kind | null {
     const ext = extension(name);
     if (Object.hasOwn(EXTENSIONS, ext)) return "text";
     if (IMAGE.includes(ext)) return "image";
@@ -86,9 +88,10 @@ export function describeType(name: string, mimeType?: string | null): string {
 /**
  * What a file looks like, without downloading it (issue #68): pictures, videos, audio and PDFs from the link itself,
  * text and code read in (the start of a big one) and highlighted. Shown on the drop before it's sent and on the drop
- * received. A file the browser can't show says so, and anything else shows nothing.
+ * received, and small (`mini`) in a live room's cards. A file the browser can't show says so, and anything else shows
+ * nothing.
  */
-export default function FilePreview({src, name, mimeType, size, file, onInfo}: FilePreviewProps) {
+export default function FilePreview({src, name, mimeType, size, file, onInfo, mini = false}: FilePreviewProps) {
     const kind = kindOf(name, mimeType);
     const [failed, setFailed] = useState(false);
     if (!kind) return null;
@@ -102,7 +105,7 @@ export default function FilePreview({src, name, mimeType, size, file, onInfo}: F
     }
 
     // Text draws its own box, once it's read: one that can't be read leaves nothing behind.
-    if (kind === "text") return <TextPreview src={src} name={name} size={size} file={file} onInfo={onInfo} />;
+    if (kind === "text") return <TextPreview src={src} name={name} size={size} file={file} onInfo={onInfo} mini={mini} />;
 
     const onError = () => setFailed(true);
     return (
@@ -148,34 +151,41 @@ const TEXT_LIMIT = 128 * 1024;
 const COLLAPSED_LINES = {wide: 30, narrow: 20};
 const COLLAPSE_MARGIN = 5;
 
+// A small preview (a live room's card): a text's first lines, and a file read only as far as they need (unless its lines
+// are very long, 4 KB holds them).
+export const MINI_LINES = 5;
+const MINI_LIMIT = 4 * 1024;
+
 type Read = { text: string; truncated: boolean };
 
-function TextPreview({src, name, size, file, onInfo}: {
-    src: string; name: string; size: number; file?: File | null; onInfo?: (info: PreviewInfo) => void;
+function TextPreview({src, name, size, file, onInfo, mini}: {
+    src: string; name: string; size: number; file?: File | null; onInfo?: (info: PreviewInfo) => void; mini: boolean;
 }) {
     // The text, keyed to where it came from so a new file never shows the last one's.
     const [read, setRead] = useState<{ src: string; result: Read | null } | null>(null);
     const collapsedLines = useCollapsedLines();
+    const limit = mini ? MINI_LIMIT : TEXT_LIMIT;
 
     useEffect(() => {
         let cancelled = false;
-        const truncated = size > TEXT_LIMIT;
+        const truncated = size > limit;
         // A drop's link is read by its first bytes only (a Range request, which needs no extra permission).
         const bytes = file
-            ? file.slice(0, TEXT_LIMIT).arrayBuffer()
-            : fetch(src, {headers: {Range: `bytes=0-${TEXT_LIMIT - 1}`}}).then((res) => {
+            ? file.slice(0, limit).arrayBuffer()
+            : fetch(src, {headers: {Range: `bytes=0-${limit - 1}`}}).then((res) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.arrayBuffer();
             });
 
         bytes
             .then((buffer): Read | null => {
-                const decoded = decode(buffer.slice(0, TEXT_LIMIT), truncated);
+                const decoded = decode(buffer.slice(0, limit), truncated);
                 if (decoded === null) return null;
-                const text = linesOf(decoded);
+                const whole = linesOf(decoded);
+                const text = mini ? whole.split("\n").slice(0, MINI_LINES).join("\n") : whole;
                 if (!cancelled) {
                     onInfo?.({
-                        lines: text.split("\n").length, partial: truncated,
+                        lines: whole.split("\n").length, partial: truncated,
                         lineEndings: decoded.includes("\r\n") ? "CRLF" : "LF", text: truncated ? undefined : decoded,
                     });
                 }
@@ -189,15 +199,20 @@ function TextPreview({src, name, size, file, onInfo}: {
         return () => {
             cancelled = true;
         };
-    }, [src, size, file, onInfo]);
+    }, [src, size, file, onInfo, limit, mini]);
 
     // Being read: lines standing in for the text, about as many as it will show, so what's under it doesn't jump.
     if (read?.src !== src) {
         const guess = Math.max(3, Math.ceil(size / 40)); // about 40 bytes a line of code
-        return <TextPlaceholder lines={Math.min(collapsedLines, guess)} bar={guess >= collapsedLines + COLLAPSE_MARGIN} />;
+        return mini
+            ? <TextPlaceholder lines={Math.min(MINI_LINES, guess)} bar={false} />
+            : <TextPlaceholder lines={Math.min(collapsedLines, guess)} bar={guess >= collapsedLines + COLLAPSE_MARGIN} />;
     }
     if (!read.result) return null;
-    return <CodeView text={read.result.text} language={EXTENSIONS[extension(name)] ?? null} truncated={read.result.truncated} />;
+    // A small preview's lines stand alone: no "Show all" (what was read isn't all), no note (the card has Download).
+    return (
+        <CodeView text={read.result.text} language={EXTENSIONS[extension(name)] ?? null} truncated={!mini && read.result.truncated} />
+    );
 }
 
 function useCollapsedLines(): number {
@@ -207,16 +222,20 @@ function useCollapsedLines(): number {
 /**
  * Text or code with line numbers: a code file's preview, or a text drop sent as code. It shows at once as plain text;
  * the colours follow when the highlighter is ready (Shiki and the grammar load on the first code shown). A long one
- * collapses to its first lines, with a button to open it all that stays on screen while it's open.
+ * collapses to its first lines (`collapseTo`, else as many as the screen has room for), with a button to open it all
+ * that stays on screen while it's open.
  */
-export function CodeView({text, language, truncated = false}: { text: string; language: string | null; truncated?: boolean }) {
+export function CodeView({text, language, truncated = false, collapseTo}: {
+    text: string; language: string | null; truncated?: boolean; collapseTo?: number;
+}) {
     // The colouring function for the language, once its grammar is loaded.
     const [colourer, setColourer] = useState<{ language: string; colour: (text: string) => string } | null>(null);
     const [open, setOpen] = useState(false);
     // Opened at least once: coloured whole from then on, closed again or not.
     const [opened, setOpened] = useState(false);
     const box = useRef<HTMLDivElement>(null);
-    const collapsedLines = useCollapsedLines();
+    const screenLines = useCollapsedLines();
+    const collapsedLines = collapseTo ?? screenLines;
 
     useEffect(() => {
         if (!language) return;

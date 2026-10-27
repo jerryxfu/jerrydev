@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio} from "lucide-react";
+import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio, Users} from "lucide-react";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "@fontsource-variable/jetbrains-mono/index.css";
@@ -26,6 +26,8 @@ import CreatedView, {type CreatedInfo} from "./views/CreatedView.tsx";
 import ResultView from "./views/ResultView.tsx";
 import P2PSendView from "./views/P2PSendView.tsx";
 import P2PReceiveView from "./views/P2PReceiveView.tsx";
+import LiveView, {LiveBar} from "./views/LiveView.tsx";
+import {useLiveRoom} from "./live/useLiveRoom.ts";
 import {uploadFile} from "./uploadEngine.ts";
 import {hashBlob, type Hashing} from "./sha256.ts";
 import {resolveLanguage} from "./highlight.ts";
@@ -67,6 +69,7 @@ const TITLES: Record<DropType, { icon: LucideIcon; send: string; receive: string
     text: {icon: FileText, send: "Send text", receive: "Receive text"},
     file: {icon: FileIcon, send: "Send a file", receive: "Receive a file"},
     p2p: {icon: Radio, send: "Send directly (P2P)", receive: "Receive directly (P2P)"},
+    live: {icon: Users, send: "Live room", receive: "Live room"},
 };
 
 // Receiver-side auto-recovery: how often to look for the sender's relay
@@ -147,6 +150,9 @@ export default function Expedite() {
     const p2pCodeRef = useRef<string | null>(null);
     const p2pSupported = isP2PReceiveSupported();
 
+    // --- Live room ---
+    const live = useLiveRoom();
+
     const [stats, setStats] = useState<{
         activeDrops: number;
         totalViews: number;
@@ -207,6 +213,9 @@ export default function Expedite() {
     };
 
     const reset = async () => {
+        // Out of a live room: the seat stays yours until the room ends, and its link opens it again.
+        live.close();
+
         uploadAbortRef.current?.abort();
         uploadAbortRef.current = null;
         setUploadSnapshot(null);
@@ -247,8 +256,26 @@ export default function Expedite() {
     // --- Landing tile selection ---
     const handleSelect = async (type: DropType) => {
         setError(null);
+        if (type === "live") {
+            await openRoom(live.create);
+            return;
+        }
         setDropType(type);
         await transitionTo(type === "p2p" ? "p2p-send" : "composing");
+    };
+
+    // A live room, made (the Live tile) or joined (its code or link): you're in it, its stream open, before it shows.
+    const openRoom = async (enter: () => Promise<void>) => {
+        setLoading(true);
+        try {
+            await enter();
+            setDropType("live");
+            await transitionTo("live");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Couldn't open the room");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleUpload = async () => {
@@ -351,6 +378,11 @@ export default function Expedite() {
             }
 
             const meta = json.data as DropMeta;
+            if (meta.type === "live") {
+                setLoading(false);
+                await openRoom(() => live.join(meta.code));
+                return;
+            }
             setResult(meta);
             setDownloadCheck(null);
             // The type isn't known until the lookup resolves, which is also when
@@ -677,8 +709,8 @@ export default function Expedite() {
     // Files are taken where they're dropped on purpose: the landing's File and Direct P2P tiles, and the file zones on
     // those screens. Anywhere else the page refuses them, or the browser would open the file in place of Expedite (and a
     // stray drop used to switch screens, even mid-transfer). While one is dragged over the page, the landing shows
-    // where it can go.
-    const pageDrag = useFileDrag();
+    // where it can go. In a live room, the whole page takes them, for your box.
+    const pageDrag = useFileDrag(view === "live" ? (_, files) => live.postFiles(files) : undefined);
 
     // A file dropped on the landing's File or Direct P2P tile: that screen, with the file chosen.
     const handleDropFile = async (type: "file" | "p2p", file: globalThis.File) => {
@@ -686,33 +718,38 @@ export default function Expedite() {
         await handleSelect(type);
     };
 
-    // Someone receiving a drop came for it, not for the site: no navbar on those screens.
+    // Someone receiving a drop came for it, not for the site: no navbar on those screens. Nor in a live room, which wants
+    // the screen's height for its boxes.
     const receiving = view === "result" || view === "p2p-receive";
+    const bare = receiving || view === "live";
     // The kind of drop on screen, whose heading it shows: the sender's while it's written and once it's made, the
     // receiver's when it's received. The landing page is Expedite itself.
     const kind: DropType | null =
         view === "composing" || view === "created" ? dropType
             : view === "p2p-send" ? "p2p"
-                : receiving && result ? result.type
-                    : null;
+                : view === "live" ? "live"
+                    : receiving && result ? result.type
+                        : null;
     const title = kind ? TITLES[kind] : null;
 
     return (
         <div
-            className={`expedite${receiving ? " expedite--bare" : ""}`}
+            className={`expedite${bare ? " expedite--bare" : ""}${view === "live" ? " expedite--live" : ""}`}
             {...pageDrag.handlers}
         >
-            {!receiving && (
+            {!bare && (
                 <>
                     <Navbar isShrunk={true} />
                     <div className="nav-spacer" />
                 </>
             )}
 
-            {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). */}
+            {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). A live
+                room is wider, for five boxes side by side. */}
             <div
-                className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}`}>
-                <header className="expedite_header">
+                className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}${view === "live" ? " expedite_container--wide" : ""}`}>
+                {/* A live room's bar is part of the header: beside the title on a laptop, under it on a phone. */}
+                <header className={`expedite_header${view === "live" ? " expedite_header--live" : ""}`}>
                     {view !== "landing" && (
                         <button className="expedite_back" onClick={reset}>
                             <ArrowLeft size={16} />
@@ -727,6 +764,7 @@ export default function Expedite() {
                     ) : (
                         <h1>Expedite 📦</h1>
                     )}
+                    {view === "live" && <LiveBar live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={reset} />}
                     {view === "landing" && (
                         <p className="caption-text">
                             Share files and text snippets instantaneously! Pick an option below, or drop a file on this page. Terminal
@@ -833,6 +871,10 @@ export default function Expedite() {
                         />
                     )}
 
+                    {view === "live" && (
+                        <LiveView live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={reset} dragging={pageDrag.over} />
+                    )}
+
                     {view === "result" && result && (
                         <ResultView
                             result={result}
@@ -849,7 +891,8 @@ export default function Expedite() {
             </div>
 
             <div className="expedite_spacer" />
-            {stats && (
+            {/* Not in a live room: its boxes take the room. */}
+            {stats && view !== "live" && (
                 <div className="expedite_stats">
                     <span>{stats.activeDrops} active drop{stats.activeDrops !== 1 ? "s" : ""}</span>
                     <span>·</span>

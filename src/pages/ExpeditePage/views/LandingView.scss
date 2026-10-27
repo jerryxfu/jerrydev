@@ -191,10 +191,15 @@
     width: auto;
 }
 
+// Four in a row; two by two on a phone, where four would be too narrow for their words.
 .expedite_tiles {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.7rem;
+
+    @media (max-width: 439px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .expedite_tile {
@@ -248,10 +253,16 @@
     }
 }
 
-// A soft line in the gap before Direct P2P, as the modes under the tiles group them: Text and File, then Direct P2P.
-// From the padding box: half the grid's gap, the border, then half the line.
+// A soft line in the gap before Direct P2P: what goes through the cloud (Text, File, Live), then Direct P2P. From the
+// padding box: half the grid's gap, the border, then half the line. None two by two, where it would split a row.
 .expedite_tile[data-kind="p2p"] {
     position: relative;
+
+    @media (max-width: 439px) {
+        &::before {
+            display: none;
+        }
+    }
 
     &::before {
         content: "";

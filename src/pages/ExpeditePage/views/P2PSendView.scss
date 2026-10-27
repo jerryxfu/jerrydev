@@ -66,6 +66,22 @@
     }
 }
 
+// What the mode does: plain text, no box, and darker than the notes' captions (it's the screen's explanation).
+.expedite_p2p-about-title {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+.expedite_p2p-about {
+    margin: 0.5rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    line-height: 1.55;
+}
+
 .expedite_p2p-notes-title {
     margin: 0;
     text-transform: uppercase;

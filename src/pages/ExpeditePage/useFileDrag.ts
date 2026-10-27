@@ -3,10 +3,11 @@ import {type DragEvent, useRef, useState} from "react";
 // Files dragged over an element: whether one is over it now, and the handlers to put on it. Only files: text dragged
 // into a text box goes there as usual. With `onFile` the element takes the dropped file; without, it refuses files, so
 // the browser doesn't open one in place of the page (Expedite's root, which leaves the drop zones inside it alone).
+// `onFile` gets the first file, and all of them (a live room takes several at once).
 
 const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes("Files");
 
-export function useFileDrag(onFile?: (file: File) => void) {
+export function useFileDrag(onFile?: (file: File, files: File[]) => void) {
     const [over, setOver] = useState(false);
     // dragenter and dragleave come for every element crossed inside it, the next one's enter before the last one's
     // leave: a file is over it while the count is above 0.
@@ -37,7 +38,7 @@ export function useFileDrag(onFile?: (file: File) => void) {
             e.preventDefault();
             out();
             const file = e.dataTransfer.files[0];
-            if (file && onFile && !taken) onFile(file);
+            if (file && onFile && !taken) onFile(file, [...e.dataTransfer.files]);
         },
         // No mouse moves come during a drag: one after it means the drag is over, if a leave was ever missed.
         onMouseMove: () => {
