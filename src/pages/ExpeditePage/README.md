@@ -68,9 +68,10 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
 - **Names.** A random animal from the API's nickname generator; click yours to change it.
 - **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after
-  their last, and their box goes grey. Not the stream: in production the platform keeps it open after its page has gone
-  (locally it closes). 90 s, as a hidden tab's timer can slow to once a minute.
-- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s, below) and
+  their last, and their box goes grey. Not the stream: in production the platform keeps it open after its page has gone (locally it closes). 90 s, as a hidden
+  tab's timer can slow to once a minute.
+- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s, below)
+  and
   the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
   twice but never miss one. A text, or a finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped
   stream reconnects on its own and sends everything again; the page keeps the links it has, or every picture would download again.
@@ -83,7 +84,8 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF opens from its name, in a new tab: a viewer per card
   would be heavy, and too narrow to read. Anything else: its name, size and Download.
 - **Counts.** Each name shows how many items its box has, "(3)": in the box's header on a laptop, in the tab on a phone.
-- **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only; steady with reduced motion). Your own
+- **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only;
+  steady with reduced motion). Your own
   file shows its percent, bytes sent and parts (File mode's squares, beside the time) until it's in; the others see "Sending...".
 - **Arriving.** An item someone else sends flashes their colour once (none with reduced motion). On a phone, a tab with something unseen gets a dot;
   while the tab is hidden, its title counts what came in.
@@ -101,8 +103,8 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
 **Non-trickle ICE.** Both sides finish gathering candidates before sending their SDP, so signalling is three messages instead of a candidate stream. Costs 1–3s
 up front and makes the server much simpler. Gathering is capped at 9s with the relay (its allocation needs an extra round trip), 5s without it, and ends 1s
 after the first relay candidate: the rest come within a few hundred ms of it, while one server can take 40s to give up (`turn:...:443?transport=udp`, on a
-network that drops IPv4 UDP to port 443; seen 2026-10-27, it held every gathering to the 9s cap). An answerer that finds a working route while gathering
-(both ends on one machine) stops there, so its answer can carry host candidates only. That's Chrome, and harmless: the route already works.
+network that drops IPv4 UDP to port 443; seen 2026-10-27, it held every gathering to the 9s cap). An answerer that finds a working route while gathering (both
+ends on one machine) stops there, so its answer can carry host candidates only. That's Chrome, and harmless: the route already works.
 
 **Sender creates the code.** Matches text and file drops, matches the WebRTC convention that the offerer initiates, and means the session doc can carry
 `fileName`/`fileSize`/`mimeType` for the receiver's preview and save dialog.
@@ -148,7 +150,8 @@ Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't b
 via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
-Only `CTRL_DONE` counts as delivered: a channel that closes first, or ICE failing, fails the transfer on the sender too (the receiver's disk filling up after the
+Only `CTRL_DONE` counts as delivered: a channel that closes first, or ICE failing, fails the transfer on the sender too (the receiver's disk filling up after
+the
 last byte went out used to show as delivered). So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
 the receiver closes anyway after 5s.
 

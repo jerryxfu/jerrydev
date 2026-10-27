@@ -47,7 +47,9 @@ const MEMORY_BLOCK_BYTES = 16 * 1024 * 1024;
 /** Where the file is written as it arrives: the picked file on disk, or memory. */
 interface Sink {
     write(data: ArrayBuffer): Promise<void>;
+
     close(): Promise<void>;
+
     abort(): Promise<void>;
 }
 

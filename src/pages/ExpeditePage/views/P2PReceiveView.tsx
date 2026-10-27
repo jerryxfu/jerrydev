@@ -98,7 +98,8 @@ export default function P2PReceiveView(
                             <p className="expedite_p2p-notes-title">How does this work?</p>
                             <ul>
                                 {inMemory
-                                    ? <li>Files up to 1 GB in this browser. The file is kept in this tab and saved to your downloads once it's complete.</li>
+                                    ? <li>Files up to 1 GB in this browser. The file is kept in this tab and saved to your downloads once it's
+                                        complete.</li>
                                     : <li>You'll pick a save location first. The file is written there as it arrives.</li>}
                                 <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
                                 <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).

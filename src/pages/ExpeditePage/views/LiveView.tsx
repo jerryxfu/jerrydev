@@ -173,7 +173,7 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
     return (
         <form className="live_composer" onSubmit={send}>
             <textarea
-                className="live_input" rows={2} placeholder="Type or paste here" aria-label="Something to send"
+                className="live_input" rows={2} placeholder="Type or paste here..." aria-label="Something to send"
                 value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onKeyDown}
             />
             {/* The buttons, a laptop's hint under each side: how else to send, and the keys. A phone has neither. */}

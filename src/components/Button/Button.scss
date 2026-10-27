@@ -5,7 +5,8 @@
     justify-content: center;
     gap: 0.4rem;
     padding: 0.65rem 1.1rem;
-    border: 1px solid color-mix(in srgb, var(--gray-da) 10%, transparent);
+    // The text's colour, as Live's cards, so it shows in every theme (a fixed grey vanished on the dark ones).
+    border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
     border-radius: 8px;
     background: transparent;
     color: inherit;

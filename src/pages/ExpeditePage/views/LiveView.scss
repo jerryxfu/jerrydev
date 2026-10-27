@@ -279,6 +279,8 @@
     --frame: var(--member);
     border: 2px solid color-mix(in srgb, var(--frame) 80%, transparent);
     border-radius: 12px;
+    // Tinted with the same colour, so whose box it is shows at a glance. Its cards and text box keep the page's.
+    background: color-mix(in srgb, var(--frame) 4%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--frame) 30%, transparent),
     0 0 4px color-mix(in srgb, var(--frame) 18%, transparent);
     transition: background 0.15s, border-color 0.15s;
@@ -309,7 +311,7 @@
     &.is-target {
         border-style: dashed;
         border-color: var(--member);
-        background: color-mix(in srgb, var(--member) 6%, transparent);
+        background: color-mix(in srgb, var(--member) 12%, transparent);
     }
 }
 
@@ -462,7 +464,7 @@
     padding: 0.6rem 0.75rem;
     border: 1px solid var(--border-da);
     border-radius: 8px;
-    background: transparent;
+    background: var(--bg);
     color: inherit;
     font-family: inherit;
     // 16px at least: a phone zooms into a smaller field.
@@ -541,8 +543,10 @@
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.45rem 0.5rem;
-    border: 1px solid var(--border);
+    // Darker than --border, so each card stands out in its box. The text's colour, so it holds in every theme.
+    border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
     border-radius: 10px;
+    background: var(--bg);
 
     // A code text's own box, inside the card: no second frame around it.
     .expedite_code {
