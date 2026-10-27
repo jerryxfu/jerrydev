@@ -201,14 +201,14 @@ Integers have no such problem and no size limit: `2 ** 1000` works fine.
 
     ```python
     >> > from decimal import Decimal
-    >> > Decimal(0.1)  # the EXACT value sitting in memory
+    >> > Decimal(0.1) # the EXACT value sitting in memory
     Decimal('0.1000000000000000055511151231257827021181583404541015625')
 
-    >> > (0.1).hex()  # the raw binary, in hexadecimal
-    '0x1.999999999999ap-4'  # 0x1999... is 0.1's repeating pattern
+    >> > (0.1).hex() # the raw binary, in hexadecimal
+    '0x1.999999999999ap-4' # 0x1999... is 0.1's repeating pattern
 
     >> > (0.1).as_integer_ratio()
-    (3602879701896397, 36028797018963968)  # the exact fraction it really is
+    (3602879701896397, 36028797018963968) # the exact fraction it really is
     ```
 
     That `...a` on the end of the hex is the rounding — the true pattern repeats `9999` forever and has to stop somewhere.
@@ -238,8 +238,8 @@ Integers have no such problem and no size limit: `2 ** 1000` works fine.
     ### The example above is a fun case
 
     ```python
-    >> > 0.1 + 0.2 == 0.3  # False
-    >> > 0.1 + 0.3 == 0.4  # True  (!)
+    >> > 0.1 + 0.2 == 0.3 # False
+    >> > 0.1 + 0.3 == 0.4 # True (!)
     ```
 
     `0.1 + 0.3` works, but not because it's more correct. In fact, both inputs are wrong, the sum is wrong, and the rounding at step 4 just happens to land on
@@ -253,14 +253,14 @@ Integers have no such problem and no size limit: `2 ** 1000` works fine.
     ```python
     >> > total = 0.0
     >> > for _ in range(1000):
-        ...
+    ...
     total += 0.1
     >> > total
-    99.9999999999986  # not 100.0
+    99.9999999999986 # not 100.0
 
     >> > import math
     >> > math.fsum([0.1] * 1000)
-    100.0  # fsum tracks the lost bits and adds them back
+    100.0 # fsum tracks the lost bits and adds them back
     ```
 
 </details>
@@ -295,11 +295,11 @@ Integers have no such problem and no size limit: `2 ** 1000` works fine.
     In practice the gap is smaller than that sounds, because Python's interpreter overhead dominates either way:
 
     ```text
-                                  per op        summing 10k values
-    float (hardware)              ~17 ns              96 µs
-    Decimal (software base 10)    ~39 ns             333 µs   ~3.5x slower
-    numpy float (hardware, no                          3.6 µs   27x faster
-      interpreter per element)
+    per op summing 10k values
+    float (hardware) ~17 ns 96 µs
+    Decimal (software base 10) ~39 ns 333 µs ~3.5x slower
+    numpy float (hardware, no 3.6 µs 27x faster
+    interpreter per element)
     ```
 
     So Decimal costs you a few times, not a hundred times — unless you're in NumPy, where floats get vectorized and Decimal isn't an option at all.

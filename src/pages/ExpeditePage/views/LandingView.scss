@@ -34,6 +34,12 @@
     gap: 0.4rem;
 }
 
+// Send's and Receive's terminal, last in their column: a soft line sets it apart from what's above.
+.expedite_terminal-divided {
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+}
+
 // Send's terminal row: its name with an icon, like the tiles above, then the tabs. When the row is too narrow for both, the
 // tabs move under the name all together, rather than leaving one tab on a line of its own.
 .expedite_terminal-head {
@@ -193,8 +199,10 @@
 
 .expedite_tile {
     aspect-ratio: 1 / 1;
-    // Keeps the squares sane once the container gets wide.
+    // Keeps the squares sane once the container gets wide. Past it the tiles still fill their column, wider than tall,
+    // so the gaps between them stay even.
     max-height: 170px;
+    width: 100%;
     // Square only where there's room: a square is at least as wide as its content is tall, measured with the notes
     // wrapped a word a line, which pushed the third tile off a phone's screen (120px tiles in a 335px column at 375).
     // There the tiles are as wide as their column and as tall as the tallest, about square anyway.
@@ -237,6 +245,23 @@
 
     &.is-over {
         background: var(--surface-da);
+    }
+}
+
+// A soft line in the gap before Direct P2P, as the modes under the tiles group them: Text and File, then Direct P2P.
+// From the padding box: half the grid's gap, the border, then half the line.
+.expedite_tile[data-kind="p2p"] {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 20%;
+        bottom: 20%;
+        left: calc(-0.35rem - 1.5px);
+        width: 1px;
+        background: var(--border);
+        pointer-events: none;
     }
 }
 

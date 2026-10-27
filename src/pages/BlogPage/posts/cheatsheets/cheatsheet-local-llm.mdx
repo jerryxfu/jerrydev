@@ -31,14 +31,14 @@ The left column is the nickname I made, not the name you pull. The aliases are s
 | `wrn3-7b` | WhiteRabbitNeo V3 7B | 16K | Security chat only. Knows the material but cannot drive an agent, so plain questions, not the brain |
 
 <Callout kind="note">
-**Abliterated** is an instruct model with its refusal behaviour surgically removed, so it answers instead of saying it
-cannot help with that. For authorized lab work the plain Qwen3 rarely refuses either, so this is a convenience, not a must.
+    **Abliterated** is an instruct model with its refusal behaviour surgically removed, so it answers instead of saying it
+    cannot help with that. For authorized lab work the plain Qwen3 rarely refuses either, so this is a convenience, not a must.
 </Callout>
 
 <Callout kind="note">
-The security model is for reading, not for driving. WhiteRabbitNeo answers security questions well, but in an agent loop
-it writes the tool call as plain text instead of a real one, and it does not adapt across steps. Qwen3 drives the loop.
-So the pattern is Qwen3 as the brain, WhiteRabbitNeo as a thing you ask.
+    The security model is for reading, not for driving. WhiteRabbitNeo answers security questions well, but in an agent loop
+    it writes the tool call as plain text instead of a real one, and it does not adapt across steps. Qwen3 drives the loop.
+    So the pattern is Qwen3 as the brain, WhiteRabbitNeo as a thing you ask.
 </Callout>
 
 ## Pull the models
@@ -50,8 +50,8 @@ ollama pull hf.co/bartowski/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-GGUF:Q4_K_M
 ```
 
 <Callout kind="tip">
-Pulls are resumable. If one dies with `unexpected EOF` on a flaky network, run the same line again and it carries on
-from where it stopped.
+    Pulls are resumable. If one dies with `unexpected EOF` on a flaky network, run the same line again and it carries on
+    from where it stopped.
 </Callout>
 
 ## A nickname and a bigger context
@@ -176,9 +176,11 @@ print(agent.run(
 ```
 
 <Callout kind="tip">
-Use `ollama_chat/<name>`, not `ollama/<name>`. The chat form sends real tool calls. And the context grows every step,
-so a small model slows down fast in a long run. Cap the output, keep each result short, and steer it instead of leaving
-it alone.
+    Use `ollama_chat/
+    <name>`, not `ollama/
+        <name>`. The chat form sends real tool calls. And the context grows every step,
+            so a small model slows down fast in a long run. Cap the output, keep each result short, and steer it instead of leaving
+            it alone.
 </Callout>
 
 ## Isolating the agent
@@ -194,9 +196,9 @@ outside scratch:
 (allow default)
 (deny file-write*)
 (allow file-write*
-  (subpath "/private/tmp")
-  (subpath "/Users/jerry/.cache")
-  (literal "/dev/null"))
+(subpath "/private/tmp")
+(subpath "/Users/jerry/.cache")
+(literal "/dev/null"))
 ```
 
 ```bash

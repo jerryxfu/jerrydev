@@ -256,6 +256,7 @@ routes/expedite/
 
 **Sending from a terminal.** Every terminal drop lasts 12 hours, with no view limit, and is deletable: there are no options, so the commands stay short (and
 clear of zsh's `?`).
+
 - `curl -T <file> https://api.jerryxf.net/expedite/raw/` (curl adds the file's name after the slash) or `<command> | curl -T - …/raw/` sends it in one request.
   A pipe is a text drop when it's UTF-8 text without a NUL byte, 500 KB at most; anything else a file drop, nameless for a pipe (it downloads as
   `expedite-CODE`). The API stores the file in R2 itself and computes its SHA-256. The answer: "Upload successful. Drop expires in 12h.", then the

@@ -33,7 +33,7 @@ const TILES: TileInfo[] = [
     {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
 ];
 
-// The ways to send, as the list under the tiles describes them: Text and File together, Direct P2P, the terminal.
+// The tiles' ways to send, as the list under them describes them: Text and File together, then Direct P2P.
 // `help` is the long-form answer behind the question mark. Optional because only the mode people actually have to
 // choose between needs one.
 type ModeInfo = {
@@ -61,10 +61,6 @@ const MODES: ModeInfo[] = [
             </>
         ),
     },
-    {
-        id: "terminal", label: "Terminal",
-        desc: "Any file up to 16 GB. Up to 32 MB for a command's piped output (save it to a file first if it's bigger). Expires after 12 hours, no view limit.",
-    },
 ];
 
 // Sending from a terminal, a tab per system and way: a file through the script, or a command's output piped. Each copy
@@ -74,31 +70,32 @@ const SEND_TABS = [
     {
         id: "sh", label: "macOS, Linux",
         value: `${SEND_FILE_COMMAND} <file>`, copy: `${SEND_FILE_COMMAND} `,
-        note: "Send any file, UP TO 16 GB. Add its path after the command.",
+        note: "Send any file, UP TO 16 GB. Add its path after the command. Expires after 12 hours, no view limit.",
     },
     {
         id: "windows", label: "Windows",
         value: `${SEND_POWERSHELL_COMMAND} <file>`, copy: `${SEND_POWERSHELL_COMMAND} `,
-        note: "Send any file from PowerShell, UP TO 16 GB. Add its path after the command.",
+        note: "Send any file from PowerShell, UP TO 16 GB. Add its path after the command. Expires after 12 hours, no view limit.",
     },
     {
         id: "pipe", label: "Pipe",
         value: `<command> | ${SEND_PIPE_COMMAND}`, copy: `| ${SEND_PIPE_COMMAND}`,
-        note: "Pipe the output of a command to Expedite, UP TO 32 MB.",
+        note: "Pipe the output of a command to Expedite, UP TO 32 MB. If it's bigger, save it to a file first. Expires after 12 hours, no view limit.",
     },
     {
         id: "pipe-windows", label: "Pipe, Windows",
         value: `<command> | ${SEND_PIPE_WINDOWS_COMMAND}`, copy: `| ${SEND_PIPE_WINDOWS_COMMAND}`,
-        note: "Pipe the output of a command to Expedite, UP TO 32 MB.",
+        note: "Pipe the output of a command to Expedite, UP TO 32 MB. If it's bigger, save it to a file first. Expires after 12 hours, no view limit.",
     },
 ] as const;
 
-// The tabs (the composer's setting pills, UploadView.scss), the command, and when to use it. Windows' tab first on Windows.
+// Under the tiles' modes: the tabs (the composer's setting pills, UploadView.scss), the command, and when to use it.
+// Windows' tab first on Windows.
 function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
     const [tabId, setTabId] = useState(() => (/Windows/.test(navigator.userAgent) ? "windows" : "sh"));
     const tab = SEND_TABS.find((t) => t.id === tabId) ?? SEND_TABS[0];
     return (
-        <div className="expedite_landing-terminal">
+        <div className="expedite_landing-terminal expedite_terminal-divided">
             <div className="expedite_terminal-head">
                 <span className="expedite_terminal-title" id="expedite-terminal-label">
                     <Terminal size={18} strokeWidth={1.5} aria-hidden />
@@ -189,8 +186,6 @@ export default function LandingView(
                     ))}
                 </div>
 
-                <SendCommands copiedField={copiedField} onCopy={onCopy} />
-
                 <dl className="expedite_landing-modes">
                     {MODES.map(({id, label, desc, help}) => (
                         <div key={id} className="expedite_mode">
@@ -222,6 +217,8 @@ export default function LandingView(
                         </div>
                     ))}
                 </dl>
+
+                <SendCommands copiedField={copiedField} onCopy={onCopy} />
             </section>
 
             <div className="expedite_landing-divider" role="separator" />
@@ -253,8 +250,20 @@ export default function LandingView(
                 <p className="expedite_landing-hint">
                     Enter the code, or paste the link here or in your browser's address bar.
                 </p>
+
+                {!p2pSupported && (
+                    <div className="expedite_landing-notice">
+                        <MonitorSmartphone size={22} strokeWidth={1.4} />
+                        <p className="expedite_landing-notice-text">
+                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g.
+                            Google Chrome,
+                            Edge, Opera, Brave, etc.) on computer. Sending works anywhere.
+                        </p>
+                    </div>
+                )}
+
                 {/* The command with <code> for the code: the copy stops before it, for the code to be typed after. */}
-                <div className="expedite_landing-terminal">
+                <div className="expedite_landing-terminal expedite_terminal-divided">
                     <p className="expedite_landing-hint">
                         In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}
                         <code className="expedite_landing-code">-L</code> to stream it):
@@ -271,17 +280,6 @@ export default function LandingView(
                         small
                     />
                 </div>
-
-                {!p2pSupported && (
-                    <div className="expedite_landing-notice">
-                        <MonitorSmartphone size={22} strokeWidth={1.4} />
-                        <p className="expedite_landing-notice-text">
-                            <strong>Direct P2P drops can't be received on this browser.</strong> The recipient needs a Chromium-based browser (e.g.
-                            Google Chrome,
-                            Edge, Opera, Brave, etc.) on computer. Sending works anywhere.
-                        </p>
-                    </div>
-                )}
             </section>
         </div>
     );
