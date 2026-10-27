@@ -45,7 +45,7 @@ ExpeditePage/
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
     P2PProgress         phase ladder + transfer stats (presentational, no hooks)
-    LiveView            a live room: its bar, a box per person (side by side on a laptop, a tab each on a phone)
+    LiveView            a live room: its bar, a box per person (side by side on a laptop; a tab each on a phone, every box drawn, the others hidden)
 ```
 
 `Expedite.tsx` owns every piece of state and every network call, but two: `FilePreview` reads the start of a text file to show it, and a live room's are
@@ -67,25 +67,30 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   you back in your seat. Back keeps it; Leave frees it and deletes what you sent. The creator can't leave: they end the room, or remove someone (their
   seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
 - **Names.** A random animal from the API's nickname generator; click yours to change it.
-- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a stream open in the last 40 s) and
+- **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after
+  their last, and their box goes grey. Not the stream: in production the platform keeps it open after its page has gone
+  (locally it closes). 90 s, as a hidden tab's timer can slow to once a minute.
+- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s, below) and
   the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
   twice but never miss one. A text, or a finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped
   stream reconnects on its own and sends everything again; the page keeps the links it has, or every picture would download again.
-- **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent (Enter on a laptop, the
+- **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent (Shift+Enter on a laptop, the
   Send button on a phone). The Paste button reads the clipboard (`navigator.clipboard.read`): a phone's way to paste a picture.
 - **Text** is checked for code with the composer's guess (`resolveLanguage(AUTO, …)`): code shows highlighted (its first 5 lines, until Show all),
   anything else plain, a lone link as a link.
 - **Files**, once in: a picture shows (16rem tall at most); a video or a sound, `FilePreview`'s player (only its start loads, until it plays); a
-  text file, its first 5 lines (`FilePreview`'s `mini`: a Range request for 4 KB). A PDF opens from its name, in a new tab: a viewer per card
+  text file, its first 5 lines, fading, then "Download to open" (`FilePreview`'s `mini`: a Range request for 4 KB). Code collapsed in
+  a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF opens from its name, in a new tab: a viewer per card
   would be heavy, and too narrow to read. Anything else: its name, size and Download.
-- **Boxes** glow in their person's colour, and the glow pulses while they send a file (a ring's opacity only; steady with reduced motion). Your own
+- **Counts.** Each name shows how many items its box has, "(3)": in the box's header on a laptop, in the tab on a phone.
+- **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only; steady with reduced motion). Your own
   file shows its percent, bytes sent and parts (File mode's squares, beside the time) until it's in; the others see "Sending...".
 - **Arriving.** An item someone else sends flashes their colour once (none with reduced motion). On a phone, a tab with something unseen gets a dot;
   while the tab is hidden, its title counts what came in.
-- **The bar** (code, link, QR code, time left, people, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop, under it
-  on a phone.
+- **The bar** (code, link, QR code, time left, people, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop; on a
+  phone, Leave or End room at the title's right and the rest under it.
 - **Leaving the page** stops the stream and the files going up; a file given up is deleted (keepalive), so nobody sees it coming forever. A page
-  that goes without saying so (a crash, a lost network): its files still coming are deleted once its person has been away 40 s (the stream's check).
+  that goes without saying so (a crash, a lost network): its files still coming are deleted once its person is away (the streams look every 15 s).
 
 ---
 
@@ -288,7 +293,7 @@ routes/expedite/
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn
               GET  /p2p/:code/events (SSE)
               DELETE /p2p/:code
-  live.ts     POST /live, /live/:code/join, /live/:code/items, /live/:code/items/:id/complete
+  live.ts     POST /live, /live/:code/join, /live/:code/here, /live/:code/items, /live/:code/items/:id/complete
               PATCH and DELETE /live/:code/members/:id, DELETE /live/:code/items/:id, DELETE /live/:code
               GET  /live/:code/events (SSE)
   drops.ts    GET /drop/:code, GET /stats, DELETE /drop/:code

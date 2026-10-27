@@ -79,6 +79,9 @@ export const createRoom = () => call<LiveRoom>("", {method: "POST"});
 export const joinRoom = (code: string, token: string | null) =>
     call<LiveRoom>(`/${code}/join`, {method: "POST", body: token ? {token} : {}});
 
+/** Your page is still open: you show as here (the API counts you away 90 s after the last one). */
+export const checkIn = (code: string, token: string) => call<void>(`/${code}/here`, {method: "POST", token});
+
 export const rename = (code: string, token: string, id: string, name: string) =>
     call<{ name: string }>(`/${code}/members/${id}`, {method: "PATCH", token, body: {name}});
 

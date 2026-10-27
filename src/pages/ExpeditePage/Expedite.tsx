@@ -213,9 +213,6 @@ export default function Expedite() {
     };
 
     const reset = async () => {
-        // Out of a live room: the seat stays yours until the room ends, and its link opens it again.
-        live.close();
-
         uploadAbortRef.current?.abort();
         uploadAbortRef.current = null;
         setUploadSnapshot(null);
@@ -233,6 +230,8 @@ export default function Expedite() {
         setP2pStatus(freshStatus());
 
         await animateOut(viewRef.current);
+        // Out of a live room, once it has faded: the seat stays yours until the room ends, and its link opens it again.
+        live.close();
         setDropType("text");
         setTextContent("");
         setTextLanguage(null);

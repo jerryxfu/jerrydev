@@ -125,7 +125,8 @@ function NameEditor({name, onRename}: { name: string; onRename: (name: string) =
 }
 
 // What you type or pick goes into your box. Pasting anywhere on the page sends at once (LiveView); here, a text can be
-// written first. On a laptop Enter sends; on a phone, the Send button (its Enter is a new line).
+// written first. Enter is a new line, as in any text: a room isn't a chat. On a laptop Shift+Enter sends; on a phone,
+// the Send button.
 function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean>; onFiles: (files: File[]) => void }) {
     const [text, setText] = useState("");
     const [busy, setBusy] = useState(false);
@@ -144,7 +145,7 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
     };
 
     const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (laptop && e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) void send(e);
+        if (laptop && e.key === "Enter" && e.shiftKey && !e.nativeEvent.isComposing) void send(e);
     };
 
     const pasteClipboard = async () => {
@@ -175,11 +176,20 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
                 className="live_input" rows={2} placeholder="Type or paste here" aria-label="Something to send"
                 value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onKeyDown}
             />
+            {/* The buttons, a laptop's hint under each side: how else to send, and the keys. A phone has neither. */}
             <div className="live_composer-row">
-                {/* Their icons in the landing tiles' colours (Expedite.scss): File's, and Text's for pasting. */}
-                <Button start={Paperclip} data-kind="file" onClick={() => picker.current?.click()}>File</Button>
-                {canRead && <Button start={ClipboardPaste} data-kind="text" onClick={() => void pasteClipboard()}>Paste</Button>}
-                <Button variant="main" type="submit" start={SendHorizontal} disabled={!text.trim() || busy}>Send</Button>
+                <div className="live_composer-side">
+                    <div className="live_composer-buttons">
+                        {/* Their icons in the landing tiles' colours (Expedite.scss): File's, and Text's for pasting. */}
+                        <Button start={Paperclip} data-kind="file" onClick={() => picker.current?.click()}>File</Button>
+                        {canRead && <Button start={ClipboardPaste} data-kind="text" onClick={() => void pasteClipboard()}>Paste</Button>}
+                    </div>
+                    {laptop && <p className="live_hint">Paste or drop anywhere</p>}
+                </div>
+                <div className="live_composer-side is-end">
+                    <Button variant="main" type="submit" start={SendHorizontal} disabled={!text.trim() || busy}>Send</Button>
+                    {laptop && <p className="live_hint">Shift+Enter to send</p>}
+                </div>
             </div>
             <input
                 ref={picker} type="file" multiple hidden
@@ -284,18 +294,19 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
     );
 }
 
-// Someone's box: their name, then what they sent, the newest first. Yours has the composer, and takes what's dropped.
-// It glows in their colour, and pulses while they're sending a file.
-function Box({member, mine, canRemove, items, live, viewed, target, copiedField, onCopy}: {
+// Someone's box: their name (and, on a laptop, how many items they have: a phone's tabs say it), then what they sent,
+// the newest first. Yours has the composer, and takes what's dropped. It glows in their colour, and pulses while they're
+// sending a file.
+function Box({member, mine, canRemove, items, live, viewed, counted, hidden, target, copiedField, onCopy}: {
     member: LiveMember; mine: boolean; canRemove: boolean; items: LiveItem[]; live: LiveRoomState;
-    viewed: ReadonlySet<string>; target: boolean; copiedField: string | null; onCopy: LiveViewProps["onCopy"];
+    viewed: ReadonlySet<string>; counted: boolean; hidden: boolean; target: boolean; copiedField: string | null;
+    onCopy: LiveViewProps["onCopy"];
 }) {
     const busy = items.some((i) => i.status === "pending");
-    // How to send, in your box's top corner: a laptop's keys (a phone has neither, and its Enter is a new line).
-    const laptop = useMediaQuery("(hover: hover) and (pointer: fine)");
     return (
         <section
-            className={`live_box${mine ? " is-mine" : ""}${busy ? " is-busy" : ""}${target ? " is-target" : ""}`}
+            hidden={hidden}
+            className={`live_box${mine ? " is-mine" : ""}${!mine && !member.online ? " is-away" : ""}${busy ? " is-busy" : ""}${target ? " is-target" : ""}`}
             style={{"--member": `var(--live-${member.color})`} as CSSProperties}
             aria-label={mine ? "Your box" : `${member.name}'s box`}
         >
@@ -304,15 +315,10 @@ function Box({member, mine, canRemove, items, live, viewed, target, copiedField,
                 {mine
                     ? <NameEditor name={member.name} onRename={(name) => void live.renameMe(name)} />
                     : <span className="live_name">{member.name}</span>}
+                {counted && <span className="live_count">({items.length})</span>}
                 {mine
                     ? <span className="live_presence">you</span>
                     : <span className={`live_presence${member.online ? " is-online" : ""}`}>{member.online ? "here" : "away"}</span>}
-                {mine && laptop && (
-                    <p className="live_box-hint">
-                        Paste or drop anywhere on the page.<br />
-                        Enter sends, Shift+Enter adds a line.
-                    </p>
-                )}
                 {canRemove && (
                     <span className="live_box-tools">
                         <Confirm
@@ -346,8 +352,9 @@ function Box({member, mine, canRemove, items, live, viewed, target, copiedField,
 
 /**
  * A live room's bar: its code and link (and their QR code, which opens over the page), the time left, who's in it, and
- * leaving or ending it. In Expedite's header, beside the title on a laptop and under it on a phone, so the boxes get
- * the room. Nothing once the room has closed.
+ * leaving or ending it. In Expedite's header, beside the title on a laptop, so the boxes get the room. On a phone,
+ * leaving sits at the title's right, as at the bar's end on a laptop, and the rest under it (LiveView.scss). Nothing
+ * once the room has closed.
  */
 export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
     const [showQr, setShowQr] = useState(false);
@@ -358,20 +365,22 @@ export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
     const leave = () => void live.leave().then((done) => done && onExit());
     return (
         <div className="live_bar">
-            <button type="button" className="live_code" onClick={(e) => onCopy(room.code, "live-code", e)} title="Copy the code">
-                {room.code}
-                {copiedField === "live-code" ? <Check size={16} aria-hidden /> : <Clipboard size={16} aria-hidden />}
-            </button>
-            <Button start={copiedField === "live-link" ? Check : Link} onClick={(e) => onCopy(link, "live-link", e)}>
-                {copiedField === "live-link" ? "Copied" : "Copy link"}
-            </Button>
-            <Button start={QrCode} aria-label="QR code of the room's link" title="QR code" aria-expanded={showQr}
-                    onClick={() => setShowQr(!showQr)} />
-            <TimeLeft until={room.expiresAt} />
-            <span className="live_meta">
-                <Users size={15} aria-hidden />
-                {members.length} of {room.seats}
-            </span>
+            <div className="live_bar-rest">
+                <button type="button" className="live_code" onClick={(e) => onCopy(room.code, "live-code", e)} title="Copy the code">
+                    {room.code}
+                    {copiedField === "live-code" ? <Check size={16} aria-hidden /> : <Clipboard size={16} aria-hidden />}
+                </button>
+                <Button start={copiedField === "live-link" ? Check : Link} onClick={(e) => onCopy(link, "live-link", e)}>
+                    {copiedField === "live-link" ? "Copied" : "Copy link"}
+                </Button>
+                <Button start={QrCode} aria-label="QR code of the room's link" title="QR code" aria-expanded={showQr}
+                        onClick={() => setShowQr(!showQr)} />
+                <TimeLeft until={room.expiresAt} />
+                <span className="live_meta">
+                    <Users size={15} aria-hidden />
+                    {members.length} of {room.seats}
+                </span>
+            </div>
             <span className="live_bar-end">
                 {room.me.id === ownerId
                     ? <Confirm label="End room" icon={Power} question="End it for everyone?" action="End room" onConfirm={leave} />
@@ -398,7 +407,7 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
     const {room, members, ownerId, items, closed} = live;
     const wide = useMediaQuery("(min-width: 900px)");
     // On a phone, whose box is shown (null: yours), and the items already seen in each: for the tabs' dots, and so that a
-    // card flashes the first time it's seen only (a tab's box is drawn anew each time it's picked).
+    // card flashes the first time it's seen only (a hidden box shown again plays its animations again).
     const [tab, setTab] = useState<string | null>(null);
     const [viewed, setViewed] = useState<ReadonlySet<string>>(new Set());
 
@@ -446,7 +455,6 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
     }
 
     const shownTab = ordered.some((m) => m.id === tab) ? tab : null;
-    const shown = wide ? ordered : ordered.filter((m) => (shownTab ? m.id === shownTab : m.id === meId));
     const unseen = (m: LiveMember) => m.id !== (shownTab ?? meId) && (byMember.get(m.id) ?? []).some((i) => live.fresh.has(i.id) && !viewed.has(i.id));
     // What was in the box left behind has been seen: no dot for it, and no flash when its box is shown again.
     const pick = (id: string | null) => {
@@ -477,7 +485,8 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
                                 onClick={() => pick(m.id === meId ? null : m.id)}
                             >
                                 <span className="live_dot" aria-hidden />
-                                {m.id === meId ? "You" : m.name}
+                                <span className="live_tab-name">{m.id === meId ? "You" : m.name}</span>
+                                <span className="live_count">({(byMember.get(m.id) ?? []).length})</span>
                                 {unseen(m) && <span className="live_unseen" aria-label="new" />}
                             </button>
                         );
@@ -485,11 +494,14 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
                 </div>
             )}
 
-            <div className="live_boxes" style={{"--count": shown.length + (wide && ordered.length === 1 ? 1 : 0)} as CSSProperties}>
-                {shown.map((m) => (
+            {/* Every box stays drawn. On a phone all but the picked one are hidden, so switching shows a box as it was,
+                rather than drawing it anew: its pictures, players and previews would load again. */}
+            <div className="live_boxes" style={{"--count": ordered.length + (wide && ordered.length === 1 ? 1 : 0)} as CSSProperties}>
+                {ordered.map((m) => (
                     <Box
                         key={m.id} member={m} mine={m.id === meId} canRemove={isOwner && m.id !== meId}
-                        items={byMember.get(m.id) ?? []} live={live} viewed={viewed} target={m.id === meId && dragging}
+                        items={byMember.get(m.id) ?? []} live={live} viewed={viewed} counted={wide}
+                        hidden={!wide && m.id !== (shownTab ?? meId)} target={m.id === meId && dragging}
                         copiedField={copiedField} onCopy={onCopy}
                     />
                 ))}

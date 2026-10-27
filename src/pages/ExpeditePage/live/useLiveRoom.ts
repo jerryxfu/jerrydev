@@ -9,6 +9,10 @@ export const LIVE_MAX_FILE_SIZE = 1024 ** 3;
 
 const message = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong");
 
+// How often the page tells the API you're here. It counts you away 90 s after the last time (its LIVE_ONLINE_MS): a
+// hidden tab's timer can slow to once a minute, and a file going up checks in too, so a page still open always makes it.
+const CHECK_IN_MS = 30_000;
+
 // The stream sends a text, or a finished file's links, once: after that the item comes without them, and keeps what the
 // page already has. A stream that reopens sends the links again, signed anew: the page keeps the ones it has (signed
 // until the room ends), or every picture in the room would download again.
@@ -42,7 +46,9 @@ export function useLiveRoom() {
     const [lost, setLost] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Stops the stream and the check-ins, which run together.
     const stopStream = useRef<(() => void) | null>(null);
+    const lastCheckIn = useRef(0);
     // Every file going up (from before its item exists), and by item id for its cancel button.
     const sending = useRef(new Set<AbortController>());
     const sendingById = useRef(new Map<string, AbortController>());
@@ -88,10 +94,20 @@ export function useLiveRoom() {
         sendingById.current.clear();
     };
 
+    // A failed one is left: the stream says when the room has ended or you were removed.
+    const checkIn = (code: string, myToken: string) => {
+        lastCheckIn.current = Date.now();
+        void api.checkIn(code, myToken).catch(() => undefined);
+    };
+
     const connect = (code: string, myToken: string, myId: string) => {
         stopStream.current?.();
         setLost(false);
-        stopStream.current = api.openStream(code, myToken, {
+        // You're here while this page has the room open: the page says so, now and every CHECK_IN_MS. Not the stream: in
+        // production the platform keeps it open after its page has gone.
+        checkIn(code, myToken);
+        const timer = window.setInterval(() => checkIn(code, myToken), CHECK_IN_MS);
+        const closeStream = api.openStream(code, myToken, {
             members: (data) => {
                 setMembers(data.members);
                 setOwnerId(data.ownerId);
@@ -114,6 +130,8 @@ export function useLiveRoom() {
             },
             closed: (why) => {
                 api.forgetSeat(code);
+                stopStream.current?.();
+                stopStream.current = null;
                 stopUploads();
                 setClosed(why);
             },
@@ -129,6 +147,10 @@ export function useLiveRoom() {
                     .catch(() => setLost(true));
             },
         });
+        stopStream.current = () => {
+            closeStream();
+            window.clearInterval(timer);
+        };
     };
 
     // Back to the page from the browser's cache (its Back button, after another site): the stream stopped as the page
@@ -224,6 +246,8 @@ export function useLiveRoom() {
                 (s) => {
                     const itemId = id;
                     if (itemId) setUploads((u) => ({...u, [itemId]: s}));
+                    // A hidden tab's timer can lag: a file going up keeps you here, so it's never taken for given up.
+                    if (Date.now() - lastCheckIn.current >= CHECK_IN_MS) checkIn(room.code, token);
                 },
                 controller.signal,
             )
@@ -284,6 +308,9 @@ export function useLiveRoom() {
             if (room.me.id === ownerId) await api.endRoom(room.code, token);
             else await api.removeMember(room.code, token, room.me.id);
             api.forgetSeat(room.code);
+            // Nothing more to hear: its "ended" or "removed" would swap the room for that message as it fades out.
+            stopStream.current?.();
+            stopStream.current = null;
             return true;
         } catch (err) {
             setError(message(err));

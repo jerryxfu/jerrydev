@@ -24,12 +24,22 @@
 
 // --- The bar ---
 // Relative: its QR code opens over the page, under it, rather than pushing the boxes down.
-.live_bar {
-    position: relative;
+.live_bar,
+.live_bar-rest {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem 0.9rem;
+}
+
+.live_bar {
+    position: relative;
+}
+
+// All but leaving: the code, the link, the QR code, the time, the people.
+.live_bar-rest {
+    flex: 1;
+    min-width: 0;
 }
 
 .live_code {
@@ -74,6 +84,11 @@
 // Leaving, or ending the room: at the bar's end, or under it when the bar wraps.
 .live_bar-end {
     margin-left: auto;
+
+    // End room's and Leave's icon in red; the label stays the text's colour.
+    > .btn svg {
+        color: var(--danger-text);
+    }
 }
 
 .live_confirm {
@@ -85,10 +100,69 @@
     color: var(--text-2);
 }
 
-// Under the title on a phone (Expedite's header), a little apart from it.
+// On a phone, Expedite's header: Back, then the title with leaving at its right (the bar's end on a laptop), then the
+// rest of the bar a little apart. The bar itself steps aside (contents), so leaving and the rest are the header's own
+// cells; its QR code then opens under the header.
 @media (max-width: 899px) {
-    .expedite_header--live > .live_bar {
-        margin-top: 0.6rem;
+    .expedite_header--live {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.3rem 1rem;
+
+        > .expedite_back {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+
+        .live_bar {
+            display: contents;
+        }
+
+        // Compact, to fit beside the title from 360px wide.
+        .live_bar-end {
+            grid-row: 2;
+            grid-column: 2;
+            margin-left: 0;
+
+            > .btn {
+                gap: 0.3rem;
+                padding: 0.4rem 0.7rem;
+                font-size: var(--fs-smm);
+            }
+        }
+
+        .live_bar-rest {
+            grid-row: 3;
+            grid-column: 1 / -1;
+            margin-top: 0.6rem;
+        }
+
+        // Narrower, or asking "End it for everyone?": leaving takes a row of its own, under the title.
+        @media (max-width: 359px) {
+            .live_bar-end {
+                grid-row: 3;
+                grid-column: 1 / -1;
+                justify-self: end;
+            }
+
+            .live_bar-rest {
+                grid-row: 4;
+            }
+        }
+
+        &:has(.live_confirm) {
+            .live_bar-end {
+                grid-row: 3;
+                grid-column: 1 / -1;
+                justify-self: start;
+            }
+
+            .live_bar-rest {
+                grid-row: 4;
+            }
+        }
     }
 }
 
@@ -148,6 +222,13 @@
     }
 }
 
+// A long name shortens, its count stays whole.
+.live_tab-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .live_unseen {
     width: 0.45rem;
     height: 0.45rem;
@@ -163,9 +244,11 @@
 
 // Side by side, as tall as the screen allows: each box scrolls on its own, so everyone stays in view.
 @media (min-width: 900px) {
+    // The screen's height, but what's above the boxes (Back, the title and the bar: 8.3rem) and the footer (2.3rem), with a
+    // little room before the footer. Where the bar wraps (below about 1000px), the page scrolls by its second line.
     .live_boxes {
         grid-template-columns: repeat(var(--count), minmax(0, 1fr));
-        height: clamp(420px, calc(100dvh - 16rem), 1100px);
+        height: clamp(420px, calc(100dvh - 11.5rem), 1100px);
     }
 
     .live_box {
@@ -190,12 +273,19 @@
     flex-direction: column;
     gap: 0.75rem;
     min-width: 0;
-    padding: 0.85rem;
-    border: 2px solid color-mix(in srgb, var(--member) 80%, transparent);
+    // Less at the sides, for the cards' width: the header and the composer keep in line with them.
+    padding: 0.85rem 0.55rem;
+    // The line and glow's colour: their person's, grey while they're away (the dot by their name keeps theirs).
+    --frame: var(--member);
+    border: 2px solid color-mix(in srgb, var(--frame) 80%, transparent);
     border-radius: 12px;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--member) 30%, transparent),
-    0 0 6px color-mix(in srgb, var(--member) 18%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--frame) 30%, transparent),
+    0 0 6px color-mix(in srgb, var(--frame) 18%, transparent);
     transition: background 0.15s, border-color 0.15s;
+
+    &.is-away {
+        --frame: var(--text-5);
+    }
 
     // Sending a file: the glow pings, a ring outside the line fading in and out. Only its opacity moves, which is cheap
     // to draw.
@@ -205,9 +295,14 @@
         inset: -2px;
         border-radius: inherit;
         pointer-events: none;
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--member) 45%, transparent),
-        0 0 10px color-mix(in srgb, var(--member) 30%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--frame) 45%, transparent),
+        0 0 10px color-mix(in srgb, var(--frame) 30%, transparent);
         animation: live-ping 1.6s ease-in-out infinite;
+    }
+
+    // On a phone, a box whose tab isn't picked: still drawn, not shown (display: flex would show it).
+    &[hidden] {
+        display: none;
     }
 
     // A file dragged over the page lands here.
@@ -244,8 +339,7 @@
     color: var(--text-2);
 }
 
-// The name, then (yours, on a laptop) how to send in the top right corner. A box too narrow for both puts the hint
-// under the name.
+// The name, how many items they have (on a laptop), whether they're here, and (the creator's) Remove.
 .live_box-head {
     display: flex;
     flex-wrap: wrap;
@@ -254,12 +348,11 @@
     min-height: 2.25rem;
 }
 
-.live_box-hint {
-    margin: 0 0 0 auto;
-    text-align: right;
-    font-size: var(--fs-xs);
-    line-height: 1.35;
-    color: var(--text-5);
+// "(3)" after a name: their items, in the header on a laptop and in the tab on a phone.
+.live_count {
+    flex-shrink: 0;
+    color: var(--text-4);
+    font-variant-numeric: tabular-nums;
 }
 
 .live_dot {
@@ -387,14 +480,43 @@
     }
 }
 
+// File and Paste on the left, Send on the right, each side's hint just under it. A narrow box puts Send under them.
 .live_composer-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
 
-    > .btn--main {
-        margin-left: auto;
+.live_composer-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+
+    // A button's caption: small, and right under it.
+    .live_hint {
+        font-size: 0.6875rem;
+        line-height: 1.2;
     }
+
+    &.is-end {
+        align-items: flex-end;
+        margin-left: auto;
+        text-align: right;
+    }
+}
+
+.live_composer-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+// Compact: smaller than the site's buttons, as tools beside a text box.
+.live_composer-row .btn {
+    gap: 0.3rem;
+    padding: 0.4rem 0.7rem;
+    font-size: var(--fs-smm);
 }
 
 .live_hint {
@@ -413,11 +535,12 @@
     list-style: none;
 }
 
+// Tight, for narrow boxes: a preview close to the card's edge, the rows under it close together.
 .live_item {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.65rem 0.75rem;
+    gap: 0.35rem;
+    padding: 0.45rem 0.5rem;
     border: 1px solid var(--border);
     border-radius: 10px;
 
@@ -426,14 +549,16 @@
         margin: 0;
     }
 
-    // Previews (FilePreview's, small): a video as tall as a picture at most, and a collapsed code text faded on its
-    // last line only, as it shows five (the drops' fade takes three).
+    // Previews (FilePreview's, small): a video as tall as a picture at most. Code collapsed to five lines (a text, a code
+    // file's start) doesn't scroll sideways: the scrollbar would sit on its fade and hide its last line. Its last two
+    // lines fade (the drops' fade takes three of thirty).
     .expedite_preview-media {
         max-height: 16rem;
     }
 
     .expedite_code.is-collapsed pre {
-        mask-image: linear-gradient(to bottom, #000 calc(100% - 1.55em), transparent);
+        overflow: hidden;
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 3.1em), transparent);
     }
 }
 

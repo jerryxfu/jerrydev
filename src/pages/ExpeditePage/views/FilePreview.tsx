@@ -151,10 +151,11 @@ const TEXT_LIMIT = 128 * 1024;
 const COLLAPSED_LINES = {wide: 30, narrow: 20};
 const COLLAPSE_MARGIN = 5;
 
-// A small preview (a live room's card): a text's first lines, and a file read only as far as they need (unless its lines
-// are very long, 4 KB holds them).
+// A small preview (a live room's card): a text's first lines. A file is read only as far as the card needs (unless its
+// lines are very long, 4 KB holds more than them), so it can't open: a note says how to see the rest.
 export const MINI_LINES = 5;
 const MINI_LIMIT = 4 * 1024;
+const MINI_NOTE = "Download to open";
 
 type Read = { text: string; truncated: boolean };
 
@@ -181,11 +182,10 @@ function TextPreview({src, name, size, file, onInfo, mini}: {
             .then((buffer): Read | null => {
                 const decoded = decode(buffer.slice(0, limit), truncated);
                 if (decoded === null) return null;
-                const whole = linesOf(decoded);
-                const text = mini ? whole.split("\n").slice(0, MINI_LINES).join("\n") : whole;
+                const text = linesOf(decoded);
                 if (!cancelled) {
                     onInfo?.({
-                        lines: whole.split("\n").length, partial: truncated,
+                        lines: text.split("\n").length, partial: truncated,
                         lineEndings: decoded.includes("\r\n") ? "CRLF" : "LF", text: truncated ? undefined : decoded,
                     });
                 }
@@ -209,9 +209,11 @@ function TextPreview({src, name, size, file, onInfo, mini}: {
             : <TextPlaceholder lines={Math.min(collapsedLines, guess)} bar={guess >= collapsedLines + COLLAPSE_MARGIN} />;
     }
     if (!read.result) return null;
-    // A small preview's lines stand alone: no "Show all" (what was read isn't all), no note (the card has Download).
     return (
-        <CodeView text={read.result.text} language={EXTENSIONS[extension(name)] ?? null} truncated={!mini && read.result.truncated} />
+        <CodeView
+            text={read.result.text} language={EXTENSIONS[extension(name)] ?? null} truncated={read.result.truncated}
+            collapseTo={mini ? MINI_LINES : undefined} note={mini ? MINI_NOTE : undefined}
+        />
     );
 }
 
@@ -223,10 +225,11 @@ function useCollapsedLines(): number {
  * Text or code with line numbers: a code file's preview, or a text drop sent as code. It shows at once as plain text;
  * the colours follow when the highlighter is ready (Shiki and the grammar load on the first code shown). A long one
  * collapses to its first lines (`collapseTo`, else as many as the screen has room for), with a button to open it all
- * that stays on screen while it's open.
+ * that stays on screen while it's open. One that can't open (`note`: a live room's file, read only in part) says the
+ * note instead, when there's more than it shows.
  */
-export function CodeView({text, language, truncated = false, collapseTo}: {
-    text: string; language: string | null; truncated?: boolean; collapseTo?: number;
+export function CodeView({text, language, truncated = false, collapseTo, note}: {
+    text: string; language: string | null; truncated?: boolean; collapseTo?: number; note?: string;
 }) {
     // The colouring function for the language, once its grammar is loaded.
     const [colourer, setColourer] = useState<{ language: string; colour: (text: string) => string } | null>(null);
@@ -279,7 +282,7 @@ export function CodeView({text, language, truncated = false, collapseTo}: {
                 : <pre><code>{all.map((line, i) => <Fragment key={i}><span className="line">{line}</span>{"\n"}</Fragment>)}</code></pre>}
             {/* Sticks to the bottom of the screen while the open text runs past it, so closing it is always one click
                 away, wherever one is in it. */}
-            {long && (
+            {long && note === undefined && (
                 <div className="expedite_code-bar">
                     <button type="button" className="expedite_code-toggle" aria-expanded={open} onClick={toggle}>
                         {open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
@@ -287,7 +290,9 @@ export function CodeView({text, language, truncated = false, collapseTo}: {
                     </button>
                 </div>
             )}
-            {truncated && <p className="expedite_code-more">Showing the start. Download it to see it all.</p>}
+            {(truncated || (long && note !== undefined)) && (
+                <p className="expedite_code-more">{note ?? "Showing the start. Download it to see it all."}</p>
+            )}
         </div>
     );
 }
