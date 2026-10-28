@@ -56,7 +56,7 @@ export function closeSession(apiBaseUrl: string, code: string): void {
             keepalive: true,
         });
     } catch {
-        // Best effort, the 10 min TTL reaps it regardless.
+        // Best effort: the API reaps it regardless (10 min unclaimed, 24 h once paired).
     }
 }
 
@@ -97,7 +97,7 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
     let pc: RTCPeerConnection | null = null;
     let code: string | null = null;
     let source: EventSource | null = null;
-    // Once the channel is open and the session paired: what keeps the transfer going through a network switch.
+    // Once the channel is open: what keeps the transfer going through a network switch.
     let reconnect: Reconnect | null = null;
     // The transfer's own signal: the page's cancel, or giving up on reconnecting.
     const transfer = new AbortController();
@@ -173,9 +173,8 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
 
         code = initJson.data.code as string;
         onCode(code, initJson.data.expiresAt as string);
-        // For reconnecting once paired. An older API gives none: the transfer then can't survive a network switch.
-        const token = initJson.data.token as string | undefined;
-        const pairing: Pairing | null = token ? {apiBaseUrl, code, token} : null;
+        // For reconnecting once paired.
+        const pairing: Pairing = {apiBaseUrl, code, token: initJson.data.token as string};
         const gatherTimeout = useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS;
 
         emit({
@@ -222,10 +221,10 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
             detail: `data channel open · ${formatBytesShort(chunkSize)} chunks`,
         });
         await refreshPair(pc, emit);
-        if (pairing) reconnect = keepConnected(pc, pairing, gatherTimeout, emit, transfer);
+        reconnect = keepConnected(pc, pairing, gatherTimeout, emit, transfer);
 
         // --- Transfer ---
-        await pumpFile(file, channel, chunkSize, onSnapshot, transfer.signal, pc, emit, reconnect === null);
+        await pumpFile(file, channel, chunkSize, onSnapshot, transfer.signal, pc, emit);
 
         emit({phase: "done", degraded: false, reconnecting: false, detail: `${file.name} delivered · ${formatBytesShort(file.size)}`});
         teardown();
@@ -575,8 +574,7 @@ async function pumpFile(
     onSnapshot: (snapshot: P2PSnapshot) => void,
     signal: AbortSignal,
     pc: RTCPeerConnection,
-    emit: (patch: Partial<P2PStatus>) => void,
-    iceIsFinal: boolean
+    emit: (patch: Partial<P2PStatus>) => void
 ): Promise<void> {
     // `queued` counts bytes handed to SCTP. What has actually reached the peer is
     // queued minus whatever is still sitting in the send buffer.
@@ -644,7 +642,7 @@ async function pumpFile(
         channel.send(CTRL_EOF);
         emit({phase: "transferring", detail: "all chunks sent · waiting for receiver ack"});
 
-        await waitForAck(channel, pc, signal, iceIsFinal);
+        await waitForAck(channel, signal);
 
         // Buffer has drained and the receiver confirmed the write; pin to 100% rather than leaving the bar parked at 99.x.
         onSnapshot({
@@ -665,17 +663,15 @@ async function pumpFile(
 }
 
 /**
- * Wait for the receiver to confirm it finished writing to disk. Only its CTRL_DONE counts: a channel that closes first,
- * or a connection that fails, means it stopped before the file was saved (a full disk, a closed tab), even with every
- * byte sent. No timeout: writing the last of a big file can take a while, and a dead peer fails ICE on its own. Where
- * the transfer can reconnect (`iceIsFinal` false), a failed ICE starts a reconnect instead, and giving up aborts.
+ * Wait for the receiver to confirm it finished writing to disk. Only its CTRL_DONE counts: a channel that closes first
+ * means it stopped before the file was saved (a full disk, a closed tab), even with every byte sent. No timeout: writing
+ * the last of a big file can take a while. A lost connection is keepConnected's: it reconnects, or gives up and aborts.
  */
-function waitForAck(channel: RTCDataChannel, pc: RTCPeerConnection, signal: AbortSignal, iceIsFinal: boolean): Promise<void> {
+function waitForAck(channel: RTCDataChannel, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
         const cleanup = (): void => {
             channel.removeEventListener("message", onMessage);
             channel.removeEventListener("close", onClose);
-            pc.removeEventListener("iceconnectionstatechange", onIce);
             signal.removeEventListener("abort", onAbort);
         };
         const onMessage = (ev: MessageEvent): void => {
@@ -688,11 +684,6 @@ function waitForAck(channel: RTCDataChannel, pc: RTCPeerConnection, signal: Abor
             cleanup();
             reject(new P2PError("The receiver closed before confirming the file was saved"));
         };
-        const onIce = (): void => {
-            if (pc.iceConnectionState !== "failed") return;
-            cleanup();
-            reject(new P2PError("Connection lost before the receiver confirmed the file was saved"));
-        };
         const onAbort = (): void => {
             cleanup();
             reject(new DOMException("Cancelled", "AbortError"));
@@ -700,7 +691,6 @@ function waitForAck(channel: RTCDataChannel, pc: RTCPeerConnection, signal: Abor
 
         channel.addEventListener("message", onMessage);
         channel.addEventListener("close", onClose);
-        if (iceIsFinal) pc.addEventListener("iceconnectionstatechange", onIce);
         signal.addEventListener("abort", onAbort);
     });
 }

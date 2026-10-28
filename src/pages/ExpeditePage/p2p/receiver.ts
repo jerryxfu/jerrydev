@@ -94,7 +94,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
     let writable: Sink | null = null;
     let memory: ReturnType<typeof memorySink> | null = null;
     let statsTimer = 0;
-    // Once the channel is open and the session paired: answering the sender's reconnects through a network switch.
+    // Once the channel is open: answering the sender's reconnects through a network switch.
     let reconnect: Reconnect | null = null;
     // The transfer's own signal: the page's cancel, or giving up on reconnecting.
     const transfer = new AbortController();
@@ -186,9 +186,8 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         if (!res.ok) {
             throw new P2PError(json?.error?.message ?? `Answer rejected (HTTP ${res.status})`);
         }
-        // For reconnecting once paired. An older API gives none: the transfer then can't survive a network switch.
-        const token = json?.data?.token as string | undefined;
-        const pairing: Pairing | null = token ? {apiBaseUrl, code, token} : null;
+        // For reconnecting once paired.
+        const pairing: Pairing = {apiBaseUrl, code, token: json.data.token as string};
 
         emit({phase: "negotiating", detail: "answer posted · awaiting data channel"});
         watchIce(pc, status, emit, () => reconnect !== null);
@@ -202,7 +201,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             detail: `data channel open · writing to ${fileName}`,
         });
         await refreshPair(pc, emit);
-        if (pairing) reconnect = answerRestarts(pc, pairing, gatherTimeout, emit, transfer);
+        reconnect = answerRestarts(pc, pairing, gatherTimeout, emit, transfer);
 
         // Open the sink only once bytes are actually about to flow, so a failed
         // negotiation doesn't leave a zero-byte file sitting on disk.

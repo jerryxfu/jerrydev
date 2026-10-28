@@ -177,8 +177,7 @@ via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
 Only `CTRL_DONE` counts as delivered: a channel that closes first fails the transfer on the sender too (the receiver's disk filling up after the last byte
-went out used to show as delivered). ICE failing does as well, but only where the transfer can't reconnect (an API that gave no token): otherwise it starts
-the reconnect rounds, and only giving up on them fails it. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
+went out used to show as delivered). ICE failing doesn't: it starts the reconnect rounds, and only giving up on them fails it. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
 the receiver closes anyway after 5s.
 
 Receiver writes are serialised through a promise chain — `write()` is async and message events are not, so without it a fast sender interleaves writes and
@@ -203,7 +202,7 @@ block 53, and with non-trickle gathering a hanging URL delays the whole SDP and 
 
 Until 2026-10-27 the relay was opt-in, with an automatic retry: the direct attempt had to fail first (up to 30s), then the sender republished under the same
 code with TURN and the receiver polled for it. Offering it from the start replaced the retry, the polling and the "Force TURN relay" switch (which never forced
-anything: it only added the relay as an option). The API's `reuseCode` on `/p2p/init` is left over from that retry.
+anything: it only added the relay as an option).
 
 ---
 
