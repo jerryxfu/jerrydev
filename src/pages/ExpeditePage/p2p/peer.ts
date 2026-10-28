@@ -230,17 +230,23 @@ export type SignalEvent =
 
 /**
  * One event from the API's restart stream: for the receiver, the next round's offer (above `round`); for the sender, the
- * answer to `round`. `gone` once the session is over (the sender ended it), or when the stream is refused: EventSource
- * doesn't retry those, where it does retry a network that's still down.
+ * answer to `round`; `gone` once the session is over (the sender ended it). Until then, or until `signal` aborts.
+ *
+ * Through a network that's still down too: a stream that can't reach the server at all (a laptop between two Wi-Fi
+ * networks) closes for good, as EventSource does when no connection can be made, so it's opened again every
+ * OFFLINE_RETRY_MS. Only the API's `gone` ends the wait early: a closed stream once read as gone made the side whose
+ * network was changing give up at once.
  */
 export function waitForSignal(pairing: Pairing, round: number, signal: AbortSignal): Promise<SignalEvent> {
     return new Promise((resolve, reject) => {
         const {apiBaseUrl, code, token} = pairing;
-        const source = new EventSource(
-            `${apiBaseUrl}/expedite/p2p/${code}/restart/events?token=${encodeURIComponent(token)}&round=${round}`
-        );
+        const url = `${apiBaseUrl}/expedite/p2p/${code}/restart/events?token=${encodeURIComponent(token)}&round=${round}`;
+        let source: EventSource | null = null;
+        let retry = 0;
+
         const cleanup = (): void => {
-            source.close();
+            source?.close();
+            window.clearTimeout(retry);
             signal.removeEventListener("abort", onAbort);
         };
         const finish = (event: SignalEvent): void => {
@@ -251,26 +257,34 @@ export function waitForSignal(pairing: Pairing, round: number, signal: AbortSign
             cleanup();
             reject(new DOMException("Cancelled", "AbortError"));
         };
+
+        const open = (): void => {
+            const stream = new EventSource(url);
+            source = stream;
+            for (const kind of ["offer", "answer"] as const) {
+                stream.addEventListener(kind, (ev) => {
+                    try {
+                        const data = JSON.parse((ev as MessageEvent<string>).data);
+                        finish({kind, round: data.round as number, sdp: data[kind] as string});
+                    } catch {
+                        // Malformed: the round times out and the next one goes.
+                    }
+                });
+            }
+            stream.addEventListener("gone", () => finish({kind: "gone"}));
+            stream.onerror = () => {
+                if (stream.readyState !== EventSource.CLOSED) return;
+                stream.close();
+                retry = window.setTimeout(open, OFFLINE_RETRY_MS);
+            };
+        };
+
         if (signal.aborted) {
             onAbort();
             return;
         }
         signal.addEventListener("abort", onAbort);
-
-        for (const kind of ["offer", "answer"] as const) {
-            source.addEventListener(kind, (ev) => {
-                try {
-                    const data = JSON.parse((ev as MessageEvent<string>).data);
-                    finish({kind, round: data.round as number, sdp: data[kind] as string});
-                } catch {
-                    // Malformed: the round times out and the next one goes.
-                }
-            });
-        }
-        source.addEventListener("gone", () => finish({kind: "gone"}));
-        source.onerror = () => {
-            if (source.readyState === EventSource.CLOSED) finish({kind: "gone"});
-        };
+        open();
     });
 }
 

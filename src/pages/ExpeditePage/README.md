@@ -157,7 +157,10 @@ sender                          server                        receiver
 
 The sender's offer is an ICE restart (`createOffer({iceRestart: true})`), so both sides gather routes from wherever they
 now are; the DTLS and SCTP above stay as they were, and so does the data channel. A round that hasn't reconnected within
-15 s is followed by another; down for 90 s, both sides give up. No stream is held while the route is up. The constants
+15 s is followed by another, and once its answer is in, the route checks get 15 s of their own; down for 90 s, both sides
+give up. No stream is held while the route is up. The restart stream waits through a network that's still down: a
+browser closes an EventSource for good when it can't reach the server at all (a laptop between two Wi-Fi networks), so
+`waitForSignal` opens it again every 3 s, and only the API's `gone` (the session ended) stops it. The constants
 and the why are in `p2p/peer.ts` (`RESTART_AFTER_MS`); the rounds are `keepConnected` in `sender.ts` and
 `answerRestarts` in `receiver.ts`. If the data channel has already closed, there's nothing to carry on: the transfer
 fails, as before (resuming from a byte position isn't built).

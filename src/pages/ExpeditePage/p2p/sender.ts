@@ -417,7 +417,7 @@ function keepConnected(
         while (!stopped && !isUp(pc)) {
             const round = new AbortController();
             current = round;
-            const timer = window.setTimeout(() => round.abort(), ROUND_TIMEOUT_MS);
+            let timer = window.setTimeout(() => round.abort(), ROUND_TIMEOUT_MS);
             const onStop = (): void => round.abort();
             transfer.signal.addEventListener("abort", onStop, {once: true});
             try {
@@ -449,6 +449,10 @@ function keepConnected(
                     return;
                 }
                 await pc.setRemoteDescription({type: "answer", sdp: answer.sdp});
+                // The checks get a full round of their own: an answer late in the round would otherwise see its new
+                // route thrown away by the next round's restart, just as it was being found.
+                window.clearTimeout(timer);
+                timer = window.setTimeout(() => round.abort(), ROUND_TIMEOUT_MS);
                 emit({remoteCandidates: countCandidates(answer.sdp), detail: `reconnecting · round ${n} · answer in, checking routes`});
                 await waitForUp(pc, round.signal);
             } catch {
@@ -615,9 +619,7 @@ async function pumpFile(
         while (queued < file.size) {
             throwIfAborted(signal);
 
-            if (channel.readyState !== "open") {
-                throw new P2PError(`Data channel closed mid-transfer (state ${channel.readyState})`);
-            }
+            if (channel.readyState !== "open") throw closedMidTransfer(channel);
 
             // Backpressure: the SCTP buffer is not infinite, and blasting past it
             // stalls or kills the channel.
@@ -628,6 +630,9 @@ async function pumpFile(
 
             const slice = file.slice(queued, Math.min(queued + chunkSize, file.size));
             const buffer = await slice.arrayBuffer();
+            // Again after the read, which takes a moment: a channel that closed meanwhile (the receiver gone) would make
+            // send() throw the browser's own message ("Failed to execute 'send'...") instead of this one.
+            if (channel.readyState !== "open") throw closedMidTransfer(channel);
             channel.send(buffer);
 
             queued += buffer.byteLength;
@@ -704,6 +709,10 @@ function waitForAck(channel: RTCDataChannel, pc: RTCPeerConnection, signal: Abor
 
 function throwIfAborted(signal: AbortSignal): void {
     if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
+}
+
+function closedMidTransfer(channel: RTCDataChannel): P2PError {
+    return new P2PError(`Data channel closed mid-transfer (state ${channel.readyState})`);
 }
 
 function formatSdpSize(sdp: string): string {
