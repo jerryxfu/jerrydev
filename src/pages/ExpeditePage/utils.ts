@@ -71,8 +71,8 @@ export function formatSpeed(bps: number): string {
 
 export function formatEta(secs: number): string {
     if (!isFinite(secs) || secs <= 0) return "—";
-    if (secs < 60) return `${Math.ceil(secs)}s`;
-    const m = Math.floor(secs / 60);
-    const s = Math.ceil(secs % 60);
-    return `${m}m ${s}s`;
+    // Rounded up whole first, so 119.5 s reads "2m 0s", not "1m 60s".
+    const whole = Math.ceil(secs);
+    if (whole < 60) return `${whole}s`;
+    return `${Math.floor(whole / 60)}m ${whole % 60}s`;
 }

@@ -26,6 +26,34 @@ const PHASE_LABEL: Record<P2PPhase, string> = {
     expired: "Expired",
 };
 
+/** The headline, in plain words for each side; the ladder keeps the technical names. */
+const PHASE_TITLE: Record<Props["role"], Record<P2PPhase, string>> = {
+    send: {
+        idle: "Starting",
+        gathering: "Preparing",
+        signalling: "Creating a code",
+        "awaiting-peer": "Waiting for the receiver",
+        negotiating: "Connecting",
+        connected: "Connected",
+        transferring: "Sending",
+        done: "Delivered",
+        failed: "Failed",
+        expired: "Code expired",
+    },
+    receive: {
+        idle: "Starting",
+        gathering: "Preparing",
+        signalling: "Joining",
+        "awaiting-peer": "Waiting for the sender",
+        negotiating: "Connecting",
+        connected: "Connected",
+        transferring: "Receiving",
+        done: "Received",
+        failed: "Failed",
+        expired: "Code expired",
+    },
+};
+
 // Colour temperature of each phase: green for a working/finished connection,
 // amber for anything still in flight or waiting, red for a dead one.
 const PHASE_TONE: Record<P2PPhase, "idle" | "ok" | "warn" | "err"> = {
@@ -99,7 +127,7 @@ export default function P2PProgress({status, snapshot, role, inMemory = false}: 
 
             <div className={`expedite_p2p-headline${isError ? " is-error" : ""}`}>
                 {/* Mid-transfer, the route lost and a new one being found: the ladder stays on Transferring. */}
-                <span className="expedite_p2p-phase">{status.reconnecting ? "Reconnecting" : PHASE_LABEL[status.phase]}</span>
+                <span className="expedite_p2p-phase">{status.reconnecting ? "Reconnecting" : PHASE_TITLE[role][status.phase]}</span>
             </div>
 
             {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}
@@ -199,7 +227,12 @@ export default function P2PProgress({status, snapshot, role, inMemory = false}: 
                 </dl>
             </Disclosure>
 
-            {status.error && <p className="expedite_error">{status.error}</p>}
+            {status.error && (
+                <p className="expedite_error">
+                    {status.error.message}
+                    {status.error.technical && <> <em>{status.error.technical}</em></>}
+                </p>
+            )}
         </div>
     );
 }

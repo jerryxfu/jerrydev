@@ -42,7 +42,7 @@ function putWithProgress(
             if (xhr.status >= 200 && xhr.status < 300) {
                 const etag = xhr.getResponseHeader("ETag");
                 if (!etag) {
-                    reject(new Error("Missing ETag — check R2 CORS ExposeHeaders includes ETag"));
+                    reject(new Error("Missing ETag: check that R2's CORS ExposeHeaders includes ETag"));
                     return;
                 }
                 resolve(etag);
@@ -56,6 +56,8 @@ function putWithProgress(
 
         const onAbort = () => xhr.abort();
         signal.addEventListener("abort", onAbort, {once: true});
+        // However it ends: the signal outlives this part, and would keep every part's request.
+        xhr.onloadend = () => signal.removeEventListener("abort", onAbort);
         xhr.send(body);
     });
 }
@@ -80,8 +82,9 @@ async function finalize(
         body: JSON.stringify({code, parts, ttlMs: settings.ttlMs, ...(sha256 ? {sha256} : {})}),
         signal
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json?.error?.message || "Failed to finalize upload");
+    // Null when the answer isn't the API's JSON (a proxy's error page).
+    const json = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(json?.error?.message || `Failed to finalize upload (HTTP ${res.status})`);
     const d = json.data;
     return {
         code: d.code, type: "file",
@@ -123,9 +126,9 @@ export async function uploadFile(
         }),
         signal
     });
-    const initJson = await initRes.json();
+    const initJson = await initRes.json().catch(() => null);
     if (!initRes.ok) {
-        throw new Error(initJson?.error?.message || "Failed to start upload");
+        throw new Error(initJson?.error?.message || `Failed to start upload (HTTP ${initRes.status})`);
     }
     const data = initJson.data;
     const code: string = data.code;
@@ -191,6 +194,10 @@ export async function putToR2(
     // multipart
     const {partSize, partUrls} = plan;
     const etags = new Map<number, string>();
+    // Stops every part: the caller's cancel, or a part that failed for good (the others would go on sending, unseen, to
+    // an upload the caller is about to give up).
+    const stop = new AbortController();
+    const upload = AbortSignal.any([signal, stop.signal]);
 
     for (const pu of partUrls) {
         const start = (pu.partNumber - 1) * partSize;
@@ -207,7 +214,7 @@ export async function putToR2(
         const blob = file.slice(start, end);
 
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+            if (upload.aborted) throw new DOMException("Aborted", "AbortError");
             try {
                 p.state = "uploading";
                 p.loaded = 0;
@@ -216,14 +223,14 @@ export async function putToR2(
                     (loaded) => {
                         p.loaded = loaded;
                         emit();
-                    }, signal);
+                    }, upload);
                 p.loaded = end - start;
                 p.state = "done";
                 emit(true);
                 etags.set(pu.partNumber, etag);
                 return;
             } catch (err) {
-                if (signal.aborted || (err as Error).name === "AbortError") throw err;
+                if (upload.aborted || (err as Error).name === "AbortError") throw err;
                 if (attempt === MAX_ATTEMPTS) {
                     p.state = "failed";
                     emit(true);
@@ -242,15 +249,19 @@ export async function putToR2(
     let nextIdx = 0;
     const worker = async () => {
         while (true) {
-            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+            if (upload.aborted) throw new DOMException("Aborted", "AbortError");
             const pu = partUrls[nextIdx++];
             if (!pu) return;
             await uploadOne(pu);
         }
     };
-    await Promise.all(
-        Array.from({length: Math.min(CONCURRENCY, partUrls.length)}, () => worker())
-    );
+    try {
+        await Promise.all(
+            Array.from({length: Math.min(CONCURRENCY, partUrls.length)}, () => worker())
+        );
+    } finally {
+        stop.abort();
+    }
 
     return [...etags.entries()]
         .sort((a, b) => a[0] - b[0])

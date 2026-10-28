@@ -1,4 +1,4 @@
-import type {CandidateType, P2PStatus} from "../types.ts";
+import {type CandidateType, EMPTY_P2P_STATUS, type P2PErrorText, type P2PStatus} from "../types.ts";
 
 /**
  * Shared WebRTC code for Direct P2P.
@@ -61,13 +61,18 @@ export const GATHER_TIMEOUT_TURN_MS = 9000;
  * sender's chunks keep coming).
  */
 export const STALL_MS = 5000;
-/** A reconnect attempt waits this long for the other side's answer, then as long again for the channel. */
+/**
+ * A reconnect attempt gives each of its calls to the API this long (on a network that drops packets without a word, a
+ * call would otherwise wait past GIVE_UP_MS), then waits as long for the other side's answer, and again for the channel.
+ */
 export const ROUND_TIMEOUT_MS = 15_000;
+/** The first connection waits this long for its data channel once the two SDPs are swapped. */
+export const CHANNEL_TIMEOUT_MS = 30_000;
 /** Without a connection this long, the transfer fails: time for a phone to join another network. */
 export const GIVE_UP_MS = 90_000;
 /** Still offline (nothing gathered, the API out of reach): how long before trying again. */
 export const OFFLINE_RETRY_MS = 3000;
-export const GIVE_UP_MESSAGE = "Lost the connection and couldn't get it back";
+export const GIVE_UP_MESSAGE = "Lost the connection and couldn't get it back.";
 
 /**
  * Once the first relay candidate is in, how long the others get. They come within a few hundred ms of each other (the
@@ -102,15 +107,80 @@ export function createRateMeter(windowMs = 5000) {
     };
 }
 
+/** `message` says what happened in plain words; `technical`, when there's something to add, the precise reason. */
 export class P2PError extends Error {
-    constructor(message: string) {
+    readonly technical: string | null;
+
+    constructor(message: string, technical: string | null = null) {
         super(message);
         this.name = "P2PError";
+        this.technical = technical;
     }
+}
+
+/** Any error, as the page shows it. */
+export function errorText(err: unknown): P2PErrorText {
+    if (err instanceof P2PError) return {message: err.message, technical: err.technical};
+    return {message: err instanceof Error ? err.message : String(err), technical: null};
 }
 
 /** The paired session is gone (the other side ended the transfer): there's no one to reconnect to. */
 export class SessionGone extends P2PError {
+}
+
+/** `signal`, and ROUND_TIMEOUT_MS (or `ms`) from now: one step of a reconnect. */
+export function within(signal: AbortSignal, ms = ROUND_TIMEOUT_MS): AbortSignal {
+    return AbortSignal.any([signal, AbortSignal.timeout(ms)]);
+}
+
+export function throwIfAborted(signal: AbortSignal): void {
+    if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
+}
+
+export type Emit = (patch: Partial<P2PStatus>) => void;
+
+/**
+ * A transfer's status, and `emit`, which changes it and hands `onStatus` a copy. A failure records the ladder step it
+ * happened at before the phase is overwritten, so the UI can mark the chip the transfer died on.
+ */
+export function trackStatus(onStatus: (status: P2PStatus) => void): { status: P2PStatus; emit: Emit } {
+    const status: P2PStatus = {...EMPTY_P2P_STATUS, candidates: {...EMPTY_P2P_STATUS.candidates}};
+    const emit: Emit = (patch) => {
+        if (patch.phase === "failed" && status.phase !== "failed" && status.failedAt == null) {
+            patch.failedAt = status.phase;
+        }
+        Object.assign(status, patch);
+        onStatus({...status, candidates: {...status.candidates}});
+    };
+    return {status, emit};
+}
+
+/** ICE's state, until the channel opens: from then on, the transfer watches the connection itself (watchLink). */
+export function watchIce(pc: RTCPeerConnection, status: P2PStatus, emit: Emit): () => void {
+    const onChange = (): void => {
+        const state = pc.iceConnectionState;
+        if (state === "checking") {
+            emit({phase: "negotiating", detail: "ICE checking · probing candidate pairs"});
+        } else if (state === "failed") {
+            const error = errorText(iceFailure(pc, status));
+            emit({phase: "failed", error, detail: error.technical ?? error.message});
+        } else if (state === "disconnected") {
+            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
+        } else if (state === "connected" || state === "completed") {
+            // Disconnections can heal (a transient network blip); un-flag.
+            if (status.degraded) emit({degraded: false, detail: "ICE reconnected"});
+        }
+    };
+    pc.addEventListener("iceconnectionstatechange", onChange);
+    return () => pc.removeEventListener("iceconnectionstatechange", onChange);
+}
+
+/** The route the data goes through, and its RTT, into the status. */
+export async function refreshPair(pc: RTCPeerConnection, emit: Emit): Promise<void> {
+    // A connection closed meanwhile (lost, its replacement on the way) has no stats to give.
+    const info = await readSelectedPair(pc).catch(() => null);
+    if (!info) return;
+    emit({pair: info.pair, relayed: info.relayed, rttMs: info.rttMs});
 }
 
 /** One connection of a transfer. */
@@ -161,33 +231,28 @@ export function watchLink(channel: RTCDataChannel, cancel: AbortSignal): LinkWat
 /**
  * Build the ICE server list. The relay (TURN) is offered from the start, beside the direct routes: ICE ranks direct pairs
  * above relayed ones, so it only carries the file when no direct route answers, and there is no failed attempt to wait
- * out first. Off only once the month's relay quota is spent. If the credential mint fails the caller is told,
- * so the UI can say "TURN unavailable, STUN only" instead of leaving someone to wonder why a relay never appeared.
+ * out first. The API gives none once the month's relay quota is spent. Without it the caller is told (`turnError`), so
+ * the UI can say "STUN only" instead of leaving someone to wonder why a relay never appeared, and how long gathering may
+ * take with these servers (`gatherMs`).
  */
 export async function buildIceServers(
     apiBaseUrl: string,
-    useTurn: boolean,
     signal?: AbortSignal
-): Promise<{ servers: RTCIceServer[]; turnError: string | null }> {
+): Promise<{ servers: RTCIceServer[]; turnError: string | null; gatherMs: number }> {
     const servers: RTCIceServer[] = [{urls: STUN_URLS}];
-    if (!useTurn) return {servers, turnError: null};
+    const without = (turnError: string) => ({servers, turnError, gatherMs: GATHER_TIMEOUT_MS});
 
     try {
         const res = await fetch(`${apiBaseUrl}/expedite/p2p/turn`, {method: "POST", signal});
-        if (!res.ok) {
-            const json = await res.json().catch(() => null);
-            return {servers, turnError: json?.error?.message ?? `TURN mint failed (HTTP ${res.status})`};
-        }
-        const json = await res.json();
+        const json = await res.json().catch(() => null);
+        if (!res.ok) return without(json?.error?.message ?? `TURN mint failed (HTTP ${res.status})`);
         const iceServers = json?.data?.iceServers;
-        if (!Array.isArray(iceServers) || iceServers.length === 0) {
-            return {servers, turnError: "TURN mint returned no servers"};
-        }
+        if (!Array.isArray(iceServers) || iceServers.length === 0) return without("TURN mint returned no servers");
         servers.push(...iceServers);
-        return {servers, turnError: null};
+        return {servers, turnError: null, gatherMs: GATHER_TIMEOUT_TURN_MS};
     } catch (err: unknown) {
         if ((err as Error)?.name === "AbortError") throw err;
-        return {servers, turnError: `TURN mint unreachable: ${(err as Error).message}`};
+        return without(`TURN mint unreachable: ${(err as Error).message}`);
     }
 }
 
@@ -242,7 +307,7 @@ export interface Pairing {
     token: string;
 }
 
-/** A POST to the paired session (`/restart`, `/restart/answer`), with this side's token. Throws when offline. */
+/** A POST to the paired session (`/reconnect`, `/reconnect/answer`), with this side's token. Throws when offline. */
 export async function postSignal<T>(pairing: Pairing, path: string, body: unknown, signal: AbortSignal): Promise<{
     status: number;
     data: T | null
@@ -262,8 +327,8 @@ export type SignalEvent =
     | { kind: "gone" };
 
 /**
- * One event from the API's restart stream: for the receiver, the next round's offer (above `round`); for the sender, the
- * answer to `round`; `gone` once the session is over (the sender ended it). Until then, or until `signal` aborts.
+ * One event from the API's reconnect stream: for the receiver, the next round's offer (above `round`); for the sender,
+ * the answer to `round`; `gone` once the session is over (the other side ended it). Until then, or until `signal` aborts.
  *
  * Through a network that's still down too: a stream that can't reach the server at all (a laptop between two Wi-Fi
  * networks) closes for good, as EventSource does when no connection can be made, so it's opened again every
@@ -273,7 +338,7 @@ export type SignalEvent =
 export function waitForSignal(pairing: Pairing, round: number, signal: AbortSignal): Promise<SignalEvent> {
     return new Promise((resolve, reject) => {
         const {apiBaseUrl, code, token} = pairing;
-        const url = `${apiBaseUrl}/expedite/p2p/${code}/restart/events?token=${encodeURIComponent(token)}&round=${round}`;
+        const url = `${apiBaseUrl}/expedite/p2p/${code}/reconnect/events?token=${encodeURIComponent(token)}&round=${round}`;
         let source: EventSource | null = null;
         let retry = 0;
 
@@ -367,7 +432,7 @@ export interface PairInfo {
 }
 
 /**
- * Read the nominated candidate pair out of getStats().
+ * Read the candidate pair the data goes through out of getStats().
  *
  * Reports whether the transfer is actually direct or being relayed, since the
  * relay is always on offer and the browser picks.
@@ -442,7 +507,7 @@ export function waitForDrain(dc: RTCDataChannel, signal?: AbortSignal): Promise<
         };
         const onDead = (): void => {
             cleanup();
-            reject(new P2PError(`Data channel closed mid-transfer (state ${dc.readyState})`));
+            reject(new P2PError("The connection broke during the transfer.", `Data channel closed (state ${dc.readyState}).`));
         };
         const onAbort = (): void => {
             cleanup();
@@ -459,20 +524,30 @@ export function waitForDrain(dc: RTCDataChannel, signal?: AbortSignal): Promise<
     });
 }
 
-/** Human-readable ICE failure text. */
-export function describeIceFailure(pc: RTCPeerConnection, status: P2PStatus): string {
+/** Why ICE failed. */
+export function iceFailure(pc: RTCPeerConnection, status: P2PStatus): P2PError {
     const {candidates, remoteCandidates, relayed} = status;
     const local = totalCandidates(candidates);
     if (local === 0) {
-        return "ICE failed — no local candidates gathered (network blocked or offline)";
+        return new P2PError(
+            "Couldn't connect: this device found no network route. Check your connection, VPN or firewall.",
+            "ICE failed, no local candidates."
+        );
     }
     // The empty checklist case: our candidates are irrelevant if the peer sent none.
     if (remoteCandidates && totalCandidates(remoteCandidates) === 0) {
-        return "ICE failed — peer sent no network routes (their VPN, firewall, or browser permissions)";
+        return new P2PError(
+            "Couldn't connect: the other device found no network route. A VPN, firewall or browser setting on their side may block it.",
+            "ICE failed, no remote candidates."
+        );
     }
+    // No relay of our own: TURN off, or offered and never answered.
     if (candidates.relay === 0 && !relayed) {
-        const remote = remoteCandidates ? `, ${totalCandidates(remoteCandidates)} remote` : "";
-        return `ICE failed — no viable pair from ${local} local${remote} candidates, 0 relay (TURN off)`;
+        const remote = remoteCandidates ? ` and ${totalCandidates(remoteCandidates)} remote` : "";
+        return new P2PError(
+            "Couldn't connect to the other device. A VPN or firewall on either side can block it.",
+            `ICE failed, no working pair among ${local} local${remote} candidates, and no relay candidate.`
+        );
     }
-    return `ICE failed — connection state ${pc.iceConnectionState}, no pair nominated`;
+    return new P2PError("Couldn't connect to the other device.", `ICE failed (state ${pc.iceConnectionState}), no pair nominated.`);
 }

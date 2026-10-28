@@ -42,16 +42,7 @@ export function forgetSeat(code: string): void {
     writeSeats(seats);
 }
 
-/** An answer of the API that isn't a success, with its status: 404 is a room that has ended. */
-export class LiveError extends Error {
-    readonly status: number;
-
-    constructor(message: string, status: number) {
-        super(message);
-        this.status = status;
-    }
-}
-
+/** A call to the room. One that isn't a success throws the API's message. */
 async function call<T>(
     path: string,
     {method = "GET", token, body, signal, keepalive}: {
@@ -69,7 +60,7 @@ async function call<T>(
         keepalive,
     });
     const json = await res.json().catch(() => null);
-    if (!res.ok) throw new LiveError(json?.error?.message || `The room didn't answer (${res.status})`, res.status);
+    if (!res.ok) throw new Error(json?.error?.message || `The room didn't answer (${res.status})`);
     return json?.data as T;
 }
 

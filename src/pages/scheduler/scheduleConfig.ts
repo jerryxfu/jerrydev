@@ -161,7 +161,7 @@ const scheduleConfig: ScheduleType[] = [
                 id: "PHY-BP3",
                 title: "Ondes, optique et physique moderne",
                 startTime: "14:30",
-                endTime: "16:20",
+                endTime: "17:20",
                 location: "G2-59",
                 color: subjectColors.physics
             },
@@ -207,15 +207,6 @@ const scheduleConfig: ScheduleType[] = [
             //endregion
 
             //region Friday
-            {
-                day: "friday",
-                id: "PHY-BP3",
-                title: "Ondes, optique et physique moderne",
-                startTime: "9:30",
-                endTime: "10:20",
-                location: "G2-58",
-                color: subjectColors.physics
-            },
             {
                 day: "friday",
                 id: "PHI-B03",

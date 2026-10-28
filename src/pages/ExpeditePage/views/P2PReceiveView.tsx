@@ -87,7 +87,7 @@ export default function P2PReceiveView(
                                 <p className="expedite_p2p-offer-meta">
                                     {formatBytes(meta.size)}
                                     {meta.mimeType ? ` · ${meta.mimeType}` : ""}
-                                    {" · session expires in "}{timeUntil(meta.expiresAt)}
+                                    {" · the code expires in "}{timeUntil(meta.expiresAt)}
                                 </p>
                             </div>
                         </div>
@@ -101,10 +101,11 @@ export default function P2PReceiveView(
                                     ? <li>Files up to 1 GB in this browser. The file is kept in this tab and saved to your downloads once it's
                                         complete.</li>
                                     : <li>You'll pick a save location first. The file is written there as it arrives.</li>}
-                                <li>Keep this tab open until it finishes. Closing it aborts the transfer and discards the partial file.</li>
+                                <li>Keep this tab open and awake until the file arrives. Closing it will stop the transfer, and what arrived
+                                    so far is lost.</li>
                                 <li>The sender's tab must stay open too; the data come from their machine directly (it isn't stored in the cloud).
                                 </li>
-                                <li>One receiver per code. Accepting claims the session and begins data transfer.</li>
+                                <li>One receiver per code. Once you accept, the code is yours and the transfer starts.</li>
                                 {relayDisabled && (
                                     <li>This month's relay quota is used up, so transfers are direct-only until it resets.</li>
                                 )}
@@ -142,13 +143,13 @@ export default function P2PReceiveView(
                             className={status.phase === "done" && !onSave ? "expedite_btn-full" : undefined}
                             onClick={onCancel}
                         >
-                            {status.phase === "done" ? "Done" : "Abort transfer"}
+                            {status.phase === "done" ? "Done" : "Cancel"}
                         </Button>
                     </div>
 
                     <p className="expedite_p2p-standby">
                         {status.phase !== "done"
-                            ? "Keep this tab open. Aborting discards the partial file."
+                            ? "Keep this tab open. If you cancel, what arrived so far is lost."
                             : inMemory
                                 ? "The file was saved to your downloads. If it didn't start, save it again. It's gone once you leave this page."
                                 : "File was written to the location you chose."}

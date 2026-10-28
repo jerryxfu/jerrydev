@@ -137,7 +137,6 @@ export default function ResultView(
                         <Detail label="Drop code"><span className="expedite_meta-code">{result.code}</span></Detail>
                         {result.mimeType && <Detail label="MIME type, as uploaded">{result.mimeType}</Detail>}
                         {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
-                        {result.encoding && <Detail label="Encoding">{result.encoding}</Detail>}
                         {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
                         <Detail label="Deletable by you">{result.deletable ? "Yes" : "No, the sender turned it off"}</Detail>
                         {result.sha256 && (

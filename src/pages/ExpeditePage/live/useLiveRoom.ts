@@ -136,6 +136,9 @@ export function useLiveRoom() {
                 setClosed(why);
             },
             lost: () => {
+                // The check-ins stop with the stream: a page that hears nothing more isn't here. Reconnecting starts both.
+                stopStream.current?.();
+                stopStream.current = null;
                 // A room that has ended answers 404; one still there refused this stream (a seat that's gone, or too
                 // many tries from this network): reconnecting is left to a click.
                 fetch(`${apiBaseUrl}/expedite/drop/${code}`)

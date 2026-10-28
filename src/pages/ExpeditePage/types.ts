@@ -21,7 +21,6 @@ export interface DropMeta {
     language?: string;
     fileName?: string;
     mimeType?: string;
-    encoding?: string;
     fileUrl?: string;
     /** The same file, answered as an attachment under its name: what a big file is downloaded with. */
     downloadUrl?: string;
@@ -148,7 +147,13 @@ export interface P2PStatus {
     /** Negotiated SCTP max message size, bytes. Null until the channel opens. */
     maxMessageSize: number | null;
     /** Populated when phase is "failed". */
-    error: string | null;
+    error: P2PErrorText | null;
+}
+
+/** An error as shown: what happened in plain words, then the precise reason when there's one (in italics). */
+export interface P2PErrorText {
+    message: string;
+    technical: string | null;
 }
 
 export interface P2PSnapshot {

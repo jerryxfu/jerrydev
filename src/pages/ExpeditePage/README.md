@@ -149,10 +149,10 @@ there.
 ```
 sender                          server                        receiver
   |   lost: the channel closed, or 5 s without a word from the other side
-  |                              |<-- GET /restart/events ---- |  SSE, held while reconnecting
-  |-- POST /restart (offer) ---->|  round + 1                  |
-  |-- GET /restart/events ------>|== event: offer ===========>|
-  |                              |<-- POST /restart/answer ---- |
+  |                              |<-- GET /reconnect/events -- |  SSE, held while reconnecting
+  |-- POST /reconnect (offer) -->|  round + 1                  |
+  |-- GET /reconnect/events ---->|== event: offer ===========>|
+  |                              |<-- POST /reconnect/answer -- |
   |<== event: answer ============|                             |
   |============ new connection, new data channel ==============|
   |<-- CTRL_AT (bytes saved) ----------------------------------|  where the sender goes on from
@@ -166,10 +166,11 @@ the same way, so one path covers all of it, and the first connection is just a t
 
 A loss is seen the same way on both sides: the channel closes, or nothing comes from the other side for 5 s (the
 receiver reports what it has saved every second, the sender's chunks keep coming). The receiver writes everything that
-arrived before it says where it is, so no byte is lost or doubled. An attempt waits 15 s for the answer, then 15 s for
-the channel, and another follows 3 s after one fails; without a connection for 90 s, the sender gives up, and the
-receiver 10 s later. A side that stops on purpose (Cancel, a closed tab, a failure) ends the session, and the other
-side's next attempt finds it gone and stops at once ("The receiver stopped the transfer"). The restart stream waits
+arrived before it says where it is, so no byte is lost or doubled. An attempt gives each call to the API 15 s, waits 15 s
+for the answer, then 15 s for the channel, and another follows 3 s after one fails; without a connection for 90 s, the
+sender gives up, and the receiver 10 s later. A side that stops on purpose (Cancel, a closed tab, a failure) ends the
+session, and the other side's next attempt finds it gone and stops at once ("The receiver stopped the transfer"). The
+routes were `/restart` until 2026-10-28, from the ICE restarts; renamed `/reconnect`. The reconnect stream waits
 through a network that's still down: a browser closes an EventSource for good when it can't reach the server at all,
 so `waitForSignal` opens it again every 3 s, and only the API's `gone` stops it. The constants and the why are in
 `p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and `answerReconnect` in
@@ -201,7 +202,9 @@ sections defeated the speed calculation and made the two screens disagree.
 
 ### TURN
 
-Offered from the start on both sides, unless the month's relay quota is spent. Relay candidates are gathered with the others, and ICE ranks pairs by type (host
+Offered from the start on both sides, unless the month's relay quota is spent: then `POST /p2p/turn` mints nothing (403), and the pages gather without it.
+The API checks the quota, not the page: anyone can call the API with the site's Origin header, and the credential is one for everyone, valid 24 hours (one
+minted before the cap still works until then). Relay candidates are gathered with the others, and ICE ranks pairs by type (host
 above srflx above relay), so the relay only carries the file when no direct pair answers. The fallback is instant: no failed attempt to wait out, no second
 round. The quota counts relayed bytes, so a transfer that goes direct uses none of it.
 
@@ -211,7 +214,8 @@ using an ordinary srflx candidate. Verified on real traffic: a 128 MB transfer c
 Credentials are minted server-side (`config/turn.ts`), cached in-process, and **URLs on port 53 are stripped**: Cloudflare returns alternate ports, browsers
 block 53, and with non-trickle gathering a hanging URL delays the whole SDP and can cost the relay candidates entirely.
 
-`getStats()` reports the nominated pair, so the UI says whether the transfer is actually direct or relayed.
+`getStats()` reports the pair the data goes through (the transport's `selectedCandidatePairId`; Firefox marks it `selected`), so the UI says whether the
+transfer is actually direct or relayed.
 
 Until 2026-10-27 the relay was opt-in, with an automatic retry: the direct attempt had to fail first (up to 30s), then the sender republished under the same
 code with TURN and the receiver polled for it. Offering it from the start replaced the retry, the polling and the "Force TURN relay" switch (which never forced
@@ -343,8 +347,8 @@ routes/expedite/
   shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
   text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
   file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts), signUpload (and live.ts)
-  p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn
-              GET  /p2p/:code/events (SSE)
+  p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn, /p2p/:code/reconnect, /p2p/:code/reconnect/answer
+              GET  /p2p/:code/events, /p2p/:code/reconnect/events (SSE)
               DELETE /p2p/:code
   live.ts     POST /live, /live/:code/join, /live/:code/here, /live/:code/items, /live/:code/items/:id/complete
               PATCH and DELETE /live/:code/members/:id, DELETE /live/:code/items/:id, DELETE /live/:code
@@ -376,8 +380,12 @@ browser). Every GET counts a view, like the page, and shares its rate limit; HEA
 fetches the link too: share the page's link, not this one.
 
 One Mongo collection for all the types, with a TTL index on `expiresAt` that cleans expired drops, orphaned upload reservations, abandoned p2p sessions
-and ended live rooms alike. A live room's items are a second collection (`LiveItem`), with the room's expiry and their own TTL index; their R2 objects are
-left to the bucket's lifecycle rule (nothing links to them by then).
+and ended live rooms alike. Its monitor runs about once a minute, so `GET /drop/:code` and `GET /raw/:code` look only at drops not yet expired. A live
+room's items are a second collection (`LiveItem`), with the room's expiry and their own TTL index; their R2 objects are left to the bucket's lifecycle rule
+(nothing links to them by then).
+
+A view is counted in one atomic step, while one is left (`countView`): of two opens at the same moment, a one-time drop goes to one only, and the other gets
+404. `DELETE /drop/:code` is for text and file drops; a P2P session and a live room end through their own routes.
 
 `status` means different things per type, which is the one genuinely confusing part: for `file`, `pending` means the upload isn't verified and the drop is
 invisible. For `p2p`, `pending` means the session is **live and waiting for a receiver**. The `p2p` branch in `GET /drop/:code` must therefore come before the
@@ -390,16 +398,18 @@ Live rooms' items add their `size` (texts and files).
 
 ## Reading the status panel
 
-- `candidates` — **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
+Under Connection details, folded.
+
+- `WebRTC ICE candidates` — **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
   the one-side-is-enough note. `peer N` matching the other side's published total means signalling is healthy.
-- `pair` — `(direct)` vs `(relayed)`. Relay candidates gathered and still `(direct)`
+- `Route` — `(direct)` vs `(relayed)`. Relay candidates gathered and still `(direct)`
   means a direct path was found and preferred. Working as intended.
     - `host ↔ host` — both sides resolved each other's mDNS, or both published raw IPs.
     - `host ↔ prflx` — **direct, via peer-reflexive discovery.** One side's address was learned from an inbound connectivity check rather than the SDP. Expected
       when only one side publishes raw IPs.
     - `srflx ↔ relay` / `relay ↔ srflx` — relayed, one-sided TURN. Correct and expected.
-- `rtt` — `—` means not reported. Firefox often omits it on the offering side.
-- `buffer` — should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
+- `RTT` — `—` means not reported. Firefox often omits it on the offering side.
+- `Buffer` (the sender's) — should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
 
 ---
 
@@ -424,10 +434,12 @@ Live rooms' items add their `size` (texts and files).
 ## Verifying changes
 
 ```bash
-pnpm exec tsc --noEmit
-pnpm exec eslint . --report-unused-disable-directives
-pnpm exec vite build
+pnpm exec tsc -b --noEmit
+pnpm lint
+pnpm build
 ```
+
+The API: `pnpm build` (tsc).
 
 For P2P, the test topologies are not equally informative and the easy-sounding ones are the hardest:
 

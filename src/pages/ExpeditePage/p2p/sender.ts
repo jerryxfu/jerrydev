@@ -1,8 +1,10 @@
-import {EMPTY_P2P_STATUS, type P2PSnapshot, type P2PStatus} from "../types.ts";
+import {type P2PSnapshot, type P2PStatus} from "../types.ts";
+import {formatBytes} from "../utils.ts";
 import {
     BUFFER_HIGH,
     BUFFER_LOW,
     buildIceServers,
+    CHANNEL_TIMEOUT_MS,
     countCandidates,
     createPeer,
     createRateMeter,
@@ -10,38 +12,36 @@ import {
     CTRL_DONE,
     CTRL_EOF,
     describeCandidates,
-    describeIceFailure,
-    GATHER_TIMEOUT_MS,
-    GATHER_TIMEOUT_TURN_MS,
+    type Emit,
+    errorText,
     GIVE_UP_MESSAGE,
     GIVE_UP_MS,
+    iceFailure,
     type Link,
     type LinkWatch,
     OFFLINE_RETRY_MS,
     P2PError,
     type Pairing,
     postSignal,
-    readSelectedPair,
+    refreshPair,
     resolveChunkSize,
-    ROUND_TIMEOUT_MS,
     SessionGone,
     sleep,
     SNAPSHOT_INTERVAL_MS,
+    throwIfAborted,
     totalCandidates,
+    trackStatus,
     waitForDrain,
     waitForGathering,
     waitForSignal,
+    watchIce,
     watchLink,
+    within,
 } from "./peer.ts";
-
-/** How long to wait for the data channel after the answer arrives. */
-const CHANNEL_TIMEOUT_MS = 30_000;
 
 export interface SendOptions {
     file: globalThis.File;
     apiBaseUrl: string;
-    /** Offer the relay beside the direct routes. Off only once the month's relay quota is spent. */
-    useTurn: boolean;
     onStatus: (status: P2PStatus) => void;
     onCode: (code: string, expiresAt: string) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
@@ -83,22 +83,11 @@ export async function sendP2P(opts: SendOptions): Promise<void> {
 }
 
 async function runSession(opts: SendOptions): Promise<SessionOutcome> {
-    const {file, apiBaseUrl, useTurn, onStatus, onCode, onSnapshot, signal} = opts;
-
-    const status: P2PStatus = {...EMPTY_P2P_STATUS, candidates: {...EMPTY_P2P_STATUS.candidates}};
-    const emit = (patch: Partial<P2PStatus>): void => {
-        // Record where a failure happened before the phase is overwritten, so
-        // the UI can mark the ladder chip the transfer died on.
-        if (patch.phase === "failed" && status.phase !== "failed" && status.failedAt == null) {
-            patch.failedAt = status.phase;
-        }
-        Object.assign(status, patch);
-        onStatus({...status, candidates: {...status.candidates}});
-    };
+    const {file, apiBaseUrl, onStatus, onCode, onSnapshot, signal} = opts;
+    const {status, emit} = trackStatus(onStatus);
 
     // The current connection's: a reconnect replaces it.
     let pc: RTCPeerConnection | null = null;
-    let code: string | null = null;
     let statsTimer = 0;
 
     const teardown = (): void => {
@@ -114,9 +103,9 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
     try {
         emit({phase: "gathering", detail: "resolving ICE servers"});
 
-        const {servers, turnError} = await buildIceServers(apiBaseUrl, useTurn, signal);
+        const {servers, turnError, gatherMs} = await buildIceServers(apiBaseUrl, signal);
         if (turnError) {
-            emit({detail: `${turnError} — continuing with STUN only`});
+            emit({detail: `${turnError} · continuing with STUN only`});
         }
 
         pc = createPeer(servers);
@@ -126,13 +115,11 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         await pc.setLocalDescription(offer);
 
         emit({phase: "gathering", detail: "gathering ICE candidates"});
-        // Relay allocation is slower than host/srflx; only wait longer when a
-        // relay is actually expected.
-        await waitForGathering(pc, useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS);
+        await waitForGathering(pc, gatherMs);
         throwIfAborted(signal);
 
         const localSdp = pc.localDescription?.sdp;
-        if (!localSdp) throw new P2PError("No local description after ICE gathering");
+        if (!localSdp) throw new P2PError("Something went wrong while connecting. Try again.", "No local description after ICE gathering.");
 
         const candidates = countCandidates(localSdp);
         emit({candidates, detail: describeCandidates(candidates)});
@@ -141,7 +128,10 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         // code and leave the receiver staring at a 30s channel timeout. Fail
         // here, where the reason is still knowable.
         if (totalCandidates(candidates) === 0) {
-            throw new P2PError("No network routes gathered — check VPN, firewall, or this browser's Local Network permission");
+            throw new P2PError(
+                "This device found no way to connect. Check your connection, VPN or firewall, and on a Mac, this browser's Local Network permission.",
+                "No ICE candidates gathered."
+            );
         }
 
         // --- Publish the offer ---
@@ -158,12 +148,15 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
             }),
             signal,
         });
-        const initJson = await initRes.json();
+        // Null when the answer isn't the API's JSON (a proxy's error page).
+        const initJson = await initRes.json().catch(() => null);
         if (!initRes.ok) {
-            throw new P2PError(initJson?.error?.message ?? `Session init failed (HTTP ${initRes.status})`);
+            throw initJson?.error?.message
+                ? new P2PError(initJson.error.message)
+                : new P2PError("Couldn't create a code. Try again.", `Session init failed (HTTP ${initRes.status}).`);
         }
 
-        code = initJson.data.code as string;
+        const code = initJson.data.code as string;
         onCode(code, initJson.data.expiresAt as string);
         // For reconnecting once paired.
         const pairing: Pairing = {apiBaseUrl, code, token: initJson.data.token as string};
@@ -179,8 +172,8 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
             emit({
                 phase: "expired",
                 detail: result.kind === "expired"
-                    ? "session expired — rotating code"
-                    : "session closed — rotating code",
+                    ? "session expired · rotating code"
+                    : "session closed · rotating code",
             });
             teardown();
             return "expired";
@@ -194,7 +187,10 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         const remoteCandidates = countCandidates(result.answer);
         emit({remoteCandidates});
         if (totalCandidates(remoteCandidates) === 0) {
-            throw new P2PError("Receiver sent no network routes — their browser gathered zero ICE candidates (VPN, firewall, or browser permissions on their side)");
+            throw new P2PError(
+                "The receiver's device found no way to connect. A VPN, firewall or browser setting on their side may block it.",
+                "Their answer has no ICE candidates."
+            );
         }
 
         await pc.setRemoteDescription({type: "answer", sdp: result.answer});
@@ -230,22 +226,22 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
             }
             link.pc.close();
             emit({degraded: true, reconnecting: true, detail: "connection lost · reconnecting"});
-            link = await reconnect(pairing, useTurn, status, emit, signal);
+            link = await reconnect(pairing, status, emit, signal);
             pc = link.pc;
             emit({degraded: false, reconnecting: false, maxMessageSize: pc.sctp?.maxMessageSize ?? null, detail: "reconnected"});
             void refreshPair(pc, emit);
         }
         progress.finish();
 
-        emit({phase: "done", degraded: false, reconnecting: false, detail: `${file.name} delivered · ${formatBytesShort(file.size)}`});
+        emit({phase: "done", degraded: false, reconnecting: false, detail: `${file.name} delivered · ${formatBytes(file.size)}`});
         teardown();
         return "done";
     } catch (err: unknown) {
+        // The session is the page's to end (closeSession), cancelled or failed.
         teardown();
-        if (code && (err as Error)?.name === "AbortError") closeSession(apiBaseUrl, code);
         if ((err as Error)?.name === "AbortError") throw err;
-        const message = err instanceof Error ? err.message : String(err);
-        emit({phase: "failed", reconnecting: false, error: message, detail: message});
+        const error = errorText(err);
+        emit({phase: "failed", reconnecting: false, error, detail: error.technical ?? error.message});
         throw err;
     }
 }
@@ -303,7 +299,7 @@ function waitForAnswer(
                 finish({kind: "answer", answer: data.answer as string});
             } catch {
                 cleanup();
-                reject(new P2PError("Malformed answer payload on signalling stream"));
+                reject(new P2PError("Something went wrong while connecting. Try again.", "Malformed answer on the signalling stream."));
             }
         });
 
@@ -319,81 +315,40 @@ function waitForAnswer(
     });
 }
 
-// --- Connection observation ---
-
-/** ICE's state, until the channel opens: from then on, the transfer watches the connection itself (watchLink). */
-function watchIce(
-    pc: RTCPeerConnection,
-    status: P2PStatus,
-    emit: (patch: Partial<P2PStatus>) => void
-): () => void {
-    const onChange = (): void => {
-        const state = pc.iceConnectionState;
-        if (state === "checking") {
-            emit({phase: "negotiating", detail: "ICE checking · probing candidate pairs"});
-        } else if (state === "failed") {
-            emit({phase: "failed", error: describeIceFailure(pc, status), detail: describeIceFailure(pc, status)});
-        } else if (state === "disconnected") {
-            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
-        } else if (state === "connected" || state === "completed") {
-            // Disconnections can heal (a transient network blip); un-flag.
-            if (status.degraded) emit({degraded: false, detail: "ICE reconnected"});
-        }
-    };
-    pc.addEventListener("iceconnectionstatechange", onChange);
-    return () => pc.removeEventListener("iceconnectionstatechange", onChange);
-}
-
-async function refreshPair(
-    pc: RTCPeerConnection,
-    emit: (patch: Partial<P2PStatus>) => void
-): Promise<void> {
-    // A connection closed meanwhile (lost, its replacement on the way) has no stats to give.
-    const info = await readSelectedPair(pc).catch(() => null);
-    if (!info) return;
-    emit({pair: info.pair, relayed: info.relayed, rttMs: info.rttMs});
-}
-
 // --- Reconnecting ---
 
 /**
- * A new connection to the receiver, through the paired session: an offer (`/restart`, the next round), the receiver's
- * answer, a data channel. An attempt that fails (no network yet, the API out of reach, no answer or no channel within
- * ROUND_TIMEOUT_MS each) is followed by another, OFFLINE_RETRY_MS later. Without a connection for GIVE_UP_MS, the transfer
- * fails, and at once when the session is gone (the receiver ended it).
+ * A new connection to the receiver, through the paired session: an offer (`/reconnect`, the next round), the receiver's
+ * answer, a data channel. An attempt that fails (no network yet, the API out of reach, a call, the answer or the channel
+ * not there within ROUND_TIMEOUT_MS each) is followed by another, OFFLINE_RETRY_MS later. Without a connection for
+ * GIVE_UP_MS, the transfer fails, and at once when the session is gone (the receiver ended it).
  */
-async function reconnect(
-    pairing: Pairing,
-    useTurn: boolean,
-    status: P2PStatus,
-    emit: (patch: Partial<P2PStatus>) => void,
-    signal: AbortSignal
-): Promise<Link> {
+async function reconnect(pairing: Pairing, status: P2PStatus, emit: Emit, signal: AbortSignal): Promise<Link> {
     const giveUpAt = Date.now() + GIVE_UP_MS;
     while (Date.now() < giveUpAt) {
         let pc: RTCPeerConnection | null = null;
         try {
-            const {servers, turnError} = await buildIceServers(pairing.apiBaseUrl, useTurn, signal);
+            const {servers, gatherMs} = await buildIceServers(pairing.apiBaseUrl, within(signal));
             pc = createPeer(servers);
             const channel = openChannel(pc);
             await pc.setLocalDescription(await pc.createOffer());
-            await waitForGathering(pc, useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS);
+            await waitForGathering(pc, gatherMs);
             const offer = pc.localDescription?.sdp ?? "";
             const candidates = countCandidates(offer);
             if (totalCandidates(candidates) === 0) throw new P2PError("No network routes yet");
             emit({candidates});
 
-            const posted = await postSignal<{ round: number }>(pairing, "/restart", {offer}, signal);
-            if (posted.status === 403 || posted.status === 404) throw new SessionGone("The receiver stopped the transfer");
+            const posted = await postSignal<{ round: number }>(pairing, "/reconnect", {offer}, within(signal));
+            if (posted.status === 403 || posted.status === 404) throw new SessionGone("The receiver stopped the transfer.");
             if (!posted.data) throw new P2PError(`Offer refused (HTTP ${posted.status})`);
             const n = posted.data.round;
             emit({detail: `reconnecting · offer ${n} sent, waiting for the receiver`});
 
-            const answer = await waitForSignal(pairing, n, AbortSignal.any([signal, AbortSignal.timeout(ROUND_TIMEOUT_MS)]));
-            if (answer.kind === "gone") throw new SessionGone("The receiver stopped the transfer");
+            const answer = await waitForSignal(pairing, n, within(signal));
+            if (answer.kind === "gone") throw new SessionGone("The receiver stopped the transfer.");
             emit({remoteCandidates: countCandidates(answer.sdp), detail: `reconnecting · answer ${n} in, opening a channel`});
             await pc.setRemoteDescription({type: "answer", sdp: answer.sdp});
-            await waitForChannelOpen(channel, pc, status, AbortSignal.any([signal, AbortSignal.timeout(ROUND_TIMEOUT_MS)]));
+            await waitForChannelOpen(channel, pc, status, within(signal));
             return {pc, channel};
         } catch (err: unknown) {
             pc?.close();
@@ -427,7 +382,7 @@ function waitForChannelOpen(
         const onIce = (): void => {
             if (pc.iceConnectionState === "failed") {
                 cleanup();
-                reject(new P2PError(describeIceFailure(pc, status)));
+                reject(iceFailure(pc, status));
             }
         };
         const onAbort = (): void => {
@@ -439,7 +394,7 @@ function waitForChannelOpen(
         // especially when the peer has already torn down its side.
         const timer = window.setTimeout(() => {
             cleanup();
-            reject(new P2PError(describeIceFailure(pc, status)));
+            reject(iceFailure(pc, status));
         }, CHANNEL_TIMEOUT_MS);
         channel.addEventListener("open", onOpen);
         pc.addEventListener("iceconnectionstatechange", onIce);
@@ -529,7 +484,7 @@ async function sendOver(
     link: Link,
     watch: LinkWatch,
     progress: Progress,
-    emit: (patch: Partial<P2PStatus>) => void
+    emit: Emit
 ): Promise<void> {
     const {pc, channel} = link;
     const offset = await nextMessage(channel, watch.signal, (data) => {
@@ -542,8 +497,8 @@ async function sendOver(
     emit({
         phase: "transferring",
         detail: offset === 0
-            ? `streaming ${formatBytesShort(file.size)} in ${formatBytesShort(chunkSize)} chunks`
-            : `going on from ${formatBytesShort(offset)} · ${formatBytesShort(chunkSize)} chunks`,
+            ? `streaming ${formatBytes(file.size)} in ${formatBytes(chunkSize)} chunks`
+            : `going on from ${formatBytes(offset)} · ${formatBytes(chunkSize)} chunks`,
     });
 
     for (let queued = offset; queued < file.size;) {
@@ -601,21 +556,10 @@ function nextMessage<T>(channel: RTCDataChannel, signal: AbortSignal, match: (da
 
 // --- Helpers ---
 
-function throwIfAborted(signal: AbortSignal): void {
-    if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
-}
-
 function closedMidTransfer(channel: RTCDataChannel): P2PError {
-    return new P2PError(`Data channel closed mid-transfer (state ${channel.readyState})`);
+    return new P2PError("The connection broke during the transfer.", `Data channel closed (state ${channel.readyState}).`);
 }
 
 function formatSdpSize(sdp: string): string {
     return `${(new Blob([sdp]).size / 1024).toFixed(1)} KB`;
-}
-
-function formatBytesShort(bytes: number): string {
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-    if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${bytes} B`;
 }

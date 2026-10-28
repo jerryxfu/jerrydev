@@ -135,7 +135,7 @@ export default function P2PSendView(
                 <>
                     {code && !transferring && status.phase !== "done" && (
                         <div className="expedite_p2p-code-block">
-                            <p className="text-small">Session code</p>
+                            <p className="text-small">Your code</p>
                             <button className="expedite_code-display" onClick={(e) => onCopy(code, "code", e)}>
                                 <span className="expedite_code-text">{code}</span>
                                 {copiedField === "code" ? <Check size={18} /> : <Clipboard size={18} />}
@@ -175,14 +175,14 @@ export default function P2PSendView(
                             className={status.phase === "done" ? "expedite_btn-full" : undefined}
                             onClick={onCancel}
                         >
-                            {status.phase === "done" ? "Done" : "Close session"}
+                            {status.phase === "done" ? "Done" : "Cancel"}
                         </Button>
                     </div>
 
                     <p className="expedite_p2p-standby">
                         {status.phase === "done"
-                            ? "Transfer complete. The session is closed and the code is dead."
-                            : "Keep this tab open. Closing it tears down the connection and invalidates the code."}
+                            ? "Transfer complete. The code no longer works."
+                            : "Keep this tab open. Closing it will stop the transfer and invalidate the code."}
                     </p>
                 </>
             )}

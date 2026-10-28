@@ -129,9 +129,8 @@ export default function Expedite() {
         turnUsage?: { egressBytes: number; capBytes: number } | null;
     } | null>(null);
 
-    // Frontend-only relay guard: once the month's Cloudflare TURN free tier is
-    // spent, transfers stop offering the relay and the P2P screens say so.
-    // Direct transfers still work.
+    // Once the month's Cloudflare TURN free tier is spent, the P2P screens say the relay is off. The API itself stops
+    // handing out its credentials (POST /p2p/turn), so transfers go direct only. Direct transfers still work.
     const relayBlocked = stats?.turnUsage != null
         && stats.turnUsage.egressBytes >= stats.turnUsage.capBytes;
 
@@ -156,9 +155,10 @@ export default function Expedite() {
 
     // Leaving Expedite stops whatever runs, as Cancel or Back would: an upload and its hashing (the server is told, so it
     // frees the drop), a P2P transfer, and its session (else a sender's keeps handing out an offer nobody is listening
-    // for until its TTL runs out, and the other side waits to reconnect until it gives up), a download's hash check. When the page goes (a closed tab, another site) as when the site moves
-    // on to another of its pages (the logo, a link). The server calls use keepalive to outlive a closing page;
-    // sendBeacon can't be used because it only issues POSTs. pagehide rather than beforeunload: phones often skip that.
+    // for until its TTL runs out, and the other side waits to reconnect until it gives up), a download's hash check.
+    // When the page goes (a closed tab, another site) as when the site moves on to another of its pages (the logo, a
+    // link). The server calls use keepalive to outlive a closing page; sendBeacon can't be used because it only issues
+    // POSTs. pagehide rather than beforeunload: phones often skip that.
     useEffect(() => {
         const stop = (): void => {
             uploadAbortRef.current?.abort();
@@ -247,7 +247,7 @@ export default function Expedite() {
         setLoading(true);
         setError(null);
 
-        // TEXT — unchanged, inline JSON
+        // Text: inline JSON
         if (dropType === "text") {
             try {
                 const res = await fetch(`${apiBaseUrl}/expedite/drop/text`, {
@@ -263,11 +263,11 @@ export default function Expedite() {
                     })
                 });
 
-                const json = await res.json();
+                // Null when the answer isn't the API's JSON (a proxy's error page).
+                const json = await res.json().catch(() => null);
 
                 if (!res.ok) {
-                    setError(json.error?.message || "Upload failed");
-                    setLoading(false);
+                    setError(json?.error?.message || `Upload failed (HTTP ${res.status})`);
                     return;
                 }
                 setCreatedCode(json.data.code);
@@ -281,7 +281,7 @@ export default function Expedite() {
             return;
         }
 
-        // FILE — presigned engine (single or multipart), direct to R2
+        // File: the presigned engine (single or multipart), straight to R2
         if (!selectedFile) {
             setError("No file selected");
             setLoading(false);
@@ -334,11 +334,11 @@ export default function Expedite() {
 
         try {
             const res = await fetch(`${apiBaseUrl}/expedite/drop/${targetCode}`);
-            const json = await res.json();
+            // Null when the answer isn't the API's JSON (a proxy's error page): its 404s always are.
+            const json = await res.json().catch(() => null);
 
             if (!res.ok) {
-                setError(json.error?.message || "Not found");
-                setLoading(false);
+                setError(json?.error?.message || `Expedite didn't answer (HTTP ${res.status}). Try again.`);
                 return;
             }
 
@@ -385,7 +385,6 @@ export default function Expedite() {
             await sendP2P({
                 file: selectedFile,
                 apiBaseUrl,
-                useTurn: !relayBlocked,
                 signal: controller.signal,
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
@@ -397,10 +396,8 @@ export default function Expedite() {
                     setP2pExpiresAt(expiresAt);
                 },
             });
-        } catch (err: unknown) {
-            if ((err as Error).name !== "AbortError") {
-                setError(err instanceof Error ? err.message : "Transfer failed");
-            }
+        } catch {
+            // A failure is shown in the progress (the status's error, with its technical part), so not here as well.
         } finally {
             p2pAbortRef.current = null;
             if (p2pCodeRef.current) {
@@ -448,7 +445,6 @@ export default function Expedite() {
                 fileSize: result.size,
                 handle,
                 apiBaseUrl,
-                useTurn: !relayBlocked,
                 signal: controller.signal,
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
@@ -458,10 +454,8 @@ export default function Expedite() {
                 setP2pReceived(received);
                 saveBlob(received, fileName);
             }
-        } catch (err: unknown) {
-            if ((err as Error).name !== "AbortError") {
-                setError(err instanceof Error ? err.message : "Transfer failed");
-            }
+        } catch {
+            // A failure is shown in the progress (the status's error, with its technical part), so not here as well.
         } finally {
             p2pAbortRef.current = null;
             if (p2pCodeRef.current) {
