@@ -4,6 +4,7 @@ import {
     countCandidates,
     createPeer,
     createRateMeter,
+    CTRL_AT,
     CTRL_DONE,
     CTRL_EOF,
     describeCandidates,
@@ -12,18 +13,21 @@ import {
     GATHER_TIMEOUT_TURN_MS,
     GIVE_UP_MESSAGE,
     GIVE_UP_MS,
-    isUp,
+    type Link,
     OFFLINE_RETRY_MS,
     P2PError,
     type Pairing,
     postSignal,
     readSelectedPair,
+    ROUND_TIMEOUT_MS,
+    SessionGone,
+    type SignalEvent,
     sleep,
     SNAPSHOT_INTERVAL_MS,
     totalCandidates,
     waitForGathering,
-    waitForRegathering,
     waitForSignal,
+    watchLink,
 } from "./peer.ts";
 
 export interface ReceiveOptions {
@@ -53,7 +57,7 @@ const DONE_GRACE_MS = 5_000;
 /** In memory, the chunks are copied into a Blob every this many bytes. */
 const MEMORY_BLOCK_BYTES = 16 * 1024 * 1024;
 
-/** The receiver gives up on reconnecting this long after the sender would: the sender's last round can still come. */
+/** The receiver gives up on reconnecting this long after the sender would: the sender's last attempt can still come. */
 const GIVE_UP_MARGIN_MS = 10_000;
 
 /** Where the file is written as it arrives: the picked file on disk, or memory. */
@@ -90,16 +94,12 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         onStatus({...status, candidates: {...status.candidates}});
     };
 
+    // The current connection's: a reconnect replaces it.
     let pc: RTCPeerConnection | null = null;
     let writable: Sink | null = null;
     let memory: ReturnType<typeof memorySink> | null = null;
     let statsTimer = 0;
-    // Once the channel is open: answering the sender's reconnects through a network switch.
-    let reconnect: Reconnect | null = null;
-    // The transfer's own signal: the page's cancel, or giving up on reconnecting.
-    const transfer = new AbortController();
-    const onCancel = (): void => transfer.abort();
-    signal.addEventListener("abort", onCancel, {once: true});
+    let reportTimer = 0;
 
     let received = 0;
     let chunks = 0;
@@ -141,7 +141,6 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 
         const {servers, turnError} = await buildIceServers(apiBaseUrl, useTurn, signal);
         if (turnError) emit({detail: `${turnError} — continuing with STUN only`});
-        const gatherTimeout = useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS;
 
         pc = createPeer(servers);
 
@@ -157,7 +156,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         emit({phase: "gathering", detail: "gathering ICE candidates"});
         // Relay allocation is slower than host/srflx; only wait longer when a
         // relay is actually expected.
-        await waitForGathering(pc, gatherTimeout);
+        await waitForGathering(pc, useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS);
         throwIfAborted(signal);
 
         const localSdp = pc.localDescription?.sdp;
@@ -190,9 +189,10 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         const pairing: Pairing = {apiBaseUrl, code, token: json.data.token as string};
 
         emit({phase: "negotiating", detail: "answer posted · awaiting data channel"});
-        watchIce(pc, status, emit, () => reconnect !== null);
+        const stopWatchingIce = watchIce(pc, status, emit);
 
         const channel = await channelPromise;
+        stopWatchingIce();
         throwIfAborted(signal);
 
         emit({
@@ -201,7 +201,6 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             detail: `data channel open · writing to ${fileName}`,
         });
         await refreshPair(pc, emit);
-        reconnect = answerRestarts(pc, pairing, gatherTimeout, emit, transfer);
 
         // Open the sink only once bytes are actually about to flow, so a failed
         // negotiation doesn't leave a zero-byte file sitting on disk.
@@ -212,21 +211,49 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         snapshot(true);
 
         statsTimer = window.setInterval(() => {
-            void refreshPair(pc!, emit);
+            if (pc) void refreshPair(pc, emit);
             snapshot();
         }, 1000);
 
-        await drainChannel(channel, {
-            fileSize,
-            signal: transfer.signal,
-            onChunk: async (buffer) => {
-                await writable!.write(buffer);
-                received += buffer.byteLength;
-                chunks += 1;
-                if (buffer.byteLength > observedChunkSize) observedChunkSize = buffer.byteLength;
-                snapshot(); // self-throttling
-            },
-        });
+        // --- Transfer, through as many connections as it takes (STALL_MS in peer.ts has the why) ---
+        const writes = {queue: Promise.resolve()};
+        const onChunk = async (buffer: ArrayBuffer): Promise<void> => {
+            await writable!.write(buffer);
+            received += buffer.byteLength;
+            chunks += 1;
+            if (buffer.byteLength > observedChunkSize) observedChunkSize = buffer.byteLength;
+            snapshot(); // self-throttling
+        };
+        let link: Link = {pc, channel};
+        // The last reconnect offer answered: the next has to be newer.
+        let round = 0;
+        for (; ;) {
+            const current = link.channel;
+            // What's saved, now and every second: where the sender goes on from, and a sign this side is still here.
+            const report = (): void => {
+                if (current.readyState === "open") current.send(CTRL_AT + received);
+            };
+            const watch = watchLink(current, signal);
+            report();
+            reportTimer = window.setInterval(report, 1000);
+            try {
+                await drainChannel(current, {from: received, fileSize, signal: watch.signal, writes, onChunk});
+                break;
+            } catch (err: unknown) {
+                if (!watch.lost()) throw err;
+            } finally {
+                watch.stop();
+            }
+            window.clearInterval(reportTimer);
+            link.pc.close();
+            emit({degraded: true, reconnecting: true, detail: "connection lost · waiting for the sender"});
+            // Everything that arrived is written first: `received` is then where the sender goes on from.
+            await writes.queue;
+            ({link, round} = await answerReconnect(pairing, round, useTurn, status, emit, signal));
+            pc = link.pc;
+            emit({degraded: false, reconnecting: false, maxMessageSize: pc.sctp?.maxMessageSize ?? null, detail: "reconnected"});
+            void refreshPair(pc, emit);
+        }
 
         snapshot(true);
         await writable.close();
@@ -236,13 +263,15 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             throw new P2PError(`Size mismatch — expected ${fileSize} B, wrote ${received} B`);
         }
 
-        if (channel.readyState === "open") channel.send(CTRL_DONE);
+        // The reports went on while the file was being closed (a big one can take a while): the sender waits for this.
+        if (link.channel.readyState === "open") link.channel.send(CTRL_DONE);
+        window.clearInterval(reportTimer);
 
         emit({phase: "done", degraded: false, reconnecting: false, detail: `${fileName} written · ${received} B`});
 
         // Closing at once could cut CTRL_DONE off before it leaves, and the sender only counts the file delivered once
         // it hears it. The sender closes the channel when it does.
-        await waitForClose(channel, DONE_GRACE_MS, signal);
+        await waitForClose(link.channel, DONE_GRACE_MS, signal);
         return memory?.blob() ?? null;
     } catch (err: unknown) {
         // Abort the sink so a partial file is discarded rather than left behind
@@ -255,23 +284,15 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             }
         }
 
-        // Gave up on reconnecting: what stopped the transfer is the lost connection, not the abort that ended its waits.
-        const lost = reconnect?.lost ?? null;
-        if (lost) {
-            emit({phase: "failed", reconnecting: false, error: lost, detail: lost});
-            throw new P2PError(lost);
-        }
-
         if ((err as Error)?.name !== "AbortError") {
             const message = err instanceof Error ? err.message : String(err);
-            emit({phase: "failed", error: message, detail: message});
+            emit({phase: "failed", reconnecting: false, error: message, detail: message});
         }
 
         throw err;
     } finally {
-        reconnect?.stop();
-        signal.removeEventListener("abort", onCancel);
-        if (statsTimer) window.clearInterval(statsTimer);
+        window.clearInterval(statsTimer);
+        window.clearInterval(reportTimer);
         try {
             pc?.close();
         } catch {
@@ -374,24 +395,28 @@ function waitForClose(channel: RTCDataChannel, ms: number, signal: AbortSignal):
 }
 
 interface DrainOptions {
+    /** Bytes already in, through earlier connections. */
+    from: number;
     fileSize: number;
     signal: AbortSignal;
+    /** The writes, in order, across connections. */
+    writes: { queue: Promise<void> };
     onChunk: (buffer: ArrayBuffer) => Promise<void>;
 }
 
 /**
- * Consume binary messages until EOF or the declared size is reached.
+ * Consume binary messages until EOF or the declared size is reached, then wait for the writes.
  *
  * Writes are serialised through a promise chain: `write()` is async and the
  * message events are not, so without this a fast sender would interleave writes
- * and scramble the file.
+ * and scramble the file. The chain is the transfer's, not this channel's: a new
+ * connection starts once the last one's writes are done.
  */
 function drainChannel(channel: RTCDataChannel, opts: DrainOptions): Promise<void> {
-    const {fileSize, signal, onChunk} = opts;
+    const {from, fileSize, signal, writes, onChunk} = opts;
 
     return new Promise((resolve, reject) => {
-        let queue: Promise<void> = Promise.resolve();
-        let total = 0;
+        let total = from;
         let settled = false;
 
         const cleanup = (): void => {
@@ -404,7 +429,7 @@ function drainChannel(channel: RTCDataChannel, opts: DrainOptions): Promise<void
             if (settled) return;
             settled = true;
             cleanup();
-            queue.then(resolve, reject);
+            writes.queue.then(resolve, reject);
         };
         const fail = (err: Error): void => {
             if (settled) return;
@@ -420,7 +445,7 @@ function drainChannel(channel: RTCDataChannel, opts: DrainOptions): Promise<void
             }
             const buffer = ev.data as ArrayBuffer;
             total += buffer.byteLength;
-            queue = queue.then(() => onChunk(buffer)).catch((err: Error) => {
+            writes.queue = writes.queue.then(() => onChunk(buffer)).catch((err: Error) => {
                 fail(err);
                 throw err;
             });
@@ -443,16 +468,13 @@ function drainChannel(channel: RTCDataChannel, opts: DrainOptions): Promise<void
 
 // --- Connection observation ---
 
+/** ICE's state, until the channel opens: from then on, the transfer watches the connection itself (watchLink). */
 function watchIce(
     pc: RTCPeerConnection,
     status: P2PStatus,
-    emit: (patch: Partial<P2PStatus>) => void,
-    reconnects: () => boolean
-): void {
-    pc.addEventListener("iceconnectionstatechange", () => {
-        // Once the transfer can reconnect, answerRestarts reports the state: a failure isn't final then, and a restart's
-        // "checking" isn't the negotiation starting over.
-        if (reconnects()) return;
+    emit: (patch: Partial<P2PStatus>) => void
+): () => void {
+    const onChange = (): void => {
         const state = pc.iceConnectionState;
         if (state === "checking") {
             emit({phase: "negotiating", detail: "ICE checking · probing candidate pairs"});
@@ -465,153 +487,88 @@ function watchIce(
             // Disconnections can heal (a transient network blip); un-flag.
             if (status.degraded) emit({degraded: false, detail: "ICE reconnected"});
         }
-    });
+    };
+    pc.addEventListener("iceconnectionstatechange", onChange);
+    return () => pc.removeEventListener("iceconnectionstatechange", onChange);
 }
 
 async function refreshPair(
     pc: RTCPeerConnection,
     emit: (patch: Partial<P2PStatus>) => void
 ): Promise<void> {
-    const info = await readSelectedPair(pc);
+    // A connection closed meanwhile (lost, its replacement on the way) has no stats to give.
+    const info = await readSelectedPair(pc).catch(() => null);
     if (!info) return;
     emit({pair: info.pair, relayed: info.relayed, rttMs: info.rttMs});
 }
 
 // --- Reconnecting ---
 
-interface Reconnect {
-    /** Why it gave up, once it has. */
-    readonly lost: string | null;
-
-    stop(): void;
-}
-
 /**
- * The receiver's side of a reconnect (keepConnected in sender.ts): while the route is down, it listens through the API
- * for the sender's next offer, answers it with routes from wherever this device now is, and listens again until the
- * route is back. Gives up a little after the sender would, or at once when the sender has ended the session: `lost`
- * says why, and aborting `transfer` ends the wait on the channel.
+ * The receiver's side of a reconnect (the sender's is `reconnect` in sender.ts): waits through the API for the sender's
+ * next offer (above `round`, the last one answered), and answers it from a new connection, with routes from wherever
+ * this device now is, until the sender's channel opens on it. One that can't be answered (no network yet, a newer offer
+ * already) is tried again OFFLINE_RETRY_MS later; one answered but with no channel within ROUND_TIMEOUT_MS gives way to
+ * the sender's next. Without a connection a little longer than the sender would wait, the transfer fails, and at once
+ * when the session is gone (the sender ended it).
  */
-function answerRestarts(
-    pc: RTCPeerConnection,
+async function answerReconnect(
     pairing: Pairing,
-    gatherTimeoutMs: number,
+    round: number,
+    useTurn: boolean,
+    status: P2PStatus,
     emit: (patch: Partial<P2PStatus>) => void,
-    transfer: AbortController
-): Reconnect {
-    let lost: string | null = null;
-    let stopped = false;
-    let running = false;
-    let down = false;
-    let giveUpTimer = 0;
-    // The last round seen: the next offer has to be newer.
-    let seen = 0;
-    // Listening while down: back up, it stops.
-    let listening: AbortController | null = null;
-
-    // Back up: the timer and the listening stop, and the status says so.
-    const back = (): void => {
-        window.clearTimeout(giveUpTimer);
-        giveUpTimer = 0;
-        listening?.abort();
-        if (down) {
-            down = false;
-            emit({degraded: false, reconnecting: false, detail: "ICE reconnected"});
-            void refreshPair(pc, emit);
-        }
-    };
-
-    const onIce = (): void => {
-        const state = pc.iceConnectionState;
-        if (isUp(pc)) {
-            back();
-            return;
-        }
-        if (state !== "disconnected" && state !== "failed") return;
-        if (!down) {
-            down = true;
-            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
-        }
-        if (!giveUpTimer) giveUpTimer = window.setTimeout(giveUp, GIVE_UP_MS + GIVE_UP_MARGIN_MS);
-        if (!running && !stopped) {
-            running = true;
-            void listen().finally(() => {
-                running = false;
-            });
-        }
-    };
-
-    async function listen(): Promise<void> {
-        const controller = new AbortController();
-        listening = controller;
-        const onStop = (): void => controller.abort();
-        transfer.signal.addEventListener("abort", onStop, {once: true});
+    signal: AbortSignal
+): Promise<{ link: Link; round: number }> {
+    const giveUpAt = Date.now() + GIVE_UP_MS + GIVE_UP_MARGIN_MS;
+    for (; ;) {
+        let offer: SignalEvent;
         try {
-            while (!stopped && !isUp(pc)) {
-                try {
-                    emit({reconnecting: true, detail: "reconnecting · waiting for the sender's new offer"});
-                    const offer = await waitForSignal(pairing, seen, controller.signal);
-                    if (offer.kind === "gone") {
-                        giveUp();
-                        return;
-                    }
-                    // Seen, answered or not: if this one can't be, the sender's next round will come.
-                    seen = offer.round;
-                    emit({remoteCandidates: countCandidates(offer.sdp), detail: `reconnecting · round ${offer.round} · offer in`});
-                    await pc.setRemoteDescription({type: "offer", sdp: offer.sdp});
-                    await pc.setLocalDescription(await pc.createAnswer());
-                    await waitForRegathering(pc, gatherTimeoutMs);
-                    const answer = pc.localDescription?.sdp ?? "";
-                    const candidates = countCandidates(answer);
-                    if (totalCandidates(candidates) === 0) {
-                        emit({detail: "reconnecting · no network yet"});
-                        continue;
-                    }
-                    emit({candidates});
-
-                    const posted = await postSignal(pairing, "/restart/answer", {answer, round: offer.round}, controller.signal);
-                    // The session is gone (the sender ended it), or not ours. A 409 is a newer round: listening goes on.
-                    if (posted.status === 403 || posted.status === 404) {
-                        giveUp();
-                        return;
-                    }
-                    emit({detail: `reconnecting · round ${offer.round} · answer sent, checking routes`});
-                } catch {
-                    // The API out of reach, a description refused: listen again once the network has had a moment.
-                    if (!stopped && !isUp(pc) && !controller.signal.aborted) {
-                        await sleep(OFFLINE_RETRY_MS, controller.signal).catch(() => undefined);
-                    }
-                }
-            }
-        } finally {
-            transfer.signal.removeEventListener("abort", onStop);
-            if (listening === controller) listening = null;
+            offer = await waitForSignal(pairing, round, AbortSignal.any([signal, AbortSignal.timeout(Math.max(0, giveUpAt - Date.now()))]));
+        } catch (err: unknown) {
+            if (signal.aborted) throw err;
+            throw new P2PError(GIVE_UP_MESSAGE);
         }
-        // Up without telling (no state event since): as if it had.
-        if (!stopped && isUp(pc)) back();
-    }
+        if (offer.kind === "gone") throw new SessionGone("The sender stopped the transfer");
+        emit({remoteCandidates: countCandidates(offer.sdp), detail: `reconnecting · offer ${offer.round} in`});
 
-    function giveUp(): void {
-        if (stopped) return;
-        lost = GIVE_UP_MESSAGE;
-        stop();
-        transfer.abort();
-    }
+        const attempt = new AbortController();
+        const onCancel = (): void => attempt.abort();
+        signal.addEventListener("abort", onCancel, {once: true});
+        let timer = 0;
+        let pc: RTCPeerConnection | null = null;
+        try {
+            const {servers, turnError} = await buildIceServers(pairing.apiBaseUrl, useTurn, signal);
+            pc = createPeer(servers);
+            // Before the answer goes out, so the sender's channel can't arrive unseen.
+            const opened = waitForRemoteChannel(pc, status, attempt.signal);
+            opened.catch(() => undefined);
+            await pc.setRemoteDescription({type: "offer", sdp: offer.sdp});
+            await pc.setLocalDescription(await pc.createAnswer());
+            await waitForGathering(pc, useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS);
+            const answer = pc.localDescription?.sdp ?? "";
+            const candidates = countCandidates(answer);
+            if (totalCandidates(candidates) === 0) throw new P2PError("No network routes yet");
+            emit({candidates});
 
-    function stop(): void {
-        stopped = true;
-        window.clearTimeout(giveUpTimer);
-        listening?.abort();
-        pc.removeEventListener("iceconnectionstatechange", onIce);
+            const posted = await postSignal(pairing, "/restart/answer", {answer, round: offer.round}, signal);
+            if (posted.status === 403 || posted.status === 404) throw new SessionGone("The sender stopped the transfer");
+            // A 409: a newer offer is waiting.
+            if (posted.status >= 300) throw new P2PError(`Answer refused (HTTP ${posted.status})`);
+            round = offer.round;
+            emit({detail: `reconnecting · answer ${round} sent, waiting for the channel`});
+            timer = window.setTimeout(() => attempt.abort(), ROUND_TIMEOUT_MS);
+            return {link: {pc, channel: await opened}, round};
+        } catch (err: unknown) {
+            pc?.close();
+            if (signal.aborted || err instanceof SessionGone) throw err;
+            if (round !== offer.round) await sleep(OFFLINE_RETRY_MS, signal);
+        } finally {
+            window.clearTimeout(timer);
+            attempt.abort();
+            signal.removeEventListener("abort", onCancel);
+        }
     }
-
-    pc.addEventListener("iceconnectionstatechange", onIce);
-    return {
-        get lost() {
-            return lost;
-        },
-        stop,
-    };
 }
 
 function throwIfAborted(signal: AbortSignal): void {

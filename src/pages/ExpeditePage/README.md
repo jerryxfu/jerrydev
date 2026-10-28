@@ -141,29 +141,40 @@ sender                          server                        receiver
   |-- DELETE /p2p/:code -------->|  once the transfer is over
 ```
 
-**Reconnecting after a network switch.** The route a transfer runs on dies when either side changes network (the Wi-Fi
-switched, the phone left it for its data). The paired session is where the two sides find a new one, each with its token:
+**Reconnecting after a network switch.** A transfer outlives its connections. A connection dies when either side
+changes network (the Wi-Fi switched, the phone left it for its data). Both sides then drop it and make a fresh one
+through the paired session, each with its token, and the receiver says how much it has saved: the sender goes on from
+there.
 
 ```
 sender                          server                        receiver
-  |   ICE disconnected 2 s, or failed: both sides see it       |
-  |                              |<-- GET /restart/events ---- |  SSE, held while down
+  |   lost: the channel closed, or 5 s without a word from the other side
+  |                              |<-- GET /restart/events ---- |  SSE, held while reconnecting
   |-- POST /restart (offer) ---->|  round + 1                  |
   |-- GET /restart/events ------>|== event: offer ===========>|
   |                              |<-- POST /restart/answer ---- |
   |<== event: answer ============|                             |
-  |============ same data channel, new route ==================|
+  |============ new connection, new data channel ==============|
+  |<-- CTRL_AT (bytes saved) ----------------------------------|  where the sender goes on from
 ```
 
-The sender's offer is an ICE restart (`createOffer({iceRestart: true})`), so both sides gather routes from wherever they
-now are; the DTLS and SCTP above stay as they were, and so does the data channel. A round that hasn't reconnected within
-15 s is followed by another, and once its answer is in, the route checks get 15 s of their own; down for 90 s, both sides
-give up. No stream is held while the route is up. The restart stream waits through a network that's still down: a
-browser closes an EventSource for good when it can't reach the server at all (a laptop between two Wi-Fi networks), so
-`waitForSignal` opens it again every 3 s, and only the API's `gone` (the session ended) stops it. The constants
-and the why are in `p2p/peer.ts` (`RESTART_AFTER_MS`); the rounds are `keepConnected` in `sender.ts` and
-`answerRestarts` in `receiver.ts`. If the data channel has already closed, there's nothing to carry on: the transfer
-fails, as before (resuming from a byte position isn't built).
+A fresh connection rather than an ICE restart of the old one (step 1, until 2026-10-28), because browsers carry an old
+connection through a network change each their own way. Firefox closes the channel within a second of losing its
+network. Chromium and Safari bring the old route back by themselves, from a new port, and Firefox never moves to it:
+both sides say connected and nothing moves, even after a completed ICE restart. Every browser makes a new connection
+the same way, so one path covers all of it, and the first connection is just a transfer going on from byte 0.
+
+A loss is seen the same way on both sides: the channel closes, or nothing comes from the other side for 5 s (the
+receiver reports what it has saved every second, the sender's chunks keep coming). The receiver writes everything that
+arrived before it says where it is, so no byte is lost or doubled. An attempt waits 15 s for the answer, then 15 s for
+the channel, and another follows 3 s after one fails; without a connection for 90 s, the sender gives up, and the
+receiver 10 s later. A side that stops on purpose (Cancel, a closed tab, a failure) ends the session, and the other
+side's next attempt finds it gone and stops at once ("The receiver stopped the transfer"). The restart stream waits
+through a network that's still down: a browser closes an EventSource for good when it can't reach the server at all,
+so `waitForSignal` opens it again every 3 s, and only the API's `gone` stops it. The constants and the why are in
+`p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and `answerReconnect` in
+`receiver.ts`. Tested in Docker (two browsers, one's network unplugged mid-transfer): Chromium and Firefox in every
+pair, the sender and the receiver dropping, a switch to another network, both cancels, a 2-minute outage.
 
 Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code** — it can't reuse the old one, because the ICE
 candidates in a ten-minute-old SDP reference NAT bindings that have lapsed, so reconnecting would fail at the checking stage with nothing to show for it.
@@ -176,12 +187,14 @@ Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't b
 via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
-Only `CTRL_DONE` counts as delivered: a channel that closes first fails the transfer on the sender too (the receiver's disk filling up after the last byte
-went out used to show as delivered). ICE failing doesn't: it starts the reconnect rounds, and only giving up on them fails it. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
-the receiver closes anyway after 5s.
+Only `CTRL_DONE` counts as delivered (the receiver's disk filling up after the last byte went out used to show as delivered); a channel that closes first
+is a lost connection, and the reconnect takes it from there. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes
+on hearing it, and the receiver closes anyway after 5s. Until then the receiver keeps sending `CTRL_AT` with its byte count every second (closing a big
+file can take a while), so the sender doesn't take the wait for a lost connection. Known gap: a connection lost just after the receiver sent `CTRL_DONE`
+and before it arrived leaves the file saved but the sender reporting "The receiver stopped the transfer".
 
 Receiver writes are serialised through a promise chain — `write()` is async and message events are not, so without it a fast sender interleaves writes and
-scrambles the file.
+scrambles the file. The chain belongs to the transfer, not to one connection: a new connection starts once the last one's writes are done.
 
 **The sender reports `queued - bufferedAmount`, not `queued.`** Bytes handed to SCTP aren't bytes delivered. Reporting `queued` produced a sawtooth whose flat
 sections defeated the speed calculation and made the two screens disagree.

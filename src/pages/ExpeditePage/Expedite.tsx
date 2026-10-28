@@ -155,8 +155,8 @@ export default function Expedite() {
     }, [view]);
 
     // Leaving Expedite stops whatever runs, as Cancel or Back would: an upload and its hashing (the server is told, so it
-    // frees the drop), a P2P transfer, and its session (else it keeps handing out an offer nobody is listening for until
-    // its TTL runs out), a download's hash check. When the page goes (a closed tab, another site) as when the site moves
+    // frees the drop), a P2P transfer, and its session (else a sender's keeps handing out an offer nobody is listening
+    // for until its TTL runs out, and the other side waits to reconnect until it gives up), a download's hash check. When the page goes (a closed tab, another site) as when the site moves
     // on to another of its pages (the logo, a link). The server calls use keepalive to outlive a closing page;
     // sendBeacon can't be used because it only issues POSTs. pagehide rather than beforeunload: phones often skip that.
     useEffect(() => {
@@ -437,6 +437,8 @@ export default function Expedite() {
 
         const controller = new AbortController();
         p2pAbortRef.current = controller;
+        // Ended when this side stops, as the sender's is: the sender's reconnect then finds no session and stops at once.
+        p2pCodeRef.current = result.code;
 
         try {
             const received = await receiveP2P({
@@ -462,6 +464,10 @@ export default function Expedite() {
             }
         } finally {
             p2pAbortRef.current = null;
+            if (p2pCodeRef.current) {
+                closeSession(apiBaseUrl, p2pCodeRef.current);
+                p2pCodeRef.current = null;
+            }
         }
     };
 

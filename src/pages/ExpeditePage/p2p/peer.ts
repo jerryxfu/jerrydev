@@ -24,6 +24,8 @@ export const STUN_URLS = [
  */
 export const CTRL_EOF = "\u0000expedite:eof";
 export const CTRL_DONE = "\u0000expedite:done";
+/** From the receiver, with the bytes it has saved: when a channel opens (where to start), then every second. */
+export const CTRL_AT = "\u0000expedite:at:";
 
 /** Conservative interop ceiling; clamped further by the negotiated SCTP limit. */
 export const DEFAULT_CHUNK_SIZE = 64 * 1024;
@@ -49,16 +51,19 @@ export const GATHER_TIMEOUT_MS = 5000;
 export const GATHER_TIMEOUT_TURN_MS = 9000;
 
 /**
- * Reconnecting after a network switch: the route a transfer runs on dies when either side changes network. The sender
- * then asks for a new one (an ICE restart) and the two swap new details through the API's paired session, a round at a
- * time. While the data channel stays open, the transfer carries on where it was.
+ * A transfer outlives its connections. A connection dies when either side changes network: both sides then drop it and
+ * make a fresh one through the API's paired session, and the receiver says how much it has saved (CTRL_AT), where the
+ * sender goes on from. A fresh connection rather than an ICE restart of the old one, because browsers carry an old
+ * connection through a network change each their own way: Firefox closes the channel at once, Chromium and Safari bring
+ * the old route back from a new port, and Firefox never moves to it. Every browser makes a new connection the same way.
  *
- * Disconnected this long (a blip often heals on its own), or ICE failed, starts the rounds.
+ * Lost: the channel closed, or nothing from the other side for this long (the receiver reports every second, the
+ * sender's chunks keep coming).
  */
-export const RESTART_AFTER_MS = 2000;
-/** A round that hasn't reconnected by then is followed by a new one. */
+export const STALL_MS = 5000;
+/** A reconnect attempt waits this long for the other side's answer, then as long again for the channel. */
 export const ROUND_TIMEOUT_MS = 15_000;
-/** Down this long, the transfer fails: time for a phone to join another network, and short of SCTP giving up on its own. */
+/** Without a connection this long, the transfer fails: time for a phone to join another network. */
 export const GIVE_UP_MS = 90_000;
 /** Still offline (nothing gathered, the API out of reach): how long before trying again. */
 export const OFFLINE_RETRY_MS = 3000;
@@ -104,6 +109,55 @@ export class P2PError extends Error {
     }
 }
 
+/** The paired session is gone (the other side ended the transfer): there's no one to reconnect to. */
+export class SessionGone extends P2PError {
+}
+
+/** One connection of a transfer. */
+export interface Link {
+    pc: RTCPeerConnection;
+    channel: RTCDataChannel;
+}
+
+export interface LinkWatch {
+    /** Aborts once the connection is lost, or the transfer cancelled. */
+    signal: AbortSignal;
+
+    /** Lost (closed, or silent STALL_MS), not cancelled. */
+    lost(): boolean;
+
+    stop(): void;
+}
+
+/** Watches one connection for loss (STALL_MS has what counts), until it's lost, `cancel` aborts, or stop(). */
+export function watchLink(channel: RTCDataChannel, cancel: AbortSignal): LinkWatch {
+    const controller = new AbortController();
+    let heard = Date.now();
+    const onMessage = (): void => {
+        heard = Date.now();
+    };
+    const lose = (): void => controller.abort();
+    const timer = window.setInterval(() => {
+        if (Date.now() - heard > STALL_MS) lose();
+    }, 1000);
+    const stop = (): void => {
+        window.clearInterval(timer);
+        channel.removeEventListener("message", onMessage);
+        channel.removeEventListener("close", lose);
+        cancel.removeEventListener("abort", lose);
+    };
+    channel.addEventListener("message", onMessage);
+    channel.addEventListener("close", lose);
+    cancel.addEventListener("abort", lose);
+    controller.signal.addEventListener("abort", stop, {once: true});
+    if (cancel.aborted) lose();
+    return {
+        signal: controller.signal,
+        lost: () => !cancel.aborted && (controller.signal.aborted || channel.readyState !== "open"),
+        stop,
+    };
+}
+
 /**
  * Build the ICE server list. The relay (TURN) is offered from the start, beside the direct routes: ICE ranks direct pairs
  * above relayed ones, so it only carries the file when no direct route answers, and there is no failed attempt to wait
@@ -137,8 +191,6 @@ export async function buildIceServers(
     }
 }
 
-// No candidate pool (iceCandidatePoolSize): it shaved a little off gathering, but with one Chromium skips an ICE restart,
-// its offer keeping the old credentials and no candidates, so a transfer couldn't reconnect after a network switch.
 export function createPeer(servers: RTCIceServer[]): RTCPeerConnection {
     return new RTCPeerConnection({iceServers: servers});
 }
@@ -181,25 +233,6 @@ export function waitForGathering(pc: RTCPeerConnection, timeoutMs = GATHER_TIMEO
         // A pooled relay candidate can already be in the description.
         if (pc.localDescription?.sdp.includes(" typ relay")) startGrace();
     });
-}
-
-/**
- * Gathering again after a restart's setLocalDescription. iceGatheringState can still read the last round's "complete"
- * until the new gathering starts, and waitForGathering would then return at once, with no candidates in the SDP.
- */
-export async function waitForRegathering(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
-    if (pc.iceGatheringState === "complete") {
-        await new Promise<void>((resolve) => {
-            const done = (): void => {
-                pc.removeEventListener("icegatheringstatechange", done);
-                window.clearTimeout(timer);
-                resolve();
-            };
-            const timer = window.setTimeout(done, 1000);
-            pc.addEventListener("icegatheringstatechange", done);
-        });
-    }
-    await waitForGathering(pc, timeoutMs);
 }
 
 /** A paired session, for reconnecting: its code and this side's token. */
@@ -308,11 +341,6 @@ export function sleep(ms: number, signal: AbortSignal): Promise<void> {
     });
 }
 
-/** Whether ICE has a working route. */
-export function isUp(pc: RTCPeerConnection): boolean {
-    return pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed";
-}
-
 /** Count local candidates by type straight out of the SDP. */
 export function countCandidates(sdp: string): Record<CandidateType, number> {
     const counts: Record<CandidateType, number> = {host: 0, srflx: 0, prflx: 0, relay: 0};
@@ -348,12 +376,12 @@ export async function readSelectedPair(pc: RTCPeerConnection): Promise<PairInfo 
     let report: RTCStats | undefined;
     const stats = await pc.getStats();
 
+    // The pair the data goes through: the transport names it (Chromium, Safari), Firefox marks it `selected`. Not the
+    // last nominated one: after a reconnect, the earlier routes' pairs are still in the report.
     stats.forEach((s) => {
-        const r = s as RTCStats & { state?: string; nominated?: boolean; selected?: boolean };
-        if (r.type !== "candidate-pair") return;
-        if (r.state !== "succeeded") return;
-        // Firefox uses `selected`; Chromium uses `nominated`.
-        if (r.nominated || r.selected) report = s;
+        const r = s as RTCStats & { selectedCandidatePairId?: string; selected?: boolean };
+        if (r.type === "transport" && r.selectedCandidatePairId) report = stats.get(r.selectedCandidatePairId);
+        else if (r.type === "candidate-pair" && r.selected && !report) report = s;
     });
 
     if (!report) return null;

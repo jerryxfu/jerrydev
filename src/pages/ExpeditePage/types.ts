@@ -135,9 +135,9 @@ export interface P2PStatus {
     remoteCandidates: Record<CandidateType, number> | null;
     /** The ladder phase the transfer was in when it failed. Null while healthy. */
     failedAt: P2PPhase | null;
-    /** ICE reports the peer unreachable — not failed yet, but likely dying. */
+    /** The peer unreachable: ICE says so while connecting, or the connection was lost mid-transfer. */
     degraded: boolean;
-    /** The route went down mid-transfer and the two sides are swapping new ones (an ICE restart). */
+    /** The connection was lost mid-transfer and the two sides are making a new one. */
     reconnecting: boolean;
     /** e.g. "srflx <-> srflx" once a pair is nominated. */
     pair: string | null;
