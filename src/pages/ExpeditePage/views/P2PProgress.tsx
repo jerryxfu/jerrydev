@@ -98,7 +98,8 @@ export default function P2PProgress({status, snapshot, role, inMemory = false}: 
             </div>
 
             <div className={`expedite_p2p-headline${isError ? " is-error" : ""}`}>
-                <span className="expedite_p2p-phase">{PHASE_LABEL[status.phase]}</span>
+                {/* Mid-transfer, the route lost and a new one being found: the ladder stays on Transferring. */}
+                <span className="expedite_p2p-phase">{status.reconnecting ? "Reconnecting" : PHASE_LABEL[status.phase]}</span>
             </div>
 
             {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}

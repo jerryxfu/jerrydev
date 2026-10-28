@@ -10,11 +10,20 @@ import {
     describeIceFailure,
     GATHER_TIMEOUT_MS,
     GATHER_TIMEOUT_TURN_MS,
+    GIVE_UP_MESSAGE,
+    GIVE_UP_MS,
+    isUp,
+    OFFLINE_RETRY_MS,
     P2PError,
+    type Pairing,
+    postSignal,
     readSelectedPair,
+    sleep,
     SNAPSHOT_INTERVAL_MS,
     totalCandidates,
     waitForGathering,
+    waitForRegathering,
+    waitForSignal,
 } from "./peer.ts";
 
 export interface ReceiveOptions {
@@ -43,6 +52,9 @@ const DONE_GRACE_MS = 5_000;
 
 /** In memory, the chunks are copied into a Blob every this many bytes. */
 const MEMORY_BLOCK_BYTES = 16 * 1024 * 1024;
+
+/** The receiver gives up on reconnecting this long after the sender would: the sender's last round can still come. */
+const GIVE_UP_MARGIN_MS = 10_000;
 
 /** Where the file is written as it arrives: the picked file on disk, or memory. */
 interface Sink {
@@ -82,6 +94,12 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
     let writable: Sink | null = null;
     let memory: ReturnType<typeof memorySink> | null = null;
     let statsTimer = 0;
+    // Once the channel is open and the session paired: answering the sender's reconnects through a network switch.
+    let reconnect: Reconnect | null = null;
+    // The transfer's own signal: the page's cancel, or giving up on reconnecting.
+    const transfer = new AbortController();
+    const onCancel = (): void => transfer.abort();
+    signal.addEventListener("abort", onCancel, {once: true});
 
     let received = 0;
     let chunks = 0;
@@ -123,6 +141,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 
         const {servers, turnError} = await buildIceServers(apiBaseUrl, useTurn, signal);
         if (turnError) emit({detail: `${turnError} — continuing with STUN only`});
+        const gatherTimeout = useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS;
 
         pc = createPeer(servers);
 
@@ -138,7 +157,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         emit({phase: "gathering", detail: "gathering ICE candidates"});
         // Relay allocation is slower than host/srflx; only wait longer when a
         // relay is actually expected.
-        await waitForGathering(pc, useTurn && !turnError ? GATHER_TIMEOUT_TURN_MS : GATHER_TIMEOUT_MS);
+        await waitForGathering(pc, gatherTimeout);
         throwIfAborted(signal);
 
         const localSdp = pc.localDescription?.sdp;
@@ -167,9 +186,12 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
         if (!res.ok) {
             throw new P2PError(json?.error?.message ?? `Answer rejected (HTTP ${res.status})`);
         }
+        // For reconnecting once paired. An older API gives none: the transfer then can't survive a network switch.
+        const token = json?.data?.token as string | undefined;
+        const pairing: Pairing | null = token ? {apiBaseUrl, code, token} : null;
 
         emit({phase: "negotiating", detail: "answer posted · awaiting data channel"});
-        watchIce(pc, status, emit);
+        watchIce(pc, status, emit, () => reconnect !== null);
 
         const channel = await channelPromise;
         throwIfAborted(signal);
@@ -180,6 +202,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             detail: `data channel open · writing to ${fileName}`,
         });
         await refreshPair(pc, emit);
+        if (pairing) reconnect = answerRestarts(pc, pairing, gatherTimeout, emit, transfer);
 
         // Open the sink only once bytes are actually about to flow, so a failed
         // negotiation doesn't leave a zero-byte file sitting on disk.
@@ -196,7 +219,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 
         await drainChannel(channel, {
             fileSize,
-            signal,
+            signal: transfer.signal,
             onChunk: async (buffer) => {
                 await writable!.write(buffer);
                 received += buffer.byteLength;
@@ -216,7 +239,7 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 
         if (channel.readyState === "open") channel.send(CTRL_DONE);
 
-        emit({phase: "done", degraded: false, detail: `${fileName} written · ${received} B`});
+        emit({phase: "done", degraded: false, reconnecting: false, detail: `${fileName} written · ${received} B`});
 
         // Closing at once could cut CTRL_DONE off before it leaves, and the sender only counts the file delivered once
         // it hears it. The sender closes the channel when it does.
@@ -233,6 +256,13 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
             }
         }
 
+        // Gave up on reconnecting: what stopped the transfer is the lost connection, not the abort that ended its waits.
+        const lost = reconnect?.lost ?? null;
+        if (lost) {
+            emit({phase: "failed", reconnecting: false, error: lost, detail: lost});
+            throw new P2PError(lost);
+        }
+
         if ((err as Error)?.name !== "AbortError") {
             const message = err instanceof Error ? err.message : String(err);
             emit({phase: "failed", error: message, detail: message});
@@ -240,6 +270,8 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 
         throw err;
     } finally {
+        reconnect?.stop();
+        signal.removeEventListener("abort", onCancel);
         if (statsTimer) window.clearInterval(statsTimer);
         try {
             pc?.close();
@@ -415,9 +447,13 @@ function drainChannel(channel: RTCDataChannel, opts: DrainOptions): Promise<void
 function watchIce(
     pc: RTCPeerConnection,
     status: P2PStatus,
-    emit: (patch: Partial<P2PStatus>) => void
+    emit: (patch: Partial<P2PStatus>) => void,
+    reconnects: () => boolean
 ): void {
     pc.addEventListener("iceconnectionstatechange", () => {
+        // Once the transfer can reconnect, answerRestarts reports the state: a failure isn't final then, and a restart's
+        // "checking" isn't the negotiation starting over.
+        if (reconnects()) return;
         const state = pc.iceConnectionState;
         if (state === "checking") {
             emit({phase: "negotiating", detail: "ICE checking · probing candidate pairs"});
@@ -440,6 +476,143 @@ async function refreshPair(
     const info = await readSelectedPair(pc);
     if (!info) return;
     emit({pair: info.pair, relayed: info.relayed, rttMs: info.rttMs});
+}
+
+// --- Reconnecting ---
+
+interface Reconnect {
+    /** Why it gave up, once it has. */
+    readonly lost: string | null;
+
+    stop(): void;
+}
+
+/**
+ * The receiver's side of a reconnect (keepConnected in sender.ts): while the route is down, it listens through the API
+ * for the sender's next offer, answers it with routes from wherever this device now is, and listens again until the
+ * route is back. Gives up a little after the sender would, or at once when the sender has ended the session: `lost`
+ * says why, and aborting `transfer` ends the wait on the channel.
+ */
+function answerRestarts(
+    pc: RTCPeerConnection,
+    pairing: Pairing,
+    gatherTimeoutMs: number,
+    emit: (patch: Partial<P2PStatus>) => void,
+    transfer: AbortController
+): Reconnect {
+    let lost: string | null = null;
+    let stopped = false;
+    let running = false;
+    let down = false;
+    let giveUpTimer = 0;
+    // The last round seen: the next offer has to be newer.
+    let seen = 0;
+    // Listening while down: back up, it stops.
+    let listening: AbortController | null = null;
+
+    // Back up: the timer and the listening stop, and the status says so.
+    const back = (): void => {
+        window.clearTimeout(giveUpTimer);
+        giveUpTimer = 0;
+        listening?.abort();
+        if (down) {
+            down = false;
+            emit({degraded: false, reconnecting: false, detail: "ICE reconnected"});
+            void refreshPair(pc, emit);
+        }
+    };
+
+    const onIce = (): void => {
+        const state = pc.iceConnectionState;
+        if (isUp(pc)) {
+            back();
+            return;
+        }
+        if (state !== "disconnected" && state !== "failed") return;
+        if (!down) {
+            down = true;
+            emit({degraded: true, detail: "ICE disconnected · peer unreachable"});
+        }
+        if (!giveUpTimer) giveUpTimer = window.setTimeout(giveUp, GIVE_UP_MS + GIVE_UP_MARGIN_MS);
+        if (!running && !stopped) {
+            running = true;
+            void listen().finally(() => {
+                running = false;
+            });
+        }
+    };
+
+    async function listen(): Promise<void> {
+        const controller = new AbortController();
+        listening = controller;
+        const onStop = (): void => controller.abort();
+        transfer.signal.addEventListener("abort", onStop, {once: true});
+        try {
+            while (!stopped && !isUp(pc)) {
+                try {
+                    emit({reconnecting: true, detail: "reconnecting · waiting for the sender's new offer"});
+                    const offer = await waitForSignal(pairing, seen, controller.signal);
+                    if (offer.kind === "gone") {
+                        giveUp();
+                        return;
+                    }
+                    // Seen, answered or not: if this one can't be, the sender's next round will come.
+                    seen = offer.round;
+                    emit({remoteCandidates: countCandidates(offer.sdp), detail: `reconnecting · round ${offer.round} · offer in`});
+                    await pc.setRemoteDescription({type: "offer", sdp: offer.sdp});
+                    await pc.setLocalDescription(await pc.createAnswer());
+                    await waitForRegathering(pc, gatherTimeoutMs);
+                    const answer = pc.localDescription?.sdp ?? "";
+                    const candidates = countCandidates(answer);
+                    if (totalCandidates(candidates) === 0) {
+                        emit({detail: "reconnecting · no network yet"});
+                        continue;
+                    }
+                    emit({candidates});
+
+                    const posted = await postSignal(pairing, "/restart/answer", {answer, round: offer.round}, controller.signal);
+                    // The session is gone (the sender ended it), or not ours. A 409 is a newer round: listening goes on.
+                    if (posted.status === 403 || posted.status === 404) {
+                        giveUp();
+                        return;
+                    }
+                    emit({detail: `reconnecting · round ${offer.round} · answer sent, checking routes`});
+                } catch {
+                    // The API out of reach, a description refused: listen again once the network has had a moment.
+                    if (!stopped && !isUp(pc) && !controller.signal.aborted) {
+                        await sleep(OFFLINE_RETRY_MS, controller.signal).catch(() => undefined);
+                    }
+                }
+            }
+        } finally {
+            transfer.signal.removeEventListener("abort", onStop);
+            if (listening === controller) listening = null;
+        }
+        // Up without telling (no state event since): as if it had.
+        if (!stopped && isUp(pc)) back();
+    }
+
+    function giveUp(): void {
+        if (stopped) return;
+        lost = GIVE_UP_MESSAGE;
+        stop();
+        transfer.abort();
+    }
+
+    function stop(): void {
+        stopped = true;
+        window.clearTimeout(giveUpTimer);
+        listening?.abort();
+        pc.removeEventListener("iceconnectionstatechange", onIce);
+    }
+
+    pc.addEventListener("iceconnectionstatechange", onIce);
+    return {
+        get lost() {
+            return lost;
+        },
+        stop,
+    };
 }
 
 function throwIfAborted(signal: AbortSignal): void {

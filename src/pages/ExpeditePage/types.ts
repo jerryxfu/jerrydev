@@ -137,6 +137,8 @@ export interface P2PStatus {
     failedAt: P2PPhase | null;
     /** ICE reports the peer unreachable — not failed yet, but likely dying. */
     degraded: boolean;
+    /** The route went down mid-transfer and the two sides are swapping new ones (an ICE restart). */
+    reconnecting: boolean;
     /** e.g. "srflx <-> srflx" once a pair is nominated. */
     pair: string | null;
     /** True when the nominated pair goes through a TURN relay. */
@@ -170,6 +172,7 @@ export const EMPTY_P2P_STATUS: P2PStatus = {
     remoteCandidates: null,
     failedAt: null,
     degraded: false,
+    reconnecting: false,
     pair: null,
     relayed: false,
     rttMs: null,

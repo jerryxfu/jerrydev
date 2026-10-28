@@ -49,6 +49,22 @@ export const GATHER_TIMEOUT_MS = 5000;
 export const GATHER_TIMEOUT_TURN_MS = 9000;
 
 /**
+ * Reconnecting after a network switch: the route a transfer runs on dies when either side changes network. The sender
+ * then asks for a new one (an ICE restart) and the two swap new details through the API's paired session, a round at a
+ * time. While the data channel stays open, the transfer carries on where it was.
+ *
+ * Disconnected this long (a blip often heals on its own), or ICE failed, starts the rounds.
+ */
+export const RESTART_AFTER_MS = 2000;
+/** A round that hasn't reconnected by then is followed by a new one. */
+export const ROUND_TIMEOUT_MS = 15_000;
+/** Down this long, the transfer fails: time for a phone to join another network, and short of SCTP giving up on its own. */
+export const GIVE_UP_MS = 90_000;
+/** Still offline (nothing gathered, the API out of reach): how long before trying again. */
+export const OFFLINE_RETRY_MS = 3000;
+export const GIVE_UP_MESSAGE = "Lost the connection and couldn't get it back";
+
+/**
  * Once the first relay candidate is in, how long the others get. They come within a few hundred ms of each other (the
  * TLS ones last), and one server can take 40 s to give up: on a network that drops IPv4 UDP to port 443, Cloudflare's
  * turn:...:443?transport=udp does, and gathering never completes before it.
@@ -121,12 +137,10 @@ export async function buildIceServers(
     }
 }
 
+// No candidate pool (iceCandidatePoolSize): it shaved a little off gathering, but with one Chromium skips an ICE restart,
+// its offer keeping the old credentials and no candidates, so a transfer couldn't reconnect after a network switch.
 export function createPeer(servers: RTCIceServer[]): RTCPeerConnection {
-    return new RTCPeerConnection({
-        iceServers: servers,
-        // Pre-warming a couple of pools shaves a little off gathering time.
-        iceCandidatePoolSize: 2,
-    });
+    return new RTCPeerConnection({iceServers: servers});
 }
 
 /**
@@ -167,6 +181,122 @@ export function waitForGathering(pc: RTCPeerConnection, timeoutMs = GATHER_TIMEO
         // A pooled relay candidate can already be in the description.
         if (pc.localDescription?.sdp.includes(" typ relay")) startGrace();
     });
+}
+
+/**
+ * Gathering again after a restart's setLocalDescription. iceGatheringState can still read the last round's "complete"
+ * until the new gathering starts, and waitForGathering would then return at once, with no candidates in the SDP.
+ */
+export async function waitForRegathering(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
+    if (pc.iceGatheringState === "complete") {
+        await new Promise<void>((resolve) => {
+            const done = (): void => {
+                pc.removeEventListener("icegatheringstatechange", done);
+                window.clearTimeout(timer);
+                resolve();
+            };
+            const timer = window.setTimeout(done, 1000);
+            pc.addEventListener("icegatheringstatechange", done);
+        });
+    }
+    await waitForGathering(pc, timeoutMs);
+}
+
+/** A paired session, for reconnecting: its code and this side's token. */
+export interface Pairing {
+    apiBaseUrl: string;
+    code: string;
+    token: string;
+}
+
+/** A POST to the paired session (`/restart`, `/restart/answer`), with this side's token. Throws when offline. */
+export async function postSignal<T>(pairing: Pairing, path: string, body: unknown, signal: AbortSignal): Promise<{
+    status: number;
+    data: T | null
+}> {
+    const res = await fetch(`${pairing.apiBaseUrl}/expedite/p2p/${pairing.code}${path}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-P2P-Token": pairing.token},
+        body: JSON.stringify(body),
+        signal,
+    });
+    const json = await res.json().catch(() => null);
+    return {status: res.status, data: res.ok ? json?.data as T : null};
+}
+
+export type SignalEvent =
+    | { kind: "offer" | "answer"; round: number; sdp: string }
+    | { kind: "gone" };
+
+/**
+ * One event from the API's restart stream: for the receiver, the next round's offer (above `round`); for the sender, the
+ * answer to `round`. `gone` once the session is over (the sender ended it), or when the stream is refused: EventSource
+ * doesn't retry those, where it does retry a network that's still down.
+ */
+export function waitForSignal(pairing: Pairing, round: number, signal: AbortSignal): Promise<SignalEvent> {
+    return new Promise((resolve, reject) => {
+        const {apiBaseUrl, code, token} = pairing;
+        const source = new EventSource(
+            `${apiBaseUrl}/expedite/p2p/${code}/restart/events?token=${encodeURIComponent(token)}&round=${round}`
+        );
+        const cleanup = (): void => {
+            source.close();
+            signal.removeEventListener("abort", onAbort);
+        };
+        const finish = (event: SignalEvent): void => {
+            cleanup();
+            resolve(event);
+        };
+        const onAbort = (): void => {
+            cleanup();
+            reject(new DOMException("Cancelled", "AbortError"));
+        };
+        if (signal.aborted) {
+            onAbort();
+            return;
+        }
+        signal.addEventListener("abort", onAbort);
+
+        for (const kind of ["offer", "answer"] as const) {
+            source.addEventListener(kind, (ev) => {
+                try {
+                    const data = JSON.parse((ev as MessageEvent<string>).data);
+                    finish({kind, round: data.round as number, sdp: data[kind] as string});
+                } catch {
+                    // Malformed: the round times out and the next one goes.
+                }
+            });
+        }
+        source.addEventListener("gone", () => finish({kind: "gone"}));
+        source.onerror = () => {
+            if (source.readyState === EventSource.CLOSED) finish({kind: "gone"});
+        };
+    });
+}
+
+/** Resolve after `ms`, or reject on abort. */
+export function sleep(ms: number, signal: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const done = (): void => {
+            signal.removeEventListener("abort", onAbort);
+            resolve();
+        };
+        const onAbort = (): void => {
+            window.clearTimeout(timer);
+            reject(new DOMException("Cancelled", "AbortError"));
+        };
+        if (signal.aborted) {
+            onAbort();
+            return;
+        }
+        const timer = window.setTimeout(done, ms);
+        signal.addEventListener("abort", onAbort, {once: true});
+    });
+}
+
+/** Whether ICE has a working route. */
+export function isUp(pc: RTCPeerConnection): boolean {
+    return pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed";
 }
 
 /** Count local candidates by type straight out of the SDP. */

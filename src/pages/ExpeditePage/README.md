@@ -131,13 +131,36 @@ click Receive -> picker opens -> *then* negotiate.
 ```
 sender                          server                        receiver
   |-- POST /p2p/init ----------->|  store offer, mint code
-  |<-- code --------------------|
+  |<-- code, sender's token -----|
   |-- GET /p2p/:code/events ---->|  SSE held open
   |                              |<-- GET /drop/:code -------- |  returns offer
   |                              |<-- POST /p2p/:code/answer -- |
-  |<== event: answer ============|  then deletes the session
+  |                              |--- receiver's token ------->|
+  |<== event: answer ============|  the session stays, paired
   |============ data channel, direct ==========================|
+  |-- DELETE /p2p/:code -------->|  once the transfer is over
 ```
+
+**Reconnecting after a network switch.** The route a transfer runs on dies when either side changes network (the Wi-Fi
+switched, the phone left it for its data). The paired session is where the two sides find a new one, each with its token:
+
+```
+sender                          server                        receiver
+  |   ICE disconnected 2 s, or failed: both sides see it       |
+  |                              |<-- GET /restart/events ---- |  SSE, held while down
+  |-- POST /restart (offer) ---->|  round + 1                  |
+  |-- GET /restart/events ------>|== event: offer ===========>|
+  |                              |<-- POST /restart/answer ---- |
+  |<== event: answer ============|                             |
+  |============ same data channel, new route ==================|
+```
+
+The sender's offer is an ICE restart (`createOffer({iceRestart: true})`), so both sides gather routes from wherever they
+now are; the DTLS and SCTP above stay as they were, and so does the data channel. A round that hasn't reconnected within
+15 s is followed by another; down for 90 s, both sides give up. No stream is held while the route is up. The constants
+and the why are in `p2p/peer.ts` (`RESTART_AFTER_MS`); the rounds are `keepConnected` in `sender.ts` and
+`answerRestarts` in `receiver.ts`. If the data channel has already closed, there's nothing to carry on: the transfer
+fails, as before (resuming from a byte position isn't built).
 
 Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code** — it can't reuse the old one, because the ICE
 candidates in a ten-minute-old SDP reference NAT bindings that have lapsed, so reconnecting would fail at the checking stage with nothing to show for it.
@@ -150,9 +173,9 @@ Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't b
 via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
-Only `CTRL_DONE` counts as delivered: a channel that closes first, or ICE failing, fails the transfer on the sender too (the receiver's disk filling up after
-the
-last byte went out used to show as delivered). So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
+Only `CTRL_DONE` counts as delivered: a channel that closes first fails the transfer on the sender too (the receiver's disk filling up after the last byte
+went out used to show as delivered). ICE failing does as well, but only where the transfer can't reconnect (an API that gave no token): otherwise it starts
+the reconnect rounds, and only giving up on them fails it. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes on hearing it, and
 the receiver closes anyway after 5s.
 
 Receiver writes are serialised through a promise chain — `write()` is async and message events are not, so without it a fast sender interleaves writes and
