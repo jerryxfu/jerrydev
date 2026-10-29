@@ -58,6 +58,11 @@
     }
 }
 
+// Waiting on what it started (Button.tsx, busy): its spinner says so, and the pointer (still clickable: "progress").
+.btn--busy {
+    cursor: progress;
+}
+
 // The icon alone: square.
 .btn--icon {
     padding: 0.65rem;

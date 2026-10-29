@@ -63,11 +63,14 @@ function TimeLeft({until}: { until: string }) {
     );
 }
 
-// A button that asks first, in place: the question, then the action and Cancel.
+// A button that asks first, in place: the question, then the action and Cancel. The action spins while the API answers
+// (`onConfirm` resolves true once it's done): done, what it removes goes, and this with it; refused, the question
+// closes, and the room's error says why.
 function Confirm({label, icon, question, action, onConfirm, iconOnly = false}: {
-    label: string; icon: LucideIcon; question: string; action: string; onConfirm: () => void; iconOnly?: boolean;
+    label: string; icon: LucideIcon; question: string; action: string; onConfirm: () => Promise<boolean>; iconOnly?: boolean;
 }) {
     const [asking, setAsking] = useState(false);
+    const [busy, setBusy] = useState(false);
     if (!asking) {
         return iconOnly
             ? <Button start={icon} aria-label={label} title={label} onClick={() => setAsking(true)} />
@@ -76,9 +79,13 @@ function Confirm({label, icon, question, action, onConfirm, iconOnly = false}: {
     return (
         <span className="live_confirm" role="group" aria-label={question}>
             <span>{question}</span>
-            <Button variant="danger" onClick={() => {
-                setAsking(false);
-                onConfirm();
+            <Button variant="danger" busy={busy} onClick={() => {
+                setBusy(true);
+                void onConfirm().then((done) => {
+                    if (done) return;
+                    setBusy(false);
+                    setAsking(false);
+                });
             }}>{action}</Button>
             <Button onClick={() => setAsking(false)}>Cancel</Button>
         </span>
@@ -189,7 +196,7 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
                     {laptop && <p className="live_hint">Paste or drop anywhere</p>}
                 </div>
                 <div className="live_composer-side is-end">
-                    <Button variant="main" type="submit" start={SendHorizontal} disabled={!text.trim() || busy}>Send</Button>
+                    <Button variant="main" type="submit" start={SendHorizontal} busy={busy} disabled={!text.trim()}>Send</Button>
                     {laptop && <p className="live_hint">Shift+Enter to send</p>}
                 </div>
             </div>
@@ -238,8 +245,10 @@ function PdfPage({url, size, name}: { url: string; size: number; name: string })
 
 function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: {
     item: LiveItem; mine: boolean; fresh: boolean; progress: UploadSnapshot | undefined;
-    copiedField: string | null; onCopy: LiveViewProps["onCopy"]; onDelete: () => void;
+    copiedField: string | null; onCopy: LiveViewProps["onCopy"]; onDelete: () => Promise<boolean>;
 }) {
+    // Your delete under way: the trash spins until the card goes (the room's next list), or comes back if it failed.
+    const [deleting, setDeleting] = useState(false);
     const field = `live-${item.id}`;
     const text = item.text?.trim() ?? "";
     const image = item.kind === "file" && item.fileUrl && IMAGE.test(item.mimeType ?? "");
@@ -272,7 +281,7 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
             {item.fileUrl && kind === "pdf" && <PdfPage url={item.fileUrl} size={item.size} name={item.fileName ?? ""} />}
             {item.kind === "file" && (
                 <div className="live_file">
-                    {item.status === "pending" ? <LoaderCircle size={16} className="live_spin" aria-hidden /> : <FileIcon size={16} aria-hidden />}
+                    {item.status === "pending" ? <LoaderCircle size={16} className="spinning" aria-hidden /> : <FileIcon size={16} aria-hidden />}
                     {percent != null && <span className="live_file-pct">{percent}%</span>}
                     {kind === "pdf"
                         ? <a className="live_file-name" href={item.fileUrl} target="_blank" rel="noreferrer noopener">{item.fileName}</a>
@@ -306,9 +315,17 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
                     </a>
                 )}
                 {mine && (
-                    <button type="button" className="live_action live_action--delete" onClick={onDelete}
-                            aria-label={item.status === "pending" ? "Stop sending" : "Delete"}>
-                        <Trash2 size={14} aria-hidden />
+                    <button
+                        type="button" className="live_action live_action--delete" aria-busy={deleting || undefined}
+                        aria-label={item.status === "pending" ? "Stop sending" : "Delete"}
+                        onClick={() => {
+                            setDeleting(true);
+                            void onDelete().then((done) => {
+                                if (!done) setDeleting(false);
+                            });
+                        }}
+                    >
+                        {deleting ? <LoaderCircle size={14} className="spinning" aria-hidden /> : <Trash2 size={14} aria-hidden />}
                     </button>
                 )}
             </footer>
@@ -346,7 +363,7 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
                         <Confirm
                             label={`Remove ${member.name}`} icon={UserMinus} iconOnly
                             question="Remove them?" action="Remove"
-                            onConfirm={() => void live.removePerson(member.id)}
+                            onConfirm={() => live.removePerson(member.id)}
                         />
                     </span>
                 )}
@@ -362,7 +379,7 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
                             <ItemCard
                                 item={item} mine={mine} fresh={live.fresh.has(item.id) && !viewed.has(item.id)}
                                 progress={live.uploads[item.id]}
-                                copiedField={copiedField} onCopy={onCopy} onDelete={() => void live.removeItem(item.id)}
+                                copiedField={copiedField} onCopy={onCopy} onDelete={() => live.removeItem(item.id)}
                             />
                         </li>
                     ))}
@@ -384,7 +401,10 @@ export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
     if (!room || closed) return null;
 
     const link = getDropUrl(room.code);
-    const leave = () => void live.leave().then((done) => done && onExit());
+    const leave = () => live.leave().then((done) => {
+        if (done) onExit();
+        return done;
+    });
     return (
         <div className="live_bar">
             <div className="live_bar-rest">

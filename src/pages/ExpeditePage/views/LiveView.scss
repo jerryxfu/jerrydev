@@ -662,15 +662,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-.live_spin {
-    animation: live-spin 1s linear infinite;
-}
-
-@keyframes live-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 
 .live_progress {
     height: 4px;

@@ -98,6 +98,8 @@ export default function Expedite() {
     const [createdInfo, setCreatedInfo] = useState<CreatedInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    // The Live tile's room being made (its tile spins; `loading` is the code's lookup).
+    const [creatingRoom, setCreatingRoom] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [settings, setSettings] = useState<DropSettings>({...DEFAULT_SETTINGS});
     const [maxViewsInput, setMaxViewsInput] = useState("");
@@ -229,7 +231,9 @@ export default function Expedite() {
     const handleSelect = async (type: DropType) => {
         setError(null);
         if (type === "live") {
+            setCreatingRoom(true);
             await openRoom(live.create);
+            setCreatingRoom(false);
             return;
         }
         setDropType(type);
@@ -237,16 +241,14 @@ export default function Expedite() {
     };
 
     // A live room, made (the Live tile) or joined (its code or link): you're in it, its stream open, before it shows.
+    // What spins meanwhile is the caller's: the tile, or the code's Retrieve.
     const openRoom = async (enter: () => Promise<void>) => {
-        setLoading(true);
         try {
             await enter();
             setDropType("live");
             await transitionTo("live");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Couldn't open the room");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -366,7 +368,6 @@ export default function Expedite() {
 
             const meta = json.data as DropMeta;
             if (meta.type === "live") {
-                setLoading(false);
                 await openRoom(() => live.join(meta.code));
                 return;
             }
@@ -667,6 +668,7 @@ export default function Expedite() {
                             onSelect={handleSelect}
                             onDropFile={handleDropFile}
                             dragging={pageDrag.over}
+                            creatingRoom={creatingRoom}
                             code={retrieveCode}
                             setCode={setRetrieveCode}
                             error={error}

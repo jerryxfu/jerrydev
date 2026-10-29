@@ -1,5 +1,5 @@
 import {type MouseEvent, type ReactNode, useState} from "react";
-import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
+import {CircleQuestionMark, File, FileText, LoaderCircle, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
@@ -14,6 +14,8 @@ interface LandingViewProps {
     onDropFile: (type: "file" | "p2p", files: PickedFile[]) => void;
     // A file is being dragged over the page: the tiles that take it show it.
     dragging: boolean;
+    // The Live tile's room being made: the tile spins.
+    creatingRoom: boolean;
     code: string;
     setCode: (code: string) => void;
     error: string | null;
@@ -154,8 +156,9 @@ function Tile({
                   icon: Icon,
                   onSelect,
                   onDropFile,
-                  dragging
-              }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
+                  dragging,
+                  busy
+              }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging"> & { busy: boolean }) {
     const takesFiles = type === "file" || type === "p2p";
     const drag = useFileDrag((files) => {
         if (type === "file" || type === "p2p") onDropFile(type, files);
@@ -164,10 +167,11 @@ function Tile({
         <button
             className={`expedite_tile${takesFiles && dragging ? " is-target" : ""}${takesFiles && drag.over ? " is-over" : ""}`}
             data-kind={type}
+            aria-busy={busy || undefined}
             onClick={() => onSelect(type)}
             {...(takesFiles ? drag.handlers : {})}
         >
-            <Icon size={26} strokeWidth={1.5} />
+            {busy ? <LoaderCircle size={26} strokeWidth={1.5} className="spinning" aria-hidden /> : <Icon size={26} strokeWidth={1.5} />}
             <span className="expedite_tile-label">{label}</span>
             <span className="expedite_tile-note">{note}</span>
         </button>
@@ -175,7 +179,7 @@ function Tile({
 }
 
 export default function LandingView(
-    {onSelect, onDropFile, dragging, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
+    {onSelect, onDropFile, dragging, creatingRoom, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
 ) {
     // Which mode's help panel is expanded, if any. A plain disclosure rather
     // than a hover tooltip: hover has no touch equivalent, and this much text
@@ -190,7 +194,10 @@ export default function LandingView(
 
                 <div className="expedite_tiles">
                     {TILES.map((tile) => (
-                        <Tile key={tile.type} {...tile} onSelect={onSelect} onDropFile={onDropFile} dragging={dragging} />
+                        <Tile
+                            key={tile.type} {...tile} onSelect={onSelect} onDropFile={onDropFile} dragging={dragging}
+                            busy={tile.type === "live" && creatingRoom}
+                        />
                     ))}
                 </div>
 

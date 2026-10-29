@@ -491,6 +491,18 @@ p {
     border: 0;
 }
 
+// An icon turning while something it started is under way (a spinner: lucide's LoaderCircle). Kept with reduced motion:
+// it's what says the click was heard.
+.spinning {
+    animation: spinning 1s linear infinite;
+}
+
+@keyframes spinning {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .period-line-break {
     @media screen and (max-width: 768px) {
         white-space: pre-line;

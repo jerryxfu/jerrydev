@@ -268,17 +268,20 @@ export function useLiveRoom() {
     };
 
     /** Deletes one of your items; a file still going up is stopped (and deleted as it stops). */
-    const removeItem = async (id: string) => {
-        if (!room || !token) return;
+    /** One of your items deleted, or stopped while it goes up. True once it's done (the room's next list leaves it out). */
+    const removeItem = async (id: string): Promise<boolean> => {
+        if (!room || !token) return false;
         const upload = sendingById.current.get(id);
         if (upload) {
             upload.abort();
-            return;
+            return true;
         }
         try {
             await api.deleteItem(room.code, token, id);
+            return true;
         } catch (err) {
             setError(message(err));
+            return false;
         }
     };
 
@@ -294,13 +297,15 @@ export function useLiveRoom() {
         }
     };
 
-    /** The room's creator removes someone: their seat frees, their items go. */
-    const removePerson = async (id: string) => {
-        if (!room || !token) return;
+    /** The room's creator removes someone: their seat frees, their items go. True once it's done. */
+    const removePerson = async (id: string): Promise<boolean> => {
+        if (!room || !token) return false;
         try {
             await api.removeMember(room.code, token, id);
+            return true;
         } catch (err) {
             setError(message(err));
+            return false;
         }
     };
 

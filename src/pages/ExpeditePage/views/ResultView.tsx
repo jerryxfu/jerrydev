@@ -19,10 +19,10 @@ interface ResultViewProps {
     error: string | null;
     /** The last copy checked against the drop's SHA-256. */
     downloadCheck: DownloadCheck | null;
-    onDownload: () => void;
+    onDownload: () => Promise<void>;
     /** Checks a copy picked on this device against the SHA-256. */
     onCheckCopy: (file: File) => void;
-    onDelete: () => void;
+    onDelete: () => Promise<void>;
 }
 
 // "1.2 MB (1,234,567 bytes)": the short form, then the exact count. Under 1 KB, the count alone.
@@ -85,6 +85,9 @@ export default function ResultView(
     const check = downloadCheck?.state;
     // Deleting removes the drop for everyone, so the trash button asks first, in place.
     const [confirmingDelete, setConfirmingDelete] = useState(false);
+    // Deleting and the download's first step (its link checked) wait on the network: their buttons spin meanwhile.
+    const [deleting, setDeleting] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     // Keeping it (the button or Escape) puts the focus back on the trash button, where the question came from.
     const trash = useRef<HTMLButtonElement>(null);
     const keep = () => {
@@ -209,7 +212,15 @@ export default function ResultView(
                 >
                     <p>Delete this drop for everyone? Its code and link stop working.</p>
                     <Button onClick={keep} autoFocus>Keep it</Button>
-                    <Button variant="danger" start={Trash2} onClick={onDelete}>Delete</Button>
+                    <Button
+                        variant="danger" start={Trash2} busy={deleting}
+                        onClick={() => {
+                            setDeleting(true);
+                            void onDelete().finally(() => setDeleting(false));
+                        }}
+                    >
+                        Delete
+                    </Button>
                 </div>
             ) : (
                 <div key="actions" className="expedite_btn-row">
@@ -268,7 +279,15 @@ export default function ResultView(
                             />
                         </>
                     )}
-                    <Button variant="main" start={Download} onClick={onDownload}>Download</Button>
+                    <Button
+                        variant="main" start={Download} busy={downloading}
+                        onClick={() => {
+                            setDownloading(true);
+                            void onDownload().finally(() => setDownloading(false));
+                        }}
+                    >
+                        Download
+                    </Button>
                 </div>
             )}
 
