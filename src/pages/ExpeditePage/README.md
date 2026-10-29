@@ -5,7 +5,7 @@ Short-lived file and text sharing. Four types and one five-character code.
 | Type   | Path the bytes take                        | Size ceiling               | Lives for    |
 |--------|--------------------------------------------|----------------------------|--------------|
 | `text` | JSON body -> MongoDB                       | 500 KB                     | 1 min – 24 h |
-| `file` | Presigned PUT -> Cloudflare R2             | 16 GB                      | 1 min – 24 h |
+| `file` | Presigned PUT -> Cloudflare R2             | 16 GB (several: one zip)   | 1 min – 24 h |
 | `p2p`  | WebRTC data channel, peer to peer          | none                       | session only |
 | `live` | a room's items: texts in MongoDB, files R2 | 500 KB a text, 1 GB a file | 1 h          |
 
@@ -22,6 +22,10 @@ ExpeditePage/
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
   utils.ts              formatting helpers (formatBytes, formatEta, ...)
   uploadEngine.ts       R2 upload: single PUT or multipart, with progress (putToR2, shared with live rooms' files)
+  files.ts              the files picked to send: their paths (a folder's), dropped folders read, the same file not added twice
+  zip.ts                several files as one stored zip (buildZip, zipFiles), and a zip read back (readZip, entryData)
+  crc32.ts              the zip's checksum; crc32.worker.ts reads the files for it, as sha256.worker.ts does
+  pdfPage.ts            a PDF's first page drawn by pdf.js, loaded on the first PDF shown
   sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's saved copy (picked after the download) checked against it
   highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, Auto's guess at pasted code's language, and the code box's line-by-line colouring (only the lines an edit changes)
   p2p/
@@ -38,7 +42,10 @@ ExpeditePage/
     TextStats           the text box's statistics, counted when the typing pauses
     CreatedView         code + share link + QR code
     ResultView          retrieved text/file
-    FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself)
+    FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself); LocalFilePreview for a file the page has
+    FileZone            the files to send: a zone, then their stack with Add files and Add a folder
+    FileStack           several files, a row each: a small picture (a picture's, a PDF's first page) or an icon, name, size, a button
+    ZipStack            a received zip's files, each one shown or saved on its own
     Disclosure          folded section (P2P's technical side), open state remembered
     CopyField           read-only field with a copy button on its side: a drop's link, or (small) a curl command
     P2PSendView         session code, countdown, notes
@@ -81,8 +88,9 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   anything else plain, a lone link as a link.
 - **Files**, once in: a picture shows (16rem tall at most); a video or a sound, `FilePreview`'s player (only its start loads, until it plays); a
   text file, its first 5 lines, fading, then "Download to open" (`FilePreview`'s `mini`: a Range request for 4 KB). Code collapsed in
-  a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF opens from its name, in a new tab: a viewer per card
-  would be heavy, and too narrow to read. Anything else: its name, size and Download.
+  a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF shows its first page (up to 16 MB, `THUMB_MAX`: it's
+  fetched whole, see "Several files") and opens from it or its name, in a new tab: a viewer per card would be heavy, and too narrow
+  to read. Anything else: its name, size and Download.
 - **Counts.** Each name shows how many items its box has, "(3)": in the box's header on a laptop, in the tab on a phone.
 - **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only;
   steady with reduced motion). Your own
@@ -93,6 +101,41 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   phone, Leave or End room at the title's right and the rest under it.
 - **Leaving the page** stops the stream and the files going up; a file given up is deleted (keepalive), so nobody sees it coming forever. A page
   that goes without saying so (a crash, a lost network): its files still coming are deleted once its person is away (the streams look every 15 s).
+
+---
+
+## Several files
+
+Pick or drop several files, or a folder, on the File or Direct P2P screen: they make a stack (`FileZone`, `FileStack`), with Add files
+and, on a computer, Add a folder. One file goes as it is. Several go as one zip, made in the page as they're sent.
+
+- **A stored zip, made of the files themselves.** No compression, so its size is known before it's made, and each file inside is one
+  run of its bytes. `buildZip` returns a `File` of small headers between the picked files (`new File([header, file, header, file, ...,
+  directory])`): nothing is copied or held in memory, and the upload and the P2P sender slice it like any file, so a multipart part can be
+  retried and a P2P transfer goes on from the receiver's byte after a reconnect. A zip streamed as it's made (client-zip's way) couldn't:
+  a stream can't go back.
+- **The cost: each file read once first.** A zip's headers hold each file's CRC-32 before its bytes, so `crc32Of` reads them all in a
+  worker before the zip exists ("Preparing the zip... 45%"), about 1.5 GB/s in Chromium. Then the SHA-256 and the upload read the zip as
+  they read a file.
+- **The format**: UTF-8 names (flag 11, and NFC: a Mac's are decomposed), DOS times, Unix permissions (rw-r--r--), Zip64 past 4 GB or
+  65,535 files (a File drop goes to 16 GB). A Mac's `.DS_Store` stays out of a dropped folder; a name taken twice gets a number ("a (2).jpg").
+  Tested with `unzip -t`, Python's `zipfile`, `ditto -x -k` (Archive Utility's engine) and `bsdtar`: accents, an emoji, folders, an empty
+  file, 70,000 files, and 4.3 GB with a file after it (offsets past 4 GB). Not yet: Windows Explorer.
+- **Its name: `12_files_ABCDE.zip`.** The code is made by the API, after the page sends the name, so the page sends `fileName:
+  "12_files.zip"` and `files: 12`, and the API names it (`stackName` in `shared.ts`; `POST /drop/file/init` and `POST /p2p/init`, so each
+  new P2P code gets its name). An API without it keeps `12_files.zip`.
+- **Receiving: the zip's files, without unzipping.** Any zip received shows its files (`ZipStack`): its central directory is read from its
+  end (two or three reads of a few KB), and each file from its own bytes, inflated if deflated (`DecompressionStream`), so a zip made
+  elsewhere opens too. Folders' entries and macOS's `__MACOSX` copies are left out; an encrypted file only lists. From a drop's link,
+  with Range requests (the text preview's way: no extra permission); from a Direct P2P copy, by slicing it: in memory (Firefox, Safari),
+  or read back from the file Chromium wrote it to (`handle.getFile()`: the save picker lets the page read it).
+- **The limits, from a link only**: a link can't point at part of a file, so a file is fetched into the page to be shown (up to 100 MB,
+  `OPEN_MAX`) or saved on its own (up to 1 GB, `SAVE_MAX`); bigger, the zip. From a P2P copy, any size: it's a slice.
+- **Small pictures**: a picture or a PDF up to 16 MB (`THUMB_MAX`) shows a small copy in its row once the row comes near the screen,
+  drawn into a canvas (an `<img>` decoded once, then dropped: a stack of photos doesn't keep them all decoded). A PDF's first page is
+  pdf.js's (`pdfPage.ts`; about 450 KB and a 1.2 MB worker, loaded on the first PDF, one PDF at a time through one worker). It reads the
+  PDF whole: pdf.js checks the last page whenever it opens a PDF, and in one that isn't linearized (most) that walks every page's object,
+  spread all through the file. Read by ranges, a 6 MB test PDF took 94 requests and 19 s for its first page.
 
 ---
 
@@ -347,6 +390,7 @@ routes/expedite/
   shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
   text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
   file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts), signUpload (and live.ts)
+              (with `files`, the page's zip of that many, named with its code: stackName in shared.ts, as /p2p/init does)
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn, /p2p/:code/reconnect, /p2p/:code/reconnect/answer
               GET  /p2p/:code/events, /p2p/:code/reconnect/events (SSE)
               DELETE /p2p/:code

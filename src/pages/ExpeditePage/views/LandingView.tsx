@@ -2,6 +2,7 @@ import {type MouseEvent, type ReactNode, useState} from "react";
 import {CircleQuestionMark, File, FileText, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
+import {type PickedFile} from "../files.ts";
 import {useFileDrag} from "../useFileDrag.ts";
 import {getCurlCommand, SEND_FILE_COMMAND, SEND_PIPE_COMMAND, SEND_PIPE_WINDOWS_COMMAND, SEND_POWERSHELL_COMMAND} from "../utils.ts";
 import CopyField from "./CopyField.tsx";
@@ -9,8 +10,8 @@ import "./LandingView.scss";
 
 interface LandingViewProps {
     onSelect: (type: DropType) => void;
-    // A file dropped on the File or Direct P2P tile.
-    onDropFile: (type: "file" | "p2p", file: globalThis.File) => void;
+    // Files dropped on the File or Direct P2P tile.
+    onDropFile: (type: "file" | "p2p", files: PickedFile[]) => void;
     // A file is being dragged over the page: the tiles that take it show it.
     dragging: boolean;
     code: string;
@@ -156,8 +157,8 @@ function Tile({
                   dragging
               }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging">) {
     const takesFiles = type === "file" || type === "p2p";
-    const drag = useFileDrag((file) => {
-        if (type === "file" || type === "p2p") onDropFile(type, file);
+    const drag = useFileDrag((files) => {
+        if (type === "file" || type === "p2p") onDropFile(type, files);
     });
     return (
         <button

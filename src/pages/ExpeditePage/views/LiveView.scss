@@ -611,6 +611,22 @@
     border-radius: 6px;
 }
 
+// A PDF's first page (LiveView.tsx, PdfPage): as wide as the card, its top 16rem at most.
+.live_pdf {
+    display: block;
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 16rem;
+        object-fit: cover;
+        object-position: top;
+        border-radius: 6px;
+        box-shadow: 0 0 0 1px var(--border-lt);
+    }
+}
+
 .live_file {
     display: flex;
     align-items: center;

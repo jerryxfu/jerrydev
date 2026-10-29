@@ -85,52 +85,66 @@
     }
 }
 
-.expedite_file-selected {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-}
-
-.expedite_file-name {
-    font-weight: 500;
-    color: var(--text-2);
-    margin: 0;
-    // A long name with no spaces wraps anywhere, so the X stays in the zone.
-    overflow-wrap: anywhere;
-}
-
-.expedite_file-size {
-    font-size: var(--fs-smm);
-    color: var(--text-5);
-    margin: 0;
-}
-
 .expedite_file-limit {
     font-size: var(--fs-xs) !important;
     color: var(--text-5) !important;
 }
 
-// One file per drop: the way to send more. Something to read, so a rung above the limit's decoration grey.
+// Several files go as one zip: what that means, and the way to pick a folder. Something to read, so a rung above the
+// limit's decoration grey.
 .expedite_file-tip {
     font-size: var(--fs-xs) !important;
     color: var(--text-5) !important;
 }
 
-.expedite_file-clear {
-    margin-left: auto;
+.expedite_file-folder {
     background: none;
     border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--text-3);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
-    color: inherit;
-    opacity: var(--opacity-quiet);
-    padding: 0.25rem;
-    display: flex;
-    transition: opacity 0.15s;
 
     &:hover {
-        opacity: var(--opacity-hover);
+        color: var(--text-2);
     }
+}
+
+// With files: their stack (FileStack.scss), then the bar to add more. Not a button any more: the rows and the bar are.
+.expedite_file-zone.is-stack {
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0.5rem;
+    cursor: default;
+
+    &:hover {
+        background: none;
+        border-color: var(--border-da);
+    }
+
+    &.is-over {
+        background: var(--surface-da);
+        border-color: var(--secondary);
+    }
+}
+
+.expedite_stack-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding: 0.5rem 0.25rem 0.25rem;
+    border-top: 1px solid var(--border-lt);
+}
+
+.expedite_stack-total {
+    margin-right: auto;
+    font-size: var(--fs-smm);
+    color: var(--text-4);
+    font-variant-numeric: tabular-nums;
 }
 
 // --- Settings ---

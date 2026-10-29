@@ -60,6 +60,20 @@ function extension(name: string): string {
     return dot > 0 ? name.slice(dot + 1).toLowerCase() : "";
 }
 
+// A type for a file taken out of a zip, which has none: what the browser needs to show it from an object URL (its PDF
+// viewer and an SVG don't guess, Safari's player may not).
+const TYPES: Record<string, string> = {
+    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", avif: "image/avif",
+    svg: "image/svg+xml", bmp: "image/bmp", ico: "image/x-icon", mp4: "video/mp4", m4v: "video/mp4", webm: "video/webm",
+    mov: "video/quicktime", ogv: "video/ogg", mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", oga: "audio/ogg",
+    opus: "audio/ogg", m4a: "audio/mp4", aac: "audio/aac", flac: "audio/flac", pdf: "application/pdf",
+};
+
+export function typeOf(name: string): string {
+    const ext = extension(name);
+    return Object.hasOwn(TYPES, ext) ? TYPES[ext]! : "";
+}
+
 const NOUN: Record<Kind, string> = {image: "picture", video: "video", audio: "audio", pdf: "PDF", text: "file"};
 
 // What a file is, in words, by its extension: the browser's type can't be trusted for code (see kindOf).
@@ -141,6 +155,14 @@ export default function FilePreview({src, name, mimeType, size, file, onInfo, mi
             )}
         </div>
     );
+}
+
+/** A file this page has (picked here, or taken out of a zip): shown from an object URL, revoked once it's gone. */
+export function LocalFilePreview({file, name, onInfo}: { file: File; name: string; onInfo?: (info: PreviewInfo) => void }) {
+    // Made during render, no setState needed; the effect's only job is to revoke it when the file changes or goes.
+    const src = useMemo(() => URL.createObjectURL(file), [file]);
+    useEffect(() => () => URL.revokeObjectURL(src), [src]);
+    return <FilePreview key={src} src={src} name={name} mimeType={file.type} size={file.size} file={file} onInfo={onInfo} />;
 }
 
 // How much of a text file is read and shown: enough for any source file, and the start of a log or a dump.

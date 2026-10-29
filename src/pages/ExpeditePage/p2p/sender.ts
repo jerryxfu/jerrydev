@@ -41,6 +41,8 @@ import {
 
 export interface SendOptions {
     file: globalThis.File;
+    /** The file is the zip of this many (two or more): the API names it with each code (12_files_ABCDE.zip). */
+    files?: number;
     apiBaseUrl: string;
     onStatus: (status: P2PStatus) => void;
     onCode: (code: string, expiresAt: string) => void;
@@ -83,7 +85,7 @@ export async function sendP2P(opts: SendOptions): Promise<void> {
 }
 
 async function runSession(opts: SendOptions): Promise<SessionOutcome> {
-    const {file, apiBaseUrl, onStatus, onCode, onSnapshot, signal} = opts;
+    const {file, files = 1, apiBaseUrl, onStatus, onCode, onSnapshot, signal} = opts;
     const {status, emit} = trackStatus(onStatus);
 
     // The current connection's: a reconnect replaces it.
@@ -145,6 +147,7 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
                 fileName: file.name,
                 fileSize: file.size,
                 mimeType: file.type || "application/octet-stream",
+                ...(files > 1 ? {files} : {}),
             }),
             signal,
         });

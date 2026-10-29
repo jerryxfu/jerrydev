@@ -1,0 +1,162 @@
+// Several files, a row each (FileStack.tsx): on the sending screens inside the file zone, on the receiving ones on
+// their own. Long ones scroll inside, so the form under them stays where it is.
+.expedite_stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-height: 22rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.expedite_stack-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 8px;
+    transition: background 0.15s;
+
+    &:hover {
+        background: var(--surface-da);
+    }
+
+    // Its preview is the one showing.
+    &.is-open {
+        background: var(--surface-da);
+        box-shadow: inset 0 0 0 1px var(--border);
+    }
+}
+
+.expedite_stack-file {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.5rem;
+    background: none;
+    border: none;
+    border-radius: inherit;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+
+    &:is(button) {
+        cursor: pointer;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: -2px;
+    }
+}
+
+// The small picture, or the file's icon in its place.
+.expedite_stack-thumb {
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--text-4);
+
+    // A PDF's page is taller than wide: its top shows.
+    canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: top;
+    }
+}
+
+.expedite_stack-name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    // A long name with no spaces wraps anywhere, so the size and the button stay in the row.
+    overflow-wrap: anywhere;
+}
+
+.expedite_stack-folder {
+    font-weight: 400;
+    color: var(--text-5);
+}
+
+.expedite_stack-size {
+    flex: none;
+    font-size: var(--fs-smm);
+    color: var(--text-5);
+    font-variant-numeric: tabular-nums;
+}
+
+// The row's own button: Remove, or Download.
+.expedite_stack-action {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.4rem;
+    margin-right: 0.25rem;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: inherit;
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    opacity: var(--opacity-quiet);
+    transition: opacity 0.15s, background 0.15s;
+
+    &:hover:not(:disabled) {
+        opacity: var(--opacity-hover);
+        background: var(--surface-da);
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        opacity: var(--opacity-hover);
+    }
+}
+
+.expedite_stack-more {
+    padding: 0.35rem 0.5rem;
+    font-size: var(--fs-smm);
+    color: var(--text-5);
+}
+
+// A received zip's files (ZipStack.tsx): their count, their stack, then the one opened.
+.expedite_zip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    > .expedite_stack {
+        padding: 0.25rem;
+        border: 1px solid var(--border-lt);
+        border-radius: 10px;
+    }
+}
+
+.expedite_zip-title {
+    margin: 0;
+    font-size: var(--fs-smm);
+    font-weight: 500;
+    color: var(--text-4);
+}

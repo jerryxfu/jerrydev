@@ -237,6 +237,14 @@
     color: var(--danger-text);
 }
 
+// A step under way, in a line: several files being zipped, a file from a zip being opened.
+.expedite_status-line {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-4);
+    font-variant-numeric: tabular-nums;
+}
+
 .expedite_spacer {
     flex: 1;
 }

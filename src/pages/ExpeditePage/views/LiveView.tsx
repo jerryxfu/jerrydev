@@ -28,6 +28,8 @@ import type {LiveRoomState} from "../live/useLiveRoom.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import FilePreview, {CodeView, kindOf, MINI_LINES} from "./FilePreview.tsx";
 import {STATE_LETTER} from "./UploadProgress.tsx";
+import {THUMB_MAX, useCanvasNearScreen} from "./FileStack.tsx";
+import {drawPdfPage} from "../pdfPage.ts";
 import "./LiveView.scss";
 
 interface LiveViewProps {
@@ -216,6 +218,24 @@ function PartSquares({parts}: { parts: PartProgress[] }) {
     );
 }
 
+// A PDF's first page, as wide as its card, drawn once the card comes near the screen: from the PDF fetched whole, so
+// only up to THUMB_MAX, as in a stack. A click opens the PDF.
+function PdfPage({url, size, name}: { url: string; size: number; name: string }) {
+    const draw = useMemo(() => size > THUMB_MAX ? null : (canvas: HTMLCanvasElement) => fetch(url)
+        .then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.blob();
+        })
+        .then((pdf) => drawPdfPage(pdf, canvas, canvas.parentElement?.clientWidth || 320)), [url, size]);
+    const {ref, drawn} = useCanvasNearScreen(draw);
+    return (
+        // The link stays, empty until the page is drawn: the canvas's parent is what's watched for the screen.
+        <a href={url} target="_blank" rel="noreferrer noopener" className="live_pdf" aria-label={`Open ${name}`} tabIndex={drawn ? undefined : -1}>
+            <canvas ref={ref} hidden={!drawn} />
+        </a>
+    );
+}
+
 function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: {
     item: LiveItem; mine: boolean; fresh: boolean; progress: UploadSnapshot | undefined;
     copiedField: string | null; onCopy: LiveViewProps["onCopy"]; onDelete: () => void;
@@ -224,7 +244,8 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
     const text = item.text?.trim() ?? "";
     const image = item.kind === "file" && item.fileUrl && IMAGE.test(item.mimeType ?? "");
     // Any other finished file: a video's or a sound's player (only its start loads, until it plays), a text file's first
-    // lines. A PDF opens from its name instead: a viewer per card would be heavy, and too narrow to read.
+    // lines, a PDF's first page. A PDF opens from that page or its name, in a new tab: a viewer per card would be heavy,
+    // and too narrow to read.
     const kind = item.kind === "file" && item.fileUrl && !image ? kindOf(item.fileName ?? "", item.mimeType) : null;
     // Your file going up: how far it's got. The others' show "Sending..." (their progress stays on their device).
     const sending = item.status === "pending" ? progress : undefined;
@@ -248,6 +269,7 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
             {item.fileUrl && (kind === "video" || kind === "audio" || kind === "text") && (
                 <FilePreview src={item.fileUrl} name={item.fileName ?? ""} mimeType={item.mimeType} size={item.size} mini />
             )}
+            {item.fileUrl && kind === "pdf" && <PdfPage url={item.fileUrl} size={item.size} name={item.fileName ?? ""} />}
             {item.kind === "file" && (
                 <div className="live_file">
                     {item.status === "pending" ? <LoaderCircle size={16} className="live_spin" aria-hidden /> : <FileIcon size={16} aria-hidden />}

@@ -101,6 +101,7 @@ async function finalize(
  * onProgress fires throttled (~10/s) plus on every state change.
  * Pass an AbortSignal; aborting cancels in-flight parts and tells the server to clean up.
  * `hash`, when given, is awaited once the bytes are up: the file's SHA-256, or null if the sender skipped it.
+ * `files`: the file is the zip of this many (two or more), which the API names with its code (12_files_ABCDE.zip).
  */
 export async function uploadFile(
     file: File,
@@ -108,7 +109,8 @@ export async function uploadFile(
     apiBaseUrl: string,
     onProgress: (s: UploadSnapshot) => void,
     signal: AbortSignal,
-    hash?: () => Promise<string | null>
+    hash?: () => Promise<string | null>,
+    files = 1,
 ): Promise<DropMeta> {
     const contentType = file.type || "application/octet-stream";
 
@@ -120,6 +122,7 @@ export async function uploadFile(
             fileName: file.name,
             fileSize: file.size,
             mimeType: contentType,
+            ...(files > 1 ? {files} : {}),
             deletable: settings.deletable,
             maxViews: settings.maxViews,
             ttlMs: settings.ttlMs

@@ -31,6 +31,8 @@ import LiveView, {LiveBar} from "./views/LiveView.tsx";
 import {useLiveRoom} from "./live/useLiveRoom.ts";
 import {uploadFile} from "./uploadEngine.ts";
 import {hashBlob, type Hashing} from "./sha256.ts";
+import {addFiles, type PickedFile, stackName} from "./files.ts";
+import {zipFiles} from "./zip.ts";
 import {resolveLanguage} from "./highlight.ts";
 import {useFileDrag} from "./useFileDrag.ts";
 import UploadProgress from "./views/UploadProgress.tsx";
@@ -86,7 +88,10 @@ export default function Expedite() {
     // A text drop sent as code: its highlighting language (Shiki's id), or null for plain text.
     const [textLanguage, setTextLanguage] = useState<string | null>(null);
     const [textContent, setTextContent] = useState("");
-    const [selectedFile, setSelectedFile] = useState<globalThis.File | null>(null);
+    // What's to send: one file, or several (sent as a zip).
+    const [selectedFiles, setSelectedFiles] = useState<PickedFile[]>([]);
+    // Several files being zipped before they go (each read once, for its checksum): how far it's got, 0 to 1.
+    const [preparing, setPreparing] = useState<number | null>(null);
     const [result, setResult] = useState<DropMeta | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
     // What the drop just created will do, for the summary under its code.
@@ -115,7 +120,8 @@ export default function Expedite() {
     const p2pAbortRef = useRef<AbortController | null>(null);
     const p2pCodeRef = useRef<string | null>(null);
     const p2pMode = p2pReceiveMode();
-    // A drop received in memory (no save picker), kept to save again until leaving it.
+    // The drop received, as the page can read it until leaving it: kept in memory (no save picker), to save again; or
+    // read back from the file it was written to. A zip's files are shown from it.
     const [p2pReceived, setP2pReceived] = useState<Blob | null>(null);
 
     // --- Live room ---
@@ -201,7 +207,8 @@ export default function Expedite() {
         setDropType("text");
         setTextContent("");
         setTextLanguage(null);
-        setSelectedFile(null);
+        setSelectedFiles([]);
+        setPreparing(null);
         setRetrieveCode("");
         setResult(null);
         checkRef.current?.cancel();
@@ -282,7 +289,7 @@ export default function Expedite() {
         }
 
         // File: the presigned engine (single or multipart), straight to R2
-        if (!selectedFile) {
+        if (!selectedFiles.length) {
             setError("No file selected");
             setLoading(false);
             return;
@@ -290,22 +297,25 @@ export default function Expedite() {
         const controller = new AbortController();
         uploadAbortRef.current = controller;
         setUploadSnapshot(null);
-        // The file's SHA-256, alongside the upload. The upload waits for it at the end, unless the sender skips it.
-        setHashProgress(0);
-        const hashing = hashBlob(selectedFile, setHashProgress);
-        let skip = () => {
-        };
-        const skipped = new Promise<null>((resolve) => {
-            skip = () => resolve(null);
-        });
-        skipHashRef.current = () => {
-            hashing.cancel();
-            skip();
-        };
-        controller.signal.addEventListener("abort", () => hashing.cancel());
-        const hash = () => Promise.race([hashing.result.catch(() => null), skipped]);
+        let hashing: Hashing | null = null;
         try {
-            const meta = await uploadFile(selectedFile, settings, apiBaseUrl, setUploadSnapshot, controller.signal, hash);
+            const file = await prepare(selectedFiles, controller.signal);
+            // The file's SHA-256, alongside the upload. The upload waits for it at the end, unless the sender skips it.
+            setHashProgress(0);
+            const started = hashBlob(file, setHashProgress);
+            hashing = started;
+            let skip = () => {
+            };
+            const skipped = new Promise<null>((resolve) => {
+                skip = () => resolve(null);
+            });
+            skipHashRef.current = () => {
+                started.cancel();
+                skip();
+            };
+            controller.signal.addEventListener("abort", () => started.cancel());
+            const hash = () => Promise.race([started.result.catch(() => null), skipped]);
+            const meta = await uploadFile(file, settings, apiBaseUrl, setUploadSnapshot, controller.signal, hash, selectedFiles.length);
             setCreatedCode(meta.code);
             setCreatedInfo({type: "file", expiresAt: meta.expiresAt, maxViews: meta.maxViews, deletable: meta.deletable});
             await transitionTo("created");
@@ -315,7 +325,7 @@ export default function Expedite() {
                 setError(err instanceof Error ? err.message : "Upload failed");
             }
         } finally {
-            hashing.cancel();
+            hashing?.cancel();
             skipHashRef.current = null;
             setHashProgress(null);
             uploadAbortRef.current = null;
@@ -325,6 +335,18 @@ export default function Expedite() {
     };
 
     const cancelUpload = () => uploadAbortRef.current?.abort();
+
+    // What's sent: the one file as it is, or the zip of several (each read once first, for its checksum). The zip's name
+    // gets its code from the API (12_files_ABCDE.zip).
+    const prepare = async (files: PickedFile[], signal: AbortSignal): Promise<globalThis.File> => {
+        if (files.length === 1) return files[0]!.file;
+        setPreparing(0);
+        try {
+            return await zipFiles(files, stackName(files.length), setPreparing, signal);
+        } finally {
+            setPreparing(null);
+        }
+    };
 
     const retrieveDrop = async (code?: string) => {
         const targetCode = (code || retrieveCode).trim().toUpperCase();
@@ -371,7 +393,7 @@ export default function Expedite() {
 
     // --- Direct P2P: send ---
     const startP2PSend = async () => {
-        if (!selectedFile) return;
+        if (!selectedFiles.length) return;
 
         setError(null);
         setP2pSnapshot(null);
@@ -381,9 +403,24 @@ export default function Expedite() {
         const controller = new AbortController();
         p2pAbortRef.current = controller;
 
+        let file: globalThis.File;
+        try {
+            file = await prepare(selectedFiles, controller.signal);
+        } catch (err: unknown) {
+            // Cancelled: the screen is already going. Unreadable (a file moved or changed since it was picked): said here,
+            // back on the form.
+            if ((err as Error).name !== "AbortError") {
+                setError(err instanceof Error ? err.message : "The files couldn't be read");
+                setP2pRunning(false);
+            }
+            p2pAbortRef.current = null;
+            return;
+        }
+
         try {
             await sendP2P({
-                file: selectedFile,
+                file,
+                files: selectedFiles.length,
                 apiBaseUrl,
                 signal: controller.signal,
                 onStatus: setP2pStatus,
@@ -453,6 +490,9 @@ export default function Expedite() {
             if (received) {
                 setP2pReceived(received);
                 saveBlob(received, fileName);
+            } else if (handle) {
+                // Written to the file picked, which the picker lets the page read back. Unreadable: no zip's files.
+                setP2pReceived(await handle.getFile().catch(() => null));
             }
         } catch {
             // A failure is shown in the progress (the status's error, with its technical part), so not here as well.
@@ -557,11 +597,11 @@ export default function Expedite() {
     // those screens. Anywhere else the page refuses them, or the browser would open the file in place of Expedite (and a
     // stray drop used to switch screens, even mid-transfer). While one is dragged over the page, the landing shows
     // where it can go. In a live room, the whole page takes them, for your box.
-    const pageDrag = useFileDrag(view === "live" ? (_, files) => live.postFiles(files) : undefined);
+    const pageDrag = useFileDrag(view === "live" ? (files) => live.postFiles(files.map((f) => f.file)) : undefined);
 
-    // A file dropped on the landing's File or Direct P2P tile: that screen, with the file chosen.
-    const handleDropFile = async (type: "file" | "p2p", file: globalThis.File) => {
-        setSelectedFile(file);
+    // Files dropped on the landing's File or Direct P2P tile: that screen, with them chosen.
+    const handleDropFile = async (type: "file" | "p2p", files: PickedFile[]) => {
+        setSelectedFiles(addFiles([], files));
         await handleSelect(type);
     };
 
@@ -645,8 +685,8 @@ export default function Expedite() {
                             setTextContent={setTextContent}
                             language={textLanguage}
                             setLanguage={setTextLanguage}
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
+                            files={selectedFiles}
+                            setFiles={setSelectedFiles}
                             settings={settings}
                             setSettings={setSettings}
                             maxViewsInput={maxViewsInput}
@@ -655,7 +695,9 @@ export default function Expedite() {
                             loading={loading}
                             onUpload={handleUpload}
                             onCancel={loading ? cancelUpload : reset}
-                            progress={uploadSnapshot && (
+                            progress={preparing != null ? (
+                                <p className="expedite_status-line">Preparing the zip... {Math.floor(preparing * 100)}%</p>
+                            ) : uploadSnapshot && (
                                 <UploadProgress
                                     snapshot={uploadSnapshot}
                                     hashProgress={hashProgress}
@@ -677,8 +719,9 @@ export default function Expedite() {
 
                     {view === "p2p-send" && (
                         <P2PSendView
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
+                            files={selectedFiles}
+                            setFiles={setSelectedFiles}
+                            preparing={preparing}
                             code={p2pCode}
                             expiresAt={p2pExpiresAt}
                             status={p2pStatus}
@@ -703,7 +746,9 @@ export default function Expedite() {
                             error={error}
                             relayDisabled={relayBlocked}
                             onAccept={acceptP2PReceive}
-                            onSave={p2pReceived ? () => saveBlob(p2pReceived, result.fileName ?? `expedite-${result.code}`) : undefined}
+                            received={p2pReceived}
+                            onSave={p2pReceived && p2pMode === "memory"
+                                ? () => saveBlob(p2pReceived, result.fileName ?? `expedite-${result.code}`) : undefined}
                             onCancel={reset}
                         />
                     )}

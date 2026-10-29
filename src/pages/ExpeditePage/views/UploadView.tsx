@@ -1,13 +1,14 @@
-import React, {type ReactNode, useEffect, useId, useMemo, useRef, useState} from "react";
+import React, {type ReactNode, useId, useMemo, useRef, useState} from "react";
 import {Info} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatDuration} from "../utils.ts";
-import FilePreview from "./FilePreview.tsx";
+import {LocalFilePreview} from "./FilePreview.tsx";
 import FileZone from "./FileZone.tsx";
 import CodeEditor from "./CodeEditor.tsx";
 import TextStats, {MoreTextStats, useTextStats} from "./TextStats.tsx";
 import {AUTO, isLanguage, languageLabel, LANGUAGES, PLAIN, resolveLanguage} from "../highlight.ts";
+import {type PickedFile, shownFile} from "../files.ts";
 import "./UploadView.scss";
 
 interface UploadViewProps {
@@ -17,8 +18,8 @@ interface UploadViewProps {
     language: string | null;
     setLanguage: (language: string | null) => void;
     setTextContent: (text: string) => void;
-    selectedFile: globalThis.File | null;
-    setSelectedFile: (file: globalThis.File | null) => void;
+    files: PickedFile[];
+    setFiles: (files: PickedFile[]) => void;
     settings: DropSettings;
     setSettings: React.Dispatch<React.SetStateAction<DropSettings>>;
     maxViewsInput: string;
@@ -59,7 +60,7 @@ const VIEW_PRESETS: (number | null)[] = [1, 5, null];
 
 export default function UploadView(
     {
-        dropType, textContent, language, setLanguage, setTextContent, selectedFile, setSelectedFile, settings, setSettings,
+        dropType, textContent, language, setLanguage, setTextContent, files, setFiles, settings, setSettings,
         maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
     }: UploadViewProps) {
     const createButton = useRef<HTMLButtonElement>(null);
@@ -80,14 +81,9 @@ export default function UploadView(
     // Reached by ⌘/Ctrl+Enter: ringed until it loses focus, whatever the browser thinks of where the focus came from.
     const [createReady, setCreateReady] = useState(false);
 
-    // Derive the preview URL during render — no setState needed. FilePreview decides whether the file can be shown.
-    const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
-
-    // Effect's only job: revoke the previous URL when it changes/unmounts
-    useEffect(() => {
-        if (!filePreview) return;
-        return () => URL.revokeObjectURL(filePreview);
-    }, [filePreview]);
+    // The file whose preview shows: the only one, or the one opened in the stack.
+    const [open, setOpen] = useState<string | null>(null);
+    const shown = shownFile(files, open);
 
     const stats = useTextStats(textContent, language !== null);
     // What Auto sees in the code: guessed once per change, for the menu's label and for the colours.
@@ -258,7 +254,7 @@ export default function UploadView(
                 className={createReady ? "is-ready" : undefined}
                 onBlur={() => setCreateReady(false)}
                 onClick={onUpload}
-                disabled={loading || (dropType === "text" ? !textContent.trim() : !selectedFile)}
+                disabled={loading || (dropType === "text" ? !textContent.trim() : !files.length)}
             >
                 {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}${settings.deletable ? " · deletable" : ""}`}
             </Button>
@@ -289,7 +285,9 @@ export default function UploadView(
     return (
         <div className="expedite_upload expedite_split">
             <div className="expedite_main expedite_main--fill">
-                <FileZone file={selectedFile} onFile={setSelectedFile} limit="Max 16 GB" disabled={loading} />
+                <FileZone
+                    files={files} onFiles={setFiles} open={shown?.path ?? null} onOpen={setOpen} limit="Max 16 GB" disabled={loading}
+                />
             </div>
 
             <div className="expedite_side">
@@ -300,19 +298,10 @@ export default function UploadView(
                 {actions}
             </div>
 
-            {/* Under the form, as wide as the view: the upload's progress, and the file itself. */}
+            {/* Under the form, as wide as the view: the upload's progress, and the file itself (the one opened, of several). */}
             <div className="expedite_wide">{progress}</div>
             <div className="expedite_wide">
-                {filePreview && selectedFile && (
-                    <FilePreview
-                        key={filePreview}
-                        src={filePreview}
-                        name={selectedFile.name}
-                        mimeType={selectedFile.type}
-                        size={selectedFile.size}
-                        file={selectedFile}
-                    />
-                )}
+                {shown && <LocalFilePreview key={shown.path} file={shown.file} name={shown.file.name} />}
             </div>
         </div>
     );

@@ -6,6 +6,8 @@ import {type DownloadCheck, type DropMeta} from "../types.ts";
 import {formatBytes, getCurlCommand, getDropUrl, timeUntil, when} from "../utils.ts";
 import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./FilePreview.tsx";
 import CopyField from "./CopyField.tsx";
+import ZipStack from "./ZipStack.tsx";
+import {isZip, urlSource} from "../zip.ts";
 import {isLanguage, languageLabel} from "../highlight.ts";
 import {characterCount, wordStats} from "./TextStats.tsx";
 import "./ResultView.scss";
@@ -71,6 +73,13 @@ export default function ResultView(
     {result, copiedField, onCopy, error, downloadCheck, onDownload, onCheckCopy, onDelete}: ResultViewProps,
 ) {
     const [info, setInfo] = useState<PreviewInfo>({});
+    // A zip: its files, read from the drop's link a few KB at a time; how many, once read.
+    const zip = useMemo(
+        () => result.type === "file" && result.fileUrl && isZip(result.fileName ?? "", result.mimeType)
+            ? urlSource(result.fileUrl, result.size) : null,
+        [result.type, result.fileUrl, result.fileName, result.mimeType, result.size],
+    );
+    const [fileCount, setFileCount] = useState<number | null>(null);
     // The hash check's file picker, and where the check is.
     const picker = useRef<HTMLInputElement>(null);
     const check = downloadCheck?.state;
@@ -108,6 +117,7 @@ export default function ResultView(
                         {result.fileName && <Detail label="Name">{result.fileName}</Detail>}
                         {result.fileName && <Detail label="Type">{describeType(result.fileName, result.mimeType)}</Detail>}
                         <Detail label="Size">{exactSize(result.size)}</Detail>
+                        {fileCount != null && <Detail label="Files">{fileCount.toLocaleString()}</Detail>}
                         {lines != null && (
                             <Detail label="Lines">{lines.toLocaleString()}{info.partial ? "+ (counted in the part shown)" : ""}</Detail>
                         )}
@@ -265,6 +275,9 @@ export default function ResultView(
                     onInfo={setInfo}
                 />
             )}
+
+            {/* A zip: the files in it, each one to show or download on its own. */}
+            {zip && <ZipStack source={zip} remote onRead={setFileCount} />}
 
             {/* Sent as code: shown like a code file, numbered and highlighted. */}
             {isText && result.text && result.language && (

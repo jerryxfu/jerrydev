@@ -1,8 +1,11 @@
+import {useMemo} from "react";
 import {Download, MonitorSmartphone, Radio} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropMeta, P2P_MEMORY_MAX, type P2PReceiveMode, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, timeUntil} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
+import ZipStack from "./ZipStack.tsx";
+import {blobSource, isZip} from "../zip.ts";
 import "./P2PReceiveView.scss";
 
 interface P2PReceiveViewProps {
@@ -16,6 +19,8 @@ interface P2PReceiveViewProps {
     /** Monthly relay quota spent: transfers are direct only. */
     relayDisabled: boolean;
     onAccept: () => void;
+    /** The file received, as the page can read it: in memory, or read back from where it was saved. */
+    received: Blob | null;
     /** Received in memory: saves it to the downloads again, in case the browser didn't. */
     onSave?: () => void;
     onCancel: () => void;
@@ -31,11 +36,17 @@ export default function P2PReceiveView(
         error,
         relayDisabled,
         onAccept,
+        received,
         onSave,
         onCancel
     }: P2PReceiveViewProps
 ) {
     const inMemory = mode === "memory";
+    // A zip received: its files, each one to show or save on its own.
+    const zip = useMemo(
+        () => received && isZip(meta.fileName ?? "", meta.mimeType) ? blobSource(received) : null,
+        [received, meta.fileName, meta.mimeType],
+    );
     const tooBig = inMemory && meta.size > P2P_MEMORY_MAX;
 
     // --- Can't receive: a phone or tablet, or over what this browser can hold in memory ---
@@ -154,6 +165,8 @@ export default function P2PReceiveView(
                                 ? "The file was saved to your downloads. If it didn't start, save it again. It's gone once you leave this page."
                                 : "File was written to the location you chose."}
                     </p>
+
+                    {status.phase === "done" && zip && <ZipStack source={zip} />}
                 </>
             )}
         </div>

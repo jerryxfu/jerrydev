@@ -1,17 +1,20 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Check, Clipboard, Link, Radio} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
-import FilePreview from "./FilePreview.tsx";
+import {LocalFilePreview} from "./FilePreview.tsx";
 import FileZone from "./FileZone.tsx";
 import CopyField from "./CopyField.tsx";
+import {type PickedFile, shownFile, stackLabel, stackSize} from "../files.ts";
 import "./P2PSendView.scss";
 
 interface P2PSendViewProps {
-    selectedFile: globalThis.File | null;
-    setSelectedFile: (file: globalThis.File | null) => void;
+    files: PickedFile[];
+    setFiles: (files: PickedFile[]) => void;
+    /** Several files being zipped before the code is made: how far it's got, 0 to 1. */
+    preparing: number | null;
     code: string | null;
     expiresAt: string | null;
     status: P2PStatus;
@@ -53,19 +56,16 @@ function mmss(secs: number): string {
 
 export default function P2PSendView(
     {
-        selectedFile, setSelectedFile, code, expiresAt,
+        files, setFiles, preparing, code, expiresAt,
         status, snapshot, running, error, relayDisabled,
         copiedField, onCopy, onStart, onCancel,
     }: P2PSendViewProps
 ) {
     const remaining = useCountdown(expiresAt);
 
-    // The picked file's preview URL, revoked when it changes (as in UploadView).
-    const filePreview = useMemo(() => selectedFile ? URL.createObjectURL(selectedFile) : null, [selectedFile]);
-    useEffect(() => {
-        if (!filePreview) return;
-        return () => URL.revokeObjectURL(filePreview);
-    }, [filePreview]);
+    // The file whose preview shows: the only one, or the one opened in the stack (as in UploadView).
+    const [open, setOpen] = useState<string | null>(null);
+    const shown = shownFile(files, open);
     const transferring = status.phase === "transferring" || status.phase === "connected";
 
     return (
@@ -74,8 +74,10 @@ export default function P2PSendView(
                 <>
                     <div className="expedite_main expedite_main--fill">
                         <FileZone
-                            file={selectedFile}
-                            onFile={setSelectedFile}
+                            files={files}
+                            onFiles={setFiles}
+                            open={shown?.path ?? null}
+                            onOpen={setOpen}
                             limit="No size limit (well... capped by the receiver's free storage)"
                         />
                     </div>
@@ -109,7 +111,7 @@ export default function P2PSendView(
 
                         <div className="expedite_btn-row">
                             <Button onClick={onCancel}>Cancel</Button>
-                            <Button variant="main" start={Radio} onClick={onStart} disabled={!selectedFile}>
+                            <Button variant="main" start={Radio} onClick={onStart} disabled={!files.length}>
                                 Get a code
                             </Button>
                         </div>
@@ -117,16 +119,7 @@ export default function P2PSendView(
 
                     {/* The file, under both columns, as on the drop form. */}
                     <div className="expedite_wide">
-                        {filePreview && selectedFile && (
-                            <FilePreview
-                                key={filePreview}
-                                src={filePreview}
-                                name={selectedFile.name}
-                                mimeType={selectedFile.type}
-                                size={selectedFile.size}
-                                file={selectedFile}
-                            />
-                        )}
+                        {shown && <LocalFilePreview key={shown.path} file={shown.file} name={shown.file.name} />}
                     </div>
                 </>
             )}
@@ -159,11 +152,13 @@ export default function P2PSendView(
                         </div>
                     )}
 
-                    {selectedFile && (
+                    {files.length > 0 && (
                         <p className="expedite_p2p-file">
-                            {selectedFile.name} · {formatBytes(selectedFile.size)}
+                            {stackLabel(files)} · {formatBytes(stackSize(files))}
                         </p>
                     )}
+
+                    {preparing != null && <p className="expedite_status-line">Preparing the zip... {Math.floor(preparing * 100)}%</p>}
 
                     <P2PProgress status={status} snapshot={snapshot} role="send" />
 
