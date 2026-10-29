@@ -82,25 +82,19 @@ export default function FileZone({files, onFiles, open, onOpen, limit, disabled 
                 {inputs}
                 <Upload size={28} strokeWidth={1} />
                 <p>Click to choose files or drag &amp; drop</p>
+                {folders && (
+                    <button
+                        type="button"
+                        className="expedite_file-folder"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            folderInput.current?.click();
+                        }}
+                    >
+                        Or pick a whole folder
+                    </button>
+                )}
                 <p className="expedite_file-limit">{limit}</p>
-                <p className="expedite_file-tip">
-                    Several files or a folder go as one zip.
-                    {folders && (
-                        <>
-                            {" "}
-                            <button
-                                type="button"
-                                className="expedite_file-folder"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    folderInput.current?.click();
-                                }}
-                            >
-                                Choose a folder
-                            </button>
-                        </>
-                    )}
-                </p>
             </div>
         );
     }

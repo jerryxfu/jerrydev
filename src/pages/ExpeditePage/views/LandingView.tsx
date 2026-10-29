@@ -46,7 +46,7 @@ type ModeInfo = {
 const MODES: ModeInfo[] = [
     {
         id: "cloud", label: "Text & File",
-        desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 5 minutes and 24 hours.",
+        desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 5 minutes and 24 hours. You can send multiple files at once.",
     },
     {
         id: "p2p", label: "Direct P2P",

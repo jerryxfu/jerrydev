@@ -152,7 +152,7 @@ export default function ZipStack({source, remote = false, onRead}: ZipStackProps
                 <p className="expedite_status-line">Opening {name}... {Math.floor(opened.progress * 100)}%</p>
             )}
             {opened?.state === "too-big" && (
-                <p className="expedite_status-line">{name} is too big to open here. Download it, or the whole zip.</p>
+                <p className="expedite_status-line">{name} is too big to preview here. Download the file or the zip to view.</p>
             )}
             {opened?.state === "failed" && <p className="expedite_error">{name} couldn't be opened. Try again.</p>}
             {opened?.state === "shown" && <LocalFilePreview key={opened.key} file={opened.file} name={opened.file.name} />}

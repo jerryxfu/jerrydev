@@ -144,7 +144,6 @@ export default function ResultView(
                         Advanced
                     </h2>
                     <div className="expedite_meta-grid">
-                        <Detail label="Drop code"><span className="expedite_meta-code">{result.code}</span></Detail>
                         {result.mimeType && <Detail label="MIME type, as uploaded">{result.mimeType}</Detail>}
                         {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
                         {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
@@ -222,6 +221,15 @@ export default function ResultView(
                         disabled={!result.deletable}
                         title={result.deletable ? "Delete drop" : "Deletion disabled by sender"}
                     />
+                    {/* The code, to pass on: a click copies it, as the Live room's does. */}
+                    <Button
+                        className="expedite_code-btn"
+                        end={copiedField === "code" ? Check : Clipboard}
+                        title="Copy the code"
+                        onClick={(e) => onCopy(result.code, "code", e)}
+                    >
+                        {result.code}
+                    </Button>
                     <Button
                         start={copiedField === "link" ? Check : Link}
                         onClick={(e) => onCopy(getDropUrl(result.code), "link", e)}

@@ -45,7 +45,7 @@
     align-items: center;
     gap: 0.4rem;
     margin: 0;
-    padding: 0.65rem 0.95rem;
+    padding: 0.45rem 0.8rem;
     border-bottom: 1px solid var(--border);
     background: var(--surface-lt);
     font-size: var(--fs-sm);
@@ -53,7 +53,8 @@
     color: var(--text-4);
 }
 
-.expedite_meta-code {
+// The drop's code in the row of actions (ResultView.tsx): spaced out, as everywhere a code shows.
+.expedite_code-btn {
     font-weight: 600;
     letter-spacing: 0.18em;
 }
@@ -66,8 +67,7 @@
 .expedite_meta-item {
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
-    padding: 0.6rem 0.95rem;
+    padding: 0.4rem 0.8rem;
     border-bottom: 1px solid var(--border-lt);
 
     &:nth-child(odd) {
@@ -83,12 +83,14 @@
 .expedite_meta-label {
     font-size: var(--fs-xs);
     font-weight: 600;
+    line-height: 1.35;
     color: var(--text-5);
 }
 
 // A long value (a file's name, a link) may break anywhere; words still break between them.
 .expedite_meta-value {
     font-size: var(--fs-sm);
+    line-height: 1.4;
     overflow-wrap: anywhere;
 }
 
