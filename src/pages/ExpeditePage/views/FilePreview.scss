@@ -1,7 +1,7 @@
 // No margins: it sits in the views' gaps, and level with the top of the column beside it.
 .expedite_file-preview {
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--r-4);
     // clip, not hidden: it rounds the corners the same, without making the box a scroll container, which would keep
     // the code's Collapse button from sticking to the screen.
     overflow: clip;

@@ -52,7 +52,7 @@
     width: 3.2rem;
     height: 2.6rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     color: var(--text-3);
     font-family: inherit;
@@ -187,14 +187,14 @@
 .countdown_bar {
     width: 100%;
     height: 6px;
-    border-radius: 3px;
+    border-radius: var(--r-2);
     background: var(--border);
     overflow: hidden;
 }
 
 .countdown_bar-fill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: var(--r-2);
     background: var(--secondary);
     transition: width 0.1s linear;
 }

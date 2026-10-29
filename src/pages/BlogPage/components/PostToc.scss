@@ -89,7 +89,7 @@ $bar-ends: 22px; // half the collapsed bar's height: the trigger's 40px, the pro
     // Above the article.
     z-index: 400;
     overflow: hidden; // the sheet and the progress line, inside the rounded shape
-    border-radius: 999px;
+    border-radius: var(--r-full);
     background-color: color-mix(in srgb, var(--bg) 80%, transparent);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border);

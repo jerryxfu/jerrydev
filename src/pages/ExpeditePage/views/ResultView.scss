@@ -18,7 +18,7 @@
 .expedite_meta {
     display: grid;
     border: 1px solid var(--border-da);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     overflow: hidden;
 
     @media (min-width: 900px) {
@@ -118,7 +118,7 @@
     border: 1px solid var(--border-da);
     background: transparent;
     color: var(--text);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     padding: 1rem 1.1rem;
     margin: 0;
     font-size: var(--fs-base);
@@ -160,7 +160,7 @@
     display: inline-flex;
     padding: 0.2rem;
     border: 1px solid transparent;
-    border-radius: 5px;
+    border-radius: var(--r-3);
     background: none;
     color: var(--text-4);
     cursor: pointer;
@@ -198,7 +198,7 @@
     padding: 0.7rem 0.9rem;
     border: 1px solid var(--border);
     border-left: 2px solid var(--secondary);
-    border-radius: 8px;
+    border-radius: var(--r-4);
     background: var(--surface);
     font-size: var(--fs-sm);
     line-height: 1.5;
@@ -209,7 +209,7 @@
 .expedite_confirm {
     padding: 0.6rem 0.75rem;
     border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
-    border-radius: 8px;
+    border-radius: var(--r-4);
     background: color-mix(in srgb, var(--danger) 6%, transparent);
 
     p {

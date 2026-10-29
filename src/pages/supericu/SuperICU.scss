@@ -44,7 +44,7 @@
     gap: 12px;
     padding: 8px 10px;
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
+    border-radius: var(--r-4);
     background: rgba(4, 7, 10, 0.9);
 }
 
@@ -63,7 +63,7 @@
     background: #01060a;
     color: var(--ui-ink);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
+    border-radius: var(--r-4);
     padding: 2px 6px;
 }
 
@@ -76,7 +76,7 @@
     padding: 6px 8px;
     background: var(--ui-panel);
     border: 1px solid var(--ui-border);
-    border-radius: 6px;
+    border-radius: var(--r-4);
 }
 
 .wave-row {
@@ -87,7 +87,7 @@
     padding: 6px 8px;
     background: var(--ui-panel);
     border: 1px solid var(--ui-border);
-    border-radius: 5px;
+    border-radius: var(--r-3);
 }
 
 .lead-label {
@@ -257,7 +257,7 @@
 
 .status-pill {
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: var(--r-full);
     background: #0b1016;
     border: 1px solid var(--ui-border);
     color: var(--ui-ink);
@@ -291,7 +291,7 @@
 .alert {
     border: 1px solid var(--ui-border);
     border-left-width: 4px;
-    border-radius: 6px;
+    border-radius: var(--r-4);
     padding: 8px 10px;
     background: rgba(4, 7, 10, 0.6);
 }

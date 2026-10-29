@@ -9,7 +9,7 @@
 .sync_stage {
     width: 100%;
     aspect-ratio: 16 / 9;
-    border-radius: 12px;
+    border-radius: var(--r-5);
     overflow: hidden;
     background: #0a0a0a;
     outline: none;

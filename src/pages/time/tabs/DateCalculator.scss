@@ -23,7 +23,7 @@
 .datecalc_clear {
     padding: 0.25rem 0.6rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--r-4);
     background: transparent;
     color: var(--text-3);
     font-family: inherit;
@@ -79,7 +79,7 @@
         gap: 0.4rem;
         height: 2.75rem;
         border: 1px solid var(--border);
-        border-radius: 10px;
+        border-radius: var(--r-5);
         background: transparent;
         color: var(--text-3);
         font-family: inherit;

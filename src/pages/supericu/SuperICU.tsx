@@ -26,7 +26,7 @@ const INPUT_STYLE: React.CSSProperties = {
     background: "#01060a",
     color: "inherit",
     border: "1px solid var(--ui-border)",
-    borderRadius: 4,
+    borderRadius: "var(--r-3)",
     padding: "2px 4px",
     fontSize: 12,
 };

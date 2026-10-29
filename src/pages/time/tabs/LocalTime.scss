@@ -132,7 +132,7 @@
     display: flex;
     padding: 0.3rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-4);
     background: transparent;
     color: var(--text-5);
     cursor: pointer;

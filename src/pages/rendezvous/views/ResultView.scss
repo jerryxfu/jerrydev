@@ -20,7 +20,7 @@
 // --- Respondents ---
 .rv_respondents {
     border: 1px solid var(--border);
-    border-radius: var(--r-sm);
+    border-radius: var(--r-2);
     padding: 0.75rem 0.95rem;
     display: flex;
     flex-direction: column;
@@ -43,7 +43,7 @@
 .rv_respondent-chip {
     padding: 0.2rem 0.55rem;
     border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
-    border-radius: var(--r-xs);
+    border-radius: var(--r-1);
     background: color-mix(in srgb, currentColor 4%, transparent);
 }
 
@@ -59,7 +59,7 @@
     min-height: 2.6rem;
     padding: 0.65rem 0.85rem;
     border: 1px solid var(--border);
-    border-radius: var(--r-sm);
+    border-radius: var(--r-2);
     background: var(--surface);
 }
 
@@ -83,6 +83,6 @@
 .rv_slot-detail-name {
     font-size: var(--fs-smm);
     padding: 0.15rem 0.45rem;
-    border-radius: var(--r-xs);
+    border-radius: var(--r-1);
     background: color-mix(in srgb, var(--primary) 12%, transparent);
 }

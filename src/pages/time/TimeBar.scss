@@ -12,7 +12,7 @@
     display: flex;
     padding: 0.4rem;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--r-5);
     background: transparent;
     color: var(--text-4);
     cursor: pointer;
@@ -112,7 +112,7 @@
 .timebar_bar {
     flex: 1;
     height: 6px;
-    border-radius: 3px;
+    border-radius: var(--r-2);
     background: var(--border);
     overflow: hidden;
 }
@@ -121,7 +121,7 @@
     position: relative;
     height: 100%;
     background: var(--secondary);
-    border-radius: 3px;
+    border-radius: var(--r-2);
     overflow: hidden;
     transition: width 0.5s linear;
 

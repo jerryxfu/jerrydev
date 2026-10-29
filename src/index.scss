@@ -70,13 +70,14 @@ body.homeisland-body {
     --fs-2xl: 2rem; // 32px - page titles
     --fs-3xl: 2.5rem; // 40px - hero
 
-    // Corner radii. One scale so the whole site can be sharpened or softened from here rather than
-    // from twenty scattered literals. Deliberately tight: .card has always been 3px, and the blog
-    // was the only place using 10-12px.
+    // Corner radii: a ladder, like the text's, so a page is made rounder or sharper a step at a time, and the whole
+    // site from here. Every corner is on a step (but circles, pills and a few shapes that follow their own size).
     --r-none: 0;
-    --r-xs: 2px; // inline code, chips, small controls
-    --r-sm: 3px; // cards, panels, inputs
-    --r-md: 6px; // large surfaces, images
+    --r-1: 2px; // inline code, logos, small links
+    --r-2: 3px; // the home page's cards, chips, inputs
+    --r-3: 4px;
+    --r-4: 6px; // bigger cards, the navbar's island and menu
+    --r-5: 8px;
     --r-full: 999px; // avatars and anything genuinely circular
 
     // Opacity, for dimming a whole component — never for making text quieter. Text uses the --text-N

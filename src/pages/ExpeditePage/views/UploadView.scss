@@ -13,7 +13,7 @@
     padding: 1rem 1.1rem;
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     font-family: var(--font-reading);
     font-size: var(--fs-base);
@@ -55,7 +55,7 @@
     gap: 0.6rem;
     padding: 1rem;
     border: 1.5px dashed var(--border-da);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
     text-align: center;
@@ -150,7 +150,7 @@
     gap: 0.75rem;
     padding: 0.85rem 1rem;
     border: 1px solid color-mix(in srgb, var(--gray-da) 8%, transparent);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: color-mix(in srgb, var(--gray-lt) 2%, transparent);
 }
 
@@ -226,7 +226,7 @@
     // track toward zero once the label beside it has hit its own floor, and the
     // knob keeps its fixed offsets and ends up outside the pill.
     flex-shrink: 0;
-    border-radius: 10px;
+    border-radius: var(--r-5);
     border: 1.5px solid color-mix(in srgb, currentColor 15%, transparent);
     background: color-mix(in srgb, currentColor 6%, transparent);
     cursor: pointer;
@@ -285,7 +285,7 @@
     width: 60px;
     padding: 0.3rem 0.5rem;
     border: 1px solid var(--border);
-    border-radius: 5px;
+    border-radius: var(--r-3);
     background: transparent;
     color: inherit;
     font-family: inherit;
@@ -320,7 +320,7 @@
 .expedite_setting-pill {
     padding: 0.25rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: 5px;
+    border-radius: var(--r-3);
     background: transparent;
     color: inherit;
     font-family: inherit;
@@ -418,7 +418,7 @@
 .expedite_select {
     padding: 0.3rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--r-3);
     background: var(--bg);
     color: var(--text);
     font-family: inherit;

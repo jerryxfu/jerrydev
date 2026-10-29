@@ -54,7 +54,7 @@
     gap: 0.85rem;
     padding: 1.1rem 1.75rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -84,7 +84,7 @@
 .expedite_qr-code {
     display: block;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--r-4);
 }
 
 // The drop's settings, told back: one line, its parts apart by a dot; wrapped on a phone.

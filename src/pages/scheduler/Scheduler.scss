@@ -49,7 +49,7 @@
     border: 2px solid var(--primary);
     background: transparent;
     color: var(--primary);
-    border-radius: 4px;
+    border-radius: var(--r-3);
     font-weight: 500;
     font-size: var(--fs-xs);
     cursor: pointer;
@@ -83,7 +83,7 @@
 .scheduler-select {
     padding: 4px 8px;
     border: 1px solid var(--border);
-    border-radius: 3px;
+    border-radius: var(--r-2);
     background: var(--bg);
     color: var(--text);
     font-size: var(--fs-xs);
@@ -118,7 +118,7 @@
     border: 1px solid var(--border);
     background: var(--bg);
     color: var(--text-3);
-    border-radius: 4px;
+    border-radius: var(--r-3);
     font-weight: 500;
     font-size: var(--fs-xs);
     cursor: pointer;
@@ -141,7 +141,7 @@
     padding: 4px 8px;
     background: color-mix(in srgb, var(--success) 10%, transparent);
     border: 1px solid var(--success);
-    border-radius: 3px;
+    border-radius: var(--r-2);
 }
 
 .scheduler-break-count {

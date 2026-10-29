@@ -59,7 +59,7 @@
         max-width: 100%;
         height: auto;
         margin: 1.75rem auto;
-        border-radius: var(--r-md);
+        border-radius: var(--r-4);
 
         // flip colors on transparent background images
         &.diagram {
@@ -94,7 +94,7 @@
     :not(pre) > code {
         padding: 0.15em 0.4em;
         border: 1px solid var(--border-lt);
-        border-radius: var(--r-xs);
+        border-radius: var(--r-1);
         background-color: var(--surface-da);
         font-size: 0.875em;
         color: var(--text);

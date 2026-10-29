@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    border-radius: 8px;
+    border-radius: var(--r-4);
     transition: background 0.15s;
 
     &:hover {
@@ -62,7 +62,7 @@
     height: 2.5rem;
     display: grid;
     place-items: center;
-    border-radius: 6px;
+    border-radius: var(--r-3);
     overflow: hidden;
     background: var(--surface);
     color: var(--text-4);
@@ -111,7 +111,7 @@
     margin-right: 0.25rem;
     background: none;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-3);
     color: inherit;
     font: inherit;
     font-size: var(--fs-xs);
@@ -150,7 +150,7 @@
     > .expedite_stack {
         padding: 0.25rem;
         border: 1px solid var(--border-lt);
-        border-radius: 10px;
+        border-radius: var(--r-5);
     }
 }
 

@@ -9,7 +9,7 @@
     padding: 0.75rem;
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     font-family: inherit;
     font-size: var(--fs-base);
@@ -29,7 +29,7 @@
 // --- Calendar ---
 .rv_calendar {
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     padding: 0.85rem;
     display: flex;
     flex-direction: column;
@@ -48,7 +48,7 @@
     justify-content: center;
     padding: 0.35rem;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-4);
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -85,7 +85,7 @@
     align-items: center;
     justify-content: center;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--r-5);
     background: transparent;
     color: inherit;
     font-family: inherit;
@@ -135,7 +135,7 @@
     gap: 0.75rem;
     padding: 0.85rem 1rem;
     border: 1px solid color-mix(in srgb, var(--gray-da) 8%, transparent);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: color-mix(in srgb, var(--gray-lt) 2%, transparent);
 }
 
@@ -166,7 +166,7 @@
 .rv_time-select {
     padding: 0.3rem 0.45rem;
     border: 1px solid var(--border);
-    border-radius: 5px;
+    border-radius: var(--r-3);
     background: transparent;
     color: inherit;
     font-family: inherit;
@@ -189,7 +189,7 @@
 .rv_setting-pill {
     padding: 0.25rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: 5px;
+    border-radius: var(--r-3);
     background: transparent;
     color: inherit;
     font-family: inherit;

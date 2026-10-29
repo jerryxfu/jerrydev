@@ -11,7 +11,7 @@
     gap: 0.85rem;
     padding: 1.1rem 1.75rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -36,7 +36,7 @@
     width: 100%;
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 8px;
+    border-radius: var(--r-5);
     overflow: hidden;
     transition: border-color 0.15s;
 
@@ -79,6 +79,6 @@
     &:hover {
         opacity: var(--opacity-hover);
         background: var(--surface);
-        border-radius: 8px;
+        border-radius: var(--r-5);
     }
 }

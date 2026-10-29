@@ -45,26 +45,21 @@ remove the plugin.
 
 There is no date library and no shared date module. That is deliberate for now — see the plan below.
 
-**Two bugs were fixed in September 2026, both of which produced wrong dates on screen:**
+**A `Date` is an instant, not a calendar day.** Any time you need a calendar day, go through local fields
+(`getFullYear`/`getMonth`/`getDate`), never through UTC. Two ways it goes wrong, both of which have put wrong dates on
+this site:
 
-- `formatDate` (`src/utils.ts`) floored the millisecond difference between two local midnights. Local midnights an exact
-  number of days apart are 23h or 25h short of a multiple of 24h whenever a DST transition sits between them, so the
-  floor lost a whole day. Every project and experience card dated outside the current DST period was one day short, for
-  eight months of the year, in every DST-observing timezone. Fixed with `Math.round` over field-constructor midnights.
-- `getDateRange` (`src/pages/rendezvous/utils.ts`) built local-midnight `Date`s and then stringified them with
-  `toISOString().slice(0, 10)`, which re-renders the instant in UTC — the previous calendar day for anyone at a positive
-  offset. A Berlin visitor opening a single-date event saw one dead column headed with the wrong weekday and could never
-  submit. Fixed by calling `toISODate`, which already existed in the same file.
+- Flooring the milliseconds between two local midnights. Midnights an exact number of days apart are 23h or 25h short of
+  a multiple of 24h whenever a DST transition sits between them, so the floor loses a whole day.
+- `toISOString().slice(0, 10)` on a local midnight. It re-renders the instant in UTC: the previous calendar day for
+  anyone at a positive offset.
 
-Both were the same underlying mistake: **a `Date` is an instant, not a calendar day.** Any time you need a calendar day,
-go through local fields (`getFullYear`/`getMonth`/`getDate`), never through UTC.
-
-#### The rule until then
+#### The rule, until Temporal
 
 - To turn a `YYYY-MM-DD` literal into a `Date`, always append `T00:00:00`. A bare date string parses as UTC midnight and
   renders the wrong day west of Greenwich. `postDate()` in `BlogPage/posts.tsx` wraps this; `hello-blog.mdx` documents it.
 - To turn a `Date` back into `YYYY-MM-DD`, use a local-fields helper (`toISODate` in `rendezvous/utils.ts`, `isoDay` in
-  `HomePage/Blog/BlogFeed.tsx`). **Never `toISOString()`.**
+  `time/utils.ts`, `HomePage/Blog/BlogFeed.tsx` and `HomePage/Experience/Experience.tsx`). **Never `toISOString()`.**
 - To count calendar days, collapse both endpoints with `new Date(y, m, d)` and `Math.round` the quotient. Never `Math.floor`,
   never raw millisecond subtraction.
 
@@ -80,12 +75,13 @@ So: wait for baseline support, then adopt `Temporal` directly rather than invent
 
 #### The plan, if we do centralize before then
 
-An audit of all 228 date/time sites in `src/` concluded the defensible core is **two functions**, not a util module:
+An audit of the date and time code in `src/` concluded the defensible core is **two functions**, not a util module:
 
-- `toISODate(d: Date): string` — local `Y-M-D`. Already exists twice, correctly, in two files that don't know about each
-  other, and the bug above was a third site reaching for `toISOString()` instead. Strongest case; move it to `src/date.ts`.
-- `localDate(iso: string): Date` — owns the `T00:00:00` idiom, ~33 call sites across four features. Readability only, no
-  bug. Note the param must be `string`, not a `${number}-${number}-${number}` template type: under `noUncheckedIndexedAccess`
+- `toISODate(d: Date): string` — local `Y-M-D`. Already exists four times, correctly, in files that don't know about
+  each other (listed above), and the `toISOString()` bug was one more site reaching past them. Strongest case; move it to
+  `src/date.ts`.
+- `localDate(iso: string): Date` — owns the `T00:00:00` idiom, about 20 call sites across four features. Readability
+  only, no bug. Note the param must be `string`, not a `${number}-${number}-${number}` template type: under `noUncheckedIndexedAccess`
   the rendezvous callers pass `sorted[0]` (`string | undefined`) and plain `string`, so the template type would need an
   overload to survive the move.
 

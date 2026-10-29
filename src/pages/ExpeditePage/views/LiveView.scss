@@ -48,7 +48,7 @@
     gap: 0.6rem;
     padding: 0.35rem 0.85rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: transparent;
     color: inherit;
     // As a drop's code once made (CreatedView.scss), at the bar's size.
@@ -175,7 +175,7 @@
     margin: 0;
     padding: 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--r-5);
     background: var(--bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
@@ -206,7 +206,7 @@
     max-width: 12rem;
     padding: 0.35rem 0.7rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--r-full);
     background: transparent;
     color: var(--text-2);
     font-family: inherit;
@@ -278,7 +278,7 @@
     // The line and glow's colour: their person's, grey while they're away (the dot by their name keeps theirs).
     --frame: var(--member);
     border: 2px solid color-mix(in srgb, var(--frame) 80%, transparent);
-    border-radius: 12px;
+    border-radius: var(--r-5);
     // Tinted with the same colour, so whose box it is shows at a glance. Its cards and text box keep the page's.
     background: color-mix(in srgb, var(--frame) 4%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--frame) 30%, transparent),
@@ -400,7 +400,7 @@
     flex: 1;
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--border-da);
-    border-radius: 6px;
+    border-radius: var(--r-3);
     background: transparent;
     color: inherit;
     font-family: inherit;
@@ -437,7 +437,7 @@
     gap: 0.75rem;
     padding: 2rem 1.5rem;
     border: 1px dashed var(--border-da);
-    border-radius: 12px;
+    border-radius: var(--r-5);
     text-align: center;
     color: var(--text-4);
 
@@ -463,7 +463,7 @@
     max-height: 12rem;
     padding: 0.6rem 0.75rem;
     border: 1px solid var(--border-da);
-    border-radius: 8px;
+    border-radius: var(--r-4);
     background: var(--bg);
     color: inherit;
     font-family: inherit;
@@ -545,7 +545,7 @@
     padding: 0.45rem 0.5rem;
     // Darker than --border, so each card stands out in its box. The text's colour, so it holds in every theme.
     border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
-    border-radius: 10px;
+    border-radius: var(--r-5);
     background: var(--bg);
 
     // A code text's own box, inside the card: no second frame around it.
@@ -608,7 +608,7 @@
     display: block;
     max-width: 100%;
     max-height: 16rem;
-    border-radius: 6px;
+    border-radius: var(--r-3);
 }
 
 // A PDF's first page (LiveView.tsx, PdfPage): as wide as the card, its top 16rem at most.
@@ -622,7 +622,7 @@
         max-height: 16rem;
         object-fit: cover;
         object-position: top;
-        border-radius: 6px;
+        border-radius: var(--r-3);
         box-shadow: 0 0 0 1px var(--border-lt);
     }
 }
@@ -665,7 +665,7 @@
 
 .live_progress {
     height: 4px;
-    border-radius: 2px;
+    border-radius: var(--r-1);
     background: var(--border);
     overflow: hidden;
 
@@ -702,7 +702,7 @@
 .live_part {
     width: 16px;
     height: 16px;
-    border-radius: 3px;
+    border-radius: var(--r-2);
     font-size: 9px;
     line-height: 16px;
     text-align: center;

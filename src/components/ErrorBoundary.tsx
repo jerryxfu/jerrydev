@@ -54,7 +54,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                         backgroundColor: "var(--error-bg, #ff6b6b)",
                         color: "var(--error-text, white)",
                         padding: "2rem",
-                        borderRadius: "8px",
+                        borderRadius: "var(--r-5)",
                         maxWidth: "600px"
                     }}>
                         <h1 style={{margin: "0 0 1rem 0"}}>Oops! Something went wrong</h1>
@@ -73,7 +73,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                                 <pre style={{
                                     backgroundColor: "rgba(0,0,0,0.2)",
                                     padding: "1rem",
-                                    borderRadius: "4px",
+                                    borderRadius: "var(--r-3)",
                                     overflow: "auto",
                                     fontSize: "var(--fs-smm)"
                                 }}>
@@ -89,7 +89,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                                 backgroundColor: "var(--primary-color, #007bff)",
                                 color: "white",
                                 border: "none",
-                                borderRadius: "4px",
+                                borderRadius: "var(--r-3)",
                                 cursor: "pointer"
                             }}
                         >

@@ -26,6 +26,7 @@ ExpeditePage/
   zip.ts                several files as one stored zip (buildZip, zipFiles), and a zip read back (readZip, entryData)
   crc32.ts              the zip's checksum; crc32.worker.ts reads the files for it, as sha256.worker.ts does
   pdfPage.ts            a PDF's first page drawn by pdf.js, loaded on the first PDF shown
+  useFileDrag.ts        files dragged over an element: the drop zones take them, Expedite's root refuses them (no file opened in place of the page)
   sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's saved copy (picked after the download) checked against it
   highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, Auto's guess at pasted code's language, and the code box's line-by-line colouring (only the lines an edit changes)
   p2p/
@@ -77,9 +78,8 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
 - **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after
   their last, and their box goes grey. Not the stream: in production the platform keeps it open after its page has gone (locally it closes). 90 s, as a hidden
   tab's timer can slow to once a minute.
-- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s, below)
-  and
-  the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
+- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s)
+  and the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
   twice but never miss one. A text, or a finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped
   stream reconnects on its own and sends everything again; the page keeps the links it has, or every picture would download again.
 - **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent (Shift+Enter on a laptop, the
@@ -119,11 +119,10 @@ and, on a computer, Add a folder. One file goes as it is. Several go as one zip,
   they read a file.
 - **The format**: UTF-8 names (flag 11, and NFC: a Mac's are decomposed), DOS times, Unix permissions (rw-r--r--), Zip64 past 4 GB or
   65,535 files (a File drop goes to 16 GB). A Mac's `.DS_Store` stays out of a dropped folder; a name taken twice gets a number ("a (2).jpg").
-  Tested with `unzip -t`, Python's `zipfile`, `ditto -x -k` (Archive Utility's engine) and `bsdtar`: accents, an emoji, folders, an empty
-  file, 70,000 files, and 4.3 GB with a file after it (offsets past 4 GB). Not yet: Windows Explorer.
+  Not yet opened in Windows Explorer.
 - **Its name: `12_files_ABCDE.zip`.** The code is made by the API, after the page sends the name, so the page sends `fileName:
   "12_files.zip"` and `files: 12`, and the API names it (`stackName` in `shared.ts`; `POST /drop/file/init` and `POST /p2p/init`, so each
-  new P2P code gets its name). An API without it keeps `12_files.zip`.
+  new P2P code gets its name).
 - **Receiving: the zip's files, without unzipping.** Any zip received shows its files (`ZipStack`): its central directory is read from its
   end (two or three reads of a few KB), and each file from its own bytes, inflated if deflated (`DecompressionStream`), so a zip made
   elsewhere opens too. Folders' entries and macOS's `__MACOSX` copies are left out; an encrypted file only lists. From a drop's link,
@@ -135,7 +134,7 @@ and, on a computer, Add a folder. One file goes as it is. Several go as one zip,
   drawn into a canvas (an `<img>` decoded once, then dropped: a stack of photos doesn't keep them all decoded). A PDF's first page is
   pdf.js's (`pdfPage.ts`; about 450 KB and a 1.2 MB worker, loaded on the first PDF, one PDF at a time through one worker). It reads the
   PDF whole: pdf.js checks the last page whenever it opens a PDF, and in one that isn't linearized (most) that walks every page's object,
-  spread all through the file. Read by ranges, a 6 MB test PDF took 94 requests and 19 s for its first page.
+  spread all through the file. Reading by ranges was tried and dropped: a 6 MB PDF took 94 requests and 19 s for its first page.
 
 ---
 
@@ -146,7 +145,7 @@ and, on a computer, Add a folder. One file goes as it is. Several go as one zip,
 **Non-trickle ICE.** Both sides finish gathering candidates before sending their SDP, so signalling is three messages instead of a candidate stream. Costs 1–3s
 up front and makes the server much simpler. Gathering is capped at 9s with the relay (its allocation needs an extra round trip), 5s without it, and ends 1s
 after the first relay candidate: the rest come within a few hundred ms of it, while one server can take 40s to give up (`turn:...:443?transport=udp`, on a
-network that drops IPv4 UDP to port 443; seen 2026-10-27, it held every gathering to the 9s cap). An answerer that finds a working route while gathering (both
+network that drops IPv4 UDP to port 443, which held every gathering to the 9s cap). An answerer that finds a working route while gathering (both
 ends on one machine) stops there, so its answer can carry host candidates only. That's Chrome, and harmless: the route already works.
 
 **Sender creates the code.** Matches text and file drops, matches the WebRTC convention that the offerer initiates, and means the session doc can carry
@@ -155,7 +154,7 @@ ends on one machine) stops there, so its answer can carry host candidates only. 
 **SSE, not polling.** The sender may hold a code for ten minutes. Polling that would blow through the rate limiter; one long-lived `EventSource` doesn't.
 Headers are flushed immediately so Cloudflare's ~100s time-to-headers limit never applies, with heartbeat comments every 25s for intermediate proxies.
 
-**Receiving depends on the browser** (`p2pReceiveMode` in `types.ts`, since 2026-10-27):
+**Receiving depends on the browser** (`p2pReceiveMode` in `types.ts`):
 
 - **disk**: `"showSaveFilePicker" in window` (Chromium on a computer). Streams to the picked file, no size limit.
 - **memory**: other browsers on a computer (Firefox, Safari). No picker, so the file is kept in the tab, up to `P2P_MEMORY_MAX` (1 GB), and saved to the
@@ -201,7 +200,7 @@ sender                          server                        receiver
   |<-- CTRL_AT (bytes saved) ----------------------------------|  where the sender goes on from
 ```
 
-A fresh connection rather than an ICE restart of the old one (step 1, until 2026-10-28), because browsers carry an old
+A fresh connection rather than an ICE restart of the old one (tried first, and dropped), because browsers carry an old
 connection through a network change each their own way. Firefox closes the channel within a second of losing its
 network. Chromium and Safari bring the old route back by themselves, from a new port, and Firefox never moves to it:
 both sides say connected and nothing moves, even after a completed ICE restart. Every browser makes a new connection
@@ -213,12 +212,10 @@ arrived before it says where it is, so no byte is lost or doubled. An attempt gi
 for the answer, then 15 s for the channel, and another follows 3 s after one fails; without a connection for 90 s, the
 sender gives up, and the receiver 10 s later. A side that stops on purpose (Cancel, a closed tab, a failure) ends the
 session, and the other side's next attempt finds it gone and stops at once ("The receiver stopped the transfer"). The
-routes were `/restart` until 2026-10-28, from the ICE restarts; renamed `/reconnect`. The reconnect stream waits
-through a network that's still down: a browser closes an EventSource for good when it can't reach the server at all,
-so `waitForSignal` opens it again every 3 s, and only the API's `gone` stops it. The constants and the why are in
-`p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and `answerReconnect` in
-`receiver.ts`. Tested in Docker (two browsers, one's network unplugged mid-transfer): Chromium and Firefox in every
-pair, the sender and the receiver dropping, a switch to another network, both cancels, a 2-minute outage.
+reconnect stream waits through a network that's still down: a browser closes an EventSource for good when it can't
+reach the server at all, so `waitForSignal` opens it again every 3 s, and only the API's `gone` stops it. The constants
+and the why are in `p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and
+`answerReconnect` in `receiver.ts`.
 
 Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code** — it can't reuse the old one, because the ICE
 candidates in a ten-minute-old SDP reference NAT bindings that have lapsed, so reconnecting would fail at the checking stage with nothing to show for it.
@@ -231,7 +228,7 @@ Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't b
 via `bufferedamountlow`.
 
 Termination is byte count reached, with a NUL-prefixed `CTRL_EOF` string as backup, and a `CTRL_DONE` ack so the sender knows the receiver finished writing.
-Only `CTRL_DONE` counts as delivered (the receiver's disk filling up after the last byte went out used to show as delivered); a channel that closes first
+Only `CTRL_DONE` counts as delivered (the receiver's disk can still fill up after the last byte went out); a channel that closes first
 is a lost connection, and the reconnect takes it from there. So `CTRL_DONE` isn't cut off, the receiver doesn't close after sending it: the sender closes
 on hearing it, and the receiver closes anyway after 5s. Until then the receiver keeps sending `CTRL_AT` with its byte count every second (closing a big
 file can take a while), so the sender doesn't take the wait for a lost connection. Known gap: a connection lost just after the receiver sent `CTRL_DONE`
@@ -252,17 +249,13 @@ above srflx above relay), so the relay only carries the file when no direct pair
 round. The quota counts relayed bytes, so a transfer that goes direct uses none of it.
 
 **One side's relay is enough** (a failed credential mint, say): a relay candidate is a public reachable address, so the peer without TURN can pair against it
-using an ordinary srflx candidate. Verified on real traffic: a 128 MB transfer completed `relay ↔ srflx` with the receiver reporting `0 relay` locally.
+using an ordinary srflx candidate.
 
 Credentials are minted server-side (`config/turn.ts`), cached in-process, and **URLs on port 53 are stripped**: Cloudflare returns alternate ports, browsers
 block 53, and with non-trickle gathering a hanging URL delays the whole SDP and can cost the relay candidates entirely.
 
 `getStats()` reports the pair the data goes through (the transport's `selectedCandidatePairId`; Firefox marks it `selected`), so the UI says whether the
 transfer is actually direct or relayed.
-
-Until 2026-10-27 the relay was opt-in, with an automatic retry: the direct attempt had to fail first (up to 30s), then the sender republished under the same
-code with TURN and the receiver polled for it. Offering it from the start replaced the retry, the polling and the "Force TURN relay" switch (which never forced
-anything: it only added the relay as an option).
 
 ---
 
@@ -277,7 +270,7 @@ is srflx ↔ srflx, which is both peers' *own* public IP, and that needs router 
 
 ### The signature
 
-From a real failing run (2026-08-08, Mac Firefox -> Windows Chrome, same /24):
+From a real failing run (Mac Firefox -> Windows Chrome, same /24):
 
 ```
 remote (Firefox):  a=candidate:0 1 UDP ... cf6f2b90-…-8e04e5df63e2.local 56985 typ host
@@ -341,6 +334,7 @@ while it's still running, WITHOUT closing the Expedite tab -> Create Dump -> Dow
 ```
 
 `"PeerConnections": {}` means it was captured too late. Take two: during negotiation, and once a pair is picked (or ICE has failed).
+Firefox's `about:webrtc` keeps every connection since Firefox started: pick the right entry.
 
 **2. Read the remote description.** `.local` in the remote host candidates plus
 `checking -> disconnected -> failed` is the mDNS diagnosis above, confirmed.
@@ -369,11 +363,8 @@ These have each cost a debugging session. They look exactly like regressions.
   entirely with no prompt ever shown**, which silently kills mDNS registration and resolution. It is not TCC-managed, so `tccutil reset` cannot clear it;
   Apple's own answer is a fresh user account or a VM snapshot. There is also a known bug where the permission stops functioning after a Mac restart while still
   displaying as enabled — toggle it off and on.
-- **Chrome mDNS flag.** `chrome://flags/#enable-webrtc-hide-local-ips-with-mdns` was removed in **M91**. The CLI equivalent does not persist across a normal
-  relaunch, so a workaround applied on Monday is gone on Tuesday with nothing in git to explain it. For a persistent bench, use the
-  `WebRtcLocalIpsAllowedUrls` policy instead.
-- **Firefox `obfuscate_host_addresses` persists.** Unlike the Chrome side it survives restarts, so a half-reverted workaround leaves one browser at defaults and
-  one not — which produces results that look contradictory.
+- **Firefox `obfuscate_host_addresses` persists.** Unlike Chrome's command-line switch (in the table above) it survives restarts, so a half-reverted
+  workaround leaves one browser at defaults and one not — which produces results that look contradictory.
 - **IPv6 STUN 701 errors are benign.** `onicecandidateerror` with
   `"STUN host lookup received error"` against both Cloudflare and Google STUN on an IPv6 interface, while the IPv4 srflx gathers fine, is normal on a
   v4-only-reachable network. It costs gathering time, not connectivity.
@@ -390,7 +381,6 @@ routes/expedite/
   shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
   text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
   file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts), signUpload (and live.ts)
-              (with `files`, the page's zip of that many, named with its code: stackName in shared.ts, as /p2p/init does)
   p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn, /p2p/:code/reconnect, /p2p/:code/reconnect/answer
               GET  /p2p/:code/events, /p2p/:code/reconnect/events (SSE)
               DELETE /p2p/:code
@@ -414,8 +404,7 @@ clear of zsh's `?`).
   WSL, Git Bash) and `& ([scriptblock]::Create((irm https://jerryxf.net/expedite.ps1))) <file>` (PowerShell, a script block so the execution policy doesn't
   stop it). Up to 32 MB they make the one request; bigger, `POST /raw/start` (name, size) answers the code, the type and a signed link per 100 MB part, each
   part goes to R2, and `POST /raw/:code/done` (the SHA-256, then the ETags) checks and completes the drop. Both read 100 MB parts: `PART_SIZE` changes
-  them too.
-- Tested: both scripts on 20 MB, 60 MB and 210 MB files (PowerShell 7 on macOS); Windows PowerShell 5.1 not yet.
+  them too. Not yet run on Windows PowerShell 5.1.
 
 **From a terminal.** `curl https://api.jerryxf.net/expedite/raw/ABCDE` prints a text drop as it is. A file drop redirects to its download link:
 `curl -LOJ` saves it under its name (curl's `-J` takes the ASCII stand-in, so accents become `_`), `curl -L` streams it to stdout, to pipe it into a
@@ -459,9 +448,8 @@ Under Connection details, folded.
 
 ## Gotchas
 
-- **`config/origins.ts` is the single source for the allowlist**, shared by CORS in `server.ts` and `originGuard.ts`. These were separate lists once and had
-  already drifted. Referer must be parsed with `new URL()` and compared by
-  `.origin` — a prefix check accepts `https://jerryxf.net.evil.com`.
+- **`config/origins.ts` is the single source for the allowlist**, shared by CORS in `server.ts` and `originGuard.ts`: two lists drift.
+  Referer must be parsed with `new URL()` and compared by `.origin` — a prefix check accepts `https://jerryxf.net.evil.com`.
 - **`showSaveFilePicker` isn't in `lib.dom.d.ts`.** It's WICG, not WHATWG; lib.dom ships the OPFS half only. Declared in `src/types/file-system-access.d.ts`.
 - **morgan logs on response finish**, so an open SSE stream produces no log line until the client disconnects. Looks like a dropped request. It isn't.
 - **Buttons are `components/Button`**, shared with the Time page. The main one grows (`flex: 1`) only inside `.expedite_btn-row`: on the button itself, a flex
@@ -491,9 +479,7 @@ For P2P, the test topologies are not equally informative and the easy-sounding o
 |---------------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | Two browsers, one machine       | mDNS only           | **Worst case, not easiest.** No network involved at all, so a failure here is always local (permissions, mDNS responders fighting). |
 | Two devices, same LAN           | mDNS + L2           | Fails wholesale if multicast is filtered. Good relay-fallback bench precisely *because* it fails.                                   |
-| Two devices, different networks | srflx hole punching | **The actual common case, and the least tested.** Never touches mDNS. Phone on cellular -> laptop is the cheapest way to run it.    |
+| Two devices, different networks | srflx hole punching | **The actual common case, and the least tested.** Never touches mDNS. A phone on cellular often relays (below).                     |
 
-Verified end to end as of 2026-08-08: 5 GB Firefox -> Chrome; 1 GB Firefox -> Chrome; 128 MB relayed `relay ↔ srflx` cross-device at 8.5–9.5 MB/s with exact
-candidate reconciliation both directions; 128 MB direct `host ↔ prflx` at 9.5 MB/s; iOS Safari -> desktop Chrome.
-
-Still untested: mobile hotspot topology, and a genuinely cross-network transfer between two different physical sites.
+Not seen yet: a direct `srflx ↔ srflx` route between two networks. A phone on cellular -> laptop relays behind a carrier's NAT, and so do two networks behind one
+public address when the router doesn't hairpin. Mobile hotspot not tried.

@@ -309,7 +309,7 @@ export default function Projects() {
             <SectionTitle
                 text={"Projects"}
                 description={"A collection of the things I have built over the years. Some are finished and working, others are experiments I learned something from." +
-                    ` Click a card to see more; its picture opens the project. ${projects.length} projects since ${firstYear}.`}
+                    ` Click a card to see more. Click on its picture to open the project. ${projects.length} projects since ${firstYear}.`}
             />
 
             <div className="projects_controls">

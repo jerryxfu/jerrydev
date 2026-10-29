@@ -4,7 +4,7 @@
     width: 100%;
     border: 1px solid var(--border);
     color: var(--text);
-    border-radius: 8px;
+    border-radius: var(--r-4);
     overflow: hidden;
     transition: border-color 0.15s;
 
@@ -47,7 +47,7 @@
     &:hover {
         opacity: var(--opacity-hover);
         background: var(--surface);
-        border-radius: 8px;
+        border-radius: var(--r-4);
     }
 }
 
@@ -55,7 +55,7 @@
 // typed: no ligatures. On one line, cut at the field's end like an input's (it scrolls sideways), and selected whole in
 // one click.
 .expedite_copy-field--small {
-    border-radius: 6px;
+    border-radius: var(--r-3);
 
     .expedite_copy-field-input {
         padding: 0.4rem 0.6rem;
@@ -73,7 +73,7 @@
         margin: 0 2px;
 
         &:hover {
-            border-radius: 5px;
+            border-radius: var(--r-3);
         }
     }
 }
