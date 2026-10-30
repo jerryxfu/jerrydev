@@ -7,6 +7,10 @@ import * as api from "./room.ts";
 /** Files in a live room are 1 GB at most (the API's LIVE_MAX_FILE_SIZE): checked here first, to say so at once. */
 export const LIVE_MAX_FILE_SIZE = 1024 ** 3;
 
+/** How the boxes sit on a laptop: a column each, or a grid of two rows. */
+export type LiveLayout = "columns" | "grid";
+const LAYOUT_KEY = "expedite:live-layout";
+
 const message = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong");
 
 // How often the page tells the API you're here. It counts you away 90 s after the last time (its LIVE_ONLINE_MS): a
@@ -44,6 +48,14 @@ export function useLiveRoom() {
     // The files downloaded here, by item id: their cards say "Download again", and "Download new" leaves them. Kept with
     // your seat (room.ts).
     const [downloaded, setDownloaded] = useState<ReadonlySet<string>>(new Set());
+    // Picked with the bar's layout buttons; kept for this browser, from one room to the next.
+    const [layout, setLayout] = useState<LiveLayout>(() => {
+        try {
+            return localStorage.getItem(LAYOUT_KEY) === "grid" ? "grid" : "columns";
+        } catch {
+            return "columns";
+        }
+    });
     const [closed, setClosed] = useState<"ended" | "removed" | null>(null);
     // The stream was refused and the room is still there: a button reconnects.
     const [lost, setLost] = useState(false);
@@ -297,6 +309,14 @@ export function useLiveRoom() {
         api.keepDownloaded(room.code, next);
     };
 
+    const pickLayout = (next: LiveLayout) => {
+        setLayout(next);
+        try {
+            localStorage.setItem(LAYOUT_KEY, next);
+        } catch { /* storage refused (a private window): it lasts as long as the page */
+        }
+    };
+
     const renameMe = async (name: string) => {
         if (!room || !token) return;
         try {
@@ -339,8 +359,8 @@ export function useLiveRoom() {
     };
 
     return {
-        room, members, ownerId, items, uploads, fresh, downloaded, closed, lost, error,
-        create, join, close, reconnect, postText, postFiles, removeItem, markDownloaded, renameMe, removePerson, leave,
+        room, members, ownerId, items, uploads, fresh, downloaded, layout, closed, lost, error,
+        create, join, close, reconnect, postText, postFiles, removeItem, markDownloaded, pickLayout, renameMe, removePerson, leave,
     };
 }
 

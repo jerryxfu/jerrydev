@@ -59,7 +59,7 @@
         max-width: 800px;
     }
 
-    // A live room: up to five boxes side by side.
+    // A live room: up to six boxes side by side.
     .expedite_container--wide {
         max-width: 1440px;
     }
@@ -125,19 +125,27 @@
     }
 }
 
-// A live room's header: from a laptop's width, its bar (LiveView's LiveBar) beside the title, Back above both, so the
-// boxes start higher. On a phone the bar stays under the title.
+// A live room's header: Back close above the title, so the boxes start higher, and at its right Expedite's name (the
+// footer's, which a live room doesn't have), above leaving.
+.expedite_header--live > .expedite_back {
+    justify-self: start;
+    margin-bottom: 0;
+}
+
+.expedite_brand {
+    justify-self: end;
+    font-size: var(--fs-smm);
+    color: var(--text-5);
+}
+
+// From a laptop's width, its bar (LiveView's LiveBar) beside the title, Back above both. On a phone the bar stays under
+// the title.
 @media (min-width: 900px) {
     .expedite_header--live {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr);
         align-items: center;
         column-gap: 2rem;
-
-        > .expedite_back {
-            grid-column: 1 / -1;
-            justify-self: start;
-        }
     }
 }
 
@@ -189,6 +197,11 @@
 
 [data-kind="live"] > svg {
     color: var(--kind-live);
+}
+
+// Under the navbar, Back takes back the page's top padding (the landing's title keeps it): a little closer to the bar.
+.expedite:not(.expedite--bare) .expedite_back {
+    margin-top: -0.6rem;
 }
 
 .expedite_back {

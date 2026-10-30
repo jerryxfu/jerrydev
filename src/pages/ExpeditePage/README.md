@@ -66,12 +66,12 @@ taking an options object with callbacks and an `AbortSignal` — same shape as
 
 ## Live rooms
 
-A room for live work: one code, up to 5 people (its creator included) for an hour from its creation. Each person has a box; what they paste or drop
+A room for live work: one code, up to 6 people (its creator included) for an hour from its creation. Each person has a box; what they paste or drop
 anywhere on the page goes into theirs, and everyone sees every box fill. Files are 1 GB at most (a bigger one is a File drop's), texts 500 KB, both
 counted in the 50 GB cap while the room lasts. One network sends 200 of them in 10 minutes at most (`liveItemLimiter`), texts and files together.
 
-- **Seats.** Opening the code (the Live tile makes one, the retrieve field or the link joins) takes a seat, and you can't watch without one: the 5 is
-  really 5 people. The API answers a token, kept in localStorage by code (`expedite:live`): a reload, or the link opened again in the same browser, puts
+- **Seats.** Opening the code (the Live tile makes one, the retrieve field or the link joins) takes a seat, and you can't watch without one: the 6 is
+  really 6 people. The API answers a token, kept in localStorage by code (`expedite:live`): a reload, or the link opened again in the same browser, puts
   you back in your seat. Back keeps it; Leave frees it and deletes what you sent. The creator can't leave: they end the room, or remove someone (their
   seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
 - **Names.** A random animal from the API's nickname generator; click yours to change it.
@@ -102,8 +102,13 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   file shows its percent, bytes sent and parts (File mode's squares, beside the time) until it's in; the others see "Sending...".
 - **Arriving.** An item someone else sends flashes their colour once (none with reduced motion). On a phone, a tab with something unseen gets a dot;
   while the tab is hidden, its title counts what came in.
-- **The bar** (code, link, QR code, time left, people, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop; on a
+- **The bar** (code, link, QR code, time left, people, layout, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop; on a
   phone, Leave or End room at the title's right and the rest under it.
+- **Layout.** On a laptop, two buttons as Finder's: Columns (a box per column, as tall as the screen) or Grid (two rows, each box wider and half
+  as tall: 3x2 for 6 people). Kept for the browser (`expedite:live-layout`). A phone shows a box at a time, so it has neither. A box is never
+  narrower than 312px (`BOX_MIN`, between its width with 4 and 5 people on a wide laptop): past that the boxes scroll sideways, each as wide
+  as leaves the next one's edge in view (`PEEK`) at either end, so there's clearly more. No footer in a room: the boxes take its room, and
+  "📦 Expedite" sits at Back's right.
 - **Leaving the page** stops the stream and the files going up; a file given up is deleted (keepalive), so nobody sees it coming forever. A page
   that goes without saying so (a crash, a lost network): its files still coming are deleted once its person is away (the streams look every 15 s).
 

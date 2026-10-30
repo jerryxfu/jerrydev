@@ -35,7 +35,7 @@ const TILES: TileInfo[] = [
     {type: "text", label: "Text", note: "text or code", icon: FileText},
     {type: "file", label: "File", note: "up to 16 GB", icon: File},
     {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
-    {type: "live", label: "Live", note: "up to 5 people", icon: Users},
+    {type: "live", label: "Live", note: "up to 6 people", icon: Users},
 ];
 
 // The tiles' ways to send, as the list under them describes them: Text and File together, then Direct P2P, then Live.
@@ -68,7 +68,7 @@ const MODES: ModeInfo[] = [
     },
     {
         id: "live", label: "Live",
-        desc: "A room for up to 5 people, for an hour. Anything someone pastes or drops shows up for everyone, as it happens.",
+        desc: "A room for up to 6 people, for an hour. Anything someone pastes or drops shows up for everyone, as it happens.",
     },
 ];
 

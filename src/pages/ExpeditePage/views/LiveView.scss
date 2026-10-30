@@ -1,6 +1,6 @@
 // A live room: its bar, then a box per person.
 
-// The boxes' colours, a seat each (the API's member colour, 0 to 4). Darker on the light themes, so the dots and the
+// The boxes' colours, a seat each (the API's member colour, 0 to 5). Darker on the light themes, so the dots and the
 // names' lines stay clear on a pale page, as the kinds' colours (Expedite.scss).
 .live {
     display: flex;
@@ -12,6 +12,7 @@
     --live-2: #c2410c;
     --live-3: #db2777;
     --live-4: #7c3aed;
+    --live-5: #a16207;
 
     [data-scheme="dark"] & {
         --live-0: #60a5fa;
@@ -19,6 +20,7 @@
         --live-2: #fb923c;
         --live-3: #f472b6;
         --live-4: #a78bfa;
+        --live-5: #facc15;
     }
 }
 
@@ -82,13 +84,49 @@
     }
 }
 
-// Leaving, or ending the room: at the bar's end, or under it when the bar wraps.
+// The layout buttons, then leaving or ending the room: at the bar's end, or under it when the bar wraps.
 .live_bar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
     margin-left: auto;
 
     // End room's and Leave's icon in red; the label stays the text's colour.
     > .btn svg {
         color: var(--danger-text);
+    }
+}
+
+// Columns or grid, as Finder's view buttons: one outlined piece (a button's line and corners), the picked one filled, as
+// tall as the bar's other buttons. Not on a phone, which shows a box at a time.
+.live_layout {
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
+    border-radius: var(--r-4);
+
+    button {
+        display: inline-flex;
+        padding: calc(0.65rem - 2px);
+        border: none;
+        border-radius: var(--r-3);
+        background: transparent;
+        color: var(--text-4);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+
+        &:hover {
+            color: var(--text-2);
+        }
+
+        &[aria-pressed="true"] {
+            background: color-mix(in srgb, var(--text) 10%, transparent);
+            color: var(--text);
+        }
+    }
+
+    @media (max-width: 899px) {
+        display: none;
     }
 }
 
@@ -101,9 +139,9 @@
     color: var(--text-2);
 }
 
-// On a phone, Expedite's header: Back, then the title with leaving at its right (the bar's end on a laptop), then the
-// rest of the bar a little apart. The bar itself steps aside (contents), so leaving and the rest are the header's own
-// cells; its QR code then opens under the header.
+// On a phone, Expedite's header: Back (Expedite's name at its right), then the title with leaving at its right (the
+// bar's end on a laptop), then the rest of the bar a little apart. The bar itself steps aside (contents), so leaving and
+// the rest are the header's own cells; its QR code then opens under the header.
 @media (max-width: 899px) {
     .expedite_header--live {
         position: relative;
@@ -111,11 +149,6 @@
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 0.3rem 1rem;
-
-        > .expedite_back {
-            grid-column: 1 / -1;
-            justify-self: start;
-        }
 
         .live_bar {
             display: contents;
@@ -245,11 +278,27 @@
 
 // Side by side, as tall as the screen allows: each box scrolls on its own, so everyone stays in view.
 @media (min-width: 900px) {
-    // The screen's height, but what's above the boxes (Back, the title and the bar: 7.3rem) and the footer (2.3rem), with a
-    // little room before the footer. Where the bar wraps (below about 1000px), the page scrolls by its second line.
+    // The screen's height, but what's above the boxes (Back, the title and the bar: 6.8rem) and a little room below them
+    // (1rem: a live room has no footer). Where the bar wraps (below about 1000px), the page scrolls by its second line.
     .live_boxes {
-        grid-template-columns: repeat(var(--count), minmax(0, 1fr));
-        height: clamp(420px, calc(100dvh - 10.5rem), 1100px);
+        grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+        height: clamp(420px, calc(100dvh - 7.8rem), 1100px);
+    }
+
+    // The grid: two rows in the same height, each box wider and half as tall. Never less than 18rem, room for your text
+    // box and a card or two: on a short screen the page scrolls.
+    .live_boxes.is-grid {
+        height: auto;
+        grid-auto-rows: clamp(18rem, calc((100dvh - 8.55rem) / 2), 34rem);
+    }
+
+    // More than fit (BOX_MIN, LiveView.tsx): a width each, scrolling sideways. Padded for the boxes' glow, which the
+    // scrolling would clip, and pulled out by as much, so the boxes stay where they were.
+    .live_boxes.is-scrolling {
+        grid-template-columns: repeat(var(--columns), var(--box-width));
+        overflow-x: auto;
+        padding: 6px;
+        margin: -6px;
     }
 
     .live_box {
@@ -714,8 +763,8 @@
     }
 }
 
-// The time, then what to do with the item. In a box too narrow for them all (five people on a laptop), the delete
-// button goes to a line of its own.
+// The time, then what to do with the item. In a box too narrow for them all, the delete button goes to a line of its
+// own.
 .live_item-foot {
     display: flex;
     flex-wrap: wrap;

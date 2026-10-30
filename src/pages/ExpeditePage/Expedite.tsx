@@ -633,7 +633,7 @@ export default function Expedite() {
             )}
 
             {/* A P2P session under way is one column, at the narrower width it always had (Jerry: much better so). A live
-                room is wider, for five boxes side by side. */}
+                room is wider, for its boxes side by side. */}
             <div
                 className={`expedite_container${(view === "p2p-send" || view === "p2p-receive") && p2pRunning ? " expedite_container--narrow" : ""}${view === "live" ? " expedite_container--wide" : ""}`}>
                 {/* A live room's bar is part of the header: beside the title on a laptop, under it on a phone. */}
@@ -644,6 +644,7 @@ export default function Expedite() {
                             <span>Back</span>
                         </button>
                     )}
+                    {view === "live" && <span className="expedite_brand">📦 Expedite</span>}
                     {title ? (
                         <h1 className="expedite_title" data-kind={kind ?? undefined}>
                             <title.icon size={30} strokeWidth={1.6} aria-hidden />
@@ -799,11 +800,14 @@ export default function Expedite() {
                 </div>
             )}
 
-            <footer className="expedite_footer">
-                <p>
-                    <a href="/expedite">📦 Expedite</a>, made with ❤️ by Jerry
-                </p>
-            </footer>
+            {/* Not in a live room: its boxes take the room, and Expedite's name sits at Back's right. */}
+            {view !== "live" && (
+                <footer className="expedite_footer">
+                    <p>
+                        <a href="/expedite">📦 Expedite</a>, made with ❤️ by Jerry
+                    </p>
+                </footer>
+            )}
         </div>
     );
 }

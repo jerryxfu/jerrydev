@@ -1,12 +1,23 @@
-import React, {type CSSProperties, type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState} from "react";
+import React, {
+    type CSSProperties,
+    type FormEvent,
+    type KeyboardEvent,
+    type RefObject,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react";
 import {
     Check,
     Clipboard,
     ClipboardPaste,
     Clock3,
+    Columns3,
     Copy,
     Download,
     File as FileIcon,
+    LayoutGrid,
     Link,
     LoaderCircle,
     LogOut,
@@ -26,7 +37,7 @@ import {QRCodeSVG} from "qrcode.react";
 import Button from "@/components/Button/Button.tsx";
 import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import type {LiveItem, LiveMember, PartProgress, UploadSnapshot} from "../types.ts";
-import type {LiveRoomState} from "../live/useLiveRoom.ts";
+import type {LiveLayout, LiveRoomState} from "../live/useLiveRoom.ts";
 import {downloadLinks, formatBytes, getDropUrl} from "../utils.ts";
 import FilePreview, {CodeView, kindOf, MINI_LINES} from "./FilePreview.tsx";
 import {STATE_LETTER} from "./UploadProgress.tsx";
@@ -44,6 +55,42 @@ interface LiveViewProps {
 
 const IMAGE = /^image\/(png|jpe?g|gif|webp|avif|svg\+xml|bmp)$/;
 const URL_ONLY = /^https?:\/\/\S+$/;
+
+// The bar's layout buttons, as Finder's view buttons.
+const LAYOUTS: { id: LiveLayout; label: string; icon: LucideIcon }[] = [
+    {id: "columns", label: "Columns", icon: Columns3},
+    {id: "grid", label: "Grid", icon: LayoutGrid},
+];
+
+// A box is never narrower than BOX_MIN: between its width with 4 people and with 5 on a wide laptop. Past that, the
+// boxes scroll sideways, each as wide as leaves the next one's edge in view (PEEK), at either end: there's more there.
+const BOX_MIN = 312;
+const PEEK = 40;
+
+/** The boxes' width while they scroll sideways (`columns` of them in `ref`'s width), or null while they all fit. */
+function useScrolledWidth(ref: RefObject<HTMLDivElement | null>, columns: number): number | null {
+    const [width, setWidth] = useState<number | null>(null);
+    useEffect(() => {
+        const row = ref.current;
+        if (!row || columns === 0) return;
+        const measure = () => {
+            const style = getComputedStyle(row);
+            const gap = parseFloat(style.columnGap) || 0;
+            const room = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            if ((room - (columns - 1) * gap) / columns >= BOX_MIN) {
+                setWidth(null);
+                return;
+            }
+            // As many whole boxes as fit with the next one's edge, sharing what's left of the width.
+            const whole = Math.max(1, Math.floor((room - PEEK) / (BOX_MIN + gap)));
+            setWidth((room - PEEK - whole * gap) / whole);
+        };
+        const observer = new ResizeObserver(measure);
+        observer.observe(row);
+        return () => observer.disconnect();
+    }, [ref, columns]);
+    return columns === 0 ? null : width;
+}
 
 const clock = (iso: string) => new Date(iso).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
 
@@ -421,10 +468,10 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
 }
 
 /**
- * A live room's bar: its code and link (and their QR code, which opens over the page), the time left, who's in it, and
- * leaving or ending it. In Expedite's header, beside the title on a laptop, so the boxes get the room. On a phone,
- * leaving sits at the title's right, as at the bar's end on a laptop, and the rest under it (LiveView.scss). Nothing
- * once the room has closed.
+ * A live room's bar: its code and link (and their QR code, which opens over the page), the time left, who's in it, the
+ * boxes' layout (on a laptop: a phone shows a box at a time), and leaving or ending it. In Expedite's header, beside the
+ * title on a laptop, so the boxes get the room. On a phone, leaving sits at the title's right, as at the bar's end on a
+ * laptop, and the rest under it (LiveView.scss). Nothing once the room has closed.
  */
 export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
     const [showQr, setShowQr] = useState(false);
@@ -455,6 +502,16 @@ export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
                 </span>
             </div>
             <span className="live_bar-end">
+                <span className="live_layout" role="group" aria-label="Layout">
+                    {LAYOUTS.map(({id, label, icon: Icon}) => (
+                        <button
+                            key={id} type="button" aria-label={label} title={label} aria-pressed={live.layout === id}
+                            onClick={() => live.pickLayout(id)}
+                        >
+                            <Icon size={16} aria-hidden />
+                        </button>
+                    ))}
+                </span>
                 {room.me.id === ownerId
                     ? <Confirm label="End room" icon={Power} question="End it for everyone?" action="End room" onConfirm={leave} />
                     : <Confirm label="Leave" icon={LogOut} question="Leave? What you sent goes too." action="Leave" onConfirm={leave} />}
@@ -473,7 +530,7 @@ export function LiveBar({live, copiedField, onCopy, onExit}: LiveViewProps) {
 
 /**
  * A live room: a box per person, yours first (its bar is LiveBar, in Expedite's header). On a laptop the boxes sit side
- * by side, each scrolling on its own; on a phone, one at a time, a tab per name. Files dropped anywhere on the page
+ * by side or in a grid (the bar's layout buttons), each scrolling on its own; on a phone, one at a time, a tab per name. Files dropped anywhere on the page
  * (Expedite takes them) go into your box, which shows where they land while one is dragged over (`dragging`).
  */
 export default function LiveView({live, copiedField, onCopy, onExit, dragging}: LiveViewProps & { dragging: boolean }) {
@@ -515,6 +572,13 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
         document.addEventListener("paste", onPaste);
         return () => document.removeEventListener("paste", onPaste);
     }, [postFiles, postText]);
+
+    // On a laptop, a column per box (and one for the waiting note beside a box alone), or half as many in the grid's two
+    // rows. Too many for the width: they scroll sideways.
+    const cells = ordered.length + (wide && ordered.length === 1 ? 1 : 0);
+    const columns = live.layout === "grid" ? Math.ceil(cells / 2) : cells;
+    const boxesRef = useRef<HTMLDivElement>(null);
+    const scrolledWidth = useScrolledWidth(boxesRef, wide ? columns : 0);
 
     if (!room) return null;
 
@@ -569,7 +633,11 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
 
             {/* Every box stays drawn. On a phone all but the picked one are hidden, so switching shows a box as it was,
                 rather than drawing it anew: its pictures, players and previews would load again. */}
-            <div className="live_boxes" style={{"--count": ordered.length + (wide && ordered.length === 1 ? 1 : 0)} as CSSProperties}>
+            <div
+                ref={boxesRef}
+                className={`live_boxes${live.layout === "grid" ? " is-grid" : ""}${scrolledWidth ? " is-scrolling" : ""}`}
+                style={{"--columns": columns, "--box-width": scrolledWidth ? `${scrolledWidth}px` : undefined} as CSSProperties}
+            >
                 {ordered.map((m) => (
                     <Box
                         key={m.id} member={m} mine={m.id === meId} canRemove={isOwner && m.id !== meId}
