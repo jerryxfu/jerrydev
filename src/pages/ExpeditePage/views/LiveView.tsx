@@ -15,8 +15,10 @@ import {
     Pencil,
     Power,
     QrCode,
+    RotateCwFadingClock,
     SendHorizontal,
     Trash2,
+    User,
     UserMinus,
     Users
 } from "lucide-react";
@@ -25,7 +27,7 @@ import Button from "@/components/Button/Button.tsx";
 import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import type {LiveItem, LiveMember, PartProgress, UploadSnapshot} from "../types.ts";
 import type {LiveRoomState} from "../live/useLiveRoom.ts";
-import {formatBytes, getDropUrl} from "../utils.ts";
+import {downloadLinks, formatBytes, getDropUrl} from "../utils.ts";
 import FilePreview, {CodeView, kindOf, MINI_LINES} from "./FilePreview.tsx";
 import {STATE_LETTER} from "./UploadProgress.tsx";
 import {THUMB_MAX, useCanvasNearScreen} from "./FileStack.tsx";
@@ -243,9 +245,9 @@ function PdfPage({url, size, name}: { url: string; size: number; name: string })
     );
 }
 
-function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: {
-    item: LiveItem; mine: boolean; fresh: boolean; progress: UploadSnapshot | undefined;
-    copiedField: string | null; onCopy: LiveViewProps["onCopy"]; onDelete: () => Promise<boolean>;
+function ItemCard({item, mine, fresh, downloaded, progress, copiedField, onCopy, onDownload, onDelete}: {
+    item: LiveItem; mine: boolean; fresh: boolean; downloaded: boolean; progress: UploadSnapshot | undefined;
+    copiedField: string | null; onCopy: LiveViewProps["onCopy"]; onDownload: () => void; onDelete: () => Promise<boolean>;
 }) {
     // Your delete under way: the trash spins until the card goes (the room's next list), or comes back if it failed.
     const [deleting, setDeleting] = useState(false);
@@ -309,9 +311,9 @@ function ItemCard({item, mine, fresh, progress, copiedField, onCopy, onDelete}: 
                     </button>
                 )}
                 {item.kind === "file" && item.downloadUrl && (
-                    <a className="live_action" href={item.downloadUrl}>
-                        <Download size={14} aria-hidden />
-                        Download
+                    <a className={`live_action${downloaded ? " is-downloaded" : ""}`} href={item.downloadUrl} onClick={onDownload}>
+                        {downloaded ? <Check size={14} aria-hidden /> : <Download size={14} aria-hidden />}
+                        {downloaded ? "Download again" : "Download"}
                     </a>
                 )}
                 {mine && (
@@ -342,6 +344,16 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
     onCopy: LiveViewProps["onCopy"];
 }) {
     const busy = items.some((i) => i.status === "pending");
+    // Its finished files, the oldest first (the order they came in), and those not downloaded here yet. Which ones are
+    // being handed to the browser's downloads: a spinner on that button meanwhile.
+    const files = items.filter((i) => i.downloadUrl).reverse();
+    const unsaved = files.filter((i) => !live.downloaded.has(i.id));
+    const [getting, setGetting] = useState<"all" | "new" | null>(null);
+    const getFiles = (which: "all" | "new", list: LiveItem[]) => {
+        setGetting(which);
+        live.markDownloaded(list.map((i) => i.id));
+        void downloadLinks(list.flatMap((i) => i.downloadUrl ?? [])).then(() => setGetting(null));
+    };
     return (
         <section
             hidden={hidden}
@@ -357,7 +369,9 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
                 {counted && <span className="live_count">({items.length})</span>}
                 {mine
                     ? <span className="live_presence">you</span>
-                    : <span className={`live_presence${member.online ? " is-online" : ""}`}>{member.online ? "here" : "away"}</span>}
+                    : member.online
+                        ? <span className="live_presence is-online">here<User size={14} aria-hidden /></span>
+                        : <span className="live_presence">away<RotateCwFadingClock size={14} aria-hidden /></span>}
                 {canRemove && (
                     <span className="live_box-tools">
                         <Confirm
@@ -371,15 +385,32 @@ function Box({member, mine, canRemove, items, live, viewed, counted, hidden, tar
 
             {mine && <Composer onText={live.postText} onFiles={live.postFiles} />}
 
-            <p className="live_subtitle">Upload history</p>
+            <div className="live_history">
+                <p className="live_subtitle">Upload history</p>
+                {/* Not in your own box: you sent those. */}
+                {!mine && files.length > 0 && (
+                    <span className="live_history-tools">
+                        <Button className="live_get" start={Download} busy={getting === "all"} onClick={() => getFiles("all", files)}>
+                            Download all
+                        </Button>
+                        <Button
+                            className="live_get live_get--new" start={Download} busy={getting === "new"}
+                            disabled={unsaved.length === 0} onClick={() => getFiles("new", unsaved)}
+                        >
+                            Download new{unsaved.length > 0 && ` (${unsaved.length})`}
+                        </Button>
+                    </span>
+                )}
+            </div>
             {items.length > 0 ? (
                 <ol className="live_items">
                     {items.map((item) => (
                         <li key={item.id}>
                             <ItemCard
                                 item={item} mine={mine} fresh={live.fresh.has(item.id) && !viewed.has(item.id)}
-                                progress={live.uploads[item.id]}
-                                copiedField={copiedField} onCopy={onCopy} onDelete={() => live.removeItem(item.id)}
+                                downloaded={live.downloaded.has(item.id)} progress={live.uploads[item.id]}
+                                copiedField={copiedField} onCopy={onCopy} onDownload={() => live.markDownloaded([item.id])}
+                                onDelete={() => live.removeItem(item.id)}
                             />
                         </li>
                     ))}

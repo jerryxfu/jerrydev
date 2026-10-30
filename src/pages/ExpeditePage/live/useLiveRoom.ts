@@ -41,6 +41,9 @@ export function useLiveRoom() {
     const [uploads, setUploads] = useState<Record<string, UploadSnapshot>>({});
     // Items that came in while the room was open, not in its first list: shown arriving.
     const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
+    // The files downloaded here, by item id: their cards say "Download again", and "Download new" leaves them. Kept with
+    // your seat (room.ts).
+    const [downloaded, setDownloaded] = useState<ReadonlySet<string>>(new Set());
     const [closed, setClosed] = useState<"ended" | "removed" | null>(null);
     // The stream was refused and the room is still there: a button reconnects.
     const [lost, setLost] = useState(false);
@@ -178,6 +181,7 @@ export function useLiveRoom() {
         setItems([]);
         setUploads({});
         setFresh(new Set());
+        setDownloaded(new Set(api.downloadedIn(r.code)));
         setClosed(null);
         setError(null);
         // The room's link: a reload, or the link sent to someone, opens it again.
@@ -285,6 +289,14 @@ export function useLiveRoom() {
         }
     };
 
+    /** Files downloaded here (or on their way to the browser's downloads), by item id. */
+    const markDownloaded = (ids: string[]) => {
+        if (!room || ids.length === 0) return;
+        const next = new Set([...downloaded, ...ids]);
+        setDownloaded(next);
+        api.keepDownloaded(room.code, next);
+    };
+
     const renameMe = async (name: string) => {
         if (!room || !token) return;
         try {
@@ -327,8 +339,8 @@ export function useLiveRoom() {
     };
 
     return {
-        room, members, ownerId, items, uploads, fresh, closed, lost, error,
-        create, join, close, reconnect, postText, postFiles, removeItem, renameMe, removePerson, leave,
+        room, members, ownerId, items, uploads, fresh, downloaded, closed, lost, error,
+        create, join, close, reconnect, postText, postFiles, removeItem, markDownloaded, renameMe, removePerson, leave,
     };
 }
 

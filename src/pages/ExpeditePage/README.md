@@ -76,7 +76,7 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
 - **Names.** A random animal from the API's nickname generator; click yours to change it.
 - **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after
-  their last, and their box goes grey. Not the stream: in production the platform keeps it open after its page has gone (locally it closes). 90 s, as a hidden
+  their last, and their box goes grey. Their header says "here" with a person after it, or "away" with a fading clock. Not the stream: in production the platform keeps it open after its page has gone (locally it closes). 90 s, as a hidden
   tab's timer can slow to once a minute.
 - **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s)
   and the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
@@ -91,6 +91,11 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF shows its first page (up to 16 MB, `THUMB_MAX`: it's
   fetched whole, see "Several files") and opens from it or its name, in a new tab: a viewer per card would be heavy, and too narrow
   to read. Anything else: its name, size and Download.
+- **Downloads.** Beside "Upload history" in the others' boxes (not yours: you sent those), Download all (the box's files, the oldest first)
+  and Download new (those not downloaded in this browser yet, with their count). Each goes to the browser's own downloads from a hidden
+  frame, half a second apart (`downloadLinks`): a link opened in the page would stop the one before it. Chromium asks once to allow
+  several. A file downloaded says "Download again", after a green check; which ones is kept with the seat, so a reload knows them. Texts
+  aren't in it: they have Copy.
 - **Counts.** Each name shows how many items its box has, "(3)": in the box's header on a laptop, in the tab on a phone.
 - **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only;
   steady with reduced motion). Your own

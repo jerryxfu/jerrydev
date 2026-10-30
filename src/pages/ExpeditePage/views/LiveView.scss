@@ -245,11 +245,11 @@
 
 // Side by side, as tall as the screen allows: each box scrolls on its own, so everyone stays in view.
 @media (min-width: 900px) {
-    // The screen's height, but what's above the boxes (Back, the title and the bar: 8.3rem) and the footer (2.3rem), with a
+    // The screen's height, but what's above the boxes (Back, the title and the bar: 7.3rem) and the footer (2.3rem), with a
     // little room before the footer. Where the bar wraps (below about 1000px), the page scrolls by its second line.
     .live_boxes {
         grid-template-columns: repeat(var(--count), minmax(0, 1fr));
-        height: clamp(420px, calc(100dvh - 11.5rem), 1100px);
+        height: clamp(420px, calc(100dvh - 10.5rem), 1100px);
     }
 
     .live_box {
@@ -280,7 +280,7 @@
     border: 2px solid color-mix(in srgb, var(--frame) 80%, transparent);
     border-radius: var(--r-5);
     // Tinted with the same colour, so whose box it is shows at a glance. Its cards and text box keep the page's.
-    background: color-mix(in srgb, var(--frame) 4%, transparent);
+    background: color-mix(in srgb, var(--frame) 2%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--frame) 30%, transparent),
     0 0 4px color-mix(in srgb, var(--frame) 18%, transparent);
     transition: background 0.15s, border-color 0.15s;
@@ -339,6 +339,32 @@
     font-size: var(--fs-xs);
     font-weight: 600;
     color: var(--text-2);
+}
+
+// "Upload history", and on its right Download all and Download new: under it in a narrow box, still on the right.
+.live_history {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+}
+
+.live_history-tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin-left: auto;
+}
+
+// Both icons green; Download new, the one to press when something came in, outlined in green too (as Delete in red).
+// Grey, as any button, when there's nothing to download.
+.live_get:not(:disabled) > svg {
+    color: var(--success-text);
+}
+
+.live_get--new:not(:disabled) {
+    border-color: color-mix(in srgb, var(--success) 80%, transparent);
 }
 
 // The name, how many items they have (on a laptop), whether they're here, and (the creator's) Remove.
@@ -408,9 +434,13 @@
     font-weight: 600;
 }
 
+// "you", or whether they're here (a person, in green) or away (a fading clock, in grey).
 .live_presence {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
     flex-shrink: 0;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
     color: var(--text-5);
 
     &.is-online {
@@ -514,8 +544,9 @@
     gap: 0.4rem;
 }
 
-// Compact: smaller than the site's buttons, as tools beside a text box.
-.live_composer-row .btn {
+// Compact: smaller than the site's buttons, as tools in a box (the composer's, Download all and new).
+.live_composer-row .btn,
+.live_history .btn {
     gap: 0.3rem;
     padding: 0.4rem 0.7rem;
     font-size: var(--fs-smm);
@@ -584,15 +615,22 @@
     }
 }
 
+// A text: 18rem at most, scrolling past that. Its corner drags it taller or shorter, as a text box's (the browser's own
+// handle; none on iOS), down to one line. Once dragged, the browser writes its height in its style, and the 18rem goes.
 .live_text {
     margin: 0;
-    max-height: 18rem;
+    min-height: 1.55em;
     overflow-y: auto;
+    resize: vertical;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     font-size: var(--fs-sm);
     line-height: 1.55;
     color: var(--text);
+
+    &:not([style*="height"]) {
+        max-height: 18rem;
+    }
 }
 
 .live_link {
@@ -758,6 +796,11 @@
     &:hover {
         color: var(--text);
     }
+}
+
+// A file already downloaded here: a green check before "Download again", as the download buttons' green.
+.live_action.is-downloaded > svg {
+    color: var(--success-text);
 }
 
 .live_action--delete {

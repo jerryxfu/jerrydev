@@ -6,10 +6,11 @@ import {putToR2, type UploadPlan} from "../uploadEngine.ts";
 // engines are; the room's state is useLiveRoom's.
 
 // Your seat in each room you're in, by code: the token the API gave, kept until the room ends. A reload, or the room's
-// link opened again in this browser, puts you back in your seat rather than in a new one.
+// link opened again in this browser, puts you back in your seat rather than in a new one. With it, the files downloaded
+// from the room in this browser, by item id: a reload (a phone's browser reloads a tab it had put away) still knows them.
 const SEATS_KEY = "expedite:live";
 
-type Seats = Record<string, { token: string; expiresAt: string }>;
+type Seats = Record<string, { token: string; expiresAt: string; downloaded?: string[] }>;
 
 function readSeats(): Seats {
     try {
@@ -33,7 +34,19 @@ export function seatToken(code: string): string | null {
 }
 
 export function keepSeat(code: string, token: string, expiresAt: string): void {
-    writeSeats({...readSeats(), [code]: {token, expiresAt}});
+    const seats = readSeats();
+    writeSeats({...seats, [code]: {...seats[code], token, expiresAt}});
+}
+
+export function downloadedIn(code: string): string[] {
+    return readSeats()[code]?.downloaded ?? [];
+}
+
+export function keepDownloaded(code: string, ids: Iterable<string>): void {
+    const seats = readSeats();
+    const seat = seats[code];
+    if (!seat) return; // no seat kept (storage refused): they last as long as the page
+    writeSeats({...seats, [code]: {...seat, downloaded: [...ids]}});
 }
 
 export function forgetSeat(code: string): void {

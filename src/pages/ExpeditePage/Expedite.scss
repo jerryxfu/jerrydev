@@ -44,6 +44,11 @@
     transition: max-width 0.35s ease;
 }
 
+// A live room: its boxes closer to the bar above them.
+.expedite_container--wide {
+    gap: 1rem;
+}
+
 @media (min-width: 820px) {
     .expedite_container {
         max-width: 1060px;

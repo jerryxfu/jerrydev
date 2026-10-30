@@ -64,6 +64,24 @@ export function saveBlob(blob: Blob, name: string): void {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+/**
+ * Hands attachment links (the API's `downloadUrl`s) to the browser's downloads, half a second apart. Each opens in a
+ * hidden frame of its own: opened in the page, a link would stop the one before it while it starts, and an error page
+ * (a file deleted meanwhile) would replace the page. Chromium asks once whether to allow several. Resolves once the last
+ * is asked for.
+ */
+export async function downloadLinks(urls: string[]): Promise<void> {
+    for (const [i, url] of urls.entries()) {
+        if (i > 0) await new Promise((resolve) => setTimeout(resolve, 500));
+        const frame = document.createElement("iframe");
+        frame.hidden = true;
+        frame.src = url;
+        document.body.append(frame);
+        // Removed once its download has surely started: removed before, it would be stopped.
+        setTimeout(() => frame.remove(), 60_000);
+    }
+}
+
 export function formatSpeed(bps: number): string {
     if (!bps || bps <= 0 || !isFinite(bps)) return "—";
     return `${formatBytes(bps)}/s`;
