@@ -20,15 +20,15 @@ and the UI decides what to render from the returned `type`.
 ExpeditePage/
   Expedite.tsx          orchestrator: view state, all fetch calls, engine wiring
   types.ts              DropMeta, DropSettings, P2P status/snapshot shapes
-  utils.ts              formatting helpers (formatBytes, formatEta, ...)
-  uploadEngine.ts       R2 upload: single PUT or multipart, with progress (putToR2, shared with live rooms' files)
-  files.ts              the files picked to send: their paths (a folder's), dropped folders read, the same file not added twice
+  utils.ts              formatting helpers, saveBlob, downloadLinks
+  uploadEngine.ts       R2 upload: single PUT or multipart, with progress (putToR2, shared with live rooms)
+  files.ts              the files picked to send: their paths, dropped folders read, no file added twice
   zip.ts                several files as one stored zip (buildZip, zipFiles), and a zip read back (readZip, entryData)
-  crc32.ts              the zip's checksum; crc32.worker.ts reads the files for it, as sha256.worker.ts does
-  pdfPage.ts            a PDF's first page drawn by pdf.js, loaded on the first PDF shown
-  useFileDrag.ts        files dragged over an element: the drop zones take them, Expedite's root refuses them (no file opened in place of the page)
-  sha256.ts             SHA-256 of a file in a worker (sha256.worker.ts, @noble/hashes, 8 MB at a time): the sender's at upload, the receiver's saved copy (picked after the download) checked against it
-  highlight.ts          Shiki on demand (the languages, one grammar each), file extensions, Auto's guess at pasted code's language, and the code box's line-by-line colouring (only the lines an edit changes)
+  crc32.ts              the zip's checksum, read in crc32.worker.ts
+  sha256.ts             SHA-256 in sha256.worker.ts: the sender's at upload, checked against the receiver's saved copy
+  pdfPage.ts            a PDF's first page, by pdf.js (loaded on the first PDF shown)
+  useFileDrag.ts        files dragged over an element (the root refuses them, so no file opens in place of the page)
+  highlight.ts          Shiki on demand, file extensions, Auto's language guess, line-by-line colouring
   p2p/
     peer.ts             shared WebRTC plumbing, rate meter, protocol constants
     sender.ts           offer -> publish -> wait -> stream file
@@ -39,28 +39,26 @@ ExpeditePage/
   views/
     LandingView         send tiles + retrieve field
     UploadView          text/file composer + settings
-    CodeEditor          the text box for code: a textarea over its coloured copy (drawn line by line), Tab indents
+    CodeEditor          the text box for code: a textarea over its coloured copy
     TextStats           the text box's statistics, counted when the typing pauses
     CreatedView         code + share link + QR code
     ResultView          retrieved text/file
-    FilePreview         picture/video/audio/PDF/text preview, sent and received (reads a text file's start itself); LocalFilePreview for a file the page has
-    FileZone            the files to send: a zone, then their stack with Add files and Add a folder
-    FileStack           several files, a row each: a small picture (a picture's, a PDF's first page) or an icon, name, size, a button
+    FilePreview         picture/video/audio/PDF/text preview, sent and received
+    FileZone            the files to send: a zone, then their stack
+    FileStack           several files, a row each
     ZipStack            a received zip's files, each one shown or saved on its own
     Disclosure          folded section (P2P's technical side), open state remembered
-    CopyField           read-only field with a copy button on its side: a drop's link, or (small) a curl command
+    CopyField           read-only field with a copy button: a drop's link, or a curl command
     P2PSendView         session code, countdown, notes
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
-    P2PProgress         phase ladder + transfer stats (presentational, no hooks)
-    LiveView            a live room: its bar, a box per person (side by side on a laptop; a tab each on a phone, every box drawn, the others hidden)
+    P2PProgress         phase ladder + transfer stats
+    LiveView            a live room: its bar and a box per person
 ```
 
-`Expedite.tsx` owns every piece of state and every network call, but two: `FilePreview` reads the start of a text file to show it, and a live room's are
-`useLiveRoom`'s (Expedite holds it). The views are presentational
-and take callbacks. Transfer engines are plain async functions
-taking an options object with callbacks and an `AbortSignal` — same shape as
-`uploadEngine.ts`, deliberately.
+`Expedite.tsx` owns the state and the network calls, but for two: `FilePreview` reads the start of a text file to show it, and a live room's are
+`useLiveRoom`'s (Expedite holds it). The views take callbacks. Transfer engines are plain async functions taking an options object with callbacks and an
+`AbortSignal`, the same shape as `uploadEngine.ts`, on purpose.
 
 ---
 
@@ -74,41 +72,24 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
   really 6 people. The API answers a token, kept in localStorage by code (`expedite:live`): a reload, or the link opened again in the same browser, puts
   you back in your seat. Back keeps it; Leave frees it and deletes what you sent. The creator can't leave: they end the room, or remove someone (their
   seat frees, their items go). Someone removed can join again with the code: ending the room is the answer to a code that leaked.
-- **Names.** A random animal from the API's nickname generator; click yours to change it.
-- **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after
-  their last, and their box goes grey. Their header says "here" with a person after it, or "away" with a fading clock. Not the stream: in production the platform keeps it open after its page has gone (locally it closes). 90 s, as a hidden
-  tab's timer can slow to once a minute.
-- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change (who's here: a page that checked in within 90 s)
-  and the room's whole list of items whenever its `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change
-  twice but never miss one. A text, or a finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped
-  stream reconnects on its own and sends everything again; the page keeps the links it has, or every picture would download again.
-- **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent (Shift+Enter on a laptop, the
-  Send button on a phone). The Paste button reads the clipboard (`navigator.clipboard.read`): a phone's way to paste a picture.
-- **Text** is checked for code with the composer's guess (`resolveLanguage(AUTO, …)`): code shows highlighted (its first 5 lines, until Show all),
-  anything else plain, a lone link as a link.
-- **Files**, once in: a picture shows (16rem tall at most); a video or a sound, `FilePreview`'s player (only its start loads, until it plays); a
-  text file, its first 5 lines, fading, then "Download to open" (`FilePreview`'s `mini`: a Range request for 4 KB). Code collapsed in
-  a card doesn't scroll sideways: the scrollbar would sit on its fade. A PDF shows its first page (up to 16 MB, `THUMB_MAX`: it's
-  fetched whole, see "Several files") and opens from it or its name, in a new tab: a viewer per card would be heavy, and too narrow
-  to read. Anything else: its name, size and Download.
-- **Downloads.** Beside "Upload history" in the others' boxes (not yours: you sent those), Download all (the box's files, the oldest first)
-  and Download new (those not downloaded in this browser yet, with their count). Each goes to the browser's own downloads from a hidden
-  frame, half a second apart (`downloadLinks`): a link opened in the page would stop the one before it. Chromium asks once to allow
-  several. A file downloaded says "Download again", after a green check; which ones is kept with the seat, so a reload knows them. Texts
-  aren't in it: they have Copy.
-- **Counts.** Each name shows how many items its box has, "(3)": in the box's header on a laptop, in the tab on a phone.
-- **Boxes** glow in their person's colour (grey while they're away; their dot keeps it), and the glow pulses while they send a file (a ring's opacity only;
-  steady with reduced motion). Your own
-  file shows its percent, bytes sent and parts (File mode's squares, beside the time) until it's in; the others see "Sending...".
-- **Arriving.** An item someone else sends flashes their colour once (none with reduced motion). On a phone, a tab with something unseen gets a dot;
-  while the tab is hidden, its title counts what came in.
-- **The bar** (code, link, QR code, time left, people, layout, Leave or End room) is `LiveBar`, in Expedite's header: beside the title on a laptop; on a
-  phone, Leave or End room at the title's right and the rest under it.
-- **Layout.** On a laptop, two buttons as Finder's: Columns (a box per column, as tall as the screen) or Grid (two rows, each box wider and half
-  as tall: 3x2 for 6 people). Kept for the browser (`expedite:live-layout`). A phone shows a box at a time, so it has neither. A box is never
-  narrower than 312px (`BOX_MIN`, between its width with 4 and 5 people on a wide laptop): past that the boxes scroll sideways, each as wide
-  as leaves the next one's edge in view (`PEEK`) at either end, so there's clearly more. No footer in a room: the boxes take its room, and
-  "📦 Expedite" sits at Back's right.
+- **Here or away.** The page checks in (`POST /live/:code/here`) every 30 s, and while a file goes up; someone is away 90 s after their last, and their
+  box goes grey. Not the stream: in production the platform keeps it open after its page has gone. 90 s, as a hidden tab's timer can slow to once a
+  minute.
+- **The stream** (`GET /live/:code/events?token=`, SSE like P2P's) sends the members when they change and the room's whole list of items whenever its
+  `rev` moves, never a change alone. A write lands first and bumps `rev` after, so a stream can see a change twice but never miss one. A text, or a
+  finished file's links (signed until the room ends), is sent once per stream; the page keeps it. A dropped stream reconnects on its own and sends
+  everything again; the page keeps the links it has, or every picture would download again.
+- **Pasting.** Anywhere but in a field: sent at once (files as files, text as text). In the composer, text stays to be sent. The Paste button reads the
+  clipboard (`navigator.clipboard.read`): a phone's way to paste a picture.
+- **Previews.** Text is checked for code with the composer's guess (`resolveLanguage(AUTO, …)`). Files use `FilePreview`'s `mini` (a text file's first
+  lines from a 4 KB Range request). A PDF's first page is fetched whole, so up to 16 MB only (`THUMB_MAX`, see "Several files").
+- **Downloads.** Download all and Download new (not downloaded in this browser yet), in the others' boxes. Each file goes to the browser's own downloads
+  from a hidden frame, half a second apart (`downloadLinks`): a link opened in the page would stop the one before it while it starts. Chromium asks once
+  to allow several. Which ones were downloaded is kept with the seat, so a reload knows them.
+- **Layout.** On a laptop, Columns (a box per column) or Grid (two rows), kept for the browser (`expedite:live-layout`); a phone shows a box at a time.
+  The room is the screen's height and the boxes take what the header leaves. A box is never narrower than 312px (`BOX_MIN`): past that the boxes scroll
+  sideways, each as wide as leaves the next one's edge in view (`PEEK`). The row that scrolls (`.live_scroll`) is a flex row around the boxes' grid,
+  because Safari sizes a grid that scrolls itself as if its scrollbar took no room: the boxes ran under the bar, and the row scrolled down by it.
 - **Leaving the page** stops the stream and the files going up; a file given up is deleted (keepalive), so nobody sees it coming forever. A page
   that goes without saying so (a crash, a lost network): its files still coming are deleted once its person is away (the streams look every 15 s).
 
@@ -227,7 +208,7 @@ reach the server at all, so `waitForSignal` opens it again every 3 s, and only t
 and the why are in `p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and
 `answerReconnect` in `receiver.ts`.
 
-Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code** — it can't reuse the old one, because the ICE
+Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code**: it can't reuse the old one, because the ICE
 candidates in a ten-minute-old SDP reference NAT bindings that have lapsed, so reconnecting would fail at the checking stage with nothing to show for it.
 
 Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't be used because it only issues POSTs.
@@ -244,7 +225,7 @@ on hearing it, and the receiver closes anyway after 5s. Until then the receiver 
 file can take a while), so the sender doesn't take the wait for a lost connection. Known gap: a connection lost just after the receiver sent `CTRL_DONE`
 and before it arrived leaves the file saved but the sender reporting "The receiver stopped the transfer".
 
-Receiver writes are serialised through a promise chain — `write()` is async and message events are not, so without it a fast sender interleaves writes and
+Receiver writes are serialised through a promise chain: `write()` is async and message events are not, so without it a fast sender interleaves writes and
 scrambles the file. The chain belongs to the transfer, not to one connection: a new connection starts once the last one's writes are done.
 
 **The sender reports `queued - bufferedAmount`, not `queued.`** Bytes handed to SCTP aren't bytes delivered. Reporting `queued` produced a sawtooth whose flat
@@ -269,13 +250,13 @@ transfer is actually direct or relayed.
 
 ---
 
-## Same-LAN direct requires mDNS — read this before debugging a failed direct connection
+## Same-LAN direct requires mDNS: read this before debugging a failed direct connection
 
 **This is the most likely reason a direct transfer isn't going direct, and it is almost never the code.**
 
 Both browsers replace host candidates with a random mDNS hostname by default, so the SDP carries `62dd1680-f778-4851-9e81-d27918aac088.local` instead of
 `192.168.2.x`. Two peers on the same LAN can only pair `host ↔ host`, which requires each side to resolve the other's `.local` name by multicasting a query to
-`224.0.0.251:5353` and getting an answer. **If anything on the network drops or fails to answer that multicast, direct is impossible** — the only surviving pair
+`224.0.0.251:5353` and getting an answer. **If anything on the network drops or fails to answer that multicast, direct is impossible**: the only surviving pair
 is srflx ↔ srflx, which is both peers' *own* public IP, and that needs router hairpinning that consumer gear generally won't do.
 
 ### The signature
@@ -311,23 +292,14 @@ What exists, and why none of it is shippable:
 | `WebRtcLocalIpsAllowedUrls` Chrome enterprise policy     | Real and persistent, but managed devices only. **Use it for the test bench** (below), never a user-facing answer. |
 | `getUserMedia` permission suppresses obfuscation         | Requesting camera access for a file transfer tool is an unacceptable trade.                                       |
 | `chrome://flags/#enable-webrtc-hide-local-ips-with-mdns` | **Removed in M91.** Does not exist any more.                                                                      |
-| `--disable-features=WebRtcHideLocalIpsWithMdns`          | Works, but does not survive a normal relaunch — silently reverts and looks like a regression.                     |
+| `--disable-features=WebRtcHideLocalIpsWithMdns`          | Works, but does not survive a normal relaunch: silently reverts and looks like a regression.                     |
 | Provision TURN and fall back                             | What Expedite already does. What everyone does.                                                                   |
 
-### Does this affect every user?
+### Who it affects
 
-No, and the shape of it matters:
-
-- **Cross-network transfers never touch mDNS.** Two peers on different networks pair `srflx ↔ srflx` via ordinary UDP hole punching. This is the common real
-  case ("send this to my friend") and it is unaffected.
-- **Same-LAN transfers depend entirely on mDNS resolution.** This is the case that breaks, and it's the "send to my own laptop" case.
-- Industry baseline is roughly **20% of WebRTC connections relaying** overall (measured 17.7% in one large published dataset), rising to 60–85% on corporate
-  networks with managed firewalls. Expedite falling back to relay on some fraction of transfers is normal, not a defect.
-- Snapdrop, PairDrop and ShareDrop all have the identical failure documented in their issue trackers. Mozilla closed the ShareDrop report as WONTFIX / site
-  issue. PairDrop's official answer is "deploy a TURN server". **Expedite's architecture is already the industry-standard answer to this problem.**
-
-The one real product consequence: same-LAN transfers relaying more often than intuition suggests makes the Cloudflare TURN egress quota more load-bearing than
-it looks. The quota stat and the relay guard exist for that reason.
+Same-LAN transfers only: they depend on mDNS, and that's the "send to my own laptop" case. Across networks, peers pair `srflx ↔ srflx` by ordinary UDP
+hole punching, unaffected. About 20% of WebRTC connections relay in general (60–85% on corporate networks), and Snapdrop, PairDrop and ShareDrop have the
+same failure, answered the same way: TURN. It does make the relay quota matter more than it looks, which is why the quota stat and the relay guard exist.
 
 ---
 
@@ -350,7 +322,7 @@ Firefox's `about:webrtc` keeps every connection since Firefox started: pick the 
 `checking -> disconnected -> failed` is the mDNS diagnosis above, confirmed.
 
 **3. Check candidate reconciliation.** The UI's `peer N` should equal what the other side published. If they match, signalling and the API are provably healthy
-and the problem is purely ICE connectivity — do not go looking in `p2p.ts`.
+and the problem is purely ICE connectivity: don't go looking in `p2p.ts`.
 
 **4. Test L2 reachability with ARP, not ping.**
 
@@ -372,9 +344,9 @@ These have each cost a debugging session. They look exactly like regressions.
 - **macOS Local Network permission.** On macOS 15+, WebRTC's mDNS use is gated by Privacy & Security -> Local Network. Chrome can be **absent from the list
   entirely with no prompt ever shown**, which silently kills mDNS registration and resolution. It is not TCC-managed, so `tccutil reset` cannot clear it;
   Apple's own answer is a fresh user account or a VM snapshot. There is also a known bug where the permission stops functioning after a Mac restart while still
-  displaying as enabled — toggle it off and on.
+  displaying as enabled: toggle it off and on.
 - **Firefox `obfuscate_host_addresses` persists.** Unlike Chrome's command-line switch (in the table above) it survives restarts, so a half-reverted
-  workaround leaves one browser at defaults and one not — which produces results that look contradictory.
+  workaround leaves one browser at defaults and one not, which produces results that look contradictory.
 - **IPv6 STUN 701 errors are benign.** `onicecandidateerror` with
   `"STUN host lookup received error"` against both Cloudflare and Google STUN on an IPv6 interface, while the IPv4 srflx gathers fine, is normal on a
   v4-only-reachable network. It costs gathering time, not connectivity.
@@ -443,23 +415,23 @@ Live rooms' items add their `size` (texts and files).
 
 Under Connection details, folded.
 
-- `WebRTC ICE candidates` — **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
+- `WebRTC ICE candidates`: **local** candidates only, plus `peer N` for what arrived from the other side. `0 relay` locally while the other end shows relay is normal; see
   the one-side-is-enough note. `peer N` matching the other side's published total means signalling is healthy.
-- `Route` — `(direct)` vs `(relayed)`. Relay candidates gathered and still `(direct)`
+- `Route`: `(direct)` vs `(relayed)`. Relay candidates gathered and still `(direct)`
   means a direct path was found and preferred. Working as intended.
-    - `host ↔ host` — both sides resolved each other's mDNS, or both published raw IPs.
-    - `host ↔ prflx` — **direct, via peer-reflexive discovery.** One side's address was learned from an inbound connectivity check rather than the SDP. Expected
+    - `host ↔ host`: both sides resolved each other's mDNS, or both published raw IPs.
+    - `host ↔ prflx`: **direct, via peer-reflexive discovery.** One side's address was learned from an inbound connectivity check rather than the SDP. Expected
       when only one side publishes raw IPs.
-    - `srflx ↔ relay` / `relay ↔ srflx` — relayed, one-sided TURN. Correct and expected.
-- `RTT` — `—` means not reported. Firefox often omits it on the offering side.
-- `Buffer` (the sender's) — should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
+    - `srflx ↔ relay` / `relay ↔ srflx`: relayed, one-sided TURN. Correct and expected.
+- `RTT`: a dash means not reported. Firefox often omits it on the offering side.
+- `Buffer` (the sender's): should oscillate between roughly 1 and 8 MB. Pinned at 8 MB means the receiver can't keep up.
 
 ---
 
 ## Gotchas
 
 - **`config/origins.ts` is the single source for the allowlist**, shared by CORS in `server.ts` and `originGuard.ts`: two lists drift.
-  Referer must be parsed with `new URL()` and compared by `.origin` — a prefix check accepts `https://jerryxf.net.evil.com`.
+  Referer must be parsed with `new URL()` and compared by `.origin`: a prefix check accepts `https://jerryxf.net.evil.com`.
 - **`showSaveFilePicker` isn't in `lib.dom.d.ts`.** It's WICG, not WHATWG; lib.dom ships the OPFS half only. Declared in `src/types/file-system-access.d.ts`.
 - **morgan logs on response finish**, so an open SSE stream produces no log line until the client disconnects. Looks like a dropped request. It isn't.
 - **Buttons are `components/Button`**, shared with the Time page. The main one grows (`flex: 1`) only inside `.expedite_btn-row`: on the button itself, a flex
@@ -467,9 +439,7 @@ Under Connection details, folded.
 - **Progress bars shouldn't have CSS width transitions** when updates arrive every ~100ms; the animation restarts before it lands and the bar trails.
 - **Don't hand-write `-webkit-` prefixes.** The production CSS minifier keeps the last vendor-prefixed property, so writing `-webkit-backdrop-filter` next to
   `backdrop-filter` strips the unprefixed form in the build. Let autoprefixing do it.
-- **A `<div>` inside a `<dl>` may only group a `<dt>` with its `<dd>`.** The mode help panel therefore renders inside the `<dd>`, not as a sibling.
-- `npx` fails in this repo — `devEngines.packageManager` pins pnpm. Use
-  `pnpm exec`.
+- `npx` fails in this repo: `devEngines.packageManager` pins pnpm. Use `pnpm exec`.
 
 ---
 

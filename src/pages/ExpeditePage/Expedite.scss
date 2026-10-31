@@ -33,6 +33,31 @@
     }
 }
 
+// From a laptop's width, a live room is the screen's height, no more: its boxes take what the header leaves
+// (LiveView.scss), however tall the header is (a browser's own font metrics, a bar on two lines). The body's own
+// 100vh (index.scss) would be taller on iOS, where it's the screen without Safari's toolbar: the page would scroll by it.
+@media (min-width: 900px) {
+    body:has(.expedite--live) {
+        min-height: 0;
+    }
+
+    .expedite--live {
+        height: 100dvh;
+        padding-bottom: 1rem;
+
+        .expedite_container,
+        .expedite_view {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .expedite_view {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+}
+
 // Container. Narrow on a phone; from a laptop's width every view takes the same room as the landing page, and the
 // views use it with two columns (.expedite_split, below) rather than stretching one.
 .expedite_container {

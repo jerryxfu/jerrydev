@@ -663,7 +663,7 @@ export default function Expedite() {
                 </header>
 
                 {/* Views */}
-                <div ref={viewRef}>
+                <div ref={viewRef} className="expedite_view">
                     {view === "landing" && (
                         <LandingView
                             onSelect={handleSelect}
@@ -775,7 +775,8 @@ export default function Expedite() {
                 </div>
             </div>
 
-            <div className="expedite_spacer" />
+            {/* Not in a live room, whose boxes take the rest of the screen. */}
+            {view !== "live" && <div className="expedite_spacer" />}
             {/* Not in a live room: its boxes take the room. */}
             {stats && view !== "live" && (
                 <div className="expedite_stats">

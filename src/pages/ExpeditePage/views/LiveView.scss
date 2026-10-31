@@ -278,27 +278,50 @@
 
 // Side by side, as tall as the screen allows: each box scrolls on its own, so everyone stays in view.
 @media (min-width: 900px) {
-    // The screen's height, but what's above the boxes (Back, the title and the bar: 6.8rem) and a little room below them
-    // (1rem: a live room has no footer). Where the bar wraps (below about 1000px), the page scrolls by its second line.
+    // What the header leaves of the screen, however tall it is (Expedite.scss): 420px at least, the page scrolling on a
+    // short screen, and 1100px at most.
+    .live {
+        flex: 1;
+        min-height: 0;
+    }
+
+    // The row that scrolls sideways, and the boxes' grid in it, as tall as the row less its scrollbar. Two, because
+    // Safari sizes a grid that scrolls itself as if its scrollbar took no room: its boxes ran under the bar, and it
+    // scrolled down by it. A flex row it stretches right.
+    .live_scroll {
+        flex: 1;
+        display: flex;
+        min-height: 420px;
+        max-height: 1100px;
+    }
+
     .live_boxes {
+        flex: 1;
+        min-width: 0;
         grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
-        height: clamp(420px, calc(100dvh - 7.8rem), 1100px);
     }
 
     // The grid: two rows in the same height, each box wider and half as tall. Never less than 18rem, room for your text
-    // box and a card or two: on a short screen the page scrolls.
-    .live_boxes.is-grid {
-        height: auto;
-        grid-auto-rows: clamp(18rem, calc((100dvh - 8.55rem) / 2), 34rem);
+    // box and a card or two.
+    .live_scroll.is-grid {
+        min-height: calc(2 * 18rem + 0.75rem);
+
+        > .live_boxes {
+            grid-template-rows: repeat(2, minmax(18rem, 1fr));
+        }
     }
 
     // More than fit (BOX_MIN, LiveView.tsx): a width each, scrolling sideways. Padded for the boxes' glow, which the
     // scrolling would clip, and pulled out by as much, so the boxes stay where they were.
-    .live_boxes.is-scrolling {
-        grid-template-columns: repeat(var(--columns), var(--box-width));
+    .live_scroll.is-scrolling {
         overflow-x: auto;
         padding: 6px;
         margin: -6px;
+
+        > .live_boxes {
+            flex: none;
+            grid-template-columns: repeat(var(--columns), var(--box-width));
+        }
     }
 
     .live_box {
@@ -396,6 +419,13 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.25rem 0.75rem;
+    // A little closer to what's above and below it than the box's gap.
+    margin-block: -0.2rem;
+}
+
+// Right under a name (the others' boxes have no text box): closer still.
+.live_box-head + .live_history {
+    margin-top: -0.45rem;
 }
 
 .live_history-tools {

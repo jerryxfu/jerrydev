@@ -75,7 +75,8 @@ function useScrolledWidth(ref: RefObject<HTMLDivElement | null>, columns: number
         if (!row || columns === 0) return;
         const measure = () => {
             const style = getComputedStyle(row);
-            const gap = parseFloat(style.columnGap) || 0;
+            const grid = row.firstElementChild;
+            const gap = grid ? parseFloat(getComputedStyle(grid).columnGap) || 0 : 0;
             const room = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
             if ((room - (columns - 1) * gap) / columns >= BOX_MIN) {
                 setWidth(null);
@@ -632,26 +633,29 @@ export default function LiveView({live, copiedField, onCopy, onExit, dragging}: 
             )}
 
             {/* Every box stays drawn. On a phone all but the picked one are hidden, so switching shows a box as it was,
-                rather than drawing it anew: its pictures, players and previews would load again. */}
+                rather than drawing it anew: its pictures, players and previews would load again. On a laptop the boxes'
+                grid sits in a row that scrolls sideways when they don't fit (LiveView.scss says why it's two). */}
             <div
                 ref={boxesRef}
-                className={`live_boxes${live.layout === "grid" ? " is-grid" : ""}${scrolledWidth ? " is-scrolling" : ""}`}
+                className={`live_scroll${live.layout === "grid" ? " is-grid" : ""}${scrolledWidth ? " is-scrolling" : ""}`}
                 style={{"--columns": columns, "--box-width": scrolledWidth ? `${scrolledWidth}px` : undefined} as CSSProperties}
             >
-                {ordered.map((m) => (
-                    <Box
-                        key={m.id} member={m} mine={m.id === meId} canRemove={isOwner && m.id !== meId}
-                        items={byMember.get(m.id) ?? []} live={live} viewed={viewed} counted={wide}
-                        hidden={!wide && m.id !== (shownTab ?? meId)} target={m.id === meId && dragging}
-                        copiedField={copiedField} onCopy={onCopy}
-                    />
-                ))}
-                {ordered.length === 1 && (
-                    <div className="live_waiting">
-                        <Users size={28} strokeWidth={1.4} aria-hidden />
-                        <p>Share the code or the link to bring people in. Up to {room.seats - 1} more can join.</p>
-                    </div>
-                )}
+                <div className="live_boxes">
+                    {ordered.map((m) => (
+                        <Box
+                            key={m.id} member={m} mine={m.id === meId} canRemove={isOwner && m.id !== meId}
+                            items={byMember.get(m.id) ?? []} live={live} viewed={viewed} counted={wide}
+                            hidden={!wide && m.id !== (shownTab ?? meId)} target={m.id === meId && dragging}
+                            copiedField={copiedField} onCopy={onCopy}
+                        />
+                    ))}
+                    {ordered.length === 1 && (
+                        <div className="live_waiting">
+                            <Users size={28} strokeWidth={1.4} aria-hidden />
+                            <p>Share the code or the link to bring people in. Up to {room.seats - 1} more can join.</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
