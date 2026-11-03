@@ -1,0 +1,164 @@
+.rv_event {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.rv_event-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .rv_row {
+        margin-top: 0.4rem;
+    }
+}
+
+// As Expedite's (ResultView.scss there).
+.rv_code-btn {
+    font-weight: 600;
+    letter-spacing: 0.18em;
+}
+
+.rv_event-title {
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.015em;
+    overflow-wrap: anywhere;
+}
+
+// Not found, or still opening.
+.rv_gone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-3);
+
+    p {
+        margin: 0;
+    }
+}
+
+// --- Your times, Everyone ---
+.rv_tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-5);
+}
+
+.rv_tab {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--r-4);
+    background: transparent;
+    color: var(--text-4);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+        color: var(--text);
+    }
+
+    &[aria-selected="true"] {
+        background: var(--surface-da);
+        color: var(--text);
+    }
+}
+
+.rv_you,
+.rv_everyone {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.rv_name-input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--r-5);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &::placeholder {
+        color: var(--text-6);
+    }
+
+    &:focus {
+        border-color: var(--border-da);
+    }
+}
+
+.rv_empty {
+    margin: 0;
+    padding: 1.5rem 0;
+    text-align: center;
+    color: var(--text-4);
+}
+
+// --- Everyone ---
+.rv_respondent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.rv_respondent-chip {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--gray-da) 12%, transparent);
+    border-radius: var(--r-1);
+    background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+// The slot clicked: a panel in the flow of the page. min-height holds the resting hint and a one-line name list to the
+// same height, so selecting a slot does not nudge what's below it.
+.rv_slot-detail {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.6rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-2);
+    background: var(--surface);
+}
+
+.rv_slot-detail-time {
+    font-weight: 500;
+    color: var(--text-4);
+}
+
+// A real colour rather than opacity: 0.5, which multiplies against whatever is behind it and lands at a
+// different contrast in each theme.
+.rv_slot-detail-hint {
+    color: var(--text-5);
+}
+
+.rv_slot-detail-names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.rv_slot-detail-name {
+    font-size: var(--fs-smm);
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--r-1);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+}

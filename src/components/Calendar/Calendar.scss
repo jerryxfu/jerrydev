@@ -1,0 +1,98 @@
+.cal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.cal_nav {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+
+    button {
+        display: flex;
+        align-items: center;
+        padding: 0.35rem;
+        border: none;
+        border-radius: var(--r-4);
+        background: transparent;
+        color: var(--text-3);
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+
+        &:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+    }
+}
+
+.cal_month {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.cal_nav .cal_today {
+    padding: 0.25rem 0.55rem;
+    font-size: var(--fs-xs);
+    border: 1px solid var(--border);
+}
+
+// No gap across a row, so days picked side by side can read as one band.
+.cal_grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 2px;
+}
+
+.cal_weekday {
+    padding: 0.3rem 0;
+    text-align: center;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-5);
+}
+
+// The day's button fills its cell (for a band behind it); its number sits in a circle.
+.cal_day {
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    span {
+        width: 2.2rem;
+        height: 2.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.12s, color 0.12s;
+    }
+
+    &:hover span {
+        background: var(--surface-da);
+        color: var(--text);
+    }
+
+    &.is-outside {
+        color: var(--text-5);
+    }
+
+    &.is-today span {
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--secondary) 60%, transparent);
+    }
+}

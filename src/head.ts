@@ -29,7 +29,7 @@ const PAGES: Head[] = [
         description: "Quickly share files and text snippets with other people or across your own devices.",
     },
     {
-        path: "/rendezvous", name: "Rendezvous 📌",
+        path: "/rendezvous", name: "Rendezvous 📍",
         description: "Find the best time for your group to meet. Share availabilities and schedule events effortlessly.",
     },
     {path: "/scheduler", name: "Scheduler", description: "View and compare schedules"},

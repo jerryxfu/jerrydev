@@ -1,4 +1,4 @@
-import React from "react";
+import React, {type HTMLAttributes} from "react";
 import {formatDateShort, type WeekCell} from "../utils.ts";
 import "./WeekGrid.scss";
 
@@ -7,9 +7,11 @@ const WEEKDAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 interface WeekGridProps {
     weekRows: WeekCell[][];
     renderCell: (cell: WeekCell, slotKey: string) => React.ReactNode;
+    // The grid's own: a class, the handlers that paint cells.
+    gridProps?: HTMLAttributes<HTMLDivElement>;
 }
 
-export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
+export default function WeekGrid({weekRows, renderCell, gridProps}: WeekGridProps) {
     if (weekRows.length === 0) return null;
 
     // Month label spanning the range. Rows are expected to be full weeks, but
@@ -25,7 +27,7 @@ export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
     const spansMultipleMonths = firstDate.slice(0, 7) !== lastDate.slice(0, 7);
 
     return (
-        <div className="rv_week-grid">
+        <div {...gridProps} className={["rv_week-grid", gridProps?.className].filter(Boolean).join(" ")}>
             <div className="rv_week-header">
                 {WEEKDAY_HEADERS.map(d => (
                     <div key={d} className="rv_week-header-cell text-small">{d}</div>

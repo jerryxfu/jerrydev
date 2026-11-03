@@ -1,4 +1,5 @@
-import React from "react";
+import React, {type HTMLAttributes} from "react";
+import {PARTS} from "../types.ts";
 import {formatDateShort, formatTime12h, viewerTime, zoneName} from "../utils.ts";
 import "./TimeSlotGrid.scss";
 
@@ -12,6 +13,10 @@ interface TimeSlotGridProps {
     dateRange: DateEntry[];
     // The event's time zone, for slots at a time of day: the labels then read in the viewer's time.
     timeZone?: string;
+    // Parts of the day: rows named Morning, Afternoon, Evening.
+    parts?: boolean;
+    // The grid's own: a class, the handlers that paint cells.
+    gridProps?: HTMLAttributes<HTMLDivElement>;
     renderDateHeader: (date: string, info: ReturnType<typeof formatDateShort>) => React.ReactNode;
     renderCell: (date: string, time: string, slotKey: string) => React.ReactNode;
 }
@@ -30,7 +35,7 @@ export function SlotTime({date, time, timeZone}: { date: string; time: string; t
     );
 }
 
-export default function TimeSlotGrid({timeSlots, dateRange, timeZone, renderDateHeader, renderCell}: TimeSlotGridProps) {
+export default function TimeSlotGrid({timeSlots, dateRange, timeZone, parts, gridProps, renderDateHeader, renderCell}: TimeSlotGridProps) {
     // The rows read for the event's first day. An event across a daylight-saving change in one zone and not the other
     // is an hour off after it: rare enough to leave.
     const firstDate = dateRange.find(d => d.isSelected)?.date ?? "";
@@ -48,13 +53,15 @@ export default function TimeSlotGrid({timeSlots, dateRange, timeZone, renderDate
                 </p>
             )}
             <div className="rv_grid-wrapper">
-                <div className="rv_grid">
+                <div {...gridProps} className={["rv_grid", gridProps?.className].filter(Boolean).join(" ")}>
                     {/* Time label column */}
                     <div className="rv_grid-time-col">
                         <div className="rv_grid-corner" />
                         {timeSlots.map(t => (
                             <div key={t} className="rv_grid-time-label text-small">
-                                <SlotTime date={firstDate} time={t} timeZone={zone} />
+                                {parts
+                                    ? PARTS.find(p => p.time === t)?.label
+                                    : <SlotTime date={firstDate} time={t} timeZone={zone} />}
                             </div>
                         ))}
                     </div>

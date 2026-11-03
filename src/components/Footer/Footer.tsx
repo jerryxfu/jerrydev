@@ -40,7 +40,7 @@ export default function Footer() {
                 {text: "Expedite", url: "/expedite", decorator: <p>📦</p>},
                 {text: "Time", url: "/time", decorator: <p>⏱️</p>},
                 {text: "Scheduler", url: "/scheduler", decorator: <p>🗓️</p>},
-                {text: "Rendezvous", url: "/rendezvous", decorator: <>📌</>},
+                {text: "Rendezvous", url: "/rendezvous", decorator: <>📍</>},
 
             ]
         },

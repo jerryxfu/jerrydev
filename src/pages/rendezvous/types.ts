@@ -1,21 +1,18 @@
-export type ViewMode = "idle" | "creating" | "created" | "joining" | "responding" | "result";
+// Whole days, parts of the day, or slots of 30 or 60 minutes.
+export type Granularity = "day" | "parts" | 30 | 60;
 
-export type Granularity = "day" | "half" | 15 | 30 | 60;
-
-export const GRANULARITY_OPTIONS: { label: string; value: Granularity }[] = [
-    {label: "15 min", value: 15},
-    {label: "30 min", value: 30},
-    {label: "1 hour", value: 60},
-    {label: "AM/PM", value: "half"},
-    {label: "Full day", value: "day"}
+export const WHEN_OPTIONS: { label: string; value: Granularity }[] = [
+    {label: "Any time", value: "day"},
+    {label: "Morning, afternoon, evening", value: "parts"},
+    {label: "By the hour", value: 60},
+    {label: "By 30 min", value: 30},
 ];
 
-export const TTL_PRESETS: { label: string; value: number }[] = [
-    {label: "1h", value: 3_600_000},
-    {label: "6h", value: 21_600_000},
-    {label: "24h", value: 86_400_000},
-    {label: "3d", value: 259_200_000},
-    {label: "7d", value: 604_800_000},
+// The parts of a day, as words: never converted between time zones, as whole days aren't. The times are only their keys.
+export const PARTS: { time: string; label: string }[] = [
+    {time: "09:00", label: "Morning"},
+    {time: "13:00", label: "Afternoon"},
+    {time: "18:00", label: "Evening"},
 ];
 
 export interface EventSettings {
@@ -24,7 +21,6 @@ export interface EventSettings {
     timeStart: string;         // "09:00"
     timeEnd: string;           // "21:00"
     granularity: Granularity;
-    ttlMs: number;
 }
 
 export const DEFAULT_SETTINGS: EventSettings = {
@@ -33,7 +29,6 @@ export const DEFAULT_SETTINGS: EventSettings = {
     timeStart: "09:00",
     timeEnd: "21:00",
     granularity: "day",
-    ttlMs: 259_200_000, // 3 days
 };
 
 export interface EventResponse {

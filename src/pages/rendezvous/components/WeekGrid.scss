@@ -121,3 +121,20 @@
     color: var(--text-6);
     margin: 0.25rem 0 0;
 }
+// Picking days: a finger paints the cells rather than scrolling. Each cell's touch area reaches halfway into the 3px
+// gaps around it (past its border), so a finger landing between two days paints too.
+.rv_week-grid--paint {
+    user-select: none;
+
+    .rv_week-cell {
+        position: relative;
+        touch-action: none;
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: -2.5px;
+            touch-action: none;
+        }
+    }
+}

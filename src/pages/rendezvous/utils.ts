@@ -1,4 +1,4 @@
-import {type Granularity} from "./types.ts";
+import {type Granularity, PARTS} from "./types.ts";
 
 /**
  * Generate time slot labels between start and end at given granularity.
@@ -6,7 +6,7 @@ import {type Granularity} from "./types.ts";
  */
 export function generateTimeSlots(start: string, end: string, granularity: Granularity): string[] {
     if (granularity === "day") return ["00:00"];
-    if (granularity === "half") return ["00:00", "12:00"];
+    if (granularity === "parts") return PARTS.map(p => p.time);
 
     const slots: string[] = [];
     const [startH = 0, startM = 0] = start.split(":").map(Number);
@@ -96,58 +96,10 @@ export function zoneName(timeZone: string): string {
 }
 
 /**
- * Format duration in ms to human readable
- */
-export function formatDuration(ms: number): string {
-    const hours = ms / 3_600_000;
-    if (hours < 24) return `${hours}h`;
-    const days = hours / 24;
-    return `${days}d`;
-}
-
-/**
- * Time remaining until an expiration date
- */
-export function timeUntil(expiresAt: string): string {
-    const left = Temporal.Now.instant().until(Temporal.Instant.from(expiresAt));
-    if (left.sign <= 0) return "expired";
-    const hours = Math.floor(left.total("hours"));
-    if (hours < 1) return `${Math.floor(left.total("minutes"))}m`;
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
-}
-
-/**
  * Build the shareable URL for an event
  */
 export function getEventUrl(code: string): string {
     return `${window.location.origin}/rendezvous?code=${code}`;
-}
-
-/**
- * Generate a calendar month grid for a date picker, weeks from Sunday.
- * Returns weeks (arrays of PlainDate | null for padding).
- */
-export function getCalendarMonth(month: Temporal.PlainYearMonth): (Temporal.PlainDate | null)[][] {
-    const weeks: (Temporal.PlainDate | null)[][] = [];
-    // dayOfWeek counts Monday as 1 and Sunday as 7: the 1st's place in a week from Sunday.
-    let week: (Temporal.PlainDate | null)[] = Array.from({length: month.toPlainDate({day: 1}).dayOfWeek % 7}, () => null);
-
-    for (let d = 1; d <= month.daysInMonth; d++) {
-        week.push(month.toPlainDate({day: d}));
-        if (week.length === 7) {
-            weeks.push(week);
-            week = [];
-        }
-    }
-
-    // Pad end
-    if (week.length > 0) {
-        while (week.length < 7) week.push(null);
-        weeks.push(week);
-    }
-
-    return weeks;
 }
 
 export interface WeekCell {

@@ -1,0 +1,130 @@
+.rv_make {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.rv_title-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--r-5);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--fs-base);
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &::placeholder {
+        color: var(--text-6);
+    }
+
+    &:focus {
+        border-color: var(--border-da);
+    }
+}
+
+// The days picked: the accent's dot, and a band between days side by side (as Time's range).
+.rv_days .cal_day {
+    --band: color-mix(in srgb, var(--secondary) 14%, transparent);
+    // A finger paints the days rather than scrolling the page. The days touch side by side; their touch area reaches
+    // into the 2px between rows too.
+    position: relative;
+    touch-action: none;
+    user-select: none;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: -1px 0;
+        touch-action: none;
+    }
+
+    &.is-picked span {
+        background: var(--secondary);
+        color: var(--bg-lt);
+        font-weight: 600;
+    }
+
+    &.is-picked:hover span {
+        opacity: var(--opacity-hover);
+    }
+
+    &.has-prev {
+        background: linear-gradient(90deg, var(--band) 50%, transparent 50%);
+    }
+
+    &.has-next {
+        background: linear-gradient(90deg, transparent 50%, var(--band) 50%);
+    }
+
+    &.has-prev.has-next {
+        background: var(--band);
+    }
+
+    &:disabled {
+        opacity: var(--opacity-inert);
+        cursor: default;
+
+        span {
+            background: transparent;
+        }
+    }
+}
+
+// --- When in the day ---
+.rv_choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.rv_choice {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-4);
+    background: transparent;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: var(--fs-smm);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+    &:hover {
+        background: var(--surface);
+        color: var(--text);
+    }
+
+    &.is-on {
+        border-color: var(--secondary);
+        background: color-mix(in srgb, var(--secondary) 12%, transparent);
+        color: var(--text);
+    }
+}
+
+.rv_hours {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-smm);
+    color: var(--text-3);
+}
+
+.rv_select {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-3);
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-smm);
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+        border-color: var(--border-da);
+    }
+}

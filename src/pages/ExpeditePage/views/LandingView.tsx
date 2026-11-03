@@ -1,6 +1,7 @@
-import {type MouseEvent, type ReactNode, useState} from "react";
+import {type MouseEvent, type ReactNode, useRef, useState} from "react";
 import {CircleQuestionMark, File, FileText, LoaderCircle, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
+import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
 import {useFileDrag} from "../useFileDrag.ts";
@@ -185,6 +186,9 @@ export default function LandingView(
     // than a hover tooltip: hover has no touch equivalent, and this much text
     // in a floating bubble would run off the side of a phone.
     const [openHelp, setOpenHelp] = useState<string | null>(null);
+    // The code field ready to type or paste in (sending starts with a click on a tile anyway).
+    const codeField = useRef<HTMLInputElement>(null);
+    useAutoFocus(codeField);
 
     return (
         <div className="expedite_landing">
@@ -243,6 +247,7 @@ export default function LandingView(
                 <p className="expedite_landing-label">Receive</p>
 
                 <input
+                    ref={codeField}
                     className="expedite_code-input"
                     type="text"
                     placeholder="Enter drop code"
