@@ -108,6 +108,7 @@ export default function Rendezvous() {
                     timeEnd: settings.timeEnd,
                     granularity: settings.granularity,
                     ttlMs: settings.ttlMs,
+                    timeZone: Temporal.Now.timeZoneId(),
                 }),
             });
             const json = await res.json();

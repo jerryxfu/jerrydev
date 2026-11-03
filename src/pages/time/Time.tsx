@@ -6,17 +6,19 @@ import {type TabId, TABS} from "./types.ts";
 import TimeBar from "./TimeBar.tsx";
 import UnixConverter from "./tabs/UnixConverter.tsx";
 import Stopwatch from "./tabs/Stopwatch.tsx";
-import Countdown from "./tabs/Countdown.tsx";
+import Countdown, {untilUnderWay} from "./tabs/Countdown.tsx";
 import DateCalculator from "./tabs/DateCalculator.tsx";
 import LocalTime from "./tabs/LocalTime.tsx";
 import SyncPattern from "./tabs/SyncPattern.tsx";
 import DiscordTimestamp from "./tabs/DiscordTimestamp.tsx";
+import DurationSum from "./tabs/DurationSum.tsx";
 
 export default function Time() {
-    const [tab, setTab] = useState<TabId>("time");
+    // On the countdown when one to a moment is under way (it's remembered until it's over), else on Time.
+    const [tab, setTab] = useState<TabId>(() => (untilUnderWay() ? "countdown" : "time"));
     // The progress bars belong to the Time tab: open there, folded under their toggle in the others, so a tool sits
     // higher (Jerry). Opened or closed by hand, they stay so until the tab changes.
-    const [barsOpen, setBarsOpen] = useState(true);
+    const [barsOpen, setBarsOpen] = useState(() => tab === "time");
 
     const choose = (id: TabId) => {
         setTab(id);
@@ -57,14 +59,16 @@ export default function Time() {
                             <LocalTime />
                         </div>
                     )}
-                    {tab === "countdown" && <Countdown />}
-                    {tab === "stopwatch" && <Stopwatch />}
+                    {/* Mounted on every tab, hidden on the others, so they keep running there (#74). */}
+                    <div hidden={tab !== "countdown"}><Countdown active={tab === "countdown"} /></div>
+                    <div hidden={tab !== "stopwatch"}><Stopwatch active={tab === "stopwatch"} /></div>
                     {tab === "calculator" && <DateCalculator />}
                     {tab === "sync" && <SyncPattern />}
                     {/* Small tools, a card each. */}
                     {tab === "tools" && (
                         <div className="time_stack">
                             <DiscordTimestamp />
+                            <DurationSum />
                         </div>
                     )}
                 </div>

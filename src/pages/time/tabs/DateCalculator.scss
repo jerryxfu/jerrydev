@@ -105,7 +105,7 @@
     }
 }
 
-// The four amounts, all there at once: 2 days, 3 weeks, 4 months and 5 years in one go.
+// The amounts, all there at once: 2 days, 3 weeks, 4 months, 5 years and 6 hours in one go.
 .datecalc_amounts {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -159,4 +159,11 @@
 .datecalc_row-value {
     text-align: right;
     color: var(--text-2);
+}
+
+// Two fields side by side: a date and its time, or the two times.
+.datecalc_pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
 }

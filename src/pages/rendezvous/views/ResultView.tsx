@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {Check, Clipboard, Link, UserPlus, Users} from "lucide-react";
 import {type EventMeta} from "../types.ts";
-import {formatDateShort, formatTime12h, generateTimeSlots, getDateRange, getEventUrl, getWeekRows, timeUntil} from "../utils.ts";
+import {formatDateShort, generateTimeSlots, getDateRange, getEventUrl, getWeekRows, timeUntil} from "../utils.ts";
 import WeekGrid from "../components/WeekGrid.tsx";
-import TimeSlotGrid from "../components/TimeSlotGrid.tsx";
+import TimeSlotGrid, {SlotTime} from "../components/TimeSlotGrid.tsx";
 import Divider from "../../../components/Divider/Divider.tsx";
 import "./ResultView.scss";
 
@@ -32,6 +32,8 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
     const timeSlots = generateTimeSlots(event.timeStart, event.timeEnd, event.granularity);
     const dateRange = getDateRange(event.dates);
     const isDay = event.granularity === "day";
+    // Slots at a time of day read in the viewer's time; whole days and AM/PM halves stay as they are.
+    const zone = typeof event.granularity === "number" ? event.timeZone : undefined;
     const weekRows = isDay ? getWeekRows(event.dates) : [];
     const totalResponses = event.responses.length;
 
@@ -131,6 +133,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                 <TimeSlotGrid
                     timeSlots={timeSlots}
                     dateRange={dateRange}
+                    timeZone={zone}
                     renderDateHeader={(_date, info) => (
                         <div className="rv_grid-date-header rv_grid-date-header--result">
                             <span className="rv_grid-date-day">{info.day}</span>
@@ -180,7 +183,7 @@ export default function ResultView({event, copiedField, onCopy, onAddAvailabilit
                             <span className="rv_slot-detail-time text-small">
                                 {isDay
                                     ? <>{selectedInfo.day}, {selectedInfo.month} {selectedInfo.date}</>
-                                    : <>{formatTime12h(selectedTime)} · {selectedInfo.day} {selectedInfo.date}</>
+                                    : <><SlotTime date={selectedDate} time={selectedTime} timeZone={zone} /> · {selectedInfo.day} {selectedInfo.date}</>
                                 }
                             </span>
                             <div className="rv_slot-detail-names">

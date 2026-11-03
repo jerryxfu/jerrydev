@@ -70,6 +70,32 @@ export function formatTime12h(time: string): string {
 }
 
 /**
+ * A slot's time on the viewer's clock, for an event made in another time zone: "8 PM" for the event's "2 PM". `day` is
+ * 1 when that's already the next day for the viewer, -1 the day before. Null when there's nothing to convert: an event
+ * from before time zones were kept, or one whose clock reads as the viewer's that day.
+ */
+export function viewerTime(date: string, time: string, timeZone?: string): { time: string; day: number } | null {
+    if (!timeZone) return null;
+    const theirs = Temporal.PlainDateTime.from(`${date}T${time}`).toZonedDateTime(timeZone);
+    const mine = theirs.withTimeZone(Temporal.Now.timeZoneId());
+    if (mine.offsetNanoseconds === theirs.offsetNanoseconds) return null;
+    return {
+        time: formatTime12h(mine.toPlainTime().toString({smallestUnit: "minute"})),
+        day: Temporal.PlainDate.from(date).until(mine.toPlainDate()).days,
+    };
+}
+
+/**
+ * A time zone as people say it: "Eastern Time", "Central European Time". Named as of now: at another moment Intl may give
+ * the zone's standard-time name instead (Paris in 1970: "Central European Standard Time"). UTC it calls "GMT+00:00".
+ */
+export function zoneName(timeZone: string): string {
+    if (timeZone === "UTC") return "UTC";
+    const parts = new Intl.DateTimeFormat("en-US", {timeZone, timeZoneName: "longGeneric"}).formatToParts(Date.now());
+    return parts.find(p => p.type === "timeZoneName")?.value ?? timeZone;
+}
+
+/**
  * Format duration in ms to human readable
  */
 export function formatDuration(ms: number): string {

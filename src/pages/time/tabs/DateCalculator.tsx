@@ -4,11 +4,13 @@ import Roll from "@/components/Roll/Roll.tsx";
 import RangeCalendar from "./RangeCalendar.tsx";
 import "./DateCalculator.scss";
 
-const UNITS = ["days", "weeks", "months", "years"] as const;
+const UNITS = ["days", "weeks", "months", "years", "hours", "minutes"] as const;
 type Unit = typeof UNITS[number];
 
 const longDate = (date: Temporal.PlainDate) => date.toLocaleString([], {weekday: "long", year: "numeric", month: "long", day: "numeric"});
 const shortDate = (date: Temporal.PlainDate) => date.toLocaleString([], {weekday: "short", year: "numeric", month: "short", day: "numeric"});
+const longDateTime = (moment: Temporal.PlainDateTime) =>
+    moment.toLocaleString([], {weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit"});
 const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
 
 // A field's YYYY-MM-DD as a day, or null for anything else (an empty or half-typed date field).
@@ -19,6 +21,20 @@ function dayOf(iso: string): Temporal.PlainDate | null {
         return null;
     }
 }
+
+// A time field's HH:MM as a time, or null for anything else (an empty or half-typed field).
+function timeOf(value: string): Temporal.PlainTime | null {
+    try {
+        return Temporal.PlainTime.from(value);
+    } catch {
+        return null;
+    }
+}
+
+// Hours and minutes in words: 8 hours, 15 minutes.
+const hoursText = (minutes: number) =>
+    [Math.floor(minutes / 60) && plural(Math.floor(minutes / 60), "hour"), minutes % 60 && plural(minutes % 60, "minute")]
+        .filter(Boolean).join(", ") || "0 minutes";
 
 // Years, months and days from one date to a later one: whole months first, then the days left. A month added to the
 // 31st lands on the month's last day when it has fewer (Jan 31 + 1 month is Feb 28), so Jan 31 to Mar 1 is 1 month and
@@ -47,10 +63,15 @@ export default function DateCalculator() {
     const [range, setRange] = useState<[string, string] | null>(null);
     const [withEnd, setWithEnd] = useState(false);
 
-    // Add or subtract.
+    // Add or subtract, from a date and, if given, a time.
     const [start, setStart] = useState(() => Temporal.Now.plainDateISO().toString());
+    const [time, setTime] = useState("");
     const [sign, setSign] = useState<1 | -1>(1);
-    const [amounts, setAmounts] = useState<Record<Unit, string>>({days: "", weeks: "", months: "", years: ""});
+    const [amounts, setAmounts] = useState<Record<Unit, string>>({days: "", weeks: "", months: "", years: "", hours: "", minutes: ""});
+
+    // Between two times.
+    const [from, setFrom] = useState("09:00");
+    const [to, setTo] = useState("17:00");
 
     // A first click starts a range, a second ends it, a third starts a new one.
     const pick = (day: string) => {
@@ -86,14 +107,28 @@ export default function DateCalculator() {
     }, [range, withEnd]);
     const picking = Boolean(first && !second);
 
-    // Years and months first, then weeks and days, as calendars usually do (and Temporal's add): Jan 31 + 1 month +
-    // 1 day is Mar 1.
+    // Years and months first, then weeks and days, then hours and minutes, as calendars usually do (and Temporal's add):
+    // Jan 31 + 1 month + 1 day is Mar 1. On the clock's face, as a wall clock reads: 17:45 + 2 hours 30 is 20:15, the next
+    // day past midnight. With a time or hours, the result has its time.
     const result = useMemo(() => {
         const date = dayOf(start);
+        const at = timeOf(time);
         const n = (unit: Unit) => sign * (Number(amounts[unit]) || 0);
-        if (!date || UNITS.every((unit) => n(unit) === 0)) return null;
-        return date.add({years: n("years"), months: n("months"), weeks: n("weeks"), days: n("days")});
-    }, [start, sign, amounts]);
+        if (!date || (time && !at) || UNITS.every((unit) => n(unit) === 0)) return null;
+        const moment = date.toPlainDateTime(at ?? undefined).add({
+            years: n("years"), months: n("months"), weeks: n("weeks"), days: n("days"), hours: n("hours"), minutes: n("minutes"),
+        });
+        return {moment, withTime: Boolean(at) || n("hours") !== 0 || n("minutes") !== 0};
+    }, [start, time, sign, amounts]);
+
+    // From one time to the next on a clock: an end before the start is the next day (22:00 to 06:00 is 8 hours).
+    const between = useMemo(() => {
+        const a = timeOf(from);
+        const b = timeOf(to);
+        if (!a || !b) return null;
+        const span = a.until(b);
+        return {minutes: span.total("minutes") + (span.sign < 0 ? 24 * 60 : 0), nextDay: span.sign < 0};
+    }, [from, to]);
 
     return (
         <div className="datecalc">
@@ -127,46 +162,75 @@ export default function DateCalculator() {
                 </div>
             </div>
 
-            <div className="time_card">
-                <p className="time_label">Add or subtract</p>
-                <label className="datecalc_field">
-                    <span>Date</span>
-                    <input className="time_input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-                </label>
-
-                <div className="datecalc_sign" role="group" aria-label="Add or subtract">
-                    <button className={sign === 1 ? "active" : ""} aria-pressed={sign === 1} onClick={() => setSign(1)}>
-                        <Plus size={16} aria-hidden /> Add
-                    </button>
-                    <button className={sign === -1 ? "active" : ""} aria-pressed={sign === -1} onClick={() => setSign(-1)}>
-                        <Minus size={16} aria-hidden /> Subtract
-                    </button>
-                </div>
-
-                <div className="datecalc_amounts">
-                    {UNITS.map((unit) => (
-                        <label key={unit} className="datecalc_amount">
-                            <input
-                                className="time_num time_input"
-                                inputMode="numeric"
-                                placeholder="0"
-                                value={amounts[unit]}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, "").slice(0, 5);
-                                    setAmounts((now) => ({...now, [unit]: value}));
-                                }}
-                            />
-                            <span>{unit}</span>
+            <div className="time_stack">
+                <div className="time_card">
+                    <p className="time_label">Add or subtract</p>
+                    <div className="datecalc_pair">
+                        <label className="datecalc_field">
+                            <span>Date</span>
+                            <input className="time_input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
                         </label>
-                    ))}
+                        <label className="datecalc_field">
+                            <span>Time, if any</span>
+                            <input className="time_input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                        </label>
+                    </div>
+
+                    <div className="datecalc_sign" role="group" aria-label="Add or subtract">
+                        <button className={sign === 1 ? "active" : ""} aria-pressed={sign === 1} onClick={() => setSign(1)}>
+                            <Plus size={16} aria-hidden /> Add
+                        </button>
+                        <button className={sign === -1 ? "active" : ""} aria-pressed={sign === -1} onClick={() => setSign(-1)}>
+                            <Minus size={16} aria-hidden /> Subtract
+                        </button>
+                    </div>
+
+                    <div className="datecalc_amounts">
+                        {UNITS.map((unit) => (
+                            <label key={unit} className="datecalc_amount">
+                                <input
+                                    className="time_num time_input"
+                                    inputMode="numeric"
+                                    placeholder="0"
+                                    value={amounts[unit]}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, "").slice(0, 5);
+                                        setAmounts((now) => ({...now, [unit]: value}));
+                                    }}
+                                />
+                                <span>{unit}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    {result && (
+                        <div className="datecalc_out">
+                            <Row label="Result" value={result.withTime ? longDateTime(result.moment) : longDate(result.moment.toPlainDate())} />
+                            <Row label="From today" value={fromToday(result.moment.toPlainDate())} />
+                        </div>
+                    )}
                 </div>
 
-                {result && (
-                    <div className="datecalc_out">
-                        <Row label="Result" value={longDate(result)} />
-                        <Row label="From today" value={fromToday(result)} />
+                <div className="time_card">
+                    <p className="time_label">Between two times</p>
+                    <div className="datecalc_pair">
+                        <label className="datecalc_field">
+                            <span>From</span>
+                            <input className="time_input" type="time" value={from} onChange={(e) => setFrom(e.target.value)} />
+                        </label>
+                        <label className="datecalc_field">
+                            <span>To</span>
+                            <input className="time_input" type="time" value={to} onChange={(e) => setTo(e.target.value)} />
+                        </label>
                     </div>
-                )}
+                    {between && (
+                        <div className="datecalc_out">
+                            <Row label="Duration" value={hoursText(between.minutes)} suffix={between.nextDay ? ", to the next day" : undefined} roll />
+                            <Row label="In minutes" value={plural(between.minutes, "minute")} roll />
+                            <Row label="In hours" value={plural(Math.round((between.minutes / 60) * 100) / 100, "hour")} roll />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

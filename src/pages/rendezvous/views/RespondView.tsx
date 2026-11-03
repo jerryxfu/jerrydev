@@ -101,6 +101,7 @@ export default function RespondView(
                 <TimeSlotGrid
                     timeSlots={timeSlots}
                     dateRange={dateRange}
+                    timeZone={typeof event.granularity === "number" ? event.timeZone : undefined}
                     renderDateHeader={(date, info) => (
                         <button
                             className="rv_grid-date-header"

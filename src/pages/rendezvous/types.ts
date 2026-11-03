@@ -49,6 +49,8 @@ export interface EventMeta {
     timeStart: string;
     timeEnd: string;
     granularity: Granularity;
+    // The creator's time zone ("America/Toronto"): the slots' times are on its clock. Absent on events from before Nov 2026.
+    timeZone?: string;
     responses: EventResponse[];
     createdAt: string;
     expiresAt: string;

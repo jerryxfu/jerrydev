@@ -159,6 +159,28 @@
     }
 }
 
+// For or Until, then the presets or the moment's field: on one line where there's room.
+.countdown_setup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+}
+
+.countdown_until {
+    width: auto;
+}
+
+// Until a moment, the time left can be days long (52d 02:13:45): smaller, so it holds on a phone's line.
+.countdown_dial.is-until .countdown_digit {
+    font-size: 4rem;
+
+    @media (max-width: 560px) {
+        font-size: 2.4rem;
+    }
+}
+
 // The bar and the "Time's up." line, opening as the buttons fold away.
 .countdown_progress {
     width: 100%;

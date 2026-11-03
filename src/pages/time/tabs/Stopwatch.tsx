@@ -21,7 +21,9 @@ function fmt(ms: number, decimals: 2 | 3): string {
     return h > 0 ? `${h}:${mm}:${ss}.${fracStr}` : `${mm}:${ss}.${fracStr}`;
 }
 
-export default function Stopwatch() {
+// `active`: on screen. It runs on the other tabs too, hidden (Time.tsx), with its keys off and its display still: its
+// time comes from performance.now(), not from the frames.
+export default function Stopwatch({active}: { active: boolean }) {
     const [running, setRunning] = useState(false);
     const [elapsed, setElapsed] = useState(0);
     const [laps, setLaps] = useState<Lap[]>([]);
@@ -30,7 +32,7 @@ export default function Stopwatch() {
     const rafRef = useRef<number | null>(null);
 
     useEffect(() => {
-        if (!running) return;
+        if (!running || !active) return;
         const tick = () => {
             setElapsed(accumRef.current + (performance.now() - startRef.current));
             rafRef.current = requestAnimationFrame(tick);
@@ -39,7 +41,7 @@ export default function Stopwatch() {
         return () => {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
-    }, [running]);
+    }, [running, active]);
 
     const start = () => {
         startRef.current = performance.now();
@@ -68,7 +70,7 @@ export default function Stopwatch() {
         Space: running ? stop : start,
         l: elapsed > 0 ? lap : undefined,
         r: elapsed > 0 ? reset : undefined,
-    });
+    }, active);
 
     return (
         <div className={`stopwatch ${running ? "is-running" : ""}`}>
