@@ -190,13 +190,11 @@ function StatGrid({stats}: { stats: Stat[] }) {
 export default function TextStats({stats, code}: { stats: Stats; code: boolean }) {
     return (
         <section className="expedite_meta">
-            <div className="expedite_meta-section">
-                <h2 className="expedite_meta-header">
-                    <ChartNoAxesColumn size={14} />
-                    {code ? "Code statistics" : "Text statistics"}
-                </h2>
-                <StatGrid stats={stats.basic} />
-            </div>
+            <h2 className="expedite_meta-header">
+                <ChartNoAxesColumn size={14} />
+                {code ? "Code statistics" : "Text statistics"}
+            </h2>
+            <StatGrid stats={stats.basic} />
         </section>
     );
 }
@@ -211,28 +209,23 @@ export function MoreTextStats({stats, code}: { stats: Stats; code: boolean }) {
         <Disclosure id="text-stats" title="More statistics">
             <div className="expedite_more-stats">
                 <section className="expedite_meta">
-                    {/* In a section, as in the other tables, so it spans its box (the box is two columns wide). */}
-                    <div className="expedite_meta-section">
-                        <StatGrid stats={stats.more} />
-                    </div>
+                    <StatGrid stats={stats.more} />
                 </section>
                 <section className="expedite_meta">
-                    <div className="expedite_meta-section">
-                        <h2 className="expedite_meta-header">{code ? "Most used names" : "Most used words"}</h2>
-                        {stats.top.length ? (
-                            <ol className="expedite_freq">
-                                {stats.top.map(([word, n]) => (
-                                    <li key={word}>
-                                        <span className="expedite_freq-word">{word}</span>
-                                        <span className="expedite_freq-bar" style={{width: `${(n / most) * 100}%`}} />
-                                        <span className="expedite_freq-count">{count(n)}</span>
-                                    </li>
-                                ))}
-                            </ol>
-                        ) : (
-                            <p className="expedite_freq-empty">Nothing used twice yet.</p>
-                        )}
-                    </div>
+                    <h2 className="expedite_meta-header">{code ? "Most used names" : "Most used words"}</h2>
+                    {stats.top.length ? (
+                        <ol className="expedite_freq">
+                            {stats.top.map(([word, n]) => (
+                                <li key={word}>
+                                    <span className="expedite_freq-word">{word}</span>
+                                    <span className="expedite_freq-bar" style={{width: `${(n / most) * 100}%`}} />
+                                    <span className="expedite_freq-count">{count(n)}</span>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <p className="expedite_freq-empty">Nothing used twice yet.</p>
+                    )}
                 </section>
             </div>
         </Disclosure>

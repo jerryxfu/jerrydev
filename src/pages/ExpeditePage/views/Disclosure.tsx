@@ -3,8 +3,11 @@ import {ChevronRight} from "lucide-react";
 import "./Disclosure.scss";
 
 interface DisclosureProps {
-    /** Names the section in this browser's storage, which remembers whether it was left open. */
-    id: string;
+    /**
+     * Names the section in this browser's storage, which remembers whether it was left open. Without it, the section
+     * starts closed each time.
+     */
+    id?: string;
     title: string;
     /** A short state shown beside the title, so what's set inside shows while it's closed. */
     note?: string;
@@ -15,11 +18,12 @@ const storageKey = (id: string) => `expedite:open:${id}`;
 
 /**
  * A section folded under its title, closed at first: the technical side of Direct P2P, which most people never need
- * (Raph and Samy, Oct 2026). A native <details>, so it opens from the keyboard and with a screen reader. Whoever opens
- * it finds it open next time, in this browser.
+ * (Raph and Samy, Oct 2026). A native <details>, so it opens from the keyboard and with a screen reader. With an `id`,
+ * whoever opens it finds it open next time, in this browser.
  */
 export default function Disclosure({id, title, note, children}: DisclosureProps) {
     const [open, setOpen] = useState(() => {
+        if (!id) return false;
         try {
             return localStorage.getItem(storageKey(id)) === "1";
         } catch {
@@ -34,6 +38,7 @@ export default function Disclosure({id, title, note, children}: DisclosureProps)
             onToggle={(e) => {
                 const next = e.currentTarget.open;
                 setOpen(next);
+                if (!id) return;
                 try {
                     localStorage.setItem(storageKey(id), next ? "1" : "0");
                 } catch {

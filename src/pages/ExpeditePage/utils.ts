@@ -15,13 +15,24 @@ export function formatDuration(ms: number): string {
     return `${Math.round(ms / 3_600_000)}h`;
 }
 
+// "2h 5m", "12m": a drop's times, in hours and minutes (a drop lasts a day at most).
+function span(ms: number): string {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
 export function timeUntil(dateStr: string): string {
     const diff = new Date(dateStr).getTime() - Date.now();
     if (diff <= 0) return "expired";
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    return span(diff);
+}
+
+// "2h 5m ago", "just now": the other way.
+export function timeSince(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    return diff < 60_000 ? "just now" : `${span(diff)} ago`;
 }
 
 // "at 22:31", "tomorrow at 09:15", "on 10/12/2026 at 09:15": when, in the reader's own clock.

@@ -13,31 +13,11 @@
     }
 }
 
-// One table, two sections ("File details", "Advanced"): side by side from a laptop's width, a line between them; one
-// above the other on a phone.
+// A table: a received drop's details, the text box's statistics.
 .expedite_meta {
-    display: grid;
     border: 1px solid var(--border-da);
     border-radius: var(--r-5);
     overflow: hidden;
-
-    @media (min-width: 900px) {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-// A table of one section (the text box's statistics) takes the whole width.
-.expedite_meta-section:only-child {
-    grid-column: 1 / -1;
-}
-
-.expedite_meta-section + .expedite_meta-section {
-    border-top: 1px solid var(--border-da);
-
-    @media (min-width: 900px) {
-        border-top: none;
-        border-left: 1px solid var(--border-da);
-    }
 }
 
 .expedite_meta-header {
@@ -59,6 +39,43 @@
     letter-spacing: 0.18em;
 }
 
+// A received drop's details (ResultView.tsx): a list, each name on the left of its value, then a second one, the hash
+// and the terminal's command. Side by side from a laptop's width, further apart than a name from its value; on a phone
+// the second is folded under the first.
+.expedite_details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem 2.5rem;
+    padding: 0.6rem 0.8rem;
+
+    @media (min-width: 900px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    dl {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        align-items: baseline;
+        gap: 0.3rem 1.25rem;
+        margin: 0;
+    }
+
+    dt {
+        font-size: var(--fs-xs);
+        font-weight: 600;
+        color: var(--text-5);
+    }
+
+    // A long value (a file's name, a link) may break anywhere; words still break between them.
+    dd {
+        margin: 0;
+        font-size: var(--fs-sm);
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+}
+
+// The text box's statistics (TextStats.tsx): a table of two columns.
 .expedite_meta-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -139,16 +156,21 @@
     }
 }
 
-// The SHA-256 takes its section's whole width, and keeps its 64 characters in one monospace block.
+// A long value takes the table's whole width.
 .expedite_meta-item.is-wide {
     grid-column: 1 / -1;
     border-right: none;
 }
 
-.expedite_meta-hash {
+// A value and its copy button (ResultView.tsx's Copyable), the button level with the value's first line.
+.expedite_meta-copyable {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
+}
+
+// The SHA-256 keeps its 64 characters in one monospace block.
+.expedite_meta-hash {
     font-family: var(--font-code);
     font-size: var(--fs-xs);
     line-height: 1.5;
@@ -172,7 +194,7 @@
     }
 }
 
-// The line under that value: the hash check, the curl command's note on views.
+// The line under the curl command: each run counts as a view.
 .expedite_meta-check {
     display: flex;
     flex-wrap: wrap;
@@ -181,15 +203,6 @@
     margin-top: 0.35rem;
     font-size: var(--fs-xs);
     color: var(--text-4);
-
-    // The progress panels' green and red (UploadProgress.scss): the theme's --success is too light for small text.
-    &.is-match {
-        color: var(--success-text);
-    }
-
-    &.is-mismatch {
-        color: var(--danger-text);
-    }
 }
 
 // Something the receiver should know before going on (the last view used), above what to do.
@@ -221,7 +234,8 @@
 }
 
 // The hash check's button, once it has run: green for a copy that matches, red for one that doesn't (with its icon, for
-// those who can't tell the two colours apart). The greens and reds of the line under the hash.
+// those who can't tell the two colours apart). The progress panels' (UploadProgress.scss): the theme's --success is too
+// light for small text.
 .btn.is-match {
     color: var(--success-text);
     border-color: color-mix(in srgb, var(--success-text) 55%, transparent);

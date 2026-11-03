@@ -1,15 +1,17 @@
 import React, {type ReactNode, useMemo, useRef, useState} from "react";
 import {flushSync} from "react-dom";
-import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, SlidersHorizontal, Terminal, Trash2} from "lucide-react";
+import {Check, CircleCheck, CircleX, Clipboard, Download, File, FileText, Fingerprint, Link, Terminal, Trash2} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DownloadCheck, type DropMeta} from "../types.ts";
-import {formatBytes, getCurlCommand, getDropUrl, timeUntil, when} from "../utils.ts";
+import {formatBytes, getCurlCommand, getDropUrl, timeSince, timeUntil, when} from "../utils.ts";
 import FilePreview, {CodeView, describeType, linesOf, type PreviewInfo} from "./FilePreview.tsx";
 import CopyField from "./CopyField.tsx";
 import ZipStack from "./ZipStack.tsx";
+import Disclosure from "./Disclosure.tsx";
 import {isZip, urlSource} from "../zip.ts";
 import {isLanguage, languageLabel} from "../highlight.ts";
 import {characterCount, wordStats} from "./TextStats.tsx";
+import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./ResultView.scss";
 
 interface ResultViewProps {
@@ -37,37 +39,44 @@ function duration(secs: number): string {
     return (hms[0] ? hms : hms.slice(1)).map((n, i) => (i ? String(n).padStart(2, "0") : String(n))).join(":");
 }
 
-// `wide`: across the section, for a long value (the SHA-256).
-function Detail({label, wide, children}: { label: string; wide?: boolean; children: ReactNode }) {
+// "PDF document (application/pdf)": the type in words, then the MIME type as uploaded, unless the words are that type.
+function typeOf(name: string, mimeType?: string): string {
+    const words = describeType(name, mimeType);
+    return mimeType && words !== mimeType ? `${words} (${mimeType})` : words;
+}
+
+// A value with a small button after it that copies it: the file's name, the SHA-256 (`className`: its monospace).
+function Copyable({value, field, title, className, copiedField, onCopy}: {
+    value: string;
+    field: string;
+    title: string;
+    className?: string;
+    copiedField: string | null;
+    onCopy: ResultViewProps["onCopy"];
+}) {
     return (
-        <div className={`expedite_meta-item${wide ? " is-wide" : ""}`}>
-            <span className="expedite_meta-label">{label}</span>
-            <span className="expedite_meta-value">{children}</span>
-        </div>
+        <span className={`expedite_meta-copyable${className ? ` ${className}` : ""}`}>
+            {value}
+            <button type="button" className="expedite_meta-copy" title={title} aria-label={title} onClick={(e) => onCopy(value, field, e)}>
+                {copiedField === field ? <Check size={13} /> : <Clipboard size={13} />}
+            </button>
+        </span>
     );
 }
 
-// Under the hash: how to check a copy against it, then how far the check has got, and what it found.
-function DownloadCheckLine({check}: { check: DownloadCheck | null }) {
-    if (!check) {
-        return (
-            <span className="expedite_meta-check">
-                To make sure your copy is exactly the file that was sent, use the hash check below.
-            </span>
-        );
-    }
-    if (check.state === "checking") {
-        return <span className="expedite_meta-check">Checking your copy... {Math.floor(check.progress * 100)}%</span>;
-    }
-    return check.state === "match"
-        ? <span className="expedite_meta-check is-match"><CircleCheck size={13} /> Your copy matches it.</span>
-        : <span className="expedite_meta-check is-mismatch"><CircleX size={13} /> Your copy doesn't match. Download it again.</span>;
+// A line of the list: what it is, then its value.
+function Detail({label, children}: { label: string; children: ReactNode }) {
+    return (
+        <>
+            <dt>{label}</dt>
+            <dd>{children}</dd>
+        </>
+    );
 }
 
 /**
- * A received drop: what it is ("File details") and the technical side of it ("Advanced"), side by side in one table,
- * what to do with it under them, then the file itself, as wide as the page allows. Some details come from the preview as it loads:
- * lines, dimensions, duration.
+ * A received drop: its details in one table, what to do with it under them, then the file itself, as wide as the page
+ * allows. Some details come from the preview as it loads: lines, dimensions, duration.
  */
 export default function ResultView(
     {result, copiedField, onCopy, error, downloadCheck, onDownload, onCheckCopy, onDelete}: ResultViewProps,
@@ -80,9 +89,11 @@ export default function ResultView(
         [result.type, result.fileUrl, result.fileName, result.mimeType, result.size],
     );
     const [fileCount, setFileCount] = useState<number | null>(null);
-    // The hash check's file picker, and where the check is.
+    // The hash check's file picker, and where the check is: its button says how far it has got, then what it found.
     const picker = useRef<HTMLInputElement>(null);
     const check = downloadCheck?.state;
+    const checkLabel = downloadCheck?.state === "checking" ? `Checking ${Math.floor(downloadCheck.progress * 100)}%`
+        : check === "match" ? "Matches" : check === "mismatch" ? "Doesn't match" : "Hash check";
     // Deleting removes the drop for everyone, so the trash button asks first, in place.
     const [confirmingDelete, setConfirmingDelete] = useState(false);
     // Deleting and the download's first step (its link checked) wait on the network: their buttons spin meanwhile.
@@ -106,24 +117,62 @@ export default function ResultView(
     const content = isText ? result.text : info.text;
     // A text drop (not code): how long it is to read.
     const words = useMemo(() => isText && result.text && !result.language ? wordStats(result.text) : null, [isText, result.text, result.language]);
+    // The hash and the command: a column of their own on a laptop, folded on a phone, where few need them.
+    const wide = useMediaQuery("(min-width: 900px)");
+    const more = result.sha256 || curl ? (
+        <dl>
+            {result.sha256 && (
+                <Detail label="SHA-256">
+                    <Copyable
+                        value={result.sha256} field="sha256" title="Copy the SHA-256" className="expedite_meta-hash"
+                        copiedField={copiedField} onCopy={onCopy}
+                    />
+                </Detail>
+            )}
+            {curl && (
+                <Detail label="In a terminal">
+                    <CopyField
+                        value={curl}
+                        label="A command to get the drop from a terminal"
+                        copyLabel="Copy the command"
+                        icon={Terminal}
+                        field="curl"
+                        copiedField={copiedField}
+                        onCopy={onCopy}
+                        small
+                    />
+                    {result.maxViews != null && <span className="expedite_meta-check">Each run counts as a view.</span>}
+                </Detail>
+            )}
+        </dl>
+    ) : null;
 
     return (
         <div className="expedite_retrieved">
-            {/* One table, two sections: what the file is, and its technical side. */}
-            <div className="expedite_meta">
-                <section className="expedite_meta-section">
-                    <h2 className="expedite_meta-header">
-                        {isText ? <FileText size={14} /> : <File size={14} />}
-                        {isText ? "Text details" : "File details"}
-                    </h2>
-                    <div className="expedite_meta-grid">
-                        {result.fileName && <Detail label="Name">{result.fileName}</Detail>}
-                        {result.fileName && <Detail label="Type">{describeType(result.fileName, result.mimeType)}</Detail>}
+            <section className="expedite_meta">
+                <h2 className="expedite_meta-header">
+                    {isText ? <FileText size={14} /> : <File size={14} />}
+                    {isText ? "Text details" : "File details"}
+                </h2>
+                {/* The details, then the hash and the command: side by side on a laptop, folded on a phone. */}
+                <div className="expedite_details">
+                    <dl>
+                        {result.fileName && (
+                            <Detail label="Name">
+                                <Copyable
+                                    value={result.fileName} field="name" title="Copy the name"
+                                    copiedField={copiedField} onCopy={onCopy}
+                                />
+                            </Detail>
+                        )}
+                        {!isText && <Detail label="Type">{typeOf(result.fileName ?? "", result.mimeType)}</Detail>}
+                        {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
                         <Detail label="Size">{exactSize(result.size)}</Detail>
                         {fileCount != null && <Detail label="Files">{fileCount.toLocaleString()}</Detail>}
                         {lines != null && (
                             <Detail label="Lines">{lines.toLocaleString()}{info.partial ? "+ (counted in the part shown)" : ""}</Detail>
                         )}
+                        {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
                         {words && (
                             <>
                                 <Detail label="Words">{words.words.toLocaleString()}</Detail>
@@ -135,57 +184,13 @@ export default function ResultView(
                             <Detail label="Dimensions">{info.width.toLocaleString()} × {info.height.toLocaleString()} px</Detail>
                         )}
                         {info.duration != null && Number.isFinite(info.duration) && <Detail label="Duration">{duration(info.duration)}</Detail>}
-                        <Detail label="Created">{new Date(result.createdAt).toLocaleString()}</Detail>
+                        <Detail label="Created">{new Date(result.createdAt).toLocaleString()} ({timeSince(result.createdAt)})</Detail>
                         <Detail label="Expires in">{timeUntil(result.expiresAt)}</Detail>
                         <Detail label="Views">{result.views}{result.maxViews ? ` of ${result.maxViews}` : " (no limit)"}</Detail>
-                    </div>
-                </section>
-
-                <section className="expedite_meta-section">
-                    <h2 className="expedite_meta-header">
-                        <SlidersHorizontal size={14} />
-                        Advanced
-                    </h2>
-                    <div className="expedite_meta-grid">
-                        {result.mimeType && <Detail label="MIME type, as uploaded">{result.mimeType}</Detail>}
-                        {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
-                        {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
-                        <Detail label="Deletable by you">{result.deletable ? "Yes" : "No, the sender turned it off"}</Detail>
-                        {result.sha256 && (
-                            <Detail label="SHA-256, at upload" wide>
-                                <span className="expedite_meta-hash">
-                                    {result.sha256}
-                                    <button
-                                        type="button"
-                                        className="expedite_meta-copy"
-                                        title="Copy the SHA-256"
-                                        aria-label="Copy the SHA-256"
-                                        onClick={(e) => onCopy(result.sha256!, "sha256", e)}
-                                    >
-                                        {copiedField === "sha256" ? <Check size={13} /> : <Clipboard size={13} />}
-                                    </button>
-                                </span>
-                                <DownloadCheckLine check={downloadCheck} />
-                            </Detail>
-                        )}
-                        {curl && (
-                            <Detail label="In a terminal" wide>
-                                <CopyField
-                                    value={curl}
-                                    label="A command to get the drop from a terminal"
-                                    copyLabel="Copy the command"
-                                    icon={Terminal}
-                                    field="curl"
-                                    copiedField={copiedField}
-                                    onCopy={onCopy}
-                                    small
-                                />
-                                {result.maxViews != null && <span className="expedite_meta-check">Each run counts as a view.</span>}
-                            </Detail>
-                        )}
-                    </div>
-                </section>
-            </div>
+                    </dl>
+                    {more && (wide ? more : <Disclosure title="More details">{more}</Disclosure>)}
+                </div>
+            </section>
 
             {lastView && (
                 <p className="expedite_notice">
@@ -255,17 +260,17 @@ export default function ResultView(
                             {copiedField === "content" ? "Copied" : "Content"}
                         </Button>
                     )}
-                    {/* The downloaded copy, picked from the device, checked against the hash (the line under it says how
-                        it went): the page never sees the download, which the browser's own downloader saves. */}
+                    {/* The downloaded copy, picked from the device, checked against the hash: the page never sees the
+                        download, which the browser's own downloader saves. A click while it checks picks another copy. */}
                     {result.sha256 && (
                         <>
                             <Button
                                 className={check === "match" ? "is-match" : check === "mismatch" ? "is-mismatch" : undefined}
                                 start={check === "match" ? CircleCheck : check === "mismatch" ? CircleX : Fingerprint}
+                                busy={check === "checking"}
                                 onClick={() => picker.current?.click()}
-                                disabled={check === "checking"}
                             >
-                                Hash check
+                                {checkLabel}
                             </Button>
                             <input
                                 ref={picker}
