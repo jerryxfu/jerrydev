@@ -191,21 +191,11 @@
     margin-left: 1px;
 }
 
-// Picking times: a finger paints the cells rather than scrolling (the labels and dates still scroll the grid). Each
-// cell's touch area reaches halfway into the gaps around it (its border, then half of the 2px and 4px between cells), so
-// a finger landing between two cells paints too.
+// Picking times: a finger on a cell paints; between the cells, on the labels and on the dates, it scrolls.
 .rv_grid--paint {
     user-select: none;
 
     .rv_grid-cell {
-        position: relative;
         touch-action: none;
-
-        &::after {
-            content: "";
-            position: absolute;
-            inset: -2px -3px;
-            touch-action: none;
-        }
     }
 }

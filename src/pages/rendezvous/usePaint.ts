@@ -1,10 +1,20 @@
 import {type MouseEvent, type PointerEvent, useEffect, useRef} from "react";
 
+// Under a finger, the page scrolls unless touch-action is none, on the element or one around it in the grid. A finger
+// paints only there (the cells, the calendar's circles); between them it scrolls the page, and a tap there is a click.
+function holdsStill(target: EventTarget | null, grid: EventTarget): boolean {
+    for (let el = target instanceof Element ? target : null; el && el !== grid; el = el.parentElement) {
+        if (getComputedStyle(el).touchAction === "none") return true;
+    }
+    return false;
+}
+
 // Picking cells with the pointer: press on one to turn it on (off if it was on), then drag across others to do the same
-// to them. The cells carry their key in data-paint. Fingers paint too: the cells have touch-action: none, so a grid
-// scrolls from its labels and the space around it.
+// to them. The cells carry their key in data-paint. A mouse paints from anywhere on a cell; a finger as holdsStill says.
 export default function usePaint(isOn: (key: string) => boolean, set: (key: string, on: boolean) => void) {
     const painting = useRef<boolean | null>(null);
+    // Whether the last press started painting: its click is then already done.
+    const pressed = useRef(false);
     const last = useRef({x: 0, y: 0});
 
     useEffect(() => {
@@ -25,7 +35,8 @@ export default function usePaint(isOn: (key: string) => boolean, set: (key: stri
     return {
         onPointerDown: (e: PointerEvent) => {
             const key = keyOf(e.target);
-            if (e.button !== 0 || key === null) return;
+            pressed.current = e.button === 0 && key !== null && (e.pointerType === "mouse" || holdsStill(e.target, e.currentTarget));
+            if (!pressed.current || key === null) return;
             painting.current = !isOn(key);
             last.current = {x: e.clientX, y: e.clientY};
             set(key, painting.current);
@@ -48,10 +59,10 @@ export default function usePaint(isOn: (key: string) => boolean, set: (key: stri
             }
             last.current = {x: e.clientX, y: e.clientY};
         },
-        // Enter or Space on a focused cell: a click with no pointer (detail 0). A pointer's click was already painted.
+        // A click no press painted: Enter or Space on a focused cell (detail 0), or a finger's tap where it scrolls.
         onClick: (e: MouseEvent) => {
             const key = keyOf(e.target);
-            if (e.detail === 0 && key !== null) set(key, !isOn(key));
+            if (key !== null && (e.detail === 0 || !pressed.current)) set(key, !isOn(key));
         },
     };
 }

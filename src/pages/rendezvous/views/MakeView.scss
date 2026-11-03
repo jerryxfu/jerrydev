@@ -29,16 +29,10 @@
 // The days picked: the accent's dot, and a band between days side by side (as Time's range).
 .rv_days .cal_day {
     --band: color-mix(in srgb, var(--secondary) 14%, transparent);
-    // A finger paints the days rather than scrolling the page. The days touch side by side; their touch area reaches
-    // into the 2px between rows too.
-    position: relative;
-    touch-action: none;
     user-select: none;
 
-    &::after {
-        content: "";
-        position: absolute;
-        inset: -1px 0;
+    // A finger on a day's circle paints; around the circles it scrolls the page (a tap there still picks the day).
+    span {
         touch-action: none;
     }
 
