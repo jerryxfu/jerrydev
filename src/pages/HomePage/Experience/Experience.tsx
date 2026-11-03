@@ -10,7 +10,7 @@ import _crchum from "../../../assets/experience/crchum.png";
 import _t4k from "../../../assets/experience/t4k_special_edition.png";
 import _ftc from "../../../assets/experience/ftc_icon_horz.png";
 import _zon01 from "../../../assets/experience/zone01.png";
-import {formatDate} from "@/utils.ts";
+import {formatDate, type IsoDay} from "@/utils.ts";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,7 +22,7 @@ type ExperienceEntry = {
     image: string;
     // A picture that fills its tile. Logos without it sit whole on white.
     fill?: boolean;
-    date: Date; // when it started: the timeline's year, and the date line under the entry
+    date: IsoDay; // when it started: the timeline's year, and the date line under the entry
     url: string;
     description: string;
     cv?: boolean; // the CV has more on it
@@ -34,7 +34,7 @@ const experiences: ExperienceEntry[] = [
         title: "CHUM Research Centre",
         subTitle: "Research Assistant",
         image: _crchum,
-        date: new Date("2025-06-26T00:00:00"),
+        date: "2025-06-26",
         url: "https://www.chumontreal.qc.ca/en/crchum",
         description: "Analyzed regional pleural strain via lung ultrasound elastography to establish normative values and their correlations with tidal volume in healthy volunteers. ",
         cv: true,
@@ -44,7 +44,7 @@ const experiences: ExperienceEntry[] = [
         subTitle: "Mentor & former student",
         image: _t4k,
         fill: true,
-        date: new Date("2023-01-06T00:00:00"),
+        date: "2023-01-06",
         url: "https://www.thebluealliance.com/team/3990",
         description: "Former student. Mentoring high school students in programming, computer vision and machine learning. Participated (me) in 11 FRC competitions, including 3 World Championships",
         // 2023: Finger Lakes, Trois-Rivières, World Championship
@@ -58,7 +58,7 @@ const experiences: ExperienceEntry[] = [
         subTitle: "Team 20117 Student",
         image: _ftc,
         url: "https://www.firstinspires.org/programs/ftc/",
-        date: new Date("2021-09-18T00:00:00"),
+        date: "2021-09-18",
         description: "Participated in a FTC regional. Developed some skills in Java programming, engineering design, and teamwork.",
     },
     {
@@ -66,14 +66,10 @@ const experiences: ExperienceEntry[] = [
         subTitle: "World Robot Olympiad (WRO)",
         image: _zon01,
         url: "https://www.zone01.ca/",
-        date: new Date("2019-01-01T00:00:00"),
+        date: "2019-01-01",
         description: "Applied basic programming and robot construction using LEGO Mindstorms NXT and LEGO Mindstorms EV3.",
     }
 ];
-
-// A start date as a <time> wants it, from the calendar fields, as formatDate reads them.
-const isoDay = (date: Date) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
 export default function Experience() {
     const timeline = useRef<HTMLDivElement>(null);
@@ -136,7 +132,7 @@ export default function Experience() {
             <SectionTitle
                 text={"Experience & Extras"}
                 description={"The notable extracurriculars and stuff beyond my own projects." +
-                    ` Since ${Math.min(...experiences.map(({date}) => date.getFullYear()))}.`}
+                    ` Since ${Math.min(...experiences.map(({date}) => Temporal.PlainDate.from(date).year))}.`}
             />
 
             <div className="experience_container">
@@ -158,7 +154,7 @@ export default function Experience() {
                         {experiences.map(({title, subTitle, image, fill, date, url, description, cv}) => (
                             <li className="experience-timeline_item" key={title}>
                                 <span className="experience-timeline_node" aria-hidden="true" />
-                                <span className="experience-timeline_year" aria-hidden="true">{date.getFullYear()}</span>
+                                <span className="experience-timeline_year" aria-hidden="true">{Temporal.PlainDate.from(date).year}</span>
 
                                 <article className="experience-timeline_card">
                                     <a
@@ -173,7 +169,7 @@ export default function Experience() {
                                     <p className="experience-timeline_role">{subTitle}</p>
                                     <p className="experience-timeline_description">{description}</p>
                                     <p className="experience-timeline_meta">
-                                        <time dateTime={isoDay(date)}>{formatDate(date)}</time>
+                                        <time dateTime={date}>{formatDate(date)}</time>
                                         {cv && (
                                             <a href={CV_URL} target="_blank" rel="noopener noreferrer">Details on CV</a>
                                         )}

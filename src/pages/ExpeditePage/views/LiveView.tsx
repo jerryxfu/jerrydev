@@ -93,7 +93,7 @@ function useScrolledWidth(ref: RefObject<HTMLDivElement | null>, columns: number
     return columns === 0 ? null : width;
 }
 
-const clock = (iso: string) => new Date(iso).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+const clock = (iso: string) => Temporal.Instant.from(iso).toLocaleString([], {hour: "numeric", minute: "2-digit"});
 
 // "42:18 left", a second at a time. The last five minutes in the danger colour.
 function TimeLeft({until}: { until: string }) {
@@ -102,7 +102,7 @@ function TimeLeft({until}: { until: string }) {
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
         return () => window.clearInterval(timer);
     }, []);
-    const left = Math.max(0, new Date(until).getTime() - now);
+    const left = Math.max(0, Temporal.Instant.from(until).epochMilliseconds - now);
     const minutes = Math.floor(left / 60_000);
     const seconds = Math.floor(left / 1000) % 60;
     return (

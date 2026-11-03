@@ -90,7 +90,7 @@ export function usePostFilter(source: Post[], {basePath, sortByDate = true}: Opt
 
         ranked.sort((a, b) =>
             b.score - a.score
-            || (sortByDate ? b.post.date.getTime() - a.post.date.getTime() : a.index - b.index));
+            || (sortByDate ? Temporal.PlainDate.compare(b.post.date, a.post.date) : a.index - b.index));
 
         return ranked.map((entry) => entry.post);
     }, [source, query, activeTags, sortByDate]);

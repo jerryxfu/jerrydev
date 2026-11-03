@@ -45,7 +45,7 @@ function useCountdown(expiresAt: string | null): number | null {
     }, [expiresAt]);
 
     if (!expiresAt) return null;
-    return Math.max(0, Math.round((new Date(expiresAt).getTime() - now) / 1000));
+    return Math.max(0, Math.round((Temporal.Instant.from(expiresAt).epochMilliseconds - now) / 1000));
 }
 
 function mmss(secs: number): string {

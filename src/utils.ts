@@ -1,23 +1,13 @@
-export function formatDate(date: Date): string { // 0 pad for Safari
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const day = pad(date.getDate());
-    const month = pad(date.getMonth() + 1);
-    const year = date.getFullYear();
+// A calendar day as the site's data writes it, "2026-09-01": the blog's posts, the projects, the experiences. Kept as
+// text in the data, so no module needs Temporal while it loads (main.tsx); Temporal.PlainDate.from reads it.
+export type IsoDay = `${number}-${number}-${number}`;
 
-    // Rounded, not floored. Two local midnights an exact number of days apart are 23h or 25h short of a
-    // multiple of 24h whenever a DST transition sits between them, so Math.floor turned N*24h - 1h into
-    // N-1 and every card lost a day. Live for eight months of the year in any DST zone: on 2026-09-06 the
-    // Home Island card (2026-02-05) read "212 days ago" when the true count was 213, and Zone01 (2019)
-    // read 2804 instead of 2805. Only dates inside the current DST period were ever right.
-    //
-    // The field constructor rather than setHours, so both endpoints are built from calendar fields and
-    // never carry a time-of-day. formatPostAge in BlogPage/posts.tsx has always done it this way, and its
-    // comment names this exact bug ("the same rounding issue that bit the project footer") — that fix was
-    // written and never backported. This is the backport.
-    const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    const diffDays = Math.round((midnight(new Date()) - midnight(date)) / 86_400_000);
-
-    return `${day}-${month}-${year} (${diffDays} days ago)`;
+// "18-05-2026 (141 days ago)": a project's or an experience's date, and how many calendar days ago it was.
+export function formatDate(iso: IsoDay): string {
+    const date = Temporal.PlainDate.from(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const days = date.until(Temporal.Now.plainDateISO()).days;
+    return `${pad(date.day)}-${pad(date.month)}-${date.year} (${days} days ago)`;
 }
 
 // A text's characters as a reader sees them (graphemes): not UTF-16 units, which cut an emoji in two (half of one shows

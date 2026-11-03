@@ -54,14 +54,14 @@ const getVisibleDays = (schedules: ScheduleType[]): DayOption[] => {
     return usesWeekend ? ALL_DAYS : ALL_DAYS.filter(d => !WEEKEND_KEYS.includes(d.key));
 };
 
-/** The real weekday, used to decide what counts as "today". */
-const getActualTodayKey = (): string => DAY_NAMES[new Date().getDay()]!;
+/** The real weekday, used to decide what counts as "today". dayOfWeek counts Sunday as 7: DAY_NAMES starts at 0. */
+const getActualTodayKey = (): string => DAY_NAMES[Temporal.Now.plainDateISO().dayOfWeek % 7]!;
 
 /** Which day to open on: today, or tomorrow once the evening is over. */
 const getPreferredDayKey = (visibleKeys: string[]): string => {
-    const now = new Date();
-    let index = now.getDay();
-    if (now.getHours() >= 18) index = (index + 1) % 7;
+    const now = Temporal.Now.plainDateTimeISO();
+    let index = now.dayOfWeek % 7;
+    if (now.hour >= 18) index = (index + 1) % 7;
     const day = DAY_NAMES[index]!;
     return visibleKeys.includes(day) ? day : (visibleKeys[0] ?? "monday");
 };

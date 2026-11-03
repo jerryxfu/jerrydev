@@ -1,40 +1,37 @@
 import {useMemo, useState} from "react";
 import {Minus, Plus} from "lucide-react";
 import Roll from "@/components/Roll/Roll.tsx";
-import {daysBetween, daysInMonth, isoDay, parseDay} from "../utils.ts";
 import RangeCalendar from "./RangeCalendar.tsx";
 import "./DateCalculator.scss";
 
 const UNITS = ["days", "weeks", "months", "years"] as const;
 type Unit = typeof UNITS[number];
 
-const longDate = (date: Date) => date.toLocaleDateString([], {weekday: "long", year: "numeric", month: "long", day: "numeric"});
-const shortDate = (date: Date) => date.toLocaleDateString([], {weekday: "short", year: "numeric", month: "short", day: "numeric"});
+const longDate = (date: Temporal.PlainDate) => date.toLocaleString([], {weekday: "long", year: "numeric", month: "long", day: "numeric"});
+const shortDate = (date: Temporal.PlainDate) => date.toLocaleString([], {weekday: "short", year: "numeric", month: "short", day: "numeric"});
 const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
 
-const addDays = (date: Date, n: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
-
-// The same day of the month, or the month's last day when it has fewer: Jan 31 + 1 month is Feb 28 (or 29).
-function addMonths(date: Date, n: number): Date {
-    const first = new Date(date.getFullYear(), date.getMonth() + n, 1);
-    return new Date(first.getFullYear(), first.getMonth(), Math.min(date.getDate(), daysInMonth(first.getFullYear(), first.getMonth())));
+// A field's YYYY-MM-DD as a day, or null for anything else (an empty or half-typed date field).
+function dayOf(iso: string): Temporal.PlainDate | null {
+    try {
+        return Temporal.PlainDate.from(iso);
+    } catch {
+        return null;
+    }
 }
 
-// Years, months and days from one date to a later one: whole months first, counted as addMonths counts them, then the
-// days left. So Jan 31 to Mar 1 is 1 month and 1 day.
-function calendarSpan(from: Date, to: Date): string {
-    let months = (to.getFullYear() - from.getFullYear()) * 12 + to.getMonth() - from.getMonth();
-    if (addMonths(from, months) > to) months -= 1;
-    const days = daysBetween(addMonths(from, months), to);
-    const years = Math.floor(months / 12);
-    const parts = [years && plural(years, "year"), months % 12 && plural(months % 12, "month"), days && plural(days, "day")];
+// Years, months and days from one date to a later one: whole months first, then the days left. A month added to the
+// 31st lands on the month's last day when it has fewer (Jan 31 + 1 month is Feb 28), so Jan 31 to Mar 1 is 1 month and
+// 1 day.
+function calendarSpan(from: Temporal.PlainDate, to: Temporal.PlainDate): string {
+    const {years, months, days} = from.until(to, {largestUnit: "years"});
+    const parts = [years && plural(years, "year"), months && plural(months, "month"), days && plural(days, "day")];
     return parts.filter(Boolean).join(", ") || "0 days";
 }
 
 // From today, in words: today, tomorrow, in 12 days, 3 days ago.
-function fromToday(date: Date): string {
-    const now = new Date();
-    const days = daysBetween(new Date(now.getFullYear(), now.getMonth(), now.getDate()), date);
+function fromToday(date: Temporal.PlainDate): string {
+    const days = Temporal.Now.plainDateISO().until(date).days;
     if (days === 0) return "today";
     if (days === 1) return "tomorrow";
     if (days === -1) return "yesterday";
@@ -51,7 +48,7 @@ export default function DateCalculator() {
     const [withEnd, setWithEnd] = useState(false);
 
     // Add or subtract.
-    const [start, setStart] = useState(() => isoDay(new Date()));
+    const [start, setStart] = useState(() => Temporal.Now.plainDateISO().toString());
     const [sign, setSign] = useState<1 | -1>(1);
     const [amounts, setAmounts] = useState<Record<Unit, string>>({days: "", weeks: "", months: "", years: ""});
 
@@ -75,12 +72,12 @@ export default function DateCalculator() {
     // The counted days run from the earlier date up to the later one, or through it when the end day counts:
     // Oct 12 to Oct 14 is 2 days, or 3 with the end day.
     const span = useMemo(() => {
-        const [from, to] = range ? [parseDay(range[0]), parseDay(range[1])] : [null, null];
+        const [from, to] = range ? [dayOf(range[0]), dayOf(range[1])] : [null, null];
         if (!from || !to) return null;
-        const until = withEnd ? addDays(to, 1) : to;
-        const days = daysBetween(from, until);
+        const until = withEnd ? to.add({days: 1}) : to;
+        const days = from.until(until).days;
         let weekdays = 0;
-        for (let day = from; day < until; day = addDays(day, 1)) if (day.getDay() % 6 !== 0) weekdays++;
+        for (let day = from; Temporal.PlainDate.compare(day, until) < 0; day = day.add({days: 1})) if (day.dayOfWeek <= 5) weekdays++;
         return {
             from, to, days, weekdays,
             weeks: days >= 7 ? `${plural(Math.floor(days / 7), "week")}${days % 7 ? `, ${plural(days % 7, "day")}` : ""}` : "less than a week",
@@ -89,14 +86,13 @@ export default function DateCalculator() {
     }, [range, withEnd]);
     const picking = Boolean(first && !second);
 
-    // Months and years first, then weeks and days, as calendars usually do: Jan 31 + 1 month + 1 day is Mar 1.
+    // Years and months first, then weeks and days, as calendars usually do (and Temporal's add): Jan 31 + 1 month +
+    // 1 day is Mar 1.
     const result = useMemo(() => {
-        const date = parseDay(start);
-        const n = (unit: Unit) => Number(amounts[unit]) || 0;
-        const months = n("years") * 12 + n("months");
-        const days = n("weeks") * 7 + n("days");
-        if (!date || (months === 0 && days === 0)) return null;
-        return addDays(addMonths(date, sign * months), sign * days);
+        const date = dayOf(start);
+        const n = (unit: Unit) => sign * (Number(amounts[unit]) || 0);
+        if (!date || UNITS.every((unit) => n(unit) === 0)) return null;
+        return date.add({years: n("years"), months: n("months"), weeks: n("weeks"), days: n("days")});
     }, [start, sign, amounts]);
 
     return (

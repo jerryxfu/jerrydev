@@ -1,5 +1,6 @@
 import {Link} from "wouter";
-import {formatPostAge, isReadable, listedPosts} from "@/pages/BlogPage/posts.tsx";
+import {formatPostAge, formatPostDate, isReadable, listedPosts} from "@/pages/BlogPage/posts.tsx";
+import type {IsoDay} from "@/utils.ts";
 import {topicIds, TOPICS} from "@/pages/BlogPage/topics.tsx";
 import "./BlogFeed.scss";
 
@@ -15,14 +16,8 @@ const recent = readable.slice(0, COUNT);
 
 // Day and month only. The year is in the title attribute for anything old enough to need it, and the
 // relative age at the end of the row carries the sense of "how long ago" that a full date does not.
-const stamp = (date: Date): string =>
-    date.toLocaleDateString("en-CA", {month: "short", day: "2-digit"});
-
-// Read off the local fields rather than through toISOString(). Post dates are local midnight by
-// construction (see postDate in posts.tsx), and converting one to UTC lands on the previous day for any
-// reader east of Greenwich, which would put a date in the markup that disagrees with the one rendered.
-const isoDay = (date: Date): string =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const stamp = (date: IsoDay): string =>
+    Temporal.PlainDate.from(date).toLocaleString("en-CA", {month: "short", day: "2-digit"});
 
 export default function BlogFeed() {
     return (
@@ -33,8 +28,8 @@ export default function BlogFeed() {
                         <Link href={`/blog/${post.slug}`} className="blogfeed_row">
                             <time
                                 className="blogfeed_stamp"
-                                dateTime={isoDay(post.date)}
-                                title={post.date.toLocaleDateString("en-CA", {year: "numeric", month: "long", day: "numeric"})}
+                                dateTime={post.date}
+                                title={formatPostDate(post.date)}
                             >
                                 {stamp(post.date)}
                             </time>

@@ -16,34 +16,33 @@ export function formatDuration(ms: number): string {
 }
 
 // "2h 5m", "12m": a drop's times, in hours and minutes (a drop lasts a day at most).
-function span(ms: number): string {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+function span(duration: Temporal.Duration): string {
+    const {hours, minutes} = duration.round({largestUnit: "hour", smallestUnit: "minute", roundingMode: "trunc"});
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
-export function timeUntil(dateStr: string): string {
-    const diff = new Date(dateStr).getTime() - Date.now();
-    if (diff <= 0) return "expired";
-    return span(diff);
+// The API's times are instants ("2026-11-02T20:33:50.123Z").
+export function timeUntil(iso: string): string {
+    const left = Temporal.Now.instant().until(Temporal.Instant.from(iso));
+    return left.sign <= 0 ? "expired" : span(left);
 }
 
 // "2h 5m ago", "just now": the other way.
-export function timeSince(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    return diff < 60_000 ? "just now" : `${span(diff)} ago`;
+export function timeSince(iso: string): string {
+    const ago = Temporal.Instant.from(iso).until(Temporal.Now.instant());
+    return ago.total("minutes") < 1 ? "just now" : `${span(ago)} ago`;
 }
 
-// "at 22:31", "tomorrow at 09:15", "on 10/12/2026 at 09:15": when, in the reader's own clock.
+// "at 22:31", "tomorrow at 9:15 AM", "on 10/12/2026 at 9:15 AM": when, in the reader's own clock and way of writing it.
+// The hour "numeric": Chrome writes a Temporal time's "2-digit" hour without the zero that Date gave it.
 export function when(iso: string): string {
-    const at = new Date(iso);
-    const time = at.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (at.toDateString() === new Date().toDateString()) return `at ${time}`;
-    if (at.toDateString() === tomorrow.toDateString()) return `tomorrow at ${time}`;
-    return `on ${at.toLocaleDateString()} at ${time}`;
+    const at = Temporal.Instant.from(iso).toZonedDateTimeISO(Temporal.Now.timeZoneId());
+    const time = at.toPlainTime().toLocaleString([], {hour: "numeric", minute: "2-digit"});
+    const today = Temporal.Now.plainDateISO();
+    const day = at.toPlainDate();
+    if (day.equals(today)) return `at ${time}`;
+    if (day.equals(today.add({days: 1}))) return `tomorrow at ${time}`;
+    return `on ${day.toLocaleString()} at ${time}`;
 }
 
 export function getDropUrl(code: string): string {

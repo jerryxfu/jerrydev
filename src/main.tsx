@@ -121,6 +121,10 @@ function PageHead() {
     return null;
 }
 
+// Dates and times go through Temporal (README, "Dates and times"). Safari doesn't have it yet (Nov 2026): it gets the
+// polyfill, under 20 kB, before anything is drawn. So no module may use Temporal as it loads, only once the app runs.
+if (!("Temporal" in globalThis)) await import("temporal-polyfill/global");
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
     throw new Error("Root element not found");

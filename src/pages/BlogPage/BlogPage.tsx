@@ -6,11 +6,12 @@ import PostCard from "./components/PostCard.tsx";
 import PostFilters from "./components/PostFilters.tsx";
 import {listedPosts} from "./posts.tsx";
 import {topicIds, TOPICS} from "./topics.tsx";
+import type {IsoDay} from "@/utils.ts";
 import {usePostFilter} from "./usePostFilter.ts";
 import "./BlogPage.scss";
 
-const monthKey = (date: Date): string => `${date.getFullYear()}-${date.getMonth()}`;
-const monthLabel = (date: Date): string => date.toLocaleDateString("en-CA", {month: "long", year: "numeric"});
+const monthKey = (date: IsoDay): string => Temporal.PlainDate.from(date).toPlainYearMonth().toString();
+const monthLabel = (date: IsoDay): string => Temporal.PlainDate.from(date).toLocaleString("en-CA", {month: "long", year: "numeric"});
 
 export default function BlogPage() {
     // Topics are a lens, not a partition, so the source here is still every post.

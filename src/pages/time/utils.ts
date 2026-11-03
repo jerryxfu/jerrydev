@@ -28,19 +28,3 @@ export function chime(audio: AudioContext | null): void {
         osc.stop(start + at + 0.65);
     });
 }
-
-// Calendar days, by the README's rules ("Dates and times"): a YYYY-MM-DD becomes a local midnight (T00:00:00), a Date
-// goes back to YYYY-MM-DD through its local fields (never toISOString), and days are counted between local midnights
-// with Math.round, since a DST change makes a day 23 or 25 hours long.
-export const isoDay = (date: Date): string => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-
-export const parseDay = (iso: string): Date | null => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
-    const date = new Date(`${iso}T00:00:00`);
-    return isNaN(date.getTime()) ? null : date;
-};
-
-export const daysBetween = (from: Date, to: Date): number => Math.round((to.getTime() - from.getTime()) / 86_400_000);
-
-// Day 0 of the next month is the last day of this one.
-export const daysInMonth = (year: number, month: number): number => new Date(year, month + 1, 0).getDate();

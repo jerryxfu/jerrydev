@@ -34,7 +34,7 @@ function toNum(x: number | "-?-"): number {
 }
 
 export function checkAlarms(v: Vitals, counters: AlarmCounters): { alerts: AlertItem[]; counters: AlarmCounters } {
-    const now = new Date().toLocaleTimeString();
+    const now = Temporal.Now.plainTimeISO().toLocaleString();
     const next: AlarmCounters = {...counters};
     const alerts: AlertItem[] = [];
 

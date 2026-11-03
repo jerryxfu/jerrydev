@@ -11,7 +11,7 @@ const relative = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
 
 // How long ago the build was made: "3 hours ago", "yesterday", "12 days ago".
 function buildAge(iso: string): string {
-    const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60_000);
+    const minutes = Math.round(Temporal.Instant.from(iso).since(Temporal.Now.instant()).total("minutes"));
     if (minutes > -60) return relative.format(minutes, "minute");
     const hours = Math.round(minutes / 60);
     if (hours > -24) return relative.format(hours, "hour");

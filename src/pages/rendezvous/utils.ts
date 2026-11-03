@@ -34,25 +34,16 @@ export function slotKey(date: string, time: string): string {
  * Returns {date: string, isSelected: boolean}[]
  */
 export function getDateRange(selectedDates: string[]): { date: string; isSelected: boolean }[] {
-    if (selectedDates.length === 0) return [];
-
     const sorted = [...selectedDates].sort();
-    const min = new Date(sorted[0] + "T00:00:00");
-    const max = new Date(sorted[sorted.length - 1] + "T00:00:00");
+    const [first] = sorted;
+    const last = sorted.at(-1);
+    if (!first || !last) return [];
     const selectedSet = new Set(sorted);
     const result: { date: string; isSelected: boolean }[] = [];
-
-    // toISODate, never toISOString(). Lines above parse with the "T00:00:00" suffix precisely to get
-    // LOCAL midnight, and toISOString then re-renders that instant in UTC — which is the previous calendar
-    // day for every reader at a positive offset. The emitted keys are both displayed (TimeSlotGrid feeds
-    // them to formatDateShort for the column header) and matched against selectedSet, so in Berlin a
-    // single-date event rendered one dead column headed "Sun 24" for an event on Mon 25, with nothing
-    // clickable and Submit disabled forever. getWeekRows below already used toISODate; this did not.
-    for (let d = new Date(min); d <= max; d.setDate(d.getDate() + 1)) {
-        const iso = toISODate(d);
+    for (let d = Temporal.PlainDate.from(first); Temporal.PlainDate.compare(d, last) <= 0; d = d.add({days: 1})) {
+        const iso = d.toString();
         result.push({date: iso, isSelected: selectedSet.has(iso)});
     }
-
     return result;
 }
 
@@ -60,13 +51,11 @@ export function getDateRange(selectedDates: string[]): { date: string; isSelecte
  * Format a date string to a short display, e.g. "Mon 26"
  */
 export function formatDateShort(dateStr: string): { day: string; date: number; month: string } {
-    const d = new Date(dateStr + "T00:00:00");
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const d = Temporal.PlainDate.from(dateStr);
     return {
-        day: days[d.getDay()] ?? "",
-        date: d.getDate(),
-        month: months[d.getMonth()] ?? "",
+        day: d.toLocaleString("en-US", {weekday: "short"}),
+        date: d.day,
+        month: d.toLocaleString("en-US", {month: "short"}),
     };
 }
 
@@ -94,10 +83,10 @@ export function formatDuration(ms: number): string {
  * Time remaining until an expiration date
  */
 export function timeUntil(expiresAt: string): string {
-    const diff = new Date(expiresAt).getTime() - Date.now();
-    if (diff <= 0) return "expired";
-    const hours = Math.floor(diff / 3_600_000);
-    if (hours < 1) return `${Math.floor(diff / 60_000)}m`;
+    const left = Temporal.Now.instant().until(Temporal.Instant.from(expiresAt));
+    if (left.sign <= 0) return "expired";
+    const hours = Math.floor(left.total("hours"));
+    if (hours < 1) return `${Math.floor(left.total("minutes"))}m`;
     if (hours < 24) return `${hours}h`;
     return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 }
@@ -110,22 +99,16 @@ export function getEventUrl(code: string): string {
 }
 
 /**
- * Generate a calendar month grid for a date picker.
- * Returns weeks (arrays of Date | null for padding).
+ * Generate a calendar month grid for a date picker, weeks from Sunday.
+ * Returns weeks (arrays of PlainDate | null for padding).
  */
-export function getCalendarMonth(year: number, month: number): (Date | null)[][] {
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const weeks: (Date | null)[][] = [];
-    let week: (Date | null)[] = [];
+export function getCalendarMonth(month: Temporal.PlainYearMonth): (Temporal.PlainDate | null)[][] {
+    const weeks: (Temporal.PlainDate | null)[][] = [];
+    // dayOfWeek counts Monday as 1 and Sunday as 7: the 1st's place in a week from Sunday.
+    let week: (Temporal.PlainDate | null)[] = Array.from({length: month.toPlainDate({day: 1}).dayOfWeek % 7}, () => null);
 
-    // Pad start
-    for (let i = 0; i < firstDay.getDay(); i++) {
-        week.push(null);
-    }
-
-    for (let d = 1; d <= lastDay.getDate(); d++) {
-        week.push(new Date(year, month, d));
+    for (let d = 1; d <= month.daysInMonth; d++) {
+        week.push(month.toPlainDate({day: d}));
         if (week.length === 7) {
             weeks.push(week);
             week = [];
@@ -141,13 +124,6 @@ export function getCalendarMonth(year: number, month: number): (Date | null)[][]
     return weeks;
 }
 
-export function toISODate(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-}
-
 export interface WeekCell {
     date: string;         // ISO date
     isSelected: boolean;  // part of the event's selected dates
@@ -160,42 +136,26 @@ export interface WeekCell {
  * Each week is padded to 7 cells with context days.
  */
 export function getWeekRows(selectedDates: string[]): WeekCell[][] {
-    if (selectedDates.length === 0) return [];
-
-    const selectedSet = new Set(selectedDates);
     const sorted = [...selectedDates].sort();
+    const [first] = sorted;
+    const last = sorted.at(-1);
+    if (!first || !last) return [];
+    const selectedSet = new Set(sorted);
 
-    // Find the Monday of the earliest date's week and Sunday of the latest
-    const firstDate = new Date(sorted[0] + "T00:00:00");
-    const lastDate = new Date(sorted[sorted.length - 1] + "T00:00:00");
-
-    // getDay: 0=Sun,1=Mon,...,6=Sat → convert to 0=Mon,...,6=Sun
-    const toMondayBased = (d: Date) => (d.getDay() + 6) % 7;
-
-    const monday = new Date(firstDate);
-    monday.setDate(monday.getDate() - toMondayBased(firstDate));
-
-    const sunday = new Date(lastDate);
-    sunday.setDate(sunday.getDate() + (6 - toMondayBased(lastDate)));
+    // The Monday of the earliest date's week and the Sunday of the latest (dayOfWeek: Monday 1, Sunday 7)
+    const firstDate = Temporal.PlainDate.from(first);
+    const lastDate = Temporal.PlainDate.from(last);
+    const monday = firstDate.subtract({days: firstDate.dayOfWeek - 1});
+    const sunday = lastDate.add({days: 7 - lastDate.dayOfWeek});
 
     // Build all weeks in range
     const allWeeks: WeekCell[][] = [];
-    const weekStart = new Date(monday);
-
-    while (weekStart <= sunday) {
-        const week: WeekCell[] = [];
-        for (let i = 0; i < 7; i++) {
-            const d = new Date(weekStart);
-            d.setDate(d.getDate() + i);
-            const iso = toISODate(d);
-            week.push({
-                date: iso,
-                isSelected: selectedSet.has(iso),
-                dayOfWeek: i,
-            });
-        }
-        allWeeks.push(week);
-        weekStart.setDate(weekStart.getDate() + 7);
+    for (let weekStart = monday; Temporal.PlainDate.compare(weekStart, sunday) <= 0; weekStart = weekStart.add({weeks: 1})) {
+        const start = weekStart;
+        allWeeks.push(Array.from({length: 7}, (_, i) => {
+            const iso = start.add({days: i}).toString();
+            return {date: iso, isSelected: selectedSet.has(iso), dayOfWeek: i};
+        }));
     }
 
     // Filter to only weeks containing at least one selected date

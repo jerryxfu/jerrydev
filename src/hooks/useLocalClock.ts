@@ -4,22 +4,6 @@ import {useEffect, useMemo, useState} from "react";
 // this follows daylight saving on its own: Montréal is EST only from November to March, EDT the rest of the year.
 export const MY_ZONE = "America/Toronto";
 
-// Minutes that a zone is ahead of UTC at this instant. Intl gives the wall-clock reading in that zone;
-// treating that reading as if it were UTC and subtracting the real instant yields the offset, DST and
-// half-hour zones included. Rounded to the minute because the parts are only second-accurate.
-function zoneOffsetMinutes(date: Date, timeZone: string): number {
-    const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone, hour12: false,
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-    }).formatToParts(date);
-    // Read by part type rather than through an Object.fromEntries lookup: that returns an index signature, and under noUncheckedIndexedAccess every field off it is string | undefined.
-    const get = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-    // hour is 0-23 under hour12: false, except that some engines emit 24 for midnight.
-    const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"), get("second"));
-    return Math.round((asUTC - date.getTime()) / 60000);
-}
-
 export type LocalClock = {
     hm: string; // "6:41", apart from the period so a morph only swaps the digits that changed
     period: string; // "PM"
@@ -33,18 +17,18 @@ export type LocalClock = {
 };
 
 export default function useLocalClock(timeZone: string = MY_ZONE): LocalClock {
-    const [now, setNow] = useState(() => new Date());
+    const [now, setNow] = useState(() => Temporal.Now.instant());
 
     // Ticks on the minute, so the digits change when a wall clock's would. Every zone's offset is a whole number of
     // minutes, so the epoch's minutes line up with everyone's. A tab coming back from the background catches up at once.
     useEffect(() => {
         let interval: number | undefined;
         const timeout = window.setTimeout(() => {
-            setNow(new Date());
-            interval = window.setInterval(() => setNow(new Date()), 60_000);
+            setNow(Temporal.Now.instant());
+            interval = window.setInterval(() => setNow(Temporal.Now.instant()), 60_000);
         }, 60_000 - (Date.now() % 60_000) + 50);
         const onVisible = () => {
-            if (document.visibilityState === "visible") setNow(new Date());
+            if (document.visibilityState === "visible") setNow(Temporal.Now.instant());
         };
         document.addEventListener("visibilitychange", onVisible);
         return () => {
@@ -55,13 +39,14 @@ export default function useLocalClock(timeZone: string = MY_ZONE): LocalClock {
     }, []);
 
     return useMemo(() => {
+        const mine = now.toZonedDateTimeISO(timeZone);
         const parts = new Intl.DateTimeFormat("en-US", {
             hour: "numeric", minute: "2-digit", timeZone, timeZoneName: "short",
-        }).formatToParts(now);
+        }).formatToParts(now.epochMilliseconds);
         const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
 
-        // getTimezoneOffset is minutes behind UTC, so it is negated to match zoneOffsetMinutes.
-        const delta = zoneOffsetMinutes(now, timeZone) + now.getTimezoneOffset();
+        // Each zone's offset from UTC at this instant, daylight saving and half-hour zones included.
+        const delta = Math.round((mine.offsetNanoseconds - now.toZonedDateTimeISO(Temporal.Now.timeZoneId()).offsetNanoseconds) / 60e9);
         const abs = Math.abs(delta);
         const h = Math.floor(abs / 60), m = abs % 60;
 
@@ -71,9 +56,8 @@ export default function useLocalClock(timeZone: string = MY_ZONE): LocalClock {
             zone: part("timeZoneName") || "ET",
             delta,
             span: m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
-            date: new Intl.DateTimeFormat("en-US", {weekday: "long", month: "long", day: "numeric", timeZone}).format(now),
-            // en-CA writes dates the ISO way.
-            day: new Intl.DateTimeFormat("en-CA", {year: "numeric", month: "2-digit", day: "2-digit", timeZone}).format(now),
+            date: mine.toLocaleString("en-US", {weekday: "long", month: "long", day: "numeric"}),
+            day: mine.toPlainDate().toString(),
         };
     }, [now, timeZone]);
 }

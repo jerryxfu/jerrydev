@@ -1,5 +1,3 @@
-import {pad2} from "../utils.ts";
-
 // The sync test pattern, drawn from the time alone: a given moment looks the same on every screen, and the whole
 // picture repeats once a second. Two screens side by side, or a screen and a camera's view of it, compare at a glance.
 
@@ -150,11 +148,20 @@ function strip(ctx: CanvasRenderingContext2D, frames: Frames | null) {
     }
 }
 
+// The wall clock's 21:40:13 for a Unix second, here: worked out once a second, since the pattern draws every frame.
+let wall = {second: NaN, text: ""};
+function wallTime(second: number): string {
+    if (second !== wall.second) {
+        const time = Temporal.Instant.fromEpochMilliseconds(second * 1000).toZonedDateTimeISO(Temporal.Now.timeZoneId()).toPlainTime();
+        wall = {second, text: time.toString()};
+    }
+    return wall.text;
+}
+
 // The time of day to the millisecond: take one photo of two screens, and the difference is the delay.
 function timecode(ctx: CanvasRenderingContext2D, second: number, p: number, font: string) {
-    const date = new Date(second * 1000);
     const parts = [
-        {text: `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`, size: TIMECODE.size, color: WHITE},
+        {text: wallTime(second), size: TIMECODE.size, color: WHITE},
         {text: `.${String(Math.floor(p * 1000)).padStart(3, "0")}`, size: TIMECODE.size * 0.7, color: MILLIS},
     ].map((part) => {
         ctx.font = `500 ${part.size}px ${font}`;

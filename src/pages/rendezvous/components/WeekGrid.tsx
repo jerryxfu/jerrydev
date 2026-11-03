@@ -20,8 +20,8 @@ export default function WeekGrid({weekRows, renderCell}: WeekGridProps) {
     if (firstDate === undefined || lastDate === undefined) return null;
     const firstInfo = formatDateShort(firstDate);
     const lastInfo = formatDateShort(lastDate);
-    const firstYear = new Date(firstDate + "T00:00:00").getFullYear();
-    const lastYear = new Date(lastDate + "T00:00:00").getFullYear();
+    const firstYear = Temporal.PlainDate.from(firstDate).year;
+    const lastYear = Temporal.PlainDate.from(lastDate).year;
     const spansMultipleMonths = firstDate.slice(0, 7) !== lastDate.slice(0, 7);
 
     return (

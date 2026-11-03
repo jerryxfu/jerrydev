@@ -1,15 +1,15 @@
 import {useState} from "react";
 import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight} from "lucide-react";
-import {isoDay} from "../utils.ts";
 import "./RangeCalendar.scss";
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]; // Sunday first, as Rendezvous's calendar
 
 // Six weeks from the Sunday on or before the 1st: every month takes the same room (the card doesn't jump), and the
-// days around it can be picked too.
-const monthGrid = (year: number, month: number): Date[] => {
-    const offset = new Date(year, month, 1).getDay();
-    return Array.from({length: 42}, (_, i) => new Date(year, month, 1 - offset + i));
+// days around it can be picked too. dayOfWeek counts Monday as 1 and Sunday as 7.
+const monthGrid = (month: Temporal.PlainYearMonth): Temporal.PlainDate[] => {
+    const first = month.toPlainDate({day: 1});
+    const sunday = first.subtract({days: first.dayOfWeek % 7});
+    return Array.from({length: 42}, (_, i) => sunday.add({days: i}));
 };
 
 type Props = {
@@ -21,16 +21,13 @@ type Props = {
 // A month to pick two days on. With only the first one picked, the day under the pointer shows where the range would
 // end. Dates are compared as YYYY-MM-DD strings, which sort as the days do.
 export default function RangeCalendar({first, second, onPick}: Props) {
-    const now = new Date();
-    const today = isoDay(now);
-    const [view, setView] = useState(() => ({year: now.getFullYear(), month: now.getMonth()}));
+    const now = Temporal.Now.plainDateISO();
+    const today = now.toString();
+    const [view, setView] = useState(() => now.toPlainYearMonth());
     const [hover, setHover] = useState<string | null>(null);
 
-    const shift = (months: number) => setView(({year, month}) => {
-        const date = new Date(year, month + months, 1);
-        return {year: date.getFullYear(), month: date.getMonth()};
-    });
-    const away = view.year !== now.getFullYear() || view.month !== now.getMonth();
+    const shift = (months: number) => setView((month) => month.add({months}));
+    const away = !view.equals(now.toPlainYearMonth());
 
     const preview = Boolean(first && !second && hover);
     const end = second ?? (preview ? hover : first);
@@ -42,10 +39,10 @@ export default function RangeCalendar({first, second, onPick}: Props) {
                 <button aria-label="Previous year" onClick={() => shift(-12)}><ChevronsLeft size={16} /></button>
                 <button aria-label="Previous month" onClick={() => shift(-1)}><ChevronLeft size={16} /></button>
                 <span className="rangecal_month" aria-live="polite">
-                    {new Date(view.year, view.month).toLocaleDateString([], {month: "long", year: "numeric"})}
+                    {view.toPlainDate({day: 1}).toLocaleString([], {month: "long", year: "numeric"})}
                 </span>
                 {away && (
-                    <button className="rangecal_today" onClick={() => setView({year: now.getFullYear(), month: now.getMonth()})}>
+                    <button className="rangecal_today" onClick={() => setView(now.toPlainYearMonth())}>
                         Today
                     </button>
                 )}
@@ -55,12 +52,12 @@ export default function RangeCalendar({first, second, onPick}: Props) {
 
             <div className={`rangecal_grid ${preview ? "is-preview" : ""}`} onMouseLeave={() => setHover(null)}>
                 {WEEKDAYS.map((day) => <span key={day} className="rangecal_weekday" aria-hidden>{day}</span>)}
-                {monthGrid(view.year, view.month).map((date) => {
-                    const day = isoDay(date);
+                {monthGrid(view).map((date) => {
+                    const day = date.toString();
                     const inRange = lo !== null && hi !== null && day >= lo && day <= hi;
                     const classes = [
                         "rangecal_day",
-                        date.getMonth() !== view.month && "is-outside",
+                        date.month !== view.month && "is-outside",
                         day === today && "is-today",
                         inRange && "is-in",
                         day === lo && "is-lo",
@@ -71,11 +68,11 @@ export default function RangeCalendar({first, second, onPick}: Props) {
                             key={day}
                             className={classes}
                             aria-pressed={day === first || day === second}
-                            aria-label={date.toLocaleDateString([], {weekday: "long", month: "long", day: "numeric", year: "numeric"})}
+                            aria-label={date.toLocaleString([], {weekday: "long", month: "long", day: "numeric", year: "numeric"})}
                             onClick={() => onPick(day)}
                             onMouseEnter={() => setHover(day)}
                         >
-                            <span>{date.getDate()}</span>
+                            <span>{date.day}</span>
                         </button>
                     );
                 })}

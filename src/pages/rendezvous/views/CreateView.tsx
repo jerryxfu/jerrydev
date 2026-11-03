@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 import {type EventSettings, GRANULARITY_OPTIONS, TTL_PRESETS} from "../types.ts";
-import {formatDuration, getCalendarMonth, toISODate} from "../utils.ts";
+import {formatDuration, getCalendarMonth} from "../utils.ts";
 import Divider from "../../../components/Divider/Divider.tsx";
 import "./CreateView.scss";
 
@@ -17,13 +17,12 @@ interface CreateViewProps {
 const HOURS = Array.from({length: 24}, (_, i) => `${String(i).padStart(2, "0")}:00`);
 
 export default function CreateView({settings, setSettings, error, loading, onCreate, onCancel}: CreateViewProps) {
-    const today = new Date();
-    const [calYear, setCalYear] = useState(today.getFullYear());
-    const [calMonth, setCalMonth] = useState(today.getMonth());
+    const today = Temporal.Now.plainDateISO();
+    const [month, setMonth] = useState(() => today.toPlainYearMonth());
 
-    const weeks = getCalendarMonth(calYear, calMonth);
-    const monthLabel = new Date(calYear, calMonth).toLocaleString("default", {month: "long", year: "numeric"});
-    const todayISO = toISODate(today);
+    const weeks = getCalendarMonth(month);
+    const monthLabel = month.toPlainDate({day: 1}).toLocaleString([], {month: "long", year: "numeric"});
+    const todayISO = today.toString();
 
     const toggleDate = (dateStr: string) => {
         setSettings(s => {
@@ -34,23 +33,8 @@ export default function CreateView({settings, setSettings, error, loading, onCre
         });
     };
 
-    const prevMonth = () => {
-        if (calMonth === 0) {
-            setCalMonth(11);
-            setCalYear(y => y - 1);
-        } else {
-            setCalMonth(m => m - 1);
-        }
-    };
-
-    const nextMonth = () => {
-        if (calMonth === 11) {
-            setCalMonth(0);
-            setCalYear(y => y + 1);
-        } else {
-            setCalMonth(m => m + 1);
-        }
-    };
+    const prevMonth = () => setMonth(m => m.subtract({months: 1}));
+    const nextMonth = () => setMonth(m => m.add({months: 1}));
 
     return (
         <div className="rv_create">
@@ -84,7 +68,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                     {weeks.flat().map((date, i) => {
                         if (!date) return <div key={`empty-${i}`} className="rv_calendar-cell rv_calendar-cell--empty" />;
 
-                        const iso = toISODate(date);
+                        const iso = date.toString();
                         const isPast = iso < todayISO;
                         const isSelected = settings.dates.includes(iso);
 
@@ -100,7 +84,7 @@ export default function CreateView({settings, setSettings, error, loading, onCre
                                 disabled={isPast}
                                 onClick={() => toggleDate(iso)}
                             >
-                                {date.getDate()}
+                                {date.day}
                             </button>
                         );
                     })}

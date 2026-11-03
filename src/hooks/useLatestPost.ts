@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
 import type {Tag} from "@/pages/BlogPage/posts.tsx";
+import type {IsoDay} from "@/utils.ts";
 
 export type LatestPost = {
     slug: string;
     title: string;
-    date: Date;
+    date: IsoDay;
     // "19 days ago", "yesterday": formatPostAge's wording.
     age: string;
     tags: Tag[];

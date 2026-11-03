@@ -50,18 +50,22 @@ const FILE_MODE = (0o100644 << 16) >>> 0;
 
 // The time in a zip is a DOS one: local, to two seconds, from 1980 to 2107.
 function dosTime(ms: number): { time: number; date: number } {
-    const d = new Date(ms);
-    const year = d.getFullYear();
-    if (!Number.isFinite(year) || year < 1980) return {time: 0, date: (1 << 5) | 1};
-    if (year > 2107) return {time: (23 << 11) | (59 << 5) | 29, date: (127 << 9) | (12 << 5) | 31};
+    const d = Number.isFinite(ms) ? Temporal.Instant.fromEpochMilliseconds(ms).toZonedDateTimeISO(Temporal.Now.timeZoneId()) : null;
+    if (!d || d.year < 1980) return {time: 0, date: (1 << 5) | 1};
+    if (d.year > 2107) return {time: (23 << 11) | (59 << 5) | 29, date: (127 << 9) | (12 << 5) | 31};
     return {
-        time: (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1),
-        date: ((year - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+        time: (d.hour << 11) | (d.minute << 5) | (d.second >> 1),
+        date: ((d.year - 1980) << 9) | (d.month << 5) | d.day,
     };
 }
 
+// Fields out of range (a zip with no date has month 0, day 0) are brought into it: January, the 1st.
 function fromDosTime(time: number, date: number): number {
-    return new Date(1980 + (date >> 9), ((date >> 5) & 15) - 1, date & 31, time >> 11, (time >> 5) & 63, (time & 31) * 2).getTime();
+    return Temporal.ZonedDateTime.from({
+        timeZone: Temporal.Now.timeZoneId(),
+        year: 1980 + (date >> 9), month: (date >> 5) & 15, day: date & 31,
+        hour: time >> 11, minute: (time >> 5) & 63, second: (time & 31) * 2,
+    }).epochMilliseconds;
 }
 
 /** The zip of these files, named `name`. Their CRC-32s are needed first (crc32Of). */

@@ -82,7 +82,7 @@ export default function Hero() {
 
     const {currentTheme} = useTheme();
 
-    const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+    const currentMonth = useMemo(() => Temporal.Now.plainDateISO().month, []);
 
     // combine general and month-specific texts
     const combinedTexts = useMemo(() => [...(texts[0] || []), ...(texts[currentMonth] || [])], [currentMonth]);

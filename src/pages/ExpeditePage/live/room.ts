@@ -16,7 +16,7 @@ function readSeats(): Seats {
     try {
         const seats = JSON.parse(localStorage.getItem(SEATS_KEY) ?? "{}") as Seats;
         // Rooms that have ended are forgotten.
-        return Object.fromEntries(Object.entries(seats).filter(([, seat]) => new Date(seat.expiresAt).getTime() > Date.now()));
+        return Object.fromEntries(Object.entries(seats).filter(([, seat]) => Temporal.Instant.compare(seat.expiresAt, Temporal.Now.instant()) > 0));
     } catch {
         return {};
     }

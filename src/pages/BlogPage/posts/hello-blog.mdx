@@ -12,7 +12,7 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
     slug: "why-rag-is-mid",          // must match the filename, anywhere under posts/
     title: "Why RAG is mid",
     description: "Card copy, and the meta description on the post page.",
-    date: postDate("2026-09-01"),   // NOT new Date() (see below)
+    date: "2026-09-01",             // the day, as text (see below)
     tags: ["ai", "notes"],
     lang: "en",                      // "en" | "fr" | "es", shown on the card
     image: _ragDiagram,              // optional
@@ -22,9 +22,8 @@ Two steps: append an entry to `posts` in `posts.tsx`, then create the matching f
 
 Miss either half and the dev console names the offender at boot. Nothing enforces this at build time, so that check is the only safety net.
 
-Use `postDate("YYYY-MM-DD")`, never `new Date("YYYY-MM-DD")`. A bare date string is parsed as **UTC** midnight, which
-is the previous evening anywhere west of Greenwich. The helper appends `T00:00:00` to force local parsing.
-Similar issue to ProjectCards.
+Write the date as text, `"YYYY-MM-DD"`, never `new Date(...)`. It's a calendar day, with no time and no time zone: the
+pages read it with `Temporal.PlainDate`, so it can't slip to the day before for a reader west of Greenwich.
 
 ## Folders under `posts/`
 

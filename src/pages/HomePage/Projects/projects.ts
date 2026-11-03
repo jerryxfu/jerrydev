@@ -1,4 +1,5 @@
 import type {CardProps} from "@/components/Card/Card.tsx";
+import type {IsoDay} from "@/utils.ts";
 import _llmvsllm from "@/assets/projects/llmvsllm.jpeg";
 import _baputils from "@/assets/projects/baputils.jpeg";
 import _expedite from "@/assets/projects/expedite.jpeg";
@@ -50,15 +51,13 @@ export type Category = keyof typeof CATEGORIES;
 export const categoryIds = Object.keys(CATEGORIES) as Category[];
 
 export type Project = Omit<CardProps, "dateDisplay"> & {
-    // A Date rather than CardProps' preformatted string, so the list can sort and say "May 2026" while the card says
-    // "18-05-2026 (141 days ago)". Local midnight, see the T00:00:00 note in BlogPage/posts.tsx.
-    date: Date;
+    // The day rather than CardProps' preformatted string, so the card can say "18-05-2026 (141 days ago)" on the day
+    // it's read.
+    date: IsoDay;
     categories: Category[];
     // For the dark themes, when the image only reads on a light background.
     imageDark?: string;
 };
-
-const day = (iso: `${number}-${number}-${number}`): Date => new Date(`${iso}T00:00:00`);
 
 export const isArchived = (project: Project): boolean => project.categories.includes("archived");
 
@@ -69,7 +68,7 @@ export const projects: Project[] = [
         subTitle: "Custom browser start page",
         image: _homeisland,
         chipText: "🟢 Stable",
-        date: day("2026-02-05"),
+        date: "2026-02-05",
         url: "https://github.com/jerryxfu/home-island",
         description: "A beautiful, minimalist browser extension with time-based dynamic backgrounds and personalized settings. Available on Chrome, Firefox, and Safari.",
         footer: "Click image for links",
@@ -80,7 +79,7 @@ export const projects: Project[] = [
         subTitle: "Share files and text snippets instantly!",
         image: _expedite,
         chipText: "🟢 Stable",
-        date: day("2026-05-18"),
+        date: "2026-05-18",
         description: "A webpage for quickly sharing files and text snippets with other people or across your own devices",
         url: "/expedite",
         footer: "Same-day shipping!",
@@ -91,7 +90,7 @@ export const projects: Project[] = [
         subTitle: "A companion app for FRC",
         image: _technexus,
         chipText: "🟢 Stable",
-        date: day("2026-04-08"),
+        date: "2026-04-08",
         url: "https://technexus.jerryxf.net",
         description: "A mobile app that provides dynamic schedule updates and useful tools & information for FIRST Robotics competition team members.",
         footer: "iOS & Android · With Raphaël & Samy",
@@ -102,7 +101,7 @@ export const projects: Project[] = [
         subTitle: "Research project",
         image: _medive,
         chipText: "🚧 WIP",
-        date: day("2025-08-14"),
+        date: "2025-08-14",
         url: "https://github.com/jerryxfu/medive",
         specialLink: "/blog/medive-devlog0",
         description: "An AI system that generates differential diagnoses from free-text symptom presentations using a hybrid model that fuses biomedical text embeddings with medical ontology concept embeddings.",
@@ -116,7 +115,7 @@ export const projects: Project[] = [
         chipText: "🟢 Stable",
         description: "HiddenGarden is a flower shop founded by Maria. This is their website built by me, featuring many flower options and online ordering.",
         url: "https://hiddengarden.pages.dev",
-        date: day("2026-06-12"),
+        date: "2026-06-12",
         footer: "For Maria",
         categories: ["web"],
     },
@@ -125,7 +124,7 @@ export const projects: Project[] = [
         subTitle: "A Hypixel Skyblock Minecraft mod",
         image: _baputils,
         chipText: "🚧 WIP",
-        date: day("2023-06-24"),
+        date: "2023-06-24",
         url: "https://github.com/jerryxfu/BapUtils",
         description: "BapUtils is a lightweight Minecraft Fabric mod for Hypixel Skyblock that provides various quality of life utilities. The update to Minecraft version 26.2 is underway",
         footer: "/bap",
@@ -136,7 +135,7 @@ export const projects: Project[] = [
         subTitle: "Clocks, timers, date math and an A/V sync test",
         image: _time,
         chipText: "🟢 Stable",
-        date: day("2026-06-10"),
+        date: "2026-06-10",
         description: "A webpage of time tools: a Unix time converter, world clocks, a countdown, a stopwatch, a date calculator and an A/V sync test pattern for checking display lag.",
         url: "/time",
         categories: ["web", "tools"],
@@ -146,7 +145,7 @@ export const projects: Project[] = [
         subTitle: "A schedule visualizer and comparer",
         image: _scheduler,
         chipText: "🟢 Stable",
-        date: day("2025-08-27"),
+        date: "2025-08-27",
         url: "/scheduler",
         description: "A web app to visualize and compare daily/weekly schedules.",
         categories: ["web", "tools"],
@@ -158,7 +157,7 @@ export const projects: Project[] = [
         chipText: "🟢 Stable",
         description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
         url: "/rendezvous",
-        date: day("2026-05-22"),
+        date: "2026-05-22",
         categories: ["web", "tools"],
     },
     {
@@ -167,7 +166,7 @@ export const projects: Project[] = [
         image: _unveil_dark,
         imageDark: _unveil_light,
         chipText: "🌀 Concept",
-        date: day("2025-10-01"),
+        date: "2025-10-01",
         url: "https://unveiltechnologies.com",
         description: "Fusing live, multi-source data into actionable insight and explainable intel assessments, for Unveil Technologies. Built for any operation where understanding can't wait. It never shipped, but planning it all the way through taught me a lot.",
         footer: "TRL-3",
@@ -178,7 +177,7 @@ export const projects: Project[] = [
         subTitle: "Plays Kahoot! on command",
         image: _kahootBot,
         chipText: "🟢 Stable",
-        date: day("2024-07-01"),
+        date: "2024-07-01",
         url: "https://github.com/jerryxfu/kahoot-bot",
         description: "A Kahoot bot that can join games, answer questions, and send reactions at your command. Built using Python and Playwright to automate the web interface.",
         categories: ["mods"],
@@ -192,7 +191,7 @@ export const projects: Project[] = [
         specialLinkText: "Open",
         description: "Practical guides to tools worth knowing, usually created at the request of friends. Each one starts from zero and doubles as a reference you can come back to. Currently has python, git, and excel.",
         url: "/blog/topics/guides",
-        date: day("2026-08-21"),
+        date: "2026-08-21",
         categories: ["tools"],
     },
     {
@@ -200,7 +199,7 @@ export const projects: Project[] = [
         subTitle: "This website, right here!",
         image: _jerryxf,
         chipText: "🟢 Stable",
-        date: day("2022-07-25"), // aspectofjerry.dev registration date
+        date: "2022-07-25", // aspectofjerry.dev registration date
         description: "This portfolio website, the blog, as well as the API that empowers other projects.",
         specialLink: "/blog/hello-blog",
         categories: ["web"],
@@ -211,7 +210,7 @@ export const projects: Project[] = [
         image: _vite_light,
         imageDark: _vite_dark,
         chipText: "🟢 Stable",
-        date: day("2026-05-22"), // first commit
+        date: "2026-05-22", // first commit
         url: "https://github.com/jerryxfu/vite-react-ts",
         specialLink: "https://github.com/jerryxfu/vite-react-ts",
         specialLinkText: "View on GitHub",
@@ -223,7 +222,7 @@ export const projects: Project[] = [
         subTitle: "Cool live data feeds",
         image: _stats,
         chipText: "🟢 Stable",
-        date: day("2026-07-22"),
+        date: "2026-07-22",
         url: "https://stats.jerryxf.net",
         description: "A collection of diverse live data feeds, including Quebec ER capacity and Hypixel Skyblock Attribute Shards Fusion prices.",
         categories: ["web", "ai"],
@@ -234,7 +233,7 @@ export const projects: Project[] = [
         image: _jerrybot,
         chipText: "🟢 Stable",
         url: "https://github.com/jerryxfu/jerrybot-discord",
-        date: day("2021-09-01"),
+        date: "2021-09-01",
         description: "JerryBot is a comprehensive all purpose Discord bot that provides various utilities and fun features.",
         categories: ["mods"],
     },
@@ -243,7 +242,7 @@ export const projects: Project[] = [
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
         chipText: "✅ Completed",
-        date: day("2025-08-19"),
+        date: "2025-08-19",
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface.",
         categories: ["ai"],
@@ -253,7 +252,7 @@ export const projects: Project[] = [
         subTitle: "A tire distributor's website",
         image: _doublestartyre,
         chipText: "🟢 Stable",
-        date: day("2024-07-11"),
+        date: "2024-07-11",
         url: "https://doublestartyre.ca",
         description: "Doublestartyre.ca is a website for Doublestar Tire, a Dodo Wheels partner in Canada.",
         footer: "For Dodo Wheels",
@@ -264,7 +263,7 @@ export const projects: Project[] = [
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
         chipText: "📦 Archived",
-        date: day("2025-05-09"),
+        date: "2025-05-09",
         url: "https://www.lapresse.ca/societe/2025-05-18/mission-la-robotique-pour-tous-et-toutes.php",
         description: "A real-time score tracking and broadcasting app for our off-season robotics competition.",
         footer: "RSEQ Montreal",
@@ -275,7 +274,7 @@ export const projects: Project[] = [
         subTitle: "A rule based diagnostic app",
         image: _conditioner,
         chipText: "🗑️ Obsolete",
-        date: day("2025-07-24"),
+        date: "2025-07-24",
         url: "/#:~:text=MEDIVE",
         description: "Conditioner is a weighted rule-based diagnostic app that allows users to select symptoms and receive preliminary feedback on their \"condition\". Superseded by MEDIVE.",
         categories: ["ai", "archived"],
@@ -285,7 +284,7 @@ export const projects: Project[] = [
         subTitle: "A small indoor weather station",
         image: _weatherStation,
         chipText: "✅ Completed",
-        date: day("2025-02-08"),
+        date: "2025-02-08",
         description: "A cool Raspberry Pi Pico bricolage weather station that displays temperature, humidity, pressure, and air quality info along with dynamic lighting.",
         categories: ["robotics"],
     },
@@ -295,7 +294,7 @@ export const projects: Project[] = [
         image: _tools_light,
         imageDark: _tools_dark,
         chipText: "🟢 Stable",
-        date: day("2026-06-15"),
+        date: "2026-06-15",
         url: "https://github.com/jerryxfu/tools",
         description: "A repository with random utility scripts that I use here and there.",
         categories: ["tools"],
@@ -305,7 +304,7 @@ export const projects: Project[] = [
         subTitle: "Autonomous scouting for FRC",
         image: _autoscout,
         chipText: "🗑️ Obsolete",
-        date: day("2024-03-23"), // MotionLens creation
+        date: "2024-03-23", // MotionLens creation
         description: "A Python script that uses The Blue Alliance data to generate scouting reports, including Zebra MotionWorks motion analysis.",
         url: "https://github.com/jerryxfu/auto-scout",
         categories: ["robotics", "archived"],
@@ -316,7 +315,7 @@ export const projects: Project[] = [
         image: _llmvsllm,
         chipText: "📦 Archived",
         url: "https://github.com/jerryxfu/llmvsllm",
-        date: day("2024-05-18"),
+        date: "2024-05-18",
         description: "LLM vs LLM was a project that allowed two large language models to debate on a given topic, showcasing the capabilities (or inability) of LLMs in generating coherent and relevant arguments.",
         categories: ["ai", "archived"],
     },
@@ -327,7 +326,8 @@ export const projects: Project[] = [
     // MegaCSV (/megacsv, 🌀 Concept), Itinerary (public transit, 🌀 Concept)
 ];
 
-export const firstYear = Math.min(...projects.map((project) => project.date.getFullYear()));
+// The oldest project's year, for "21 projects since 2019".
+export const firstYear = (): number => Math.min(...projects.map((project) => Temporal.PlainDate.from(project.date).year));
 
 export const imageFor = (project: Project, dark: boolean): Project["image"] =>
     dark && project.imageDark ? project.imageDark : project.image;

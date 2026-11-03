@@ -7,44 +7,38 @@ interface Progress {
     pct: number;
 }
 
-// Uses start/end Date objects (not fixed 86400000) so DST-length days/weeks stay correct
-function computeProgress(now: Date): Progress[] {
-    const ms = now.getTime();
-    const y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
+// Each from the first moment of its first day to that of the next one's, here, so a day of 23 or 25 hours (daylight
+// saving) counts as it is. Weeks start on Monday (dayOfWeek 1).
+function computeProgress(now: Temporal.ZonedDateTime): Progress[] {
+    const today = now.toPlainDate();
+    const startOf = (day: Temporal.PlainDate) => day.toZonedDateTime(now.timeZoneId).epochMilliseconds;
+    const pct = (first: Temporal.PlainDate, next: Temporal.PlainDate) =>
+        ((now.epochMilliseconds - startOf(first)) / (startOf(next) - startOf(first))) * 100;
 
-    const startY = new Date(y, 0, 1).getTime();
-    const endY = new Date(y + 1, 0, 1).getTime();
-    const startMo = new Date(y, mo, 1).getTime();
-    const endMo = new Date(y, mo + 1, 1).getTime();
-    const startD = new Date(y, mo, d).getTime();
-    const endD = new Date(y, mo, d + 1).getTime();
-
-    const dow = (now.getDay() + 6) % 7; // Monday = 0
-    const startW = new Date(y, mo, d - dow).getTime();
-    const endW = new Date(y, mo, d - dow + 7).getTime();
-
-    const pct = (a: number, b: number) => ((ms - a) / (b - a)) * 100;
+    const year = today.with({month: 1, day: 1});
+    const month = today.with({day: 1});
+    const week = today.subtract({days: today.dayOfWeek - 1});
     return [
-        {label: "Year", pct: pct(startY, endY)},
-        {label: "Month", pct: pct(startMo, endMo)},
-        {label: "Week", pct: pct(startW, endW)},
-        {label: "Day", pct: pct(startD, endD)},
+        {label: "Year", pct: pct(year, year.add({years: 1}))},
+        {label: "Month", pct: pct(month, month.add({months: 1}))},
+        {label: "Week", pct: pct(week, week.add({weeks: 1}))},
+        {label: "Day", pct: pct(today, today.add({days: 1}))},
     ];
 }
 
 // The clock, and the year, month, week and day so far: folded or not, as the page says (Time.tsx), and by hand.
 export default function TimeBar({open, onToggle}: { open: boolean; onToggle: () => void }) {
-    const [now, setNow] = useState(() => new Date());
+    const [now, setNow] = useState(() => Temporal.Now.zonedDateTimeISO());
 
     useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000);
+        const id = setInterval(() => setNow(Temporal.Now.zonedDateTimeISO()), 1000);
         return () => clearInterval(id);
     }, []);
 
     const progress = computeProgress(now);
-    const time = now.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false});
-    const date = now.toLocaleDateString([], {weekday: "long", month: "long", day: "numeric", year: "numeric"});
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const time = now.toPlainTime().toString({smallestUnit: "second"}); // 21:40:13, on 24 hours
+    const date = now.toLocaleString([], {weekday: "long", month: "long", day: "numeric", year: "numeric"});
+    const tz = now.timeZoneId;
 
     return (
         // A click anywhere on the card opens or folds the bars (Jerry). The chevron is the button for the keyboard and

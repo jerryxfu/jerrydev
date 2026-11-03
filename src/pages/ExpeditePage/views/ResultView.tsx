@@ -184,7 +184,7 @@ export default function ResultView(
                             <Detail label="Dimensions">{info.width.toLocaleString()} × {info.height.toLocaleString()} px</Detail>
                         )}
                         {info.duration != null && Number.isFinite(info.duration) && <Detail label="Duration">{duration(info.duration)}</Detail>}
-                        <Detail label="Created">{new Date(result.createdAt).toLocaleString()} ({timeSince(result.createdAt)})</Detail>
+                        <Detail label="Created">{Temporal.Instant.from(result.createdAt).toLocaleString()} ({timeSince(result.createdAt)})</Detail>
                         <Detail label="Expires in">{timeUntil(result.expiresAt)}</Detail>
                         <Detail label="Views">{result.views}{result.maxViews ? ` of ${result.maxViews}` : " (no limit)"}</Detail>
                     </dl>

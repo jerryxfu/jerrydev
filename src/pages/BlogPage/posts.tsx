@@ -1,5 +1,6 @@
 import {type ComponentType, lazy, type ReactElement} from "react";
 import {type SyllabusEntry, type TopicId, topicIds, TOPICS} from "./topics.tsx";
+import {type IsoDay} from "@/utils.ts";
 
 // assets
 import {Mdx} from "@/assets/projects/mdx.tsx";
@@ -25,15 +26,11 @@ export type Tag = typeof TAGS[number];
 
 export const isTag = (value: string): value is Tag => (TAGS as readonly string[]).includes(value);
 
-// `new Date("2026-08-25")` is parsed as UTC midnight, which is the 24th at 20:00 anywhere west of Greenwich, so the
-// card renders the wrong day. The T00:00:00 suffix forces local parsing instead. Wrapped in a helper. Same fix as in ProjectCards
-const postDate = (iso: `${number}-${number}-${number}`): Date => new Date(`${iso}T00:00:00`);
-
 export type Post = {
     slug: string;          // must match the filename in ./posts/<slug>.mdx
     title: string;
     description: string;   // card copy, and the meta description on the post route
-    date: Date;
+    date: IsoDay;          // "2026-09-01": a calendar day, no time and no time zone
     tags: Tag[];
     lang: "en" | "fr" | "es";
     image?: string | ReactElement;
@@ -47,7 +44,7 @@ export const posts: Post[] = [
         slug: "math_ia-devlog0",
         title: "Language models can't do math",
         description: "Devlog #0: The plan. Do the numbers inside GPT-2 have a geometric structure, and if so, which one?",
-        date: postDate("2026-09-01"),
+        date: "2026-09-01",
         tags: ["ai", "devlog"],
         lang: "en"
     },
@@ -55,7 +52,7 @@ export const posts: Post[] = [
         slug: "math_ia-devlog1",
         title: "Math IA Devlog #1: First figures",
         description: "The images from the first baseline test. Circles, a number line, and the 12 layers.",
-        date: postDate("2026-09-17"),
+        date: "2026-09-17",
         tags: ["ai", "devlog"],
         lang: "en",
     },
@@ -65,7 +62,7 @@ export const posts: Post[] = [
         slug: "vision-intro",
         title: "Vision sur le robot: introduction 🍋‍🟩",
         description: "L'objectif de ce cours.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr"
     },
@@ -73,7 +70,7 @@ export const posts: Post[] = [
         slug: "vision-cameras",
         title: "Caméras et images",
         description: "Une image est une grille de nombres, une caméra est une projection.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr"
     },
@@ -81,7 +78,7 @@ export const posts: Post[] = [
         slug: "vision-apriltags",
         title: "Les AprilTags",
         description: "Ce qu'est un AprilTag, comment le détecteur en trouve un dans l'image, et pourquoi quatre coins suffisent à se repérer.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr"
     },
@@ -89,7 +86,7 @@ export const posts: Post[] = [
         slug: "vision-pose-estimation",
         title: "L'estimation de pose avec SolvePnP",
         description: "De quatre coins dans l'image à une position sur le terrain : le problème Perspective-n-Point, ses solutions, et l'ambiguïté qui vient avec.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr",
         draft: true,
@@ -98,7 +95,7 @@ export const posts: Post[] = [
         slug: "vision-localization",
         title: "Localisation robuste: sur le robot",
         description: "Fusionner l'odométrie et la vision sans se faire mentir : écarts-types, rejet des mauvaises mesures, et ce que le code de l'équipe fait de plus.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr",
         draft: true,
@@ -107,7 +104,7 @@ export const posts: Post[] = [
         slug: "vision-limelight-tuning",
         title: "Calibrer les Limelight",
         description: "Exposition, gain, pipeline AprilTag, calibration, carte du terrain : les réglages qui comptent et dans quel ordre les faire.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision"],
         lang: "fr",
         draft: true,
@@ -116,7 +113,7 @@ export const posts: Post[] = [
         slug: "ai-basics",
         title: "Artificial intelligence and machine learning",
         description: "For the curious. What \"learning\" means for a machine, why we don't write the rules by hand, and the kinds of learning.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["ai", "robotics"],
         lang: "en",
         draft: true,
@@ -125,7 +122,7 @@ export const posts: Post[] = [
         slug: "ai-neural-networks",
         title: "Neural networks",
         description: "A neuron is a weighted sum, a network is a function, learning is descent. With just enough math.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["ai", "robotics"],
         lang: "en",
         draft: true,
@@ -134,7 +131,7 @@ export const posts: Post[] = [
         slug: "ai-object-detection",
         title: "Object detection",
         description: "How a network turns an image into labeled boxes: convolutions, YOLO, IoU, and what runs on a Limelight.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["ai", "robotics"],
         lang: "en",
         draft: true,
@@ -143,7 +140,7 @@ export const posts: Post[] = [
         slug: "ai-llms",
         title: "Large language models",
         description: "Next-token prediction at very large scale: tokens, embeddings, attention, and how to use them without getting burned.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["ai", "robotics"],
         lang: "en",
         draft: true,
@@ -152,7 +149,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-limelight",
         title: "Aide-mémoire Limelight",
         description: "Les réglages, les clés NetworkTables et les appels LimelightLib qu'on cherche toujours, sur une page.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
@@ -161,7 +158,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-coordinates",
         title: "Repères, unités et conventions",
         description: "Quel axe pointe où, dans WPILib et dans les Limelight, et comment passer d'un repère à l'autre sans inverser un signe.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
@@ -170,7 +167,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-math",
         title: "Boîte à outils mathématiques",
         description: "Vecteurs, matrices, rotations, coordonnées homogènes et la notation Σ : tout ce que les leçons supposent, au même endroit.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
@@ -179,7 +176,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-vision-debug",
         title: "Checklist de débogage vision",
         description: "Le tag n'est pas détecté, la pose saute, la latence explose : par quoi commencer, dans l'ordre.",
-        date: postDate("2026-08-30"),
+        date: "2026-08-30",
         tags: ["robotics", "vision", "notes", "cheatsheet"],
         lang: "fr",
         draft: true,
@@ -188,7 +185,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-waveform",
         title: "Waveform and SIG names",
         description: "ECG leads and the other signals on a patient monitor: what each one measures and where it comes from.",
-        date: postDate("2026-10-11"),
+        date: "2026-10-11",
         tags: ["med", "cheatsheet"],
         lang: "en",
     },
@@ -196,7 +193,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-overleaf",
         title: "Overleaf and LaTeX",
         description: "How an Overleaf project fits together, from the preamble to the references, with the code for each part.",
-        date: postDate("2026-10-16"),
+        date: "2026-10-16",
         tags: ["notes", "cheatsheet"],
         lang: "en",
     },
@@ -205,7 +202,7 @@ export const posts: Post[] = [
         slug: "python-basics",
         title: "Python I — The basics",
         description: "Variables, loops, functions, lists and debugging, starting from the first print(). Read top to bottom; each section builds on the last.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["python"],
         lang: "en",
     },
@@ -213,7 +210,7 @@ export const posts: Post[] = [
         slug: "python-going-further",
         title: "Python II — Going further",
         description: "Dictionaries, classes, exceptions, files and environments. Written as reference rather than tutorial: skim the headings and come back when you need them.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["python"],
         lang: "en",
     },
@@ -221,7 +218,7 @@ export const posts: Post[] = [
         slug: "python-scientific",
         title: "Python III — Scientific Python",
         description: "NumPy, matplotlib and numerical data. For anything involving arrays, plots, or a lot of numbers.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["python"],
         lang: "en",
     },
@@ -229,7 +226,7 @@ export const posts: Post[] = [
         slug: "python-appendices",
         title: "Python — Appendices",
         description: "The gotchas that eat hours, a cheat sheet, and where to go next.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["python", "notes"],
         lang: "en",
     },
@@ -239,7 +236,7 @@ export const posts: Post[] = [
         slug: "git-basics",
         title: "Git & GitHub I — Git",
         description: "Commits, branches, merges, and how to undo almost anything. The half of version control that runs on your own machine.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["git"],
         lang: "en",
     },
@@ -247,7 +244,7 @@ export const posts: Post[] = [
         slug: "git-github",
         title: "Git & GitHub II — GitHub",
         description: "Remotes, pull requests, collaboration and Pages. Putting the work online and letting other people near it.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["git"],
         lang: "en",
     },
@@ -255,7 +252,7 @@ export const posts: Post[] = [
         slug: "git-reference",
         title: "Git & GitHub III — Reference",
         description: "Workflows, fixing mistakes, and a command list to come back to once the concepts have stuck.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["git", "notes"],
         lang: "en",
     },
@@ -264,7 +261,7 @@ export const posts: Post[] = [
         slug: "spotify-player-setup",
         title: "spotify_player on a Mac: setup and fixes",
         description: "Your own Spotify app, the one config line that makes playlists load, what Spotify still blocks, and the shortcuts worth knowing.",
-        date: postDate("2026-10-21"),
+        date: "2026-10-21",
         tags: ["notes", "cheatsheet"],
         lang: "en",
     },
@@ -272,7 +269,7 @@ export const posts: Post[] = [
         slug: "excel-formulas",
         title: "Excel formula handbook",
         description: "Quick reference for the formulas that come up constantly: math, stats, lookups, text and dates.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["excel", "notes"],
         lang: "en",
     },
@@ -280,7 +277,7 @@ export const posts: Post[] = [
         slug: "excel-formulas-es",
         title: "Manual de fórmulas de Excel",
         description: "Referencia rápida de las fórmulas más habituales de Excel: matemáticas, estadística, búsquedas, texto y fechas.",
-        date: postDate("2026-08-29"),
+        date: "2026-08-29",
         tags: ["excel", "notes"],
         lang: "es",
     },
@@ -288,7 +285,7 @@ export const posts: Post[] = [
         slug: "terminal-setup",
         title: "My Mac terminal setup",
         description: "Ghostty, LazyVim, a handful of command line tools, and Julia with units. How to install each one and what you should see.",
-        date: postDate("2026-10-21"),
+        date: "2026-10-21",
         tags: ["notes"],
         lang: "en",
     },
@@ -296,7 +293,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-terminal",
         title: "Terminal cheat sheet",
         description: "Keys and commands for Ghostty, LazyVim, yazi, btop, ripgrep, fd and Julia, grouped by tool.",
-        date: postDate("2026-10-21"),
+        date: "2026-10-21",
         tags: ["notes", "cheatsheet"],
         lang: "en",
     },
@@ -304,7 +301,7 @@ export const posts: Post[] = [
         slug: "cheatsheet-local-llm",
         title: "Local LLM cheat sheet (Ollama)",
         description: "Ollama on a MacBook Air: the three models I run, the aliases that give them a bigger context, and every command on one page.",
-        date: postDate("2026-10-23"),
+        date: "2026-10-23",
         tags: ["ai", "notes", "cheatsheet"],
         lang: "en",
     },
@@ -312,7 +309,7 @@ export const posts: Post[] = [
         slug: "medive-devlog2",
         title: "MEDIVE Devlog #2: ",
         description: "",
-        date: postDate("2026-09-12"),
+        date: "2026-09-12",
         tags: ["ai", "devlog", "med"],
         lang: "en",
         draft: true
@@ -321,7 +318,7 @@ export const posts: Post[] = [
         slug: "medive-devlog1",
         title: "MEDIVE Devlog #1: First impressions",
         description: "Devlog #1: Fhe first numbers from the baselines, and presentation of the models.",
-        date: postDate("2026-09-09"),
+        date: "2026-09-09",
         tags: ["ai", "devlog", "med"],
         lang: "en",
         draft: true
@@ -330,7 +327,7 @@ export const posts: Post[] = [
         slug: "medive-reference",
         title: "MEDIVE reference sheet",
         description: "The documentation for the experiment: pipeline, models, the four text tiers, every score with its formula, and the rules that protect the numbers. Definitions only, no results.",
-        date: postDate("2026-09-09"),
+        date: "2026-09-09",
         tags: ["ai", "med", "notes"],
         lang: "en",
         draft: true,
@@ -339,7 +336,7 @@ export const posts: Post[] = [
         slug: "medive-devlog0",
         title: "MEDIVE Devlog #0: Starting over",
         description: "Where MEDIVE came from, why I threw out the first implementation before it produced a single number, and what the next few months look like.",
-        date: postDate("2026-08-28"),
+        date: "2026-08-28",
         tags: ["ai", "devlog", "med"],
         lang: "en"
     },
@@ -347,7 +344,7 @@ export const posts: Post[] = [
         slug: "hello-blog",
         title: "How this blog works",
         description: "Reference for future me: every manifest field, every gotcha, and everything that renders.",
-        date: postDate("2026-08-25"),
+        date: "2026-08-25",
         tags: ["notes", "webdev"],
         lang: "en",
         image: <Mdx />,
@@ -371,7 +368,8 @@ export const postComponents: Record<string, ComponentType> = Object.fromEntries(
 );
 
 // Newest first. Everything is listed now, drafts included, so the spread matters: sort() mutates in place and posts is exported.
-export const listedPosts: Post[] = [...posts].sort((a, b) => b.date.getTime() - a.date.getTime());
+// ISO days sort as text, which keeps Temporal out of this module's loading (main.tsx).
+export const listedPosts: Post[] = [...posts].sort((a, b) => b.date.localeCompare(a.date));
 
 // The single gate for whether a post can be opened. A draft is listed but inert in production. Bypassed in dev
 export const isReadable = (post: Post): boolean => !post.draft || import.meta.env.DEV;
@@ -454,16 +452,15 @@ export const neighbours = (slug: string): { topic?: TopicId; prev?: Post; next?:
     return {topic};
 };
 
-export const formatPostDate = (date: Date): string =>
-    date.toLocaleDateString("en-CA", {year: "numeric", month: "long", day: "numeric"});
+export const formatPostDate = (date: IsoDay): string =>
+    Temporal.PlainDate.from(date).toLocaleString("en-CA", {year: "numeric", month: "long", day: "numeric"});
 
 const relative = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
 
-// Both sides are collapsed to local midnight before differencing, so the answer is a whole number of calendar days regardless of the time of day either fell on
-// (that's the same rounding issue that bit the project footer). numeric: "auto" turns 0 and 1 into "today" and "yesterday" instead of "0 days ago".
-export const formatPostAge = (date: Date): string => {
-    const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    const days = Math.round((midnight(date) - midnight(new Date())) / 86_400_000);
+// Calendar days from today to the post: negative, since it's in the past, which is the sign RelativeTimeFormat reads as
+// "ago". numeric: "auto" turns 0 and -1 into "today" and "yesterday" instead of "0 days ago".
+export const formatPostAge = (date: IsoDay): string => {
+    const days = Temporal.PlainDate.from(date).since(Temporal.Now.plainDateISO()).days;
 
     if (days > -30) return relative.format(days, "day");
     if (days > -365) return relative.format(Math.round(days / 30), "month");

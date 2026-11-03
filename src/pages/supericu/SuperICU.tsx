@@ -74,13 +74,13 @@ export default function SuperIcu({paletteOverrides, flashMode = "auto"}: {
     }, []);
 
     const [alerts, setAlerts] = useState<AlertItem[]>([
-        {id: randomId(), time: new Date().toLocaleTimeString(), level: "advisory", msg: "Monitoring started"},
+        {id: randomId(), time: Temporal.Now.plainTimeISO().toLocaleString(), level: "advisory", msg: "Monitoring started"},
     ]);
     const [vitalAlarmLevel, setVitalAlarmLevel] = useState<VitalAlarmLevel>({hr: null, spo2: null, rr: null});
 
-    const [timeStr, setTimeStr] = useState<string>(new Date().toLocaleTimeString());
+    const [timeStr, setTimeStr] = useState<string>(Temporal.Now.plainTimeISO().toLocaleString());
     useEffect(() => {
-        const timer = setInterval(() => setTimeStr(new Date().toLocaleTimeString()), 1000);
+        const timer = setInterval(() => setTimeStr(Temporal.Now.plainTimeISO().toLocaleString()), 1000);
         return () => clearInterval(timer);
     }, []);
 

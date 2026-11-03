@@ -25,8 +25,8 @@ export const minutesToTime = (minutes: number): string => {
 };
 
 export const getNowMinutes = (): number => {
-    const now = new Date();
-    return now.getHours() * 60 + now.getMinutes();
+    const now = Temporal.Now.plainTimeISO();
+    return now.hour * 60 + now.minute;
 };
 
 /** Human-friendly duration label: "1h30m", "2h", "45m" */

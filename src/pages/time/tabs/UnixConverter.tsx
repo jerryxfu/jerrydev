@@ -8,8 +8,13 @@ function nowUnix(unit: Unit): number {
     return unit === "s" ? Math.floor(Date.now() / 1000) : Date.now();
 }
 
-function toDate(ts: number, unit: Unit): Date {
-    return new Date(unit === "s" ? ts * 1000 : ts);
+// A timestamp as a moment, or null past what Temporal holds (about 275,000 years either way).
+function toInstant(ts: number, unit: Unit): Temporal.Instant | null {
+    try {
+        return Temporal.Instant.fromEpochMilliseconds(unit === "s" ? ts * 1000 : ts);
+    } catch {
+        return null;
+    }
 }
 
 export default function UnixConverter() {
@@ -30,18 +35,18 @@ export default function UnixConverter() {
     // timestamp → date
     const parsed = useMemo(() => {
         const n = Number(tsInput.trim());
-        if (!tsInput.trim() || !Number.isFinite(n)) return null;
-        const d = toDate(n, unit);
-        if (isNaN(d.getTime())) return null;
-        return d;
+        if (!tsInput.trim() || !Number.isInteger(n)) return null;
+        return toInstant(n, unit);
     }, [tsInput, unit]);
 
-    // date → timestamp
+    // date → timestamp: a datetime-local value, read as the reader's local time
     const computedTs = useMemo(() => {
-        if (!dateInput) return null;
-        const d = new Date(dateInput);
-        if (isNaN(d.getTime())) return null;
-        return unit === "s" ? Math.floor(d.getTime() / 1000) : d.getTime();
+        try {
+            const ms = Temporal.PlainDateTime.from(dateInput).toZonedDateTime(Temporal.Now.timeZoneId()).epochMilliseconds;
+            return unit === "s" ? Math.floor(ms / 1000) : ms;
+        } catch {
+            return null;
+        }
     }, [dateInput, unit]);
 
     return (
@@ -71,8 +76,8 @@ export default function UnixConverter() {
                     {parsed && (
                         <div className="unix_out">
                             <Row label="Local" value={parsed.toLocaleString()} />
-                            <Row label="UTC" value={parsed.toUTCString()} />
-                            <Row label="ISO 8601" value={parsed.toISOString()} code />
+                            <Row label="UTC" value={parsed.toLocaleString([], {timeZone: "UTC", timeZoneName: "short"})} />
+                            <Row label="ISO 8601" value={parsed.toString({fractionalSecondDigits: 3})} code />
                             <Row label="Relative" value={relative(parsed)} />
                         </div>
                     )}
@@ -114,8 +119,8 @@ function Row({label, value, code, copy}: { label: string; value: string; code?: 
     );
 }
 
-function relative(d: Date): string {
-    const diff = d.getTime() - Date.now();
+function relative(at: Temporal.Instant): string {
+    const diff = at.epochMilliseconds - Date.now();
     const abs = Math.abs(diff);
     const units: [number, string][] = [
         [31536000000, "year"], [2592000000, "month"], [86400000, "day"],

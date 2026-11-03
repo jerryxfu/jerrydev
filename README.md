@@ -37,37 +37,31 @@ remove the plugin.
 
 ### Dates and times
 
-There is no date library and no shared date module, on purpose (below).
+Everything about dates and times goes through `Temporal` (ES2026), with no library and no house module. TypeScript knows it through
+`ESNext.Temporal` in `tsconfig.app.json`.
 
-**A `Date` is an instant, not a calendar day.** Any time you need a calendar day, go through local fields (`getFullYear`/`getMonth`/`getDate`), never
-through UTC. Two ways it goes wrong, both of which have put wrong dates on this site:
+**Which type.** A calendar day is a `Temporal.PlainDate`, a time of day a `PlainTime`, a moment an `Instant`, a moment on a clock somewhere a
+`ZonedDateTime` (`Temporal.Now.zonedDateTimeISO()`, `.withTimeZone(zone)`). Spans come from `.until()` and `.since()`, which count calendar days right
+across a DST change. Format with `toLocaleString`.
 
-- Flooring the milliseconds between two local midnights. Midnights an exact number of days apart are 23h or 25h short of a multiple of 24h whenever a DST
-  transition sits between them, so the floor loses a whole day.
-- `toISOString().slice(0, 10)` on a local midnight. It re-renders the instant in UTC: the previous calendar day for anyone at a positive offset.
+**Safari has no Temporal yet** (Nov 2026; Chrome and Edge 144, Firefox 139 do). `main.tsx` loads `temporal-polyfill` before anything is drawn, only where
+`Temporal` is missing: its own chunk, under 20 kB gzipped, not precached. Two rules follow:
 
-The rule:
+- **No Temporal while a module loads**, only inside functions and components. On Safari, every module the first page imports has run before the polyfill
+  arrives.
+- **Dates in the site's data are text.** Blog posts, projects and experiences write `"2026-09-01"` (the `IsoDay` type, `src/utils.ts`), read with
+  `Temporal.PlainDate.from` where they're shown. Sorting them at load compares them as text, which ISO days allow. The API's times are instant strings,
+  read with `Temporal.Instant.from`. The build (Node 24, no Temporal) reads `src/head.ts` and the post list, so they must stay that way.
 
-- To turn a `YYYY-MM-DD` literal into a `Date`, always append `T00:00:00`. A bare date string parses as UTC midnight and renders the wrong day west of
-  Greenwich. `postDate()` in `BlogPage/posts.tsx` wraps this; `hello-blog.mdx` documents it.
-- To turn a `Date` back into `YYYY-MM-DD`, use a local-fields helper (`toISODate` in `rendezvous/utils.ts`, `isoDay` in `time/utils.ts`,
-  `HomePage/Blog/BlogFeed.tsx` and `HomePage/Experience/Experience.tsx`). **Never `toISOString()`.**
-- To count calendar days, collapse both endpoints with `new Date(y, m, d)` and `Math.round` the quotient. Never `Math.floor`, never raw millisecond
-  subtraction.
+**What stays as it is.** `Date.now()` and `performance.now()`, as millisecond clocks: when a timer ends, a transfer's speed, the sync pattern's lock on
+the wall clock. They're numbers, not dates. The night-mode script in `index.html` keeps its `new Date().getHours()`: it runs before any module.
 
-**Why no shared module.** `Temporal` (TC39's replacement for `Date`) makes this distinction part of the type: `Temporal.PlainDate` has no time zone, and
-`.since()` counts days correctly across DST. Once it has baseline support (check MDN), adopt it directly rather than a house API; its polyfill is too
-heavy for this site.
+Three things to know:
 
-**If it's centralized before then**, the core is two functions in `src/date.ts`: `toISODate(d)` (local `Y-M-D`, written four times today) and
-`localDate(iso)` (owns the `T00:00:00` idiom). The rest is different on purpose: the scheduler's minutes-since-midnight model, the duration formatters, the
-two `timeUntil` (different outputs), SuperICU's `performance.now()` clocks. Two traps:
+- **Hours as `"numeric"`, not `"2-digit"`.** Chrome writes a Temporal time's 2-digit hour without its zero in 12-hour locales, and the polyfill with it, so
+  the browsers would disagree.
+- **Month ends.** `until` counts Jan 31 to Feb 28 as 28 days, not a month, like most date calculators. Jan 31 + 1 month is still Feb 28.
+- **Day counts have a sign.** `formatDate` counts from the date to today (positive for the past); `formatPostAge` from today to the date (negative, which
+  `Intl.RelativeTimeFormat` reads as "ago"). Swap them and every date on the blog reads "in 5 days".
 
-- **Don't unify the day counts behind one signature.** `formatDate` computes `today - date` (positive for the past); `formatPostAge` computes
-  `date - today` (negative, as `Intl.RelativeTimeFormat` reads the sign as the direction). One shared argument order turns every date on the blog into
-  "in 5 days".
-- **`index.html` runs its own `new Date().getHours()`** for the night-mode boot overlay: an inline classic script, outside the module graph, that can't
-  import from `src/`.
-
-There is no test runner. A centralized module should come with its first tests: a day count across a spring-forward boundary, `toISODate` under
-`TZ=Asia/Tokyo`, and `localDate` on an unpadded `"2026-9-1"`.
+There is no test runner.
