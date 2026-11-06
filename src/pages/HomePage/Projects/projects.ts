@@ -241,7 +241,7 @@ export const projects: Project[] = [
         title: "SuperICU",
         subTitle: "A tool to preview ICU monitor data",
         image: _supericu,
-        chipText: "✅ Completed",
+        chipText: "🟢 Stable",
         date: "2025-08-19",
         url: "/supericu",
         description: "SuperICU is a tool to playback and visualize data from Intensive Care Unit monitor logs, including waveforms, vitals, and alarms, all in a patient monitor-like interface.",
@@ -259,7 +259,7 @@ export const projects: Project[] = [
         categories: ["web"],
     },
     {
-        title: "FRC Scorekeeper interface",
+        title: "FRC Scorekeeper",
         subTitle: "A FRC scorekeeper interface for REEFSCAPE season",
         image: _scorekeeper,
         chipText: "📦 Archived",

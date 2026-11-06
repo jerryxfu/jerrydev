@@ -3,6 +3,7 @@ import {apiBaseUrl} from "../../../main.tsx";
 import {AUTO, PLAIN, resolveLanguage} from "../highlight.ts";
 import type {LiveItem, LiveMember, LiveRoom, UploadSnapshot} from "../types.ts";
 import * as api from "./room.ts";
+import * as seats from "./seats.ts";
 
 /** Files in a live room are 1 GB at most (the API's LIVE_MAX_FILE_SIZE): checked here first, to say so at once. */
 export const LIVE_MAX_FILE_SIZE = 1024 ** 3;
@@ -144,7 +145,7 @@ export function useLiveRoom() {
                 }
             },
             closed: (why) => {
-                api.forgetSeat(code);
+                seats.forgetSeat(code);
                 stopStream.current?.();
                 stopStream.current = null;
                 stopUploads();
@@ -159,7 +160,7 @@ export function useLiveRoom() {
                 fetch(`${apiBaseUrl}/expedite/drop/${code}`)
                     .then((res) => {
                         if (res.status !== 404) throw new Error("still there");
-                        api.forgetSeat(code);
+                        seats.forgetSeat(code);
                         setClosed("ended");
                     })
                     .catch(() => setLost(true));
@@ -182,9 +183,9 @@ export function useLiveRoom() {
     }, []);
 
     const enter = (r: LiveRoom) => {
-        const myToken = r.me.token ?? api.seatToken(r.code);
+        const myToken = r.me.token ?? seats.seatToken(r.code);
         if (!myToken) throw new Error("The room didn't give this page a seat");
-        api.keepSeat(r.code, myToken, r.expiresAt);
+        seats.keepSeat(r.code, myToken, r.expiresAt);
         known.current = null;
         setRoom(r);
         setToken(myToken);
@@ -193,7 +194,7 @@ export function useLiveRoom() {
         setItems([]);
         setUploads({});
         setFresh(new Set());
-        setDownloaded(new Set(api.downloadedIn(r.code)));
+        setDownloaded(new Set(seats.downloadedIn(r.code)));
         setClosed(null);
         setError(null);
         // The room's link: a reload, or the link sent to someone, opens it again.
@@ -219,7 +220,7 @@ export function useLiveRoom() {
     };
 
     const create = async () => enter(await api.createRoom());
-    const join = async (code: string) => enter(await api.joinRoom(code, api.seatToken(code)));
+    const join = async (code: string) => enter(await api.joinRoom(code, seats.seatToken(code)));
 
     const reconnect = async () => {
         if (!room) return;
@@ -306,7 +307,7 @@ export function useLiveRoom() {
         if (!room || ids.length === 0) return;
         const next = new Set([...downloaded, ...ids]);
         setDownloaded(next);
-        api.keepDownloaded(room.code, next);
+        seats.keepDownloaded(room.code, next);
     };
 
     const pickLayout = (next: LiveLayout) => {
@@ -347,7 +348,7 @@ export function useLiveRoom() {
         try {
             if (room.me.id === ownerId) await api.endRoom(room.code, token);
             else await api.removeMember(room.code, token, room.me.id);
-            api.forgetSeat(room.code);
+            seats.forgetSeat(room.code);
             // Nothing more to hear: its "ended" or "removed" would swap the room for that message as it fades out.
             stopStream.current?.();
             stopStream.current = null;

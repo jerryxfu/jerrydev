@@ -1,0 +1,40 @@
+// PaletteButton.tsx, in the bar: looks like the menu button beside it (Navbar.scss), faint until hovered.
+.palette-button {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem;
+    border: none;
+    border-radius: var(--r-4);
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+        color: var(--text);
+        background-color: color-mix(in srgb, var(--primary-lt) 25%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 2px;
+    }
+}
+
+.palette-button_keys {
+    padding: 0.05rem 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-2);
+    color: var(--text-4);
+    font-family: var(--font-code);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+
+    @media (hover: none) {
+        display: none;
+    }
+}

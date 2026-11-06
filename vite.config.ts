@@ -27,6 +27,13 @@ const BUILD_COMMIT = (() => {
 
 const SRC = fileURLToPath(new URL("./src", import.meta.url));
 
+// The MDX plugin drops a module's query, so it would also compile a post read as text (?raw: the palette's search,
+// src/components/Palette/bodies.ts) as if it were the post. This leaves those to Vite.
+const skipRaw = (plugin: Plugin): Plugin => ({
+    ...plugin,
+    transform: {filter: {id: {exclude: /[?&]raw(&|$)/}}, handler: plugin.transform as Extract<Plugin["transform"], (...args: never[]) => unknown>},
+});
+
 // What the build needs from src/head.ts (typed here because the app's files aren't part of this config's TypeScript project).
 type HeadModule = {
     PAGE_HEADS: { path: string }[];
@@ -80,7 +87,7 @@ export default defineConfig({
         // enforce: "pre" is required, not cosmetic. Without it the React plugin
         // reaches .mdx first, fails to parse it as JSX, and the build dies with
         // an error that points nowhere near the real cause.
-        {
+        skipRaw({
             enforce: "pre",
             ...mdx({
                 // remark-math tokenises $...$ before MDX's expression parser can claim the braces inside \frac{}{},
@@ -113,7 +120,7 @@ export default defineConfig({
                     langs: ["ts", "tsx", "js", "jsx", "python", "bash", "json", "scss", "java", "latex", "julia", "text"],
                 }]],
             }),
-        },
+        }),
         react(),
         VitePWA({
             // Not "autoUpdate": that sets skipWaiting + clientsClaim, so a new worker activates under a page still running the previous build,

@@ -10,11 +10,14 @@
 //   "https://github.com/..."    external, needs `external: true` for the new tab
 // Only the middle kind is client-side routed — see isRouted.
 
+import home from "@/pages/HomePage/page.ts";
+
 export type NavLink = {
     type: "link";
     label: string;
     href: string;
     external?: boolean; // opens in a new tab
+    words?: string; // other words the palette finds it by
 };
 
 export type NavBranch = {
@@ -29,16 +32,12 @@ export type NavItem = NavLink | NavBranch;
 // Alt text for the logo image in the bar.
 export const LOGO_ALT = "jerryxf sunset sky with moon icon";
 
-// Links shown inline in the bar on desktop. Hidden below the breakpoint in
-// Navbar.scss, where the drawer takes over. These deliberately duplicate the
-// first two drawer groups — the drawer stays the complete menu at every size.
+// The home page and its sections (from its page.ts), inline in the bar on desktop and the drawer's first group.
+// Hidden below the breakpoint in Navbar.scss, where the drawer takes over. These links and linksRight deliberately
+// repeat in the drawer: it stays the complete menu at every size.
 export const linksLeft: NavLink[] = [
     {type: "link", label: "Home", href: "#"},
-    {type: "link", label: "About", href: "#about-me"},
-    {type: "link", label: "Skills", href: "#tools---languages"},
-    {type: "link", label: "Projects", href: "#projects"},
-    {type: "link", label: "Experience", href: "#experience---extras"},
-    {type: "link", label: "Blog", href: "#blog"},
+    ...home.sections.map((section): NavLink => ({type: "link", label: section.label, href: section.anchor})),
 ];
 
 export const linksRight: NavLink[] = [
@@ -49,18 +48,12 @@ export const linksRight: NavLink[] = [
 // The drawer's grouped menu. The root is an array of groups, rendered with a
 // divider between each; every branch is a single group one level down.
 export const menuGroups: NavItem[][] = [
-    [
-        {type: "link", label: "Home", href: "#"},
-        {type: "link", label: "About", href: "#about-me"},
-        {type: "link", label: "Skills", href: "#tools---languages"},
-        {type: "link", label: "Projects", href: "#projects"},
-        {type: "link", label: "Experience", href: "#experience---extras"},
-        {type: "link", label: "Blog", href: "#blog"},
-    ],
+    linksLeft,
     [
         {type: "link", label: "Expedite 📦", href: "/expedite"},
         {type: "link", label: "Time ⏱️", href: "/time"},
         {type: "link", label: "Rendezvous 📍", href: "/rendezvous"},
+        {type: "link", label: "Firebreak 🔥", href: "/firebreak"},
         {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"},
         // {
         //     type: "branch",
@@ -75,7 +68,7 @@ export const menuGroups: NavItem[][] = [
     ],
     [
         {type: "link", label: "GitHub", href: "https://github.com/jerryxfu", external: true},
-        {type: "link", label: "Curriculum Vitae", href: "https://cv.jerryxf.net/", external: true},
+        {type: "link", label: "Curriculum Vitae", href: "https://cv.jerryxf.net/", external: true, words: "cv resume"},
     ],
 ];
 

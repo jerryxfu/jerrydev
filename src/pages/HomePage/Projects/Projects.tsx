@@ -1,4 +1,5 @@
-import {type ReactNode, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from "react";
+import {type ReactNode, useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useRef, useState} from "react";
+import {flushSync} from "react-dom";
 import {gsap} from "gsap";
 import {Flip} from "gsap/Flip";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
@@ -44,6 +45,10 @@ const centre = (r: DOMRect) => [r.left + r.width / 2, r.top + r.height / 2] as c
 const external = (href: string) => /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href);
 // A project's own link opens in a new tab when it's another site, as on Card.tsx.
 const newTab = (href: string) => (href.startsWith("http") ? {target: "_blank", rel: "noopener noreferrer"} : {});
+
+// A card's place in the address: /#project-home-island opens it (the palette's results, a link shared).
+export const projectAnchor = (title: string) => "project-" + title.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 // The grid cell an item sits in, read from the layout: the grid's resolved tracks (implicit rows included) and the
 // item's offset in it.
@@ -290,6 +295,21 @@ export default function Projects() {
         setCategory(next);
     };
 
+    // The card named in the address opens (projectAnchor), on load and when the address changes. If the filter hides
+    // it, the filter goes back to All first.
+    const openNamed = useEffectEvent(() => {
+        const project = projects.find((p) => `#${projectAnchor(p.title)}` === window.location.hash);
+        if (!project || open?.title === project.title) return;
+        if (!shown.includes(project)) flushSync(() => pickCategory("all"));
+        toggle(project.title);
+    });
+    useEffect(() => {
+        openNamed();
+        const onHash = () => openNamed();
+        window.addEventListener("hashchange", onHash);
+        return () => window.removeEventListener("hashchange", onHash);
+    }, []);
+
     // A new filter brings the cards in, a few at a time. Not on the first render.
     const lastCategory = useRef(category);
     useGSAP(() => {
@@ -367,7 +387,7 @@ function ProjectItem({project, dark, open, onToggle, onClose}: {
     );
 
     return (
-        <li className={`projects-item${open ? " is-open" : ""}`} data-title={project.title}>
+        <li id={projectAnchor(project.title)} className={`projects-item${open ? " is-open" : ""}`} data-title={project.title}>
             <div className="projects-item_inner">
                 <article className="projects-card">
                     <button

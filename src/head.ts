@@ -4,7 +4,9 @@ import {TOPIC_IDS, TOPICS} from "@/pages/BlogPage/topics.tsx";
 // What search engines and link previews read about each page: its title, description, address and language.
 // The build writes it into each page's own HTML file (pageHeads in vite.config.ts), because link previews and most
 // search engines read that HTML without running the app. <PageHead> (main.tsx) keeps it right as the app moves
-// between pages. A new route needs its entry here: without one it gets NOT_FOUND, which keeps it out of search.
+// between pages. Each page says it in its own folder's page.ts (src/pages/time/page.ts), gathered here; the blog's
+// topics and posts come from their own lists. A new route needs its page.ts: without one it gets NOT_FOUND, which
+// keeps it out of search.
 
 export const SITE = "https://jerryxf.net";
 const SITE_NAME = "jerryxf";
@@ -18,28 +20,21 @@ export type Head = {
     noindex?: boolean;              // kept out of search results and the sitemap
 };
 
-const PAGES: Head[] = [
-    {
-        path: "/", name: SITE_NAME,
-        description: "Hi, I'm Jerry. I build things in robotics, AI, medicine and code, and share them here: my projects, a blog, and tools like Expedite and Rendezvous.",
-    },
-    {path: "/blog", name: "Blog", description: "Writing about the things I discover, build, and learn along the way"},
-    {
-        path: "/expedite", name: "Expedite 📦",
-        description: "Quickly share files and text snippets with other people or across your own devices.",
-    },
-    {
-        path: "/rendezvous", name: "Rendezvous 📍",
-        description: "Find the best time for your group to meet. Share availabilities and schedule events effortlessly.",
-    },
-    {path: "/scheduler", name: "Scheduler", description: "View and compare schedules"},
-    {
-        path: "/time", name: "Time",
-        description: "Time tools on one page: a Unix time converter, a countdown (to a date too), a stopwatch, date and hour calculators, world clocks, an A/V sync test pattern, Discord timestamps and a duration adder.",
-    },
-    {path: "/supericu", name: "SuperICU", description: "A tool to preview ICU data in a patient monitor-like interface."},
-    {path: "/elements", name: "Elements", description: "Coming soon.", noindex: true},
-];
+// A page of its own, in its folder's page.ts: its head, and what the bar and the palette (components/Palette) use.
+export type Page = Head & {
+    words?: string;          // the palette only: other words people type for it
+    sections?: Section[];    // the parts the bar and the palette link to (the home page's)
+    saved?: () => Saved[];   // what this browser keeps for it, listed in the palette: read each time it opens
+};
+
+export type Section = { label: string; anchor: string; line: string };
+
+export type Saved = { id: string; title: string; detail: string; href: string };
+
+// Every page.ts, the home page first, then by name. They import nothing that runs in a browser as they load: the build
+// reads this file in Node.
+export const PAGES: Page[] = Object.values(import.meta.glob<Page>("./pages/*/page.ts", {eager: true, import: "default"}))
+    .sort((a, b) => (a.path === "/" ? -1 : b.path === "/" ? 1 : a.name.localeCompare(b.name)));
 
 // Every page with its own HTML file. Drafts are left out the way the post page leaves them out: in production they're a dead end.
 export const PAGE_HEADS: Head[] = [

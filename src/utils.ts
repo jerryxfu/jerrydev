@@ -41,3 +41,14 @@ export async function copyText(text: string): Promise<boolean> {
         }
     }
 }
+
+const relativeTime = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
+
+// "in 42 minutes", "in 3 hours", "in 2 days": how long until something, from a count of ms (the palette's saved items).
+export function fromNow(ms: number): string {
+    const minutes = Math.max(1, Math.round(ms / 60_000));
+    if (minutes < 60) return relativeTime.format(minutes, "minute");
+    const hours = Math.round(minutes / 60);
+    if (hours < 48) return relativeTime.format(hours, "hour");
+    return relativeTime.format(Math.round(hours / 24), "day");
+}

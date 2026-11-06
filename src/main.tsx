@@ -10,6 +10,7 @@ import NotFoundPage from "./pages/NotFoundPage/NotFoundPage.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import OfflineToast from "./components/OfflineToast/OfflineToast.tsx";
 import HangToast from "./components/HangToast/HangToast.tsx";
+import PaletteHost from "./components/Palette/PaletteHost.tsx";
 
 // A deploy replaces every hashed filename, so a tab opened against an older build can ask for a chunk that no longer exists.
 // Vite fires this instead of throwing, and a reload lands on the current build.
@@ -33,6 +34,7 @@ const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
+const LazyFirebreak = lazy(() => import("./pages/firebreak/Firebreak.tsx"));
 const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
 const LazyPost = lazy(() => import("./pages/BlogPage/PostPage.tsx"));
 const LazyTopic = lazy(() => import("./pages/BlogPage/TopicPage.tsx"));
@@ -137,6 +139,8 @@ root.render(
             <ThemeProvider>
                 <ScrollToTop />
                 <PageHead />
+                {/* After ScrollToTop: a post line opened from the palette scrolls once the page is at its top. */}
+                <PaletteHost />
                 <OfflineToast />
                 <HangToast />
                 {/* Each route needs its entry in src/head.ts, or search engines are told it doesn't exist. */}
@@ -151,6 +155,7 @@ root.render(
                     <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
                     <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>
                     <Route path="/time">{renderLazy(<LazyTime />)}</Route>
+                    <Route path="/firebreak">{renderLazy(<LazyFirebreak />)}</Route>
                     <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>
                     <Route path="/elements">{renderLazy(<LazyElementsPage />)}</Route>
                     <Route><NotFoundPage /></Route>

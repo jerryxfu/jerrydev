@@ -1,9 +1,10 @@
 import {useRef, useState} from "react";
 import {gsap} from "gsap";
 import {useGSAP} from "@gsap/react";
-import {ChevronLeft, ChevronRight, X} from "lucide-react";
+import {ChevronLeft, ChevronRight, Search, X} from "lucide-react";
 import {Link, useLocation} from "wouter";
 import {isRouted, menuGroups, type NavBranch, type NavItem, resolveHref} from "./nav.config.ts";
+import {openPalette, preloadPalette} from "../Palette/host.ts";
 import "./Navbar.scss";
 
 type Props = {
@@ -131,7 +132,27 @@ export default function NavDrawer({isOpen, onClose}: Props) {
                     <h2 className="navdrawer_subtitle">{level.label}</h2>
                 </>
             )}
-            <nav className="navdrawer_nav">{renderItems(level.groups)}</nav>
+            <nav className="navdrawer_nav">
+                {/* The palette first, in its own group: it's an action, not a page. */}
+                {level.label === null && (
+                    <ul className="navdrawer_group">
+                        <li>
+                            <button
+                                className="navdrawer_link"
+                                onPointerDown={preloadPalette}
+                                onClick={() => {
+                                    onClose();
+                                    openPalette();
+                                }}
+                            >
+                                <span>Search</span>
+                                <Search size={18} />
+                            </button>
+                        </li>
+                    </ul>
+                )}
+                {renderItems(level.groups)}
+            </nav>
         </div>
     );
 

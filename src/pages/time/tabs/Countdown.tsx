@@ -3,6 +3,7 @@ import {Volume2, VolumeX} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {chime, pad2} from "../utils.ts";
 import useShortcuts from "../useShortcuts.ts";
+import {loadUntil, saveUntil} from "../until.ts";
 import "./Countdown.scss";
 
 type Phase = "idle" | "running" | "paused" | "done";
@@ -13,7 +14,6 @@ const MAX = 9 * 3600 + 59 * 60 + 59; // 9:59:59, one digit of hours
 const PRESETS = [1, 5, 10, 25]; // minutes
 const STORE = "time:countdown";
 const MUTED = "time:muted";
-const UNTIL = "time:until";
 
 // The dial is H:MM:SS, always (no jump from 0:05:00 to 05:00 on Start). Each digit has a button above and below it,
 // worth what that digit is worth; the colons have none. A step carries over: 55 s + 10 s is 1:05.
@@ -33,34 +33,6 @@ const untilText = (seconds: number) => {
     const time = `${pad2(Math.floor((seconds % 86400) / 3600))}:${pad2(Math.floor((seconds % 3600) / 60))}:${pad2(seconds % 60)}`;
     return days > 0 ? `${days}d\u00a0${time}` : time;
 };
-
-// A countdown to a moment, remembered in this browser until it's over (Jerry): when it ends, and when it was started
-// (for the bar), in ms.
-type Until = { end: number; from: number };
-
-function loadUntil(): Until | null {
-    try {
-        const saved = JSON.parse(localStorage.getItem(UNTIL) ?? "null") as Partial<Until> | null;
-        if (typeof saved?.end === "number" && typeof saved.from === "number" && saved.end > Date.now()) {
-            return {end: saved.end, from: saved.from};
-        }
-    } catch {
-        // storage refused, or something else in it
-    }
-    return null;
-}
-
-// Whether a countdown to a moment is under way here: the page then opens on it (Time.tsx).
-export const untilUnderWay = () => loadUntil() !== null;
-
-function saveUntil(until: Until | null) {
-    try {
-        if (until) localStorage.setItem(UNTIL, JSON.stringify(until));
-        else localStorage.removeItem(UNTIL);
-    } catch {
-        // not remembered
-    }
-}
 
 // The field's value for a moment, to the minute, in the reader's time: 2026-12-25T00:00. The next full hour to start
 // from.

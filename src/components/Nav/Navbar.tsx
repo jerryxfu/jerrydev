@@ -5,6 +5,7 @@ import {useGSAP} from "@gsap/react";
 import {Menu} from "lucide-react";
 import NavDrawer from "./NavDrawer.tsx";
 import ThemeToggle from "./ThemeToggle/ThemeToggle.tsx";
+import PaletteButton from "../Palette/PaletteButton.tsx";
 import {Link, useLocation} from "wouter";
 import {isRouted, linksLeft, linksRight, LOGO_ALT, resolveHref} from "./nav.config.ts";
 import "./Navbar.scss";
@@ -140,11 +141,11 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
         }
 
         if (runStagger) {
-            // The menu button is deliberately absent (animate with the navbar)
+            // The palette's and the menu's buttons are deliberately absent (animate with the navbar)
             const items = [
                 logoRef.current,
                 ...linkRefs.current,
-                ...(actionsRef.current?.querySelectorAll(":scope > *:not(.navbar_menu)") ?? []),
+                ...(actionsRef.current?.querySelectorAll(":scope > *:not(.navbar_menu, .palette-button)") ?? []),
             ].filter(Boolean);
 
             void gsap.from(items, {
@@ -247,6 +248,7 @@ export default function Navbar({isHero = false, isShrunk = false, animate = true
 
                     <div className="navbar_actions" ref={actionsRef}>
                         <ThemeToggle />
+                        <PaletteButton />
 
                         <button
                             className="navbar_menu"

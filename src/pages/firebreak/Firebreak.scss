@@ -1,0 +1,378 @@
+// Firebreak: the page follows the site's other tools (Time, Rendezvous): the navbar, the title and its line, the text
+// ladder. The board is 100 buttons, GitHub-style cells with a colour for each thing, so the game reads at a glance
+// (Jerry: one colour in levels, as the Squares, was too plain to tell what's going on): green grass, as GitHub's graph,
+// deeper once it's safe; the fire warm, flickering, red a spread later; ash behind it; your walls in the site's accent;
+// grey stones. The same in every theme, one set for light pages and one for dark ones.
+
+.firebreak {
+    --fb-grass: hsl(134 42% 80%);
+    --fb-safe: hsl(140 52% 46%);
+    --fb-fire: hsl(34 100% 54%);
+    --fb-glow: hsl(50 100% 72%);
+    --fb-embers: hsl(14 86% 50%);
+    --fb-burnt: hsl(24 7% 40%);
+    --fb-next: hsl(26 100% 50%);
+    --fb-wall: var(--secondary);
+    --fb-rock: color-mix(in srgb, var(--text) 20%, transparent);
+
+    min-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1.5rem 3rem;
+
+    @media screen and (max-width: 768px) {
+        padding: 0 1rem 3rem;
+    }
+}
+
+[data-scheme="dark"] .firebreak {
+    --fb-grass: hsl(146 42% 24%);
+    --fb-safe: hsl(138 56% 42%);
+    --fb-fire: hsl(34 100% 54%);
+    --fb-glow: hsl(50 100% 76%);
+    --fb-embers: hsl(14 84% 45%);
+    --fb-burnt: hsl(24 5% 15%);
+    --fb-next: hsl(28 100% 56%);
+    --fb-rock: color-mix(in srgb, var(--text) 30%, transparent);
+}
+
+.firebreak_container {
+    width: 100%;
+    max-width: 880px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.firebreak_header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+    }
+
+    p {
+        margin: 0;
+        color: var(--text-4);
+        font-size: var(--fs-sm);
+    }
+}
+
+// Which grid: today's number and date, or a numbered grid; and the buttons to change it.
+.firebreak_which {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+}
+
+.firebreak_which_name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+
+    strong {
+        font-size: var(--fs-lg);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    span {
+        color: var(--text-4);
+        font-size: var(--fs-sm);
+    }
+}
+
+.firebreak_which_buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+// The board beside what goes with it; the board above it on a phone.
+.firebreak_play {
+    display: grid;
+    grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+
+    @media (max-width: 760px) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+.fb_grid {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 4px;
+    width: 100%;
+    touch-action: manipulation; // no double-tap zoom between two quick walls
+
+    @media (max-width: 480px) {
+        gap: 3px;
+    }
+}
+
+// --- The cells ---
+
+.fb_cell {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-4);
+    background: var(--fb-grass);
+    transition: background-color 0.12s;
+
+    @media (max-width: 480px) {
+        border-radius: var(--r-3);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 2px;
+        z-index: 1;
+    }
+}
+
+// Grass the fire can still reach, pale; the grass it reaches next, ringed in the fire's colour; grass it can't reach any
+// more, deeper: safe.
+.fb_cell--grass,
+.fb_cell--next,
+.fb_cell--safe {
+    cursor: pointer;
+}
+
+.fb_cell--next {
+    background: color-mix(in srgb, var(--fb-next) 22%, var(--fb-grass));
+    box-shadow: inset 0 0 0 2px var(--fb-next);
+}
+
+.fb_cell--safe {
+    background: var(--fb-safe);
+}
+
+// Burning: the fire's colour, a lighter glow over it flickering; a spread later, red, a softer glow. Then ash.
+.fb_cell--fire,
+.fb_cell--embers {
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: var(--fb-glow);
+        opacity: var(--fb-flame);
+    }
+}
+
+.fb_cell--fire {
+    --fb-flame: 0.55;
+    background: var(--fb-fire);
+}
+
+.fb_cell--embers {
+    --fb-flame: 0.2;
+    background: var(--fb-embers);
+}
+
+.fb_cell--burnt {
+    background: var(--fb-burnt);
+}
+
+// Walls are yours: the accent. Rocks are there from the start: round, grey.
+.fb_cell--wall {
+    background: var(--fb-wall);
+}
+
+.fb_cell--rock {
+    background: var(--fb-rock);
+    border-radius: 50%;
+    transform: scale(0.84);
+}
+
+.fb_cell[aria-disabled="true"] {
+    cursor: default;
+}
+
+// The flicker: the glow steps between levels, each cell at its own pace (Grid.tsx), as the Squares' fire. Only on the
+// board and only while a cell burns: once the fire is out, nothing moves.
+.fb_grid .fb_cell--fire::after,
+.fb_grid .fb_cell--embers::after {
+    animation: fb-flicker var(--fb-t, 1s) steps(1, end) var(--fb-d, 0s) infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes fb-flicker {
+    0% {
+        opacity: calc(var(--fb-flame) * 0.45);
+    }
+    25% {
+        opacity: var(--fb-flame);
+    }
+    50% {
+        opacity: calc(var(--fb-flame) * 0.7);
+    }
+    75% {
+        opacity: calc(var(--fb-flame) * 1.35);
+    }
+}
+
+// Where a wall would go, under the mouse.
+@media (hover: hover) {
+    .fb_grid:not(.fb_grid--still) .fb_cell:is(.fb_cell--grass, .fb_cell--next, .fb_cell--safe):hover::before {
+        content: "";
+        position: absolute;
+        inset: 22%;
+        border-radius: var(--r-1);
+        background: var(--fb-wall);
+        opacity: 0.6;
+    }
+}
+
+// --- Beside the board ---
+
+.firebreak_side {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.firebreak_status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+// What to do now, or the score at the end.
+.firebreak_headline {
+    margin: 0;
+    color: var(--text);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+}
+
+.firebreak_score {
+    font-size: var(--fs-2xl);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.firebreak_verdict {
+    margin: 0;
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+}
+
+// The grass at a glance: safe, at risk, burnt, in the cells' colours.
+.fb_tally_bar {
+    display: flex;
+    gap: 2px;
+    height: 0.6rem;
+    border-radius: var(--r-full);
+    overflow: hidden;
+
+    span {
+        min-width: 4px;
+    }
+}
+
+.fb_tally_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-3);
+    font-size: var(--fs-smm);
+    font-variant-numeric: tabular-nums;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    i {
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+    }
+}
+
+.fb_tally--safe {
+    background: var(--fb-safe);
+}
+
+.fb_tally--risk {
+    background: var(--fb-grass);
+}
+
+.fb_tally--lost {
+    background: var(--fb-burnt);
+}
+
+.firebreak_buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.firebreak_note {
+    margin: 0;
+    color: var(--text-4);
+    font-size: var(--fs-sm);
+}
+
+.firebreak_legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-4);
+    font-size: var(--fs-smm);
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .fb_cell {
+        width: 0.9rem;
+        border-radius: var(--r-2);
+    }
+
+    .fb_cell--rock {
+        border-radius: 50%;
+    }
+}
+
+.firebreak_rules,
+.firebreak_keys {
+    margin: 0;
+    color: var(--text-4);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+}
+
+// Keys need a keyboard: not shown on a touch screen.
+@media (hover: none) {
+    .firebreak_keys {
+        display: none;
+    }
+}

@@ -17,7 +17,10 @@ import _unveil_icon_dark from "../../../assets/projects/unveil/unveil_icon_dark.
 import _unveil_mark_light from "../../../assets/projects/unveil/unveil_light.png";
 import _unveil_mark_dark from "../../../assets/projects/unveil/unveil_dark.png";
 
-const medias = [
+export const EMAIL = "me@jerryxf.net";
+
+// The palette lists them too (components/Palette/sources.ts).
+export const medias = [
     {title: "Github", username: "jerryxfu", image: "", url: "https://github.com/jerryxfu", color: "#56d36410"},
     {title: "Instagram", username: "@jerryxfu", image: _instagram, url: "https://www.instagram.com/jerryxfu/", color: "#ffb5a610"},
     {
@@ -121,7 +124,7 @@ export default function Contact() {
                             <ul className="contact_details">
                                 <li className="contact_detail">
                                     <Mail size={17} aria-hidden="true" />
-                                    <a className="contact_email" href="mailto:me@jerryxf.net">me@jerryxf.net</a>
+                                    <a className="contact_email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
                                 </li>
                                 <li className="contact_detail">
                                     <FileText size={17} aria-hidden="true" />

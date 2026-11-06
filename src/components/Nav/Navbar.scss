@@ -12,10 +12,11 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
 // - up to $phone, a phone: the bar floats as an island below the status bar (phone-island, below). Navbar.tsx's PHONE
 //   is the same width.
 // - below $links, the inline links go and the drawer, which has them all, is the menu: with the longest theme name in
-//   the toggle, they need 960px on the hero's bar and 920px on the solid one (measured 2026-10-10; at 768 and 640, the
-//   old widths, the bar ran off the screen on a tablet, menu button and all).
+//   the toggle (Burgundy) and the palette's button saying "Ctrl K", the hero's bar needs 1148px of page, and 15px more
+//   where a scrollbar takes room (measured 2026-11-06; 1111px with "⌘K"; 1037px before that button, when $links was
+//   1000px and the bar ran past the screen in between).
 $phone: 768px;
-$links: 1000px;
+$links: 1170px;
 
 // On a phone, where the bar floats: below the status bar, with room on each side, fading in. Never against the
 // screen's top edge: Safari 26 fills the status bar with a solid colour for anything fixed drawn there, even for a

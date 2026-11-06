@@ -1,0 +1,300 @@
+// Palette.tsx. A box near the top of the screen, the same size whatever it finds, so nothing moves while the posts
+// fill in. Its backdrop is a plain tint, no blur: over the moving mesh, a blur runs Firefox hot.
+
+.palette {
+    width: min(42rem, calc(100vw - 2rem));
+    max-width: none;
+    max-height: none;
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-5);
+    background-color: var(--bg-lt);
+    color: var(--text);
+    box-shadow: 0 18px 50px var(--shadow-daa);
+    overflow: hidden;
+
+    &[open] {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.45);
+    }
+
+    // On a phone: below the status bar, where the bar's island floats, with room on each side.
+    @media screen and (max-width: 768px) {
+        width: calc(100vw - 20px);
+        margin-top: calc(env(safe-area-inset-top) + 8px);
+    }
+}
+
+.palette--wide {
+    width: min(60rem, calc(100vw - 2rem));
+}
+
+.palette_field {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-4);
+}
+
+// 18px: under 16, iOS zooms the page in on focus.
+.palette_input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-md);
+
+    &::placeholder {
+        color: var(--text-6);
+    }
+}
+
+// The list and the preview: a fixed height, so the box keeps its size as results come and go. On a phone, short
+// enough that the footer stays above the keyboard.
+.palette_body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    height: min(26rem, calc(100dvh - 12vh - 8rem));
+
+    .palette--wide & {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    }
+
+    @media screen and (max-width: 768px) {
+        height: min(26rem, 40dvh);
+    }
+}
+
+.palette_list {
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.palette_row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.42rem 0.6rem;
+    border-radius: var(--r-3);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: 1.35;
+    cursor: pointer;
+
+    &[aria-selected="true"] {
+        background-color: color-mix(in srgb, var(--primary-lt) 32%, transparent);
+        color: var(--text);
+    }
+}
+
+.palette_icon {
+    flex: none;
+    color: var(--text-4);
+}
+
+.palette_text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.palette_title {
+    color: var(--text);
+    font-weight: 500;
+
+    .is-code & {
+        font-family: var(--font-code);
+        font-size: 0.9em;
+        font-weight: 400;
+    }
+}
+
+.palette_detail {
+    margin-left: 0.6rem;
+    color: var(--text-4);
+}
+
+.palette_label {
+    flex: none;
+    max-width: 40%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text-5);
+    font-size: var(--fs-xs);
+
+    @media screen and (max-width: 768px) {
+        max-width: 30%;
+    }
+}
+
+// The letters found, as fzf colours them.
+.palette mark {
+    background: none;
+    color: var(--secondary);
+    font-weight: 650;
+}
+
+.palette_empty {
+    padding: 1rem 0.6rem;
+    color: var(--text-5);
+    font-size: var(--fs-sm);
+}
+
+.palette_foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-5);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+// No keyboard on a touch screen, so no keys to show.
+.palette_keys {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @media (hover: none) {
+        display: none;
+    }
+}
+
+// ---- Preview ----
+.palette_preview {
+    min-width: 0;
+    padding: 1rem 1.1rem;
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+
+    p {
+        margin: 0 0 0.6rem;
+    }
+}
+
+.palette_preview-title {
+    margin: 0 0 0.35rem;
+    color: var(--text);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.palette_preview-where {
+    color: var(--text-5);
+    font-size: var(--fs-xs);
+}
+
+.palette_lines {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-xs);
+}
+
+.palette_line {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: var(--r-2);
+
+    &.is-hit {
+        background-color: color-mix(in srgb, var(--primary-lt) 32%, transparent);
+        color: var(--text);
+    }
+
+    &.is-code .palette_line-text {
+        font-family: var(--font-code);
+    }
+}
+
+.palette_line-n {
+    flex: none;
+    min-width: 2.2em;
+    color: var(--text-6);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.palette_line-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.palette_picture {
+    margin-bottom: 0.75rem;
+    border-radius: var(--r-2);
+    overflow: hidden;
+    background-color: var(--bg-da);
+
+    img,
+    video,
+    svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+}
+
+.palette_swatch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-2);
+    background-color: var(--bg);
+}
+
+.palette_swatch-text {
+    margin-right: auto;
+    color: var(--text);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+}
+
+.palette_swatch-dot {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.palette_friend {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.6rem;
+    border-radius: var(--r-3);
+}
+
+// On a post opened from a line: the words searched, wherever they are (reveal.ts).
+::highlight(palette) {
+    background-color: color-mix(in srgb, var(--accent) 75%, transparent);
+    color: var(--text);
+}
