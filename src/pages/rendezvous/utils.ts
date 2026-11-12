@@ -1,4 +1,5 @@
 import {type Granularity, PARTS} from "./types.ts";
+import {eventPath} from "./page.ts";
 
 /**
  * Generate time slot labels between start and end at given granularity.
@@ -99,7 +100,7 @@ export function zoneName(timeZone: string): string {
  * Build the shareable URL for an event
  */
 export function getEventUrl(code: string): string {
-    return `${window.location.origin}/rendezvous?code=${code}`;
+    return window.location.origin + eventPath(code);
 }
 
 export interface WeekCell {

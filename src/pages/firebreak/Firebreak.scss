@@ -153,8 +153,8 @@
 }
 
 .fb_cell--next {
-    background: color-mix(in srgb, var(--fb-next) 22%, var(--fb-grass));
-    box-shadow: inset 0 0 0 2px var(--fb-next);
+    background: color-mix(in srgb, var(--fb-next) 12%, var(--fb-grass));
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fb-next) 45%, transparent);
 }
 
 .fb_cell--safe {

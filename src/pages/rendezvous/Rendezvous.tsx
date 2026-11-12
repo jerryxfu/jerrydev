@@ -1,16 +1,18 @@
 import {useEffect, useState} from "react";
 import {Plus} from "lucide-react";
+import {Redirect, useLocation, useParams, useSearch} from "wouter";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import MakeView from "./views/MakeView.tsx";
 import EventView from "./views/EventView.tsx";
 import {getStats} from "./api.ts";
+import page, {eventPath} from "./page.ts";
 import "./Rendezvous.scss";
 
-// The event in the link (/rendezvous?code=K3F9Q), or none: the screen to make one.
-const codeInUrl = () => new URLSearchParams(window.location.search).get("code")?.toUpperCase() || null;
-
 export default function Rendezvous() {
-    const [code, setCode] = useState(codeInUrl);
+    const [, navigate] = useLocation();
+    // The event in the address (/r/K3F9Q), or none (/rendezvous): the screen to make one.
+    const code = useParams<{ code?: string }>().code?.toUpperCase() ?? null;
+    const oldCode = new URLSearchParams(useSearch()).get("code");
     const [stats, setStats] = useState<{ activeEvents: number; answers: number } | null>(null);
 
     // The footer's numbers, as Expedite's: again on each screen.
@@ -19,18 +21,11 @@ export default function Rendezvous() {
         });
     }, [code]);
 
-    // Back and forward, between the event and the screen that made it.
-    useEffect(() => {
-        const onPop = () => setCode(codeInUrl());
-        window.addEventListener("popstate", onPop);
-        return () => window.removeEventListener("popstate", onPop);
-    }, []);
+    // A link made before 12 Nov 2026 (/rendezvous?code=K3F9Q) goes on to the event's address. An event lasts 95 days
+    // at most: this and `oldCode` can go after 1 March 2027.
+    if (oldCode) return <Redirect to={eventPath(oldCode)} replace />;
 
-    const open = (next: string | null) => {
-        window.history.pushState({}, "", next ? `/rendezvous?code=${next}` : "/rendezvous");
-        setCode(next);
-        window.scrollTo(0, 0);
-    };
+    const toMake = () => navigate(page.path);
 
     // Someone opening an event came for it, not for the site: no navbar on its page, as on Expedite's received drops.
     const bare = code !== null;
@@ -47,7 +42,7 @@ export default function Rendezvous() {
             <div className="rv_container">
                 <header className="rv_header">
                     {code && (
-                        <button className="rv_back" onClick={() => open(null)}>
+                        <button className="rv_back" onClick={toMake}>
                             <Plus size={16} />
                             <span>New event</span>
                         </button>
@@ -56,7 +51,7 @@ export default function Rendezvous() {
                     {!code && <p className="caption-text">Find the best time for your group to meet!</p>}
                 </header>
 
-                {code ? <EventView key={code} code={code} onNew={() => open(null)} /> : <MakeView onMade={open} />}
+                {code ? <EventView key={code} code={code} onNew={toMake} /> : <MakeView onMade={(made) => navigate(eventPath(made))} />}
             </div>
 
             <div className="rv_spacer" />

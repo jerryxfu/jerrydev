@@ -207,8 +207,7 @@ export default function Palette() {
     };
 
     // A page of the site, or a home page anchor. From another page, an anchor loads the home page on it (as the bar's
-    // links do); on the home page, the address changes and the page goes there (Projects opens a project's card). A page
-    // that reads its address once (Expedite's and Rendezvous's ?code=) is loaded again when it's the one on screen.
+    // links do); on the home page, the address changes and the page goes there (Projects opens a project's card).
     const go = (href: string, newTab: boolean) => {
         if (newTab) return void window.open(href.startsWith("#") ? `/${href}` : href, "_blank", "noopener");
         if (href.startsWith("#")) {
@@ -223,8 +222,6 @@ export default function Palette() {
             });
             return;
         }
-        const url = new URL(href, window.location.origin);
-        if (url.pathname === pathname && url.search) return window.location.assign(href);
         navigate(href);
     };
 

@@ -12,6 +12,13 @@ Short-lived file and text sharing. Four types and one five-character code.
 Codes are 5 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no I/O/0/1). Uniqueness is checked across all the types, so `GET /drop/:code` resolves any of them
 and the UI decides what to render from the returned `type`.
 
+**A code's address** is `/e/K7XQ4`, whatever its type: the only one it has, and lower case works too. `/expedite` is the tool itself. The letter is
+in `page.ts` (`letter`, and `dropPath` for the links), the route in `main.tsx`, and `Expedite.tsx` reads the code with wouter's `useParams`. A code typed
+on the landing page, a link, Back and Forward and the palette all go through the address: the page compares it with what it shows, and follows. A code
+that can't be opened is said on `/expedite`, the code still in its field. Links made before 12 Nov 2026 (`/expedite?code=K7XQ4`) are sent on to the new
+address until 1 March 2027. At build, `pageHeads` (`vite.config.ts`) writes a `_redirects` line so Cloudflare Pages answers `/e/*` with Expedite's own
+HTML file (a chat's preview shows Expedite's card), and a `Disallow` in `robots.txt`: opening a drop uses up a view.
+
 ---
 
 ## Frontend layout
@@ -373,6 +380,16 @@ routes/expedite/
   raw.ts      the terminal's, in plain text (mounted in routes/index.ts, outside the origin guard):
               GET /raw/:code, PUT /raw/ and /raw/:name, POST /raw/start, POST /raw/:code/done
 ```
+
+**For the CLI and the app.** The whole router above is mounted twice in `routes/index.ts`: at `/expedite` for the page, behind the origin guard,
+and at `/expedite/cli` for programs that aren't a browser (the CLI and the iOS app, #87 to #89), behind `middleware/cliGuard.ts`. That guard is the
+origin guard the other way round: a request with a `Sec-Fetch-Site`, an `Origin` or a `Referer` gets 403, so other websites still can't use the API from
+their visitors' browsers. Browsers since Chrome 76, Firefox 90 and Safari 16.4 send `Sec-Fetch-Site` on every request to an HTTPS address, and a page's
+script can't remove it. Older ones send an `Origin` or a `Referer` when a website calls another site, but not always on a picture or a link marked
+`no-referrer`. The CLI and the app send none of the three, and get the page's routes, options and JSON. Each one names its version in the `User-Agent`
+(`expedite-cli/1.0.0`, `ExpediteShare/1.0`); below the minimum in `CLIENTS`, the answer is 426 with a sentence that says how to update. A breaking change
+raises the minimum. The two path-based settings in `server.ts` (the 2 MB body for texts and live rooms) and `rateLimiter.ts` (live rooms' looser limit)
+list both paths.
 
 **Sending from a terminal.** Every terminal drop lasts 12 hours, with no view limit, and is deletable: there are no options, so the commands stay short (and
 clear of zsh's `?`).

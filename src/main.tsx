@@ -127,6 +127,9 @@ function PageHead() {
 // polyfill, under 20 kB, before anything is drawn. So no module may use Temporal as it loads, only once the app runs.
 if (!("Temporal" in globalThis)) await import("temporal-polyfill/global");
 
+const expedite = renderLazy(<LazyExpedite />);
+const rendezvous = renderLazy(<LazyRendezvous />);
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
     throw new Error("Root element not found");
@@ -151,9 +154,14 @@ root.render(
                         but keeping it first documents that topics are not posts. */}
                     <Route path="/blog/topics/:topic">{renderLazy(<LazyTopic />)}</Route>
                     <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
-                    <Route path="/expedite">{renderLazy(<LazyExpedite />)}</Route>
+                    {/* A tool and its codes (a drop is /e/K7XQ4: the letter is in the tool's page.ts) are one page, which
+                        reads the code with useParams. The same element on both routes, so React keeps the page as the
+                        address moves between them. Any other one-letter path is a 404. */}
+                    <Route path="/expedite">{expedite}</Route>
+                    <Route path="/e/:code">{expedite}</Route>
                     <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
-                    <Route path="/rendezvous">{renderLazy(<LazyRendezvous />)}</Route>
+                    <Route path="/rendezvous">{rendezvous}</Route>
+                    <Route path="/r/:code">{rendezvous}</Route>
                     <Route path="/time">{renderLazy(<LazyTime />)}</Route>
                     <Route path="/firebreak">{renderLazy(<LazyFirebreak />)}</Route>
                     <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>

@@ -5,6 +5,7 @@ import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
 import {useFileDrag} from "../useFileDrag.ts";
+import {dropPath} from "../page.ts";
 import {getCurlCommand, SEND_FILE_COMMAND, SEND_PIPE_COMMAND, SEND_PIPE_WINDOWS_COMMAND, SEND_POWERSHELL_COMMAND} from "../utils.ts";
 import CopyField from "./CopyField.tsx";
 import "./LandingView.scss";
@@ -141,10 +142,13 @@ function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField
     );
 }
 
-// What's typed or pasted in the code field, as a code: from a pasted link its ?code=, otherwise its letters and digits
+// The code in a drop's link: its address (/e/K7XQ4), or the ?code= of a link made before 12 Nov 2026.
+const LINK = new RegExp(`(?:${dropPath("")}|[?&]code=)([A-Za-z0-9]{5})`);
+
+// What's typed or pasted in the code field, as a code: from a pasted link its code, otherwise its letters and digits
 // (spaces and dashes dropped), five at most. A pasted link used to be cut to "HTTPS" by the field's length limit.
 function toCode(input: string): string {
-    const fromLink = input.match(/[?&]code=([A-Za-z0-9]{5})/);
+    const fromLink = input.match(LINK);
     return (fromLink?.[1] ?? input.replace(/[^A-Za-z0-9]/g, "").slice(0, 5)).toUpperCase();
 }
 

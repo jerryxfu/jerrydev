@@ -6,7 +6,8 @@ import {TOPIC_IDS, TOPICS} from "@/pages/BlogPage/topics.tsx";
 // search engines read that HTML without running the app. <PageHead> (main.tsx) keeps it right as the app moves
 // between pages. Each page says it in its own folder's page.ts (src/pages/time/page.ts), gathered here; the blog's
 // topics and posts come from their own lists. A new route needs its page.ts: without one it gets NOT_FOUND, which
-// keeps it out of search.
+// keeps it out of search. A tool whose things have a code says its letter there too: a drop is /e/K7XQ4, the only
+// address it has, and that address is the tool's page (its head here, its HTML file once deployed).
 
 export const SITE = "https://jerryxf.net";
 const SITE_NAME = "jerryxf";
@@ -22,6 +23,7 @@ export type Head = {
 
 // A page of its own, in its folder's page.ts: its head, and what the bar and the palette (components/Palette) use.
 export type Page = Head & {
+    letter?: string;         // its things, by their code: "e" makes /e/K7XQ4 this page (its route is in main.tsx)
     words?: string;          // the palette only: other words people type for it
     sections?: Section[];    // the parts the bar and the palette link to (the home page's)
     saved?: () => Saved[];   // what this browser keeps for it, listed in the palette: read each time it opens
@@ -50,7 +52,14 @@ const NOT_FOUND: Head = {path: "", name: "404 Not Found", description: "How did 
 
 const byPath = new Map(PAGE_HEADS.map((head) => [head.path, head]));
 
-export const headFor = (path: string): Head | undefined => byPath.get(path.length > 1 ? path.replace(/\/+$/, "") : path);
+// The tools with a letter, by it.
+const byLetter = new Map(PAGES.flatMap((page) => (page.letter ? [[page.letter, page] as const] : [])));
+
+// A page's own address, or a tool's letter and a code (/e/K7XQ4): that tool's head.
+export const headFor = (path: string): Head | undefined => {
+    const clean = path.length > 1 ? path.replace(/\/+$/, "") : path;
+    return byPath.get(clean) ?? byLetter.get(/^\/([^/]+)\/[^/]+$/.exec(clean)?.[1] ?? "");
+};
 
 const titleOf = (head: Head): string => head.name === SITE_NAME ? SITE_NAME : `${head.name} | ${SITE_NAME}`;
 
@@ -111,6 +120,26 @@ export const renderPage = (template: string, head: Head): string => {
         .replace("<html lang=\"en\">", `<html lang="${head.lang ?? "en"}">`)
         .replace("<!-- page head -->", tags.join("\n    "));
 };
+
+// At build time: Cloudflare Pages' _redirects, a line per letter. /e/K7XQ4 is answered with what /expedite gets, the
+// tool's own HTML file (200: the address stays), so a chat's preview of the link shows the tool's card. Without the
+// line it gets index.html, and the link works all the same. The target has no .html: Pages redirects /expedite.html
+// to /expedite.
+export const redirects = (): string =>
+    [...byLetter].map(([letter, page]) => `/${letter}/* ${page.path} 200\n`).join("");
+
+// At build time: robots.txt, which keeps search engines off the addresses with a code.
+export const robots = (): string => [
+    `User-agent: *`,
+    `Allow: /`,
+    `# A link with a code opens someone's drop or event, and opening a drop uses up one of its views.`,
+    ...[...byLetter.keys()].map((letter) => `Disallow: /${letter}/`),
+    // The links made before 12 Nov 2026, while they're sent on to the new address: goes with that, after 1 March 2027.
+    `Disallow: /*?code=`,
+    ``,
+    `Sitemap: ${SITE}/sitemap.xml`,
+    ``,
+].join("\n");
 
 // At build time: every page search engines may list. No lastmod: a post's date is when it came out, not when it last
 // changed, and Google stops reading a sitemap's dates once they prove wrong.

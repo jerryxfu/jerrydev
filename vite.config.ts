@@ -39,12 +39,15 @@ type HeadModule = {
     PAGE_HEADS: { path: string }[];
     renderPage(template: string, head: { path: string }): string;
     sitemap(): string;
+    redirects(): string;
+    robots(): string;
 };
 
 // Gives every page its own HTML file (expedite.html, blog/<slug>.html, ...) carrying its title, description and address
 // from src/head.ts, and writes sitemap.xml from the same list. Link previews and most search engines read only that HTML,
 // so without it every page looked like the home page to them. Cloudflare Pages serves /expedite from expedite.html,
-// and still sends any other address to index.html.
+// and still sends any other address to index.html. From the tools' letters (/e/K7XQ4), it also writes _redirects, so
+// those addresses get their tool's file, and robots.txt, which keeps search engines off them.
 function pageHeads(): Plugin {
     return {
         name: "page-heads",
@@ -68,6 +71,8 @@ function pageHeads(): Plugin {
                 else this.emitFile({type: "asset", fileName: `${page.path.slice(1)}.html`, source: html});
             }
             this.emitFile({type: "asset", fileName: "sitemap.xml", source: head.sitemap()});
+            this.emitFile({type: "asset", fileName: "_redirects", source: head.redirects()});
+            this.emitFile({type: "asset", fileName: "robots.txt", source: head.robots()});
         },
     };
 }

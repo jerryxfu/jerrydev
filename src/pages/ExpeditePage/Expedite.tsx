@@ -1,5 +1,6 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useEffectEvent, useRef, useState} from "react";
 import {ArrowLeft, File as FileIcon, FileText, type LucideIcon, Radio, Users} from "lucide-react";
+import {Redirect, useLocation, useParams, useSearch} from "wouter";
 import gsap from "gsap";
 import {apiBaseUrl} from "../../main.tsx";
 import "@fontsource-variable/jetbrains-mono/index.css";
@@ -20,6 +21,7 @@ import {
     type ViewMode
 } from "./types.ts";
 import {formatBytes, saveBlob} from "./utils.ts";
+import page, {dropPath} from "./page.ts";
 import {copyText} from "@/utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
@@ -80,10 +82,17 @@ const freshStatus = (): P2PStatus => ({
 });
 
 export default function Expedite() {
+    const [, navigate] = useLocation();
+    // The code in the address (/e/K7XQ4): the drop, live room or P2P code that's open, or being fetched. None on
+    // /expedite. `shown` is the one this page asked for or has on screen: when the address moves away from it, the
+    // page follows (below, after retrieveDrop).
+    const linked = useParams<{ code?: string }>().code?.toUpperCase() ?? null;
+    const shown = useRef<string | null>(null);
+    const oldCode = new URLSearchParams(useSearch()).get("code");
+
     const [view, setView] = useState<ViewMode>("landing");
-    const [retrieveCode, setRetrieveCode] = useState(() =>
-        new URLSearchParams(window.location.search).get("code")?.toUpperCase() ?? ""
-    );
+    // What's in the landing page's code field.
+    const [retrieveCode, setRetrieveCode] = useState("");
     const [dropType, setDropType] = useState<DropType>("text");
     // A text drop sent as code: its highlighting language (Shiki's id), or null for plain text.
     const [textLanguage, setTextLanguage] = useState<string | null>(null);
@@ -143,7 +152,6 @@ export default function Expedite() {
         && stats.turnUsage.egressBytes >= stats.turnUsage.capBytes;
 
     const viewRef = useRef<HTMLDivElement>(null);
-    const hasInitialized = useRef(false);
 
     // Animate view transitions
     useEffect(() => {
@@ -223,8 +231,17 @@ export default function Expedite() {
         setCopiedField(null);
         setSettings({...DEFAULT_SETTINGS});
         setMaxViewsInput("");
-        window.history.replaceState({}, "", "/expedite");
+        shown.current = null;
         setView("landing");
+    };
+
+    // Back, Done, Exit. From a drop or a room, to Expedite's own address, and the page follows it there.
+    const back = () => (linked ? navigate(page.path) : reset());
+
+    // What's now on screen is at its address.
+    const showAt = (code: string) => {
+        shown.current = code;
+        if (code !== linked) navigate(dropPath(code));
     };
 
     // --- Landing tile selection ---
@@ -232,7 +249,7 @@ export default function Expedite() {
         setError(null);
         if (type === "live") {
             setCreatingRoom(true);
-            await openRoom(live.create);
+            await openRoom(live.create).catch((err: unknown) => setError(err instanceof Error ? err.message : "Couldn't open the room"));
             setCreatingRoom(false);
             return;
         }
@@ -241,15 +258,11 @@ export default function Expedite() {
     };
 
     // A live room, made (the Live tile) or joined (its code or link): you're in it, its stream open, before it shows.
-    // What spins meanwhile is the caller's: the tile, or the code's Retrieve.
-    const openRoom = async (enter: () => Promise<void>) => {
-        try {
-            await enter();
-            setDropType("live");
-            await transitionTo("live");
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Couldn't open the room");
-        }
+    // What spins meanwhile, and what's said when it fails, is the caller's: the tile, or the code's Retrieve.
+    const openRoom = async (enter: () => Promise<string>) => {
+        showAt(await enter());
+        setDropType("live");
+        await transitionTo("live");
     };
 
     const handleUpload = async () => {
@@ -350,9 +363,12 @@ export default function Expedite() {
         }
     };
 
-    const retrieveDrop = async (code?: string) => {
-        const targetCode = (code || retrieveCode).trim().toUpperCase();
+    // A code typed on the landing page, or the address's. Once it's open, it's at its address.
+    const retrieveDrop = async (code: string) => {
+        const targetCode = code.trim().toUpperCase();
         if (!targetCode) return;
+        shown.current = targetCode;
+        setRetrieveCode(targetCode);
         setLoading(true);
         setError(null);
 
@@ -360,11 +376,9 @@ export default function Expedite() {
             const res = await fetch(`${apiBaseUrl}/expedite/drop/${targetCode}`);
             // Null when the answer isn't the API's JSON (a proxy's error page): its 404s always are.
             const json = await res.json().catch(() => null);
-
-            if (!res.ok) {
-                setError(json?.error?.message || `Expedite didn't answer (HTTP ${res.status}). Try again.`);
-                return;
-            }
+            if (!res.ok) throw new Error(json?.error?.message || `Expedite didn't answer (HTTP ${res.status}). Try again.`);
+            // The address moved on while the API answered (Back): nothing to show.
+            if (shown.current !== targetCode) return;
 
             const meta = json.data as DropMeta;
             if (meta.type === "live") {
@@ -373,24 +387,33 @@ export default function Expedite() {
             }
             setResult(meta);
             setDownloadCheck(null);
+            showAt(targetCode);
             // The type isn't known until the lookup resolves, which is also when
             // it appears in the heading.
             await transitionTo(meta.type === "p2p" ? "p2p-receive" : "result");
         } catch (err: unknown) {
+            // Not found, expired, a full room: said on the landing page, at Expedite's own address, the code still in
+            // its field.
             setError(err instanceof Error ? err.message : "Retrieval failed");
+            shown.current = null;
+            if (linked) navigate(page.path, {replace: true});
         } finally {
             setLoading(false);
         }
     };
 
-    // Auto-retrieve when arriving via a ?code= link (retrieveCode is seeded from the URL above)
+    // The address is what's open. When it changes under the page (a link opened, Back and Forward, the palette), the
+    // page follows: out of what it shows, then the address's code, if it has one.
+    const follow = useEffectEvent(async () => {
+        if (linked === shown.current) return;
+        if (view !== "landing") await reset();
+        if (linked) await retrieveDrop(linked);
+    });
     useEffect(() => {
-        if (retrieveCode && !hasInitialized.current) {
-            hasInitialized.current = true;
-            void retrieveDrop(retrieveCode);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // The lookup starts here, and says at once that it's under way.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void follow();
+    }, [linked]);
 
     // --- Direct P2P: send ---
     const startP2PSend = async () => {
@@ -568,7 +591,7 @@ export default function Expedite() {
                 setError("The drop couldn't be deleted. Try again.");
                 return;
             }
-            await reset();
+            back();
         } catch {
             setError("The drop couldn't be deleted. Check your connection and try again.");
         }
@@ -620,6 +643,10 @@ export default function Expedite() {
                         : null;
     const title = kind ? TITLES[kind] : null;
 
+    // A link made before 12 Nov 2026 (/expedite?code=K7XQ4) goes on to the drop's address. A drop lasts a day at most:
+    // this and `oldCode` can go after 1 March 2027, with Rendezvous's.
+    if (oldCode) return <Redirect to={dropPath(oldCode)} replace />;
+
     return (
         <div
             className={`expedite${bare ? " expedite--bare" : ""}${view === "live" ? " expedite--live" : ""}`}
@@ -639,7 +666,7 @@ export default function Expedite() {
                 {/* A live room's bar is part of the header: beside the title on a laptop, under it on a phone. */}
                 <header className={`expedite_header${view === "live" ? " expedite_header--live" : ""}`}>
                     {view !== "landing" && (
-                        <button className="expedite_back" onClick={reset}>
+                        <button className="expedite_back" onClick={back}>
                             <ArrowLeft size={16} />
                             <span>Back</span>
                         </button>
@@ -653,7 +680,7 @@ export default function Expedite() {
                     ) : (
                         <h1>Expedite 📦</h1>
                     )}
-                    {view === "live" && <LiveBar live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={reset} />}
+                    {view === "live" && <LiveBar live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={back} />}
                     {view === "landing" && (
                         <p className="caption-text">
                             Share files and text snippets instantaneously! Pick an option below, or drop a file on this page. Terminal
@@ -674,7 +701,7 @@ export default function Expedite() {
                             setCode={setRetrieveCode}
                             error={error}
                             loading={loading}
-                            onRetrieve={() => retrieveDrop()}
+                            onRetrieve={() => retrieveDrop(retrieveCode)}
                             p2pMode={p2pMode}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
@@ -697,7 +724,7 @@ export default function Expedite() {
                             error={error}
                             loading={loading}
                             onUpload={handleUpload}
-                            onCancel={loading ? cancelUpload : reset}
+                            onCancel={loading ? cancelUpload : back}
                             progress={preparing != null ? (
                                 <p className="expedite_status-line">Preparing the zip... {Math.floor(preparing * 100)}%</p>
                             ) : uploadSnapshot && (
@@ -716,7 +743,7 @@ export default function Expedite() {
                             info={createdInfo}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
-                            onDone={reset}
+                            onDone={back}
                         />
                     )}
 
@@ -735,7 +762,7 @@ export default function Expedite() {
                             onCopy={copyToClipboard}
                             relayDisabled={relayBlocked}
                             onStart={() => void startP2PSend()}
-                            onCancel={reset}
+                            onCancel={back}
                         />
                     )}
 
@@ -752,12 +779,12 @@ export default function Expedite() {
                             received={p2pReceived}
                             onSave={p2pReceived && p2pMode === "memory"
                                 ? () => saveBlob(p2pReceived, result.fileName ?? `expedite-${result.code}`) : undefined}
-                            onCancel={reset}
+                            onCancel={back}
                         />
                     )}
 
                     {view === "live" && (
-                        <LiveView live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={reset} dragging={pageDrag.over} />
+                        <LiveView live={live} copiedField={copiedField} onCopy={copyToClipboard} onExit={back} dragging={pageDrag.over} />
                     )}
 
                     {view === "result" && result && (

@@ -1,4 +1,5 @@
 import {apiBaseUrl} from "../../main.tsx";
+import {dropPath} from "./page.ts";
 
 // Always one decimal place
 export function formatBytes(bytes: number): string {
@@ -46,7 +47,7 @@ export function when(iso: string): string {
 }
 
 export function getDropUrl(code: string): string {
-    return `${window.location.origin}/expedite?code=${code}`;
+    return window.location.origin + dropPath(code);
 }
 
 // The drop from a terminal, through the API's raw route: a text drop is printed, a file is saved under its name (-LOJ).

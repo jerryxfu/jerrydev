@@ -182,7 +182,7 @@ export function useLiveRoom() {
         return () => window.removeEventListener("pageshow", resume);
     }, []);
 
-    const enter = (r: LiveRoom) => {
+    const enter = (r: LiveRoom): string => {
         const myToken = r.me.token ?? seats.seatToken(r.code);
         if (!myToken) throw new Error("The room didn't give this page a seat");
         seats.keepSeat(r.code, myToken, r.expiresAt);
@@ -197,9 +197,8 @@ export function useLiveRoom() {
         setDownloaded(new Set(seats.downloadedIn(r.code)));
         setClosed(null);
         setError(null);
-        // The room's link: a reload, or the link sent to someone, opens it again.
-        window.history.replaceState({}, "", `/expedite?code=${r.code}`);
         connect(r.code, myToken, r.me.id);
+        return r.code;
     };
 
     /** Stops what runs (the stream, files going up) and forgets the room here. The seat stays yours until the room ends. */
@@ -219,6 +218,7 @@ export function useLiveRoom() {
         setError(null);
     };
 
+    /** Both give the room's code once you're in: Expedite.tsx puts it in the address. */
     const create = async () => enter(await api.createRoom());
     const join = async (code: string) => enter(await api.joinRoom(code, seats.seatToken(code)));
 

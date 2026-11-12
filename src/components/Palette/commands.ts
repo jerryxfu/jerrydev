@@ -1,3 +1,4 @@
+import {dropPath} from "@/pages/ExpeditePage/page.ts";
 import type {Action} from "./sources.ts";
 
 // Commands, known by the shape of what's typed rather than picked from the list.
@@ -32,7 +33,7 @@ export function commandsFor(query: string): { first: Command[]; later: Command[]
     if (!CODE.test(typed)) return {first: [], later: []};
     const code = typed.toUpperCase();
     const drop: Command = {
-        id: `command:drop:${code}`, title: `Open drop ${code}`, detail: "Expedite", action: {type: "go", href: `/expedite?code=${code}`},
+        id: `command:drop:${code}`, title: `Open drop ${code}`, detail: "Expedite", action: {type: "go", href: dropPath(code)},
     };
     return /\d/.test(code) ? {first: [drop], later: []} : {first: [], later: [drop]};
 }
