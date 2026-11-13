@@ -33,6 +33,8 @@ const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.ts
 const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
 const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
 const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
+const LazyShortcut = lazy(() => import("./pages/shortcut/Shortcut.tsx"));
+const LazyShortcutGo = lazy(() => import("./pages/shortcut/Go.tsx"));
 const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
 const LazyFirebreak = lazy(() => import("./pages/firebreak/Firebreak.tsx"));
 const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
@@ -162,6 +164,10 @@ root.render(
                     <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
                     <Route path="/rendezvous">{rendezvous}</Route>
                     <Route path="/r/:code">{rendezvous}</Route>
+                    <Route path="/shortcut">{renderLazy(<LazyShortcut />)}</Route>
+                    {/* A short link: a page of its own, apart from the tool's. It's on the way to somewhere else, so
+                        it loads as little as it can. */}
+                    <Route path="/s/:name">{renderLazy(<LazyShortcutGo />)}</Route>
                     <Route path="/time">{renderLazy(<LazyTime />)}</Route>
                     <Route path="/firebreak">{renderLazy(<LazyFirebreak />)}</Route>
                     <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>

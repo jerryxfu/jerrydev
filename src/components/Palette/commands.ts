@@ -1,4 +1,5 @@
 import {dropPath} from "@/pages/ExpeditePage/page.ts";
+import shortcut, {hostOf} from "@/pages/shortcut/page.ts";
 import type {Action} from "./sources.ts";
 
 // Commands, known by the shape of what's typed rather than picked from the list.
@@ -24,12 +25,23 @@ function unixTime(query: string): Command | null {
     }
 }
 
+// A link typed or pasted: Shortcut opens with it in its field.
+const LINK = /^https?:\/\/\S+\.\S+$/i;
+
+function shorten(query: string): Command | null {
+    if (!LINK.test(query)) return null;
+    return {
+        id: `command:shorten:${query}`, title: "Shorten this link", detail: `${hostOf(query)} · Shortcut`,
+        action: {type: "go", href: `${shortcut.path}?url=${encodeURIComponent(query)}`},
+    };
+}
+
 // The commands for what's typed: those to show first, and a code made only of letters, which goes after the names
 // found ("PAGES" is a word as much as a code).
 export function commandsFor(query: string): { first: Command[]; later: Command[] } {
     const typed = query.trim();
-    const unix = unixTime(typed);
-    if (unix) return {first: [unix], later: []};
+    const command = unixTime(typed) ?? shorten(typed);
+    if (command) return {first: [command], later: []};
     if (!CODE.test(typed)) return {first: [], later: []};
     const code = typed.toUpperCase();
     const drop: Command = {

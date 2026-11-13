@@ -1,0 +1,423 @@
+// Shortcut's own look, bolder and friendlier than the other tools on purpose (Jerry, #96): "ink and stickers". A warm
+// page, thick outlines in the text's colour, hard shadows with no blur, pills, and the result on a tilted label. Every
+// colour is the theme's own. The navbar, the numbers and the footer line are as on Expedite and Rendezvous.
+.sc {
+    --ink: var(--text);
+    --paper: var(--bg-lt);
+    --line: 2px solid var(--ink);
+
+    min-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.6rem 1.5rem 0;
+    // The theme's accent, lightened: sand in Light, foam in Latte. The dark themes keep their own ground (below): a
+    // light page would glare there, and the ink, light on dark, carries the look.
+    background: var(--accent-lt);
+
+    @media screen and (max-width: 768px) {
+        padding: 0.5rem 1.25rem 0;
+    }
+}
+
+[data-scheme="dark"] .sc {
+    background: none;
+}
+
+.sc_container {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+}
+
+.sc_header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+
+    h1 {
+        margin: 0;
+        font-size: clamp(2.6rem, 11vw, 4.4rem);
+        font-weight: 800;
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+    }
+}
+
+// The tool's name, as a small sticker.
+.sc_tag {
+    padding: 0.2rem 0.75rem;
+    border: var(--line);
+    border-radius: var(--r-full);
+    background: var(--paper);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    transform: rotate(-2deg);
+}
+
+.sc_form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+// The long link and its button, in one pill.
+.sc_field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.35rem 0.35rem 1.1rem;
+    border: var(--line);
+    border-radius: var(--r-full);
+    background: var(--paper);
+    box-shadow: 4px 4px 0 var(--ink);
+
+    &:focus-within {
+        outline: 2px solid var(--secondary);
+        outline-offset: 3px;
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        padding: 0.4rem 0;
+        border: none;
+        outline: none;
+        background: none;
+        color: var(--text);
+        font-family: inherit;
+        font-size: var(--fs-md);
+
+        &::placeholder {
+            color: var(--text-5);
+        }
+    }
+}
+
+// The site's main button (components/Button), inked. It sinks onto its shadow when pressed.
+.sc .sc_shorten {
+    padding: 0.6rem 1.15rem;
+    border: var(--line);
+    border-radius: var(--r-full);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    box-shadow: 2px 2px 0 var(--ink);
+
+    &:active {
+        transform: translate(2px, 2px);
+        box-shadow: none;
+    }
+}
+
+.sc_options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+// The name, typed after the fixed start of every link's address.
+.sc_name {
+    flex: 1 1 13rem;
+    display: flex;
+    align-items: center;
+    padding: 0.45rem 0.95rem;
+    border: var(--line);
+    border-radius: var(--r-full);
+    background: var(--paper);
+    font-size: var(--fs-base);
+    cursor: text;
+
+    &:focus-within {
+        outline: 2px solid var(--secondary);
+        outline-offset: 3px;
+    }
+
+    span {
+        color: var(--text-4);
+        font-weight: 600;
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: none;
+        outline: none;
+        background: none;
+        color: var(--text);
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: 600;
+
+        &::placeholder {
+            color: var(--text-5);
+            font-weight: 400;
+        }
+    }
+}
+
+.sc_lengths {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.sc_length,
+.sc_pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border: var(--line);
+    border-radius: var(--r-full);
+    background: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+// The length picked: filled with ink.
+.sc_length[aria-checked="true"] {
+    background: var(--ink);
+    color: var(--bg);
+}
+
+.sc_pill--danger {
+    border-color: var(--danger-text);
+    color: var(--danger-text);
+}
+
+.sc_note {
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+.sc_error {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--danger-text);
+}
+
+// The link just made: a label in the theme's main colour, stuck on a little askew.
+.sc_label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.4rem 0;
+    padding: 1.1rem 1.25rem;
+    border: var(--line);
+    border-radius: var(--r-6);
+    background: var(--primary);
+    box-shadow: 5px 5px 0 var(--ink);
+    transform: rotate(-1.5deg);
+
+    @media screen and (max-width: 520px) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.sc_label-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.sc_label-title {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+}
+
+.sc_label-link {
+    font-size: clamp(1.7rem, 7vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+}
+
+.sc_label-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+
+    .sc_pill {
+        background: var(--paper);
+    }
+}
+
+.sc_qr {
+    flex: none;
+    border: var(--line);
+    border-radius: var(--r-5);
+}
+
+// The links made here: one outlined card, a row each.
+.sc_mine {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+
+    h2 {
+        margin: 0;
+        font-size: var(--fs-xl);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border: var(--line);
+        border-radius: var(--r-6);
+        background: var(--paper);
+    }
+}
+
+.sc_row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1rem;
+    padding: 0.7rem 0.9rem 0.7rem 1.1rem;
+
+    & + & {
+        border-top: 2px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+    }
+}
+
+.sc_row-link {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.6rem;
+
+    a {
+        color: var(--text);
+        font-weight: 700;
+        overflow-wrap: anywhere;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    span {
+        font-size: var(--fs-sm);
+        color: var(--text-4);
+        overflow-wrap: anywhere;
+    }
+}
+
+.sc_row-foot,
+.sc_row-ask {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+
+    > span {
+        margin-right: 0.25rem;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.sc_row-ask > span {
+    color: var(--text);
+    font-weight: 600;
+}
+
+// Copy and Delete, a round button each.
+.sc_round {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: var(--line);
+    border-radius: 50%;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.sc_length,
+.sc_pill,
+.sc_round {
+    &:hover {
+        background: color-mix(in srgb, var(--ink) 8%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 3px;
+    }
+}
+
+.sc_length[aria-checked="true"]:hover {
+    background: var(--ink);
+}
+
+.sc_report {
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+
+    a {
+        color: inherit;
+        font-weight: 600;
+    }
+}
+
+.sc_spacer {
+    flex: 1;
+}
+
+// As Expedite's and Rendezvous's.
+.sc_stats {
+    margin-top: auto;
+    padding-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: var(--fs-smm);
+    color: var(--text-4);
+}
+
+.sc_footer {
+    text-align: center;
+    padding: 0.5rem 0 0.75rem;
+
+    p {
+        margin: 0;
+        font-size: var(--fs-smm);
+        color: var(--text-6);
+
+        a {
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}

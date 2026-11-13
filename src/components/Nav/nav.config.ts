@@ -53,6 +53,7 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Expedite 📦", href: "/expedite"},
         {type: "link", label: "Time ⏱️", href: "/time"},
         {type: "link", label: "Rendezvous 📍", href: "/rendezvous"},
+        {type: "link", label: "Shortcut ✉️", href: "/shortcut"},
         {type: "link", label: "Firebreak 🔥", href: "/firebreak"},
         {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"},
         // {

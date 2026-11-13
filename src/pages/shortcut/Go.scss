@@ -1,0 +1,121 @@
+// The page in between: plain on purpose, with no navbar and none of Shortcut's own look. Someone on their way reads one
+// thing, where they're going.
+.go {
+    min-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: calc(env(safe-area-inset-top) + 1.5rem) 1.5rem 1.5rem;
+    text-align: center;
+}
+
+.go_line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-size: var(--fs-md);
+    color: var(--text-3);
+}
+
+// The circle and its seconds, as a live room's turning circle and its percentage.
+.go_wait {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+// It fills once, over the wait (--go-ms, from Go.tsx). The only thing that moves on the page; with reduced motion the
+// seconds count alone.
+.go_ring {
+    width: 16px;
+    height: 16px;
+    transform: rotate(-90deg);
+
+    circle {
+        fill: none;
+        stroke: var(--border-da);
+        stroke-width: 2.5;
+    }
+
+    .go_ring-fill {
+        stroke: var(--secondary);
+        stroke-linecap: round;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation-name: go-fill;
+        animation-duration: var(--go-ms);
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation-name: none;
+        }
+    }
+}
+
+@keyframes go-fill {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.go_seconds {
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-4);
+}
+
+.go_host {
+    max-width: 100%;
+    font-size: clamp(2rem, 9vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.go_address {
+    max-width: min(100%, 40rem);
+    font-family: var(--font-code);
+    font-size: var(--fs-xs);
+    color: var(--text-4);
+    overflow-wrap: anywhere;
+}
+
+// "Stay here", and the links of the other screens: as Rendezvous's text buttons.
+.go_stay {
+    margin-top: 0.9rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-3);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text);
+    }
+}
+
+.go .btn {
+    margin-top: 0.9rem;
+    min-width: 8rem;
+}
+
+.go_report {
+    margin-top: 1.5rem;
+    font-size: var(--fs-xs);
+    color: var(--text-5);
+
+    a {
+        color: inherit;
+    }
+}
