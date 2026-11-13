@@ -20,9 +20,9 @@ import {
     type UploadSnapshot,
     type ViewMode
 } from "./types.ts";
-import {formatBytes, saveBlob} from "./utils.ts";
+import {formatBytes} from "./utils.ts";
 import page, {dropPath} from "./page.ts";
-import {copyText} from "@/utils.ts";
+import {copyText, saveBlob} from "@/utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
 import CreatedView, {type CreatedInfo} from "./views/CreatedView.tsx";

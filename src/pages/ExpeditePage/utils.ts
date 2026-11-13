@@ -64,17 +64,6 @@ export const SEND_POWERSHELL_COMMAND = "& ([scriptblock]::Create((irm https://je
 export const SEND_PIPE_COMMAND = `curl -T - ${apiBaseUrl}/expedite/raw/`;
 export const SEND_PIPE_WINDOWS_COMMAND = `curl.exe -T - ${apiBaseUrl}/expedite/raw/`;
 
-/** Hands a Blob to the browser's downloads, under this name. */
-export function saveBlob(blob: Blob, name: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    a.click();
-    // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
 /**
  * Hands attachment links (the API's `downloadUrl`s) to the browser's downloads, half a second apart. Each opens in a
  * hidden frame of its own: opened in the page, a link would stop the one before it while it starts, and an error page

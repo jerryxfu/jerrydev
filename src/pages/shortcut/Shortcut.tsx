@@ -1,5 +1,5 @@
-import {type FormEvent, useEffect, useRef, useState} from "react";
-import {Check, Copy, Trash2} from "lucide-react";
+import {type CSSProperties, type FormEvent, useEffect, useRef, useState} from "react";
+import {Check, Copy, Dices, Download, Trash2} from "lucide-react";
 import {QRCodeSVG} from "qrcode.react";
 import {useLocation, useSearch} from "wouter";
 import Navbar from "@/components/Nav/Navbar.tsx";
@@ -7,12 +7,25 @@ import Button from "@/components/Button/Button.tsx";
 import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {copyText, fromNow} from "@/utils.ts";
 import {ApiError, deleteLink, getLink, getStats, makeLink} from "./api.ts";
+import {saveLabelImage} from "./labelImage.ts";
 import {forgetLink, keepLink, type MyLink, readLinks} from "./links.ts";
 import page, {hostOf, linkPath, REPORT_TO} from "./page.ts";
 import "./Shortcut.scss";
 
 // How long a link lasts, in days: 30 unless another is picked.
 const LENGTHS = [1, 7, 30];
+
+// A random name, as the API's own codes (lib/code.ts there): 5 characters, without i, o, 0 or 1, which look alike.
+const CODE_CHARS = "abcdefghjklmnpqrstuvwxyz23456789";
+const randomName = (): string =>
+    Array.from(crypto.getRandomValues(new Uint8Array(5)), (byte) => CODE_CHARS[byte % CODE_CHARS.length]).join("");
+
+// The colours a new link's label can take: the site's palette (index.scss). Shortcut.scss softens each into the
+// label's paper, so the ink reads on it in every theme.
+const COLOURS = ["pink", "red", "orange", "yellow", "green", "blue", "purple"] as const;
+type Colour = (typeof COLOURS)[number];
+const randomColour = (): Colour => COLOURS[Math.floor(Math.random() * COLOURS.length)] ?? "pink";
+const inColour = (colour: Colour) => ({"--sc-colour": `var(--${colour})`}) as CSSProperties;
 
 // A link as it's shared (https://jerryxf.net/s/party), and as it's read (jerryxf.net/s/party).
 const shortUrl = (name: string) => window.location.origin + linkPath(name);
@@ -82,25 +95,36 @@ function MakeForm({asked, onMade}: { asked: string; onMade: (name: string, link:
             </div>
 
             <div className="sc_options">
-                <label className="sc_name">
-                    <span aria-hidden>/s/</span>
-                    <input
-                        type="text"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        placeholder="pick-a-name"
-                        aria-label="A name for the short link. Empty for a random one."
-                        maxLength={32}
-                        value={name}
-                        // As the API takes it: a to z, digits and hyphens. A space typed becomes a hyphen.
-                        onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""))}
-                    />
-                </label>
-                <div className="sc_lengths" role="radiogroup" aria-label="How long the link lasts">
+                <div className="sc_name">
+                    <label>
+                        <span aria-hidden>/s/</span>
+                        <input
+                            type="text"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            placeholder="pick-a-name"
+                            aria-label="A name for the short link. Empty for a random one."
+                            maxLength={32}
+                            value={name}
+                            // As the API takes it: a to z, digits and hyphens. A space typed becomes a hyphen.
+                            onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""))}
+                        />
+                    </label>
+                    {/* For those who'd rather not leave a field empty that asks for a name (Jerry): the die puts a
+                        random one in it. Again for another. */}
+                    <button
+                        type="button" className="sc_dice" aria-label="A random name" title="A random name"
+                        onClick={() => setName(randomName())}
+                    >
+                        <Dices size={18} aria-hidden />
+                    </button>
+                </div>
+                {/* Buttons that say which is on, as Rendezvous's "When in the day?" and Expedite's lengths. */}
+                <div className="sc_lengths" role="group" aria-label="How long the link lasts">
                     {LENGTHS.map((length) => (
                         <button
-                            key={length} type="button" role="radio" aria-checked={days === length}
+                            key={length} type="button" aria-pressed={days === length}
                             className="sc_length" onClick={() => setDays(length)}
                         >
                             {length} day{length === 1 ? "" : "s"}
@@ -109,19 +133,30 @@ function MakeForm({asked, onMade}: { asked: string; onMade: (name: string, link:
                 </div>
             </div>
 
+            {/* Always the same, whatever the name's field holds (Jerry): a line for the name, a line for the warning. */}
             <p className="sc_note">
-                {name ? "A name is easy to guess. Don't name a link that goes somewhere private." : "No name? The link gets a random one."}
+                No name? The link gets a random one.<br />
+                Short links can be easy to guess. Avoid linking to sensitive information.
             </p>
             {error && <p className="sc_error" role="alert">{error}</p>}
         </form>
     );
 }
 
-// The link just made, on its label: to copy, or to scan.
+// The link just made, on its label: to copy, to scan, or to save as a picture. Each new link's label gets a colour at
+// random (Jerry), and the swatches under it change it.
 function Label({name, link}: { name: string; link: MyLink }) {
     const [copied, copy] = useCopied();
+    const [colour, setColour] = useState(randomColour);
+    const card = useRef<HTMLElement>(null);
+
+    const save = () => {
+        if (card.current) void saveLabelImage(card.current, window.location.host + linkPath(""), name).catch(() => { /* no picture */
+        });
+    };
+
     return (
-        <section className="sc_label" aria-label="Your short link">
+        <section ref={card} className="sc_label" aria-label="Your short link" style={inColour(colour)}>
             <div className="sc_label-text">
                 <p className="sc_label-title">Your short link</p>
                 <p className="sc_label-link">{shortText(name)}</p>
@@ -130,7 +165,20 @@ function Label({name, link}: { name: string; link: MyLink }) {
                         {copied === name ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
                         {copied === name ? "Copied" : "Copy"}
                     </button>
+                    <button className="sc_pill" onClick={save}>
+                        <Download size={15} aria-hidden />
+                        Save image
+                    </button>
                     <span>Ends {endsIn(link)}</span>
+                </div>
+                <div className="sc_swatches" role="group" aria-label="The label's colour">
+                    {COLOURS.map((swatch) => (
+                        <button
+                            key={swatch} type="button" className="sc_swatch" style={inColour(swatch)}
+                            aria-pressed={swatch === colour} aria-label={swatch} title={swatch}
+                            onClick={() => setColour(swatch)}
+                        />
+                    ))}
                 </div>
             </div>
             {/* Dark on white in every theme, as Expedite's: some scanners can't read a light code on a dark ground. */}
@@ -261,12 +309,17 @@ export default function Shortcut() {
             <div className="sc_container">
                 <header className="sc_header">
                     <p className="sc_tag">Shortcut ✉️</p>
-                    <h1>Long link in.<br />Short link out.</h1>
+                    {/* The headline does what it says (Jerry): its first line is stretched, its second squished. */}
+                    <h1>
+                        <span className="sc_long">Long link in.</span>
+                        <span className="sc_short">Short link out.</span>
+                    </h1>
                 </header>
 
                 <MakeForm key={asked} asked={asked} onMade={onMade} />
 
-                {made && label && <Label name={made} link={label} />}
+                {/* By its name: a new link's label starts again, with a colour of its own. */}
+                {made && label && <Label key={made} name={made} link={label} />}
 
                 {Object.keys(links).length > 0 && <MyLinks links={links} visits={visits} onDeleted={onDeleted} />}
 

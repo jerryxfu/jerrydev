@@ -45,7 +45,26 @@
         font-weight: 800;
         line-height: 0.98;
         letter-spacing: -0.035em;
+
+        // A line each, no wider than its words: a wider box, stretched, would run off a phone's screen.
+        span {
+            display: block;
+            width: fit-content;
+            transform-origin: left center;
+        }
     }
+}
+
+// The headline does what it says (Jerry, 12 Nov): "Long link in." is stretched, "Short link out." squished. A little
+// (the first try, 1.73 and 0.6, was way too much). Sideways only, by a transform, so the lines keep their height and
+// their place. 1.25 is as far as the first line goes and still fits the narrowest column (264 of 265px on a 305px
+// page): past it, the headline would have to be sized from the column.
+.sc_long {
+    transform: scaleX(1.25);
+}
+
+.sc_short {
+    transform: scaleX(0.8);
 }
 
 // The tool's name, as a small sticker.
@@ -75,10 +94,12 @@
     border-radius: var(--r-full);
     background: var(--paper);
     box-shadow: 4px 4px 0 var(--ink);
+    transition: border-color 0.2s ease;
 
+    // Focus is the pill's own border, coloured, with a short fade (Jerry): no second contour around it, which sat
+    // askew on this pill, whose shadow makes it deeper on one side.
     &:focus-within {
-        outline: 2px solid var(--secondary);
-        outline-offset: 3px;
+        border-color: var(--secondary);
     }
 
     input {
@@ -120,7 +141,7 @@
     gap: 0.6rem;
 }
 
-// The name, typed after the fixed start of every link's address.
+// The name, typed after the fixed start of every link's address, and the die at the pill's end.
 .sc_name {
     flex: 1 1 13rem;
     display: flex;
@@ -130,11 +151,19 @@
     border-radius: var(--r-full);
     background: var(--paper);
     font-size: var(--fs-base);
-    cursor: text;
+    transition: border-color 0.2s ease;
 
-    &:focus-within {
-        outline: 2px solid var(--secondary);
-        outline-offset: 3px;
+    // As the long link's pill. The field's focus, not the die's: it has its own ring.
+    &:has(input:focus) {
+        border-color: var(--secondary);
+    }
+
+    label {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        cursor: text;
     }
 
     span {
@@ -161,6 +190,34 @@
     }
 }
 
+// A random name: a small round button with no outline of its own, so the pill stays one shape. Its margins keep the
+// pill's height and bring it as near the pill's end as the pill's top and bottom.
+.sc_dice {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: -0.125rem -0.5rem -0.125rem 0.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-3);
+    cursor: pointer;
+
+    &:hover {
+        background: color-mix(in srgb, var(--ink) 8%, transparent);
+        color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 1px;
+    }
+}
+
 .sc_lengths {
     display: flex;
     gap: 0.4rem;
@@ -184,7 +241,7 @@
 }
 
 // The length picked: filled with ink.
-.sc_length[aria-checked="true"] {
+.sc_length[aria-pressed="true"] {
     background: var(--ink);
     color: var(--bg);
 }
@@ -205,7 +262,14 @@
     color: var(--danger-text);
 }
 
-// The link just made: a label in the theme's main colour, stuck on a little askew.
+// A colour of the site's palette (--sc-colour, set in Shortcut.tsx) as the label and its swatches wear it: softened
+// into the paper. At 40% the ink reads on all seven in the six themes (4.6:1 at least, measured); at 50%, yellow and
+// green fail in the dark themes.
+@mixin worn {
+    background: color-mix(in srgb, var(--sc-colour) 40%, var(--paper));
+}
+
+// The link just made: a label in a colour picked at random, stuck on a little askew.
 .sc_label {
     display: flex;
     align-items: center;
@@ -214,7 +278,7 @@
     padding: 1.1rem 1.25rem;
     border: var(--line);
     border-radius: var(--r-6);
-    background: var(--primary);
+    @include worn;
     box-shadow: 5px 5px 0 var(--ink);
     transform: rotate(-1.5deg);
 
@@ -256,6 +320,40 @@
 
     .sc_pill {
         background: var(--paper);
+    }
+}
+
+// The colours the label can take: a round sticker each, the one worn marked with a dot of ink.
+.sc_swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.sc_swatch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: var(--line);
+    border-radius: 50%;
+    @include worn;
+    cursor: pointer;
+
+    &[aria-pressed="true"]::after {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: var(--ink);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--secondary);
+        outline-offset: 3px;
     }
 }
 
@@ -373,7 +471,7 @@
     }
 }
 
-.sc_length[aria-checked="true"]:hover {
+.sc_length[aria-pressed="true"]:hover {
     background: var(--ink);
 }
 

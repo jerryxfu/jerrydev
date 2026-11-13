@@ -42,6 +42,17 @@ export async function copyText(text: string): Promise<boolean> {
     }
 }
 
+/** Hands a Blob to the browser's downloads, under this name (Expedite's files, Shortcut's label as a picture). */
+export function saveBlob(blob: Blob, name: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    // Not revoked at once: a browser may still be starting the download from it (Firefox, Safari).
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 const relativeTime = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
 
 // "in 42 minutes", "in 3 hours", "in 2 days": how long until something, from a count of ms (the palette's saved items).

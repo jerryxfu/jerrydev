@@ -20,6 +20,7 @@ import _unveil_light from "@/assets/projects/unveil/unveil_light.png";
 import _homeisland from "@/assets/projects/home-island.jpeg";
 import _technexus from "@/assets/projects/technexus.png";
 import _rendezvous from "@/assets/projects/rendezvous.jpeg";
+import _shortcut from "@/assets/projects/shortcut.png";
 import _tools_light from "@/assets/projects/tools_light.jpeg";
 import _tools_dark from "@/assets/projects/tools_dark.jpeg";
 import _vite_light from "@/assets/projects/vite_light.jpeg";
@@ -158,6 +159,17 @@ export const projects: Project[] = [
         description: "Planning a meetup but coordinating availabilities is a nightmare? Create and event, share a code or link, and let everyone select when they're free!",
         url: "/rendezvous",
         date: "2026-05-22",
+        categories: ["web", "tools"],
+    },
+    // A draft (12 Nov 2026): the words and the picture are placeholders, for Jerry to redo.
+    {
+        title: "Shortcut",
+        subTitle: "Long links made short. Pick a name or get a random one. Up to 30 days, no account.",
+        image: _shortcut,
+        chipText: "🧩 MVP",
+        description: "A webpage that makes a long link short, like jerryxf.net/s/party. Pick a name for it or get a random one. A link lasts up to 30 days, shows where it goes before it takes you there, and needs no account.",
+        url: "/shortcut",
+        date: "2026-11-12",
         categories: ["web", "tools"],
     },
     {

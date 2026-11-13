@@ -43,6 +43,7 @@ export const linksLeft: NavLink[] = [
 export const linksRight: NavLink[] = [
     {type: "link", label: "Expedite 📦", href: "/expedite"},
     {type: "link", label: "Time ⏱️", href: "/time"},
+    {type: "link", label: "Shortcut ✉️", href: "/shortcut"},
 ];
 
 // The drawer's grouped menu. The root is an array of groups, rendered with a
@@ -54,7 +55,6 @@ export const menuGroups: NavItem[][] = [
         {type: "link", label: "Time ⏱️", href: "/time"},
         {type: "link", label: "Rendezvous 📍", href: "/rendezvous"},
         {type: "link", label: "Shortcut ✉️", href: "/shortcut"},
-        {type: "link", label: "Firebreak 🔥", href: "/firebreak"},
         {type: "link", label: "Scheduler viewer 🗓️", href: "/scheduler"},
         // {
         //     type: "branch",

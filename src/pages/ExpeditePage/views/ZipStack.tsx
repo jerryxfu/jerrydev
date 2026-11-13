@@ -1,7 +1,8 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {Download} from "lucide-react";
 import {P2P_MEMORY_MAX} from "../types.ts";
-import {formatBytes, saveBlob} from "../utils.ts";
+import {saveBlob} from "@/utils.ts";
+import {formatBytes} from "../utils.ts";
 import {entryData, readZip, type ZipEntry, type ZipSource} from "../zip.ts";
 import FileStack, {type StackRow} from "./FileStack.tsx";
 import {LocalFilePreview, typeOf} from "./FilePreview.tsx";
