@@ -2,7 +2,8 @@ import {useEffect, useRef, useState} from "react";
 import {ArrowDown, ArrowUp} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type PartState, type UploadSnapshot} from "../types.ts";
-import {formatBytes, formatEta, formatSpeed} from "../utils.ts";
+import {formatBytes, formatEta, formatSpeed, LONG_WAIT_PAUSE} from "../utils.ts";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import "./UploadProgress.scss";
 
 interface Props {
@@ -116,7 +117,9 @@ export default function UploadProgress({snapshot, hashProgress, onSkipHash}: Pro
     return (
         <div className="expedite_progress">
             <div className="expedite_progress-head">
-                <p className="expedite_progress-title">{waitingForHash ? "Finishing the SHA-256..." : "Uploading your file..."}</p>
+                <p className="expedite_progress-title">
+                    <Shimmer pause={LONG_WAIT_PAUSE}>{waitingForHash ? "Finishing the SHA-256..." : "Uploading your file..."}</Shimmer>
+                </p>
             </div>
 
             {/* Global progress */}

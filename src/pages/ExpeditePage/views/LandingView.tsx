@@ -1,6 +1,7 @@
 import {type MouseEvent, useRef, useState} from "react";
 import {File, FileText, LoaderCircle, MonitorSmartphone, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
@@ -225,7 +226,7 @@ export default function LandingView(
 
                 {/* Folded: most people send with the tiles, and a command reads as something they'd have to do (Jerry, Nov 2026). */}
                 <div className="expedite_terminal-divided">
-                    <Disclosure id="terminal-send" title="Terminal (advanced)" icon={Terminal}>
+                    <Disclosure id="terminal-send" title="Terminal (advanced)" terminal>
                         <SendCommands copiedField={copiedField} onCopy={onCopy} />
                         <InstallCommand copiedField={copiedField} onCopy={onCopy} />
                     </Disclosure>
@@ -256,7 +257,8 @@ export default function LandingView(
                     onClick={onRetrieve}
                     disabled={loading || code.trim().length < 5}
                 >
-                    {loading ? "Resolving..." : "Retrieve"}
+                    {/* Grey while it's disabled, so the shimmer has a lighter band to sweep (a white label wouldn't). */}
+                    {loading ? <Shimmer>Resolving...</Shimmer> : "Retrieve"}
                 </Button>
 
                 <p className="expedite_landing-hint">
@@ -281,7 +283,7 @@ export default function LandingView(
 
                 {/* Folded, as Send's. The command with <code> for the code: the copy stops before it, for the code to be typed after. */}
                 <div className="expedite_terminal-divided">
-                    <Disclosure id="terminal-receive" title="Terminal (advanced)" icon={Terminal}>
+                    <Disclosure id="terminal-receive" title="Terminal (advanced)" terminal>
                         <div className="expedite_landing-terminal">
                             <p className="expedite_landing-hint">
                                 In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}

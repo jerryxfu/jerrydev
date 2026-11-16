@@ -542,6 +542,22 @@ $landing-second: $landing; // the second line starts once the first has come to 
     }
 }
 
+// A link's facts stay on one line. Where they and the three buttons don't fit side by side (a phone), the buttons
+// take the next line, at its end.
+.sc_row-foot {
+    flex-wrap: wrap;
+
+    > span {
+        white-space: nowrap;
+    }
+}
+
+.sc_row-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
 .sc_row-ask > span {
     color: var(--text);
     font-weight: 600;

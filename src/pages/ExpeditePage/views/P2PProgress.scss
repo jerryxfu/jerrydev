@@ -116,13 +116,21 @@
         // restarts before it can land, so the bar trails the real figure instead of tracking it.
     }
 
-    // Waiting phases have no byte count, so a fixed-width segment sweeps the
-    // track instead — motion as "still alive", amber to match the phase tone.
+    // Waiting phases have no byte count, so a segment of the track goes from one end to the other and back, and
+    // squashes against each end like something soft and heavy (Jerry: it used to go through, then to bounce stiffly):
+    // motion as "still alive", amber to match the phase tone. It's one eased slide: the segment goes a little way
+    // into each end, where the track hides it, which on a plain bar is the same picture as being compressed there.
+    // So it shortens as it slows, stops, and gets its length back as it picks up speed, with no phases to join.
+    // --segment is its share of the track, --squash how much of it still shows at an end; a pass takes 1.3 s (1.5 was
+    // slow, 1.1 too fast), on the gentlest curve that still stops at each end (a sine's: a steeper one, 0.65 and
+    // 0.35, was "way too dramatic").
     .expedite_progress-bar.is-indeterminate .expedite_progress-fill {
-        width: 32%;
+        --segment: 0.32;
+        --squash: 0.45;
+        width: calc(var(--segment) * 100%);
         background: var(--wait);
         border-radius: inherit;
-        animation: expedite-p2p-sweep 1.5s ease-in-out infinite;
+        animation: expedite-p2p-bounce 1.30s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
 
         @media (prefers-reduced-motion: reduce) {
             animation: none;
@@ -189,12 +197,14 @@
     color: var(--text-5);
 }
 
-@keyframes expedite-p2p-sweep {
-    0% {
-        transform: translateX(-110%);
+// One pass, left to right: from mostly behind the left end (all but --squash of it) to mostly behind the right one.
+// The track's width less what shows of the segment, in segments.
+@keyframes expedite-p2p-bounce {
+    from {
+        transform: translateX(calc((var(--squash) - 1) * 100%));
     }
 
-    100% {
-        transform: translateX(330%);
+    to {
+        transform: translateX(calc((1 / var(--segment) - var(--squash)) * 100%));
     }
 }

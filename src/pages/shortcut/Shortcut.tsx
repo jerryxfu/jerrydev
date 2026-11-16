@@ -1,5 +1,6 @@
-import {type CSSProperties, type FormEvent, useEffect, useRef, useState} from "react";
-import {Check, Copy, Dices, Download, Trash2} from "lucide-react";
+import {type CSSProperties, type FormEvent, type RefObject, useEffect, useRef, useState} from "react";
+import {flushSync} from "react-dom";
+import {Check, Copy, Dices, Download, QrCode, Trash2} from "lucide-react";
 import {QRCodeSVG} from "qrcode.react";
 import {useLocation, useSearch} from "wouter";
 import Navbar from "@/components/Nav/Navbar.tsx";
@@ -148,12 +149,12 @@ function MakeForm({asked, onMade}: { asked: string; onMade: (name: string, link:
     );
 }
 
-// The link just made, on its label: to copy, to scan, or to save as a picture. Each new link's label gets a colour at
-// random (Jerry), and the swatches under it change it.
-function Label({name, link}: { name: string; link: MyLink }) {
+// A link on its label: to copy, to scan, or to save as a picture. The link just made, or one picked in the list. Each
+// time, the label gets a colour at random (Jerry), and the swatches under it change it. `card` is the label itself,
+// which the page scrolls to.
+function Label({name, link, card}: { name: string; link: MyLink; card: RefObject<HTMLElement | null> }) {
     const [copied, copy] = useCopied();
     const [colour, setColour] = useState(randomColour);
-    const card = useRef<HTMLElement>(null);
 
     const save = () => {
         if (card.current) void saveLabelImage(card.current, shortText(name), name).catch(() => { /* no picture */
@@ -195,9 +196,10 @@ function Label({name, link}: { name: string; link: MyLink }) {
     );
 }
 
-// The links made in this browser: where each goes, its visits, its end, and Delete.
-function MyLinks({links, visits, onDeleted}: {
-    links: Record<string, MyLink>; visits: Record<string, number>; onDeleted: (name: string) => void;
+// The links made in this browser: where each goes, its visits, its end, its label again, and Delete.
+function MyLinks({links, visits, onLabel, onDeleted}: {
+    links: Record<string, MyLink>; visits: Record<string, number>;
+    onLabel: (name: string) => void; onDeleted: (name: string) => void;
 }) {
     const [copied, copy] = useCopied();
     // The link whose Delete was pressed: it asks first, since the link stops for everyone who has it.
@@ -244,12 +246,22 @@ function MyLinks({links, visits, onDeleted}: {
                                     {visits[name] != null && `${visits[name]} visit${visits[name] === 1 ? "" : "s"} · `}
                                     expires {expiresIn(link)}
                                 </span>
-                                <button className="sc_round" aria-label={`Copy ${linkPath(name)}`} onClick={() => copy(name, shortUrl(name))}>
-                                    {copied === name ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
-                                </button>
-                                <button className="sc_round" aria-label={`Delete ${linkPath(name)}`} onClick={() => setAsking(name)}>
-                                    <Trash2 size={15} aria-hidden />
-                                </button>
+                                <div className="sc_row-actions">
+                                    <button className="sc_round" aria-label={`Copy ${linkPath(name)}`} onClick={() => copy(name, shortUrl(name))}>
+                                        {copied === name ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
+                                    </button>
+                                    {/* The label is gone once the page is left: this brings it back, with its QR code and
+                                        Save image. */}
+                                    <button
+                                        className="sc_round" aria-label={`Show the label of ${linkPath(name)}`} title="Label and QR code"
+                                        onClick={() => onLabel(name)}
+                                    >
+                                        <QrCode size={15} aria-hidden />
+                                    </button>
+                                    <button className="sc_round" aria-label={`Delete ${linkPath(name)}`} onClick={() => setAsking(name)}>
+                                        <Trash2 size={15} aria-hidden />
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </li>
@@ -267,7 +279,9 @@ export default function Shortcut() {
     const asked = new URLSearchParams(useSearch()).get("url") ?? "";
     const [links, setLinks] = useState(readLinks);
     const [visits, setVisits] = useState<Record<string, number>>({});
-    const [made, setMade] = useState<string | null>(null);
+    // The link whose label is on the page: the one just made, or one picked in the list.
+    const [labelled, setLabelled] = useState<string | null>(null);
+    const card = useRef<HTMLElement>(null);
     const [stats, setStats] = useState<{ activeLinks: number; visits: number } | null>(null);
 
     // The footer's numbers, as Expedite's and Rendezvous's: again once a link is made or deleted.
@@ -294,21 +308,28 @@ export default function Shortcut() {
         keepLink(name, link);
         setLinks({...readLinks(), [name]: link}); // on the page even when the browser refused to keep it
         setVisits((known) => ({...known, [name]: 0}));
-        setMade(name);
+        setLabelled(name);
         if (asked) navigate(page.path, {replace: true});
     };
 
     const onDeleted = (name: string) => {
         forgetLink(name);
         setLinks((all) => Object.fromEntries(Object.entries(all).filter(([kept]) => kept !== name)));
-        if (made === name) setMade(null);
+        if (labelled === name) setLabelled(null);
     };
 
-    const label = made ? links[made] : undefined;
+    // From the list: the label comes back above it, and the page goes there (it can be a screen away). The label has
+    // to be on the page first, hence flushSync.
+    const onLabel = (name: string) => {
+        flushSync(() => setLabelled(name));
+        card.current?.scrollIntoView({block: "center"});
+    };
+
+    const label = labelled ? links[labelled] : undefined;
 
     return (
         <div className="sc">
-            <Navbar isShrunk={true} />
+            <Navbar isShrunk={true} animate={false} stagger={false} />
             <div className="nav-spacer" />
 
             <div className="sc_container">
@@ -324,9 +345,9 @@ export default function Shortcut() {
                 <MakeForm key={asked} asked={asked} onMade={onMade} />
 
                 {/* By its name: a new link's label starts again, with a colour of its own. */}
-                {made && label && <Label key={made} name={made} link={label} />}
+                {labelled && label && <Label key={labelled} name={labelled} link={label} card={card} />}
 
-                {Object.keys(links).length > 0 && <MyLinks links={links} visits={visits} onDeleted={onDeleted} />}
+                {Object.keys(links).length > 0 && <MyLinks links={links} visits={visits} onLabel={onLabel} onDeleted={onDeleted} />}
 
                 <p className="sc_report">
                     Something wrong with one? <a href={`mailto:${REPORT_TO}`}>{REPORT_TO}</a>

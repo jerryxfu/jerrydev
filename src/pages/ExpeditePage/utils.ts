@@ -2,6 +2,10 @@ import {apiBaseUrl} from "../../main.tsx";
 import {dropPath} from "./page.ts";
 
 // Always one decimal place
+// The shimmer's rest between two sweeps, in seconds, on a line that can stay for minutes (a file going up, a direct
+// transfer waiting for the other side or under way): longer than a short wait's 0.4 s, so it doesn't nag (Jerry).
+export const LONG_WAIT_PAUSE = 1.2;
+
 export function formatBytes(bytes: number): string {
     if (!bytes || bytes <= 0) return "0.0 B";
     const k = 1024;

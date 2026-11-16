@@ -4,13 +4,37 @@
     gap: 1rem;
 }
 
-// On a laptop the row spans the page, so Download keeps a button's size, at the end of it.
+// The first half of a received drop's row of buttons (Copy text, Download) takes the room the second leaves (the code,
+// Link, the trash): the main button grows in it, and on a phone, where the two halves don't fit one line, each has its
+// own. On a laptop the row spans the page, so the main button keeps a button's size, at the row's start.
+.expedite_received-get {
+    flex: 1 1 auto;
+}
+
 @media (min-width: 900px) {
-    .expedite_retrieved > .expedite_btn-row > .btn--main {
+    .expedite_received-get > .btn--main {
         flex: 0 0 auto;
-        margin-left: auto;
         padding-inline: 2rem;
     }
+}
+
+// A received file, above its buttons: its name, then what it is and how big.
+.expedite_received-file {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.expedite_received-name {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.expedite_received-about {
+    font-size: var(--fs-sm);
+    color: var(--text-4);
 }
 
 // A table: a received drop's details, the text box's statistics.
@@ -39,9 +63,9 @@
     letter-spacing: 0.18em;
 }
 
-// A received drop's details (ResultView.tsx): a list, each name on the left of its value, then a second one, the hash
-// and the terminal's command. Side by side from a laptop's width, further apart than a name from its value; on a phone
-// the second is folded under the first.
+// A received drop's details (ResultView.tsx): a list, each name on the left of its value, then a second one, folded:
+// the hash and the terminal's command. Side by side from a laptop's width, further apart than a name from its value;
+// on a phone the second is under the first.
 .expedite_details {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -109,16 +133,6 @@
     font-size: var(--fs-sm);
     line-height: 1.4;
     overflow-wrap: anywhere;
-}
-
-// Content label
-.expedite_content-label {
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-5);
-    margin: 1rem 0 0;
 }
 
 // Text preview
@@ -194,7 +208,7 @@
     }
 }
 
-// The line under the curl command: each run counts as a view.
+// A line under a value: the hash's check, and under the curl command, that each run counts as a view.
 .expedite_meta-check {
     display: flex;
     flex-wrap: wrap;

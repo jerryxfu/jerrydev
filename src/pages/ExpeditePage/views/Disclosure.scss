@@ -33,6 +33,27 @@
     }
 }
 
+// A terminal's section: its icon is the caret. Lucide draws the icon as two strokes, the line and then the `>`, its last
+// path: that one turns, about its own middle, as the chevron does. If lucide ever redraws the icon, this is where the
+// caret stops turning.
+.expedite_disclosure-prompt {
+    flex-shrink: 0;
+
+    path:last-child {
+        transform-box: fill-box;
+        transform-origin: center;
+        transition: rotate 0.2s ease;
+
+        [open] > .expedite_disclosure-summary & {
+            rotate: 90deg;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+}
+
 .expedite_disclosure-note {
     color: var(--text-5);
 }

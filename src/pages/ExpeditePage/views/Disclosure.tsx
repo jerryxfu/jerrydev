@@ -1,5 +1,5 @@
 import {type ReactNode, useState} from "react";
-import {ChevronRight, type LucideIcon} from "lucide-react";
+import {ChevronRight, Terminal} from "lucide-react";
 import "./Disclosure.scss";
 
 interface DisclosureProps {
@@ -9,8 +9,11 @@ interface DisclosureProps {
      */
     id?: string;
     title: string;
-    /** An icon before the title, when the section has one of its own (the landing's Terminal). */
-    icon?: LucideIcon;
+    /**
+     * A terminal's section (the landing's two): the terminal's own icon is the caret, its `>` turning down as the section
+     * opens, where the others have a chevron.
+     */
+    terminal?: boolean;
     /** A short state shown beside the title, so what's set inside shows while it's closed. */
     note?: string;
     children: ReactNode;
@@ -23,7 +26,7 @@ const storageKey = (id: string) => `expedite:open:${id}`;
  * (Raph and Samy, Oct 2026). A native <details>, so it opens from the keyboard and with a screen reader. With an `id`,
  * whoever opens it finds it open next time, in this browser.
  */
-export default function Disclosure({id, title, icon: Icon, note, children}: DisclosureProps) {
+export default function Disclosure({id, title, terminal = false, note, children}: DisclosureProps) {
     const [open, setOpen] = useState(() => {
         if (!id) return false;
         try {
@@ -49,8 +52,9 @@ export default function Disclosure({id, title, icon: Icon, note, children}: Disc
             }}
         >
             <summary className="expedite_disclosure-summary">
-                <ChevronRight size={15} className="expedite_disclosure-chevron" aria-hidden />
-                {Icon && <Icon size={16} strokeWidth={1.5} aria-hidden />}
+                {terminal
+                    ? <Terminal size={16} strokeWidth={1.5} className="expedite_disclosure-prompt" aria-hidden />
+                    : <ChevronRight size={15} className="expedite_disclosure-chevron" aria-hidden />}
                 <span>{title}</span>
                 {note && <span className="expedite_disclosure-note">· {note}</span>}
             </summary>

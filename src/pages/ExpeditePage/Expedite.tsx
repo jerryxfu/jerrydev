@@ -41,6 +41,7 @@ import UploadProgress from "./views/UploadProgress.tsx";
 import {closeSession, sendP2P} from "./p2p/sender.ts";
 import {receiveP2P} from "./p2p/receiver.ts";
 import Navbar from "@/components/Nav/Navbar.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 
 // --- GSAP transition helpers ---
 // With reduced motion there's none: the screen just changes.
@@ -741,7 +742,7 @@ export default function Expedite() {
                             onUpload={handleUpload}
                             onCancel={loading ? cancelUpload : back}
                             progress={preparing != null ? (
-                                <p className="expedite_status-line">Preparing the zip... {Math.floor(preparing * 100)}%</p>
+                                <p className="expedite_status-line"><Shimmer>Preparing the zip...</Shimmer> {Math.floor(preparing * 100)}%</p>
                             ) : uploadSnapshot && (
                                 <UploadProgress
                                     snapshot={uploadSnapshot}

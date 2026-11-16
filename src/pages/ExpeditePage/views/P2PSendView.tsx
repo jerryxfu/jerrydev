@@ -5,6 +5,7 @@ import {type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {formatBytes, getDropUrl} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
 import CopyField from "./CopyField.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import {type PickedFile, stackLabel, stackSize} from "../files.ts";
 import "./P2PSendView.scss";
 
@@ -91,7 +92,9 @@ export default function P2PSendView(
                 </p>
             )}
 
-            {preparing != null && <p className="expedite_status-line">Preparing the zip... {Math.floor(preparing * 100)}%</p>}
+            {preparing != null && (
+                <p className="expedite_status-line"><Shimmer>Preparing the zip...</Shimmer> {Math.floor(preparing * 100)}%</p>
+            )}
 
             <P2PProgress status={status} snapshot={snapshot} role="send" />
 

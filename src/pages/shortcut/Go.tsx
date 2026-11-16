@@ -31,8 +31,9 @@ function leave(name: string, url: URL): void {
     window.location.replace(url.href);
 }
 
-// The wait, as a live room's file going up: a small circle, here filling, and the seconds left beside it.
-function Wait({ms}: { ms: number }) {
+// The wait, as a live room's file going up: a small circle, here filling, and the seconds left beside it. Never 0
+// while it waits; 0 once it's `over` and the page is leaving.
+function Wait({ms, over}: { ms: number; over: boolean }) {
     const [left, setLeft] = useState(ms);
 
     useEffect(() => {
@@ -47,7 +48,7 @@ function Wait({ms}: { ms: number }) {
                 <circle cx="10" cy="10" r="8" />
                 <circle className="go_ring-fill" cx="10" cy="10" r="8" pathLength="100" />
             </svg>
-            <span className="go_seconds">{Math.max(1, Math.ceil(left / 1000))} s</span>
+            <span className="go_seconds">{over ? 0 : Math.max(1, Math.ceil(left / 1000))} s</span>
         </span>
     );
 }
@@ -56,6 +57,17 @@ function Wait({ms}: { ms: number }) {
 export default function Go() {
     const name = (useParams<{ name?: string }>().name ?? "").toLowerCase();
     const [state, setState] = useState<State>({at: "asking"});
+    // The wait is over and the page has left: on a slow network the destination takes a while to come, and this page
+    // stays on screen meanwhile. It says so, where it would seem stuck on its last second (Jerry).
+    const [leaving, setLeaving] = useState(false);
+
+    // "Stay here". While the page is leaving too: until the destination starts to arrive this page still runs, and
+    // the browser's own Stop (the toolbar's ✕) drops the departure. The visit is already counted by then.
+    const stay = (url: URL) => {
+        if (leaving) window.stop();
+        setLeaving(false);
+        setState({at: "stayed", url});
+    };
 
     useEffect(() => {
         let wanted = true;
@@ -82,7 +94,10 @@ export default function Go() {
 
     useEffect(() => {
         if (state.at !== "going" || GO_AFTER_MS === null) return;
-        const timer = window.setTimeout(() => leave(name, state.url), GO_AFTER_MS);
+        const timer = window.setTimeout(() => {
+            setLeaving(true);
+            leave(name, state.url);
+        }, GO_AFTER_MS);
         return () => window.clearTimeout(timer);
     }, [state, name]);
 
@@ -91,11 +106,11 @@ export default function Go() {
             {state.at === "going" && (
                 <>
                     <p className="go_line">
-                        {GO_AFTER_MS !== null && <Wait ms={GO_AFTER_MS} />}
-                        <Shimmer>Taking you to</Shimmer>
+                        {GO_AFTER_MS !== null && <Wait ms={GO_AFTER_MS} over={leaving} />}
+                        <Shimmer>{leaving ? "Redirecting..." : "Taking you to"}</Shimmer>
                     </p>
                     <p className="go_host">{state.url.hostname}</p>
-                    <button className="go_stay" onClick={() => setState({at: "stayed", url: state.url})}>Stay here</button>
+                    <button className="go_stay" onClick={() => stay(state.url)}>Stay here</button>
                 </>
             )}
 

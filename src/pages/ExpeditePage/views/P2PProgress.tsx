@@ -1,7 +1,8 @@
 import {type P2PPhase, type P2PSnapshot, type P2PStatus} from "../types.ts";
 import {totalCandidates} from "../p2p/peer.ts";
-import {formatBytes, formatEta, formatSpeed} from "../utils.ts";
+import {formatBytes, formatEta, formatSpeed, LONG_WAIT_PAUSE} from "../utils.ts";
 import Disclosure from "./Disclosure.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import "./P2PProgress.scss";
 
 interface Props {
@@ -98,6 +99,11 @@ export default function P2PProgress({status, snapshot, role, inMemory = false}: 
     // paint everything red without waiting for the formal failure.
     const tone = status.degraded && !isError ? "err" : PHASE_TONE[status.phase];
     const waiting = WAITING.includes(status.phase);
+    // Still going (waiting, connecting, sending): the title above the bar shimmers until it's over, one way or the other.
+    // With a longer rest between sweeps in the two phases that can last: waiting for the other side, and the transfer.
+    const underWay = !finished && !isError;
+    const long = status.phase === "awaiting-peer" || status.phase === "transferring";
+    const title = status.reconnecting ? "Reconnecting" : PHASE_TITLE[role][status.phase];
 
     // Where the transfer died, recorded by the engines; a new transfer resets it.
     const failIdx = status.failedAt ? LADDER.indexOf(status.failedAt) : -1;
@@ -127,7 +133,7 @@ export default function P2PProgress({status, snapshot, role, inMemory = false}: 
 
             <div className={`expedite_p2p-headline${isError ? " is-error" : ""}`}>
                 {/* Mid-transfer, the route lost and a new one being found: the ladder stays on Transferring. */}
-                <span className="expedite_p2p-phase">{status.reconnecting ? "Reconnecting" : PHASE_TITLE[role][status.phase]}</span>
+                <span className="expedite_p2p-phase">{underWay ? <Shimmer pause={long ? LONG_WAIT_PAUSE : undefined}>{title}</Shimmer> : title}</span>
             </div>
 
             {/* Waiting: no bytes to count yet, so the bar idles in motion instead */}

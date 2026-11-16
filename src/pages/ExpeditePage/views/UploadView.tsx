@@ -1,8 +1,9 @@
 import React, {type ReactNode, useId, useMemo, useRef, useState} from "react";
 import {Info, Radio} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
-import {formatDuration} from "../utils.ts";
+import {formatDuration, LONG_WAIT_PAUSE} from "../utils.ts";
 import {LocalFilePreview} from "./FilePreview.tsx";
 import FileZone from "./FileZone.tsx";
 import CodeEditor from "./CodeEditor.tsx";
@@ -277,7 +278,11 @@ export default function UploadView(
                 onClick={onUpload}
                 disabled={loading || (dropType === "text" ? !textContent.trim() : !files.length)}
             >
-                {loading ? "Uploading..." : `Create drop · ${formatDuration(settings.ttlMs)}${settings.deletable ? " · deletable" : ""}`}
+                {/* Grey while it's disabled, so the shimmer shows. A file can take a while: the slower pace, as its
+                    progress's title. */}
+                {loading
+                    ? <Shimmer pause={dropType === "text" ? undefined : LONG_WAIT_PAUSE}>Uploading...</Shimmer>
+                    : `Create drop · ${formatDuration(settings.ttlMs)}${settings.deletable ? " · deletable" : ""}`}
             </Button>
         </div>
     );

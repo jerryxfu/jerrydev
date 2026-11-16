@@ -11,7 +11,6 @@ import Disclosure from "./Disclosure.tsx";
 import {isZip, urlSource} from "../zip.ts";
 import {isLanguage, languageLabel} from "../highlight.ts";
 import {characterCount, wordStats} from "./TextStats.tsx";
-import useMediaQuery from "../../../hooks/useMediaQuery.ts";
 import "./ResultView.scss";
 
 interface ResultViewProps {
@@ -27,10 +26,14 @@ interface ResultViewProps {
     onDelete: () => Promise<void>;
 }
 
+// "1.2 MB", or under 1 KB the count of bytes: under a file's name.
+function shortSize(bytes: number): string {
+    return bytes < 1024 ? `${bytes.toLocaleString()} byte${bytes === 1 ? "" : "s"}` : formatBytes(bytes);
+}
+
 // "1.2 MB (1,234,567 bytes)": the short form, then the exact count. Under 1 KB, the count alone.
 function exactSize(bytes: number): string {
-    const exact = `${bytes.toLocaleString()} byte${bytes === 1 ? "" : "s"}`;
-    return bytes < 1024 ? exact : `${formatBytes(bytes)} (${exact})`;
+    return bytes < 1024 ? shortSize(bytes) : `${formatBytes(bytes)} (${bytes.toLocaleString()} bytes)`;
 }
 
 function duration(secs: number): string {
@@ -75,8 +78,9 @@ function Detail({label, children}: { label: string; children: ReactNode }) {
 }
 
 /**
- * A received drop: its details in one table, what to do with it under them, then the file itself, as wide as the page
- * allows. Some details come from the preview as it loads: lines, dimensions, duration.
+ * A received drop, in the order someone who was only sent a link needs it: what was sent (the text, or the file's
+ * name) with its buttons, the main one first, then a file's preview, then its details in one table. Some details come
+ * from the preview as it loads: lines, dimensions, duration.
  */
 export default function ResultView(
     {result, copiedField, onCopy, error, downloadCheck, onDownload, onCheckCopy, onDelete}: ResultViewProps,
@@ -113,12 +117,12 @@ export default function ResultView(
     // A text drop as its lines show: a pasted file's last newline and Windows line endings don't add an empty line.
     const shownText = useMemo(() => (result.text ? linesOf(result.text) : ""), [result.text]);
     const lines = isText && result.text ? shownText.split("\n").length : info.lines;
-    // What "Content" copies: a text drop's text, or a text or code file read whole by its preview.
+    // What "Copy text" copies: a text drop's text, or a text or code file read whole by its preview.
     const content = isText ? result.text : info.text;
     // A text drop (not code): how long it is to read.
     const words = useMemo(() => isText && result.text && !result.language ? wordStats(result.text) : null, [isText, result.text, result.language]);
-    // The hash and the command: a column of their own on a laptop, folded on a phone, where few need them.
-    const wide = useMediaQuery("(min-width: 900px)");
+
+    // The hash, its check and the command: few need them, so they're folded (below, in the table).
     const more = result.sha256 || curl ? (
         <dl>
             {result.sha256 && (
@@ -127,6 +131,29 @@ export default function ResultView(
                         value={result.sha256} field="sha256" title="Copy the SHA-256" className="expedite_meta-hash"
                         copiedField={copiedField} onCopy={onCopy}
                     />
+                    {/* The downloaded copy, picked from the device, checked against the hash: the page never
+                        sees the download, which the browser's own downloader saves. A click while it checks
+                        picks another copy. */}
+                    <span className="expedite_meta-check">
+                        <Button
+                            className={check === "match" ? "is-match" : check === "mismatch" ? "is-mismatch" : undefined}
+                            start={check === "match" ? CircleCheck : check === "mismatch" ? CircleX : Fingerprint}
+                            busy={check === "checking"}
+                            onClick={() => picker.current?.click()}
+                        >
+                            {checkLabel}
+                        </Button>
+                        <input
+                            ref={picker}
+                            type="file"
+                            hidden
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) onCheckCopy(file);
+                                e.target.value = ""; // the same file can be picked again
+                            }}
+                        />
+                    </span>
                 </Detail>
             )}
             {curl && (
@@ -147,51 +174,30 @@ export default function ResultView(
         </dl>
     ) : null;
 
+    // What most people came for: a text is copied, a file downloaded. The other one is beside it.
+    const copyButton = content && (
+        <Button
+            variant={isText ? "main" : "plain"}
+            start={copiedField === "content" ? Check : Clipboard}
+            onClick={(e) => onCopy(content, "content", e)}
+        >
+            {copiedField === "content" ? "Copied" : "Copy text"}
+        </Button>
+    );
+    const downloadButton = (
+        <Button
+            variant={isText ? "plain" : "main"} start={Download} busy={downloading}
+            onClick={() => {
+                setDownloading(true);
+                void onDownload().finally(() => setDownloading(false));
+            }}
+        >
+            Download
+        </Button>
+    );
+
     return (
         <div className="expedite_retrieved">
-            <section className="expedite_meta">
-                <h2 className="expedite_meta-header">
-                    {isText ? <FileText size={14} /> : <File size={14} />}
-                    {isText ? "Text details" : "File details"}
-                </h2>
-                {/* The details, then the hash and the command: side by side on a laptop, folded on a phone. */}
-                <div className="expedite_details">
-                    <dl>
-                        {result.fileName && (
-                            <Detail label="Name">
-                                <Copyable
-                                    value={result.fileName} field="name" title="Copy the name"
-                                    copiedField={copiedField} onCopy={onCopy}
-                                />
-                            </Detail>
-                        )}
-                        {!isText && <Detail label="Type">{typeOf(result.fileName ?? "", result.mimeType)}</Detail>}
-                        {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
-                        <Detail label="Size">{exactSize(result.size)}</Detail>
-                        {fileCount != null && <Detail label="Files">{fileCount.toLocaleString()}</Detail>}
-                        {lines != null && (
-                            <Detail label="Lines">{lines.toLocaleString()}{info.partial ? "+ (counted in the part shown)" : ""}</Detail>
-                        )}
-                        {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
-                        {words && (
-                            <>
-                                <Detail label="Words">{words.words.toLocaleString()}</Detail>
-                                <Detail label="Reading time">{words.reading}</Detail>
-                            </>
-                        )}
-                        {isText && result.text && <Detail label="Characters">{characterCount(result.text).toLocaleString()}</Detail>}
-                        {info.width != null && info.height != null && (
-                            <Detail label="Dimensions">{info.width.toLocaleString()} × {info.height.toLocaleString()} px</Detail>
-                        )}
-                        {info.duration != null && Number.isFinite(info.duration) && <Detail label="Duration">{duration(info.duration)}</Detail>}
-                        <Detail label="Created">{Temporal.Instant.from(result.createdAt).toLocaleString()} ({timeSince(result.createdAt)})</Detail>
-                        <Detail label="Expires in">{timeUntil(result.expiresAt)}</Detail>
-                        <Detail label="Views">{result.views}{result.maxViews ? ` of ${result.maxViews}` : " (no limit)"}</Detail>
-                    </dl>
-                    {more && (wide ? more : <Disclosure title="More details">{more}</Disclosure>)}
-                </div>
-            </section>
-
             {lastView && (
                 <p className="expedite_notice">
                     {isText
@@ -200,12 +206,43 @@ export default function ResultView(
                 </p>
             )}
 
+            {/* A text: the text itself, then its buttons. Sent as code: shown like a code file, numbered and highlighted. */}
+            {isText && result.text && (result.language ? (
+                <CodeView text={shownText} language={isLanguage(result.language) ? result.language : null} />
+            ) : (
+                // A textarea rather than <pre> so the caret can be placed inside it and ranges selected
+                <textarea
+                    className="expedite_text-preview"
+                    aria-label="The text received"
+                    value={result.text}
+                    readOnly
+                    spellCheck={false}
+                    onFocus={(e) => e.target.select()}
+                />
+            ))}
+
+            {/* A file: its name, what it is and how big, then its buttons, before a preview that can be a screen tall. */}
+            {!isText && (
+                <div className="expedite_received-file">
+                    {result.fileName && (
+                        <Copyable
+                            value={result.fileName} field="name" title="Copy the name" className="expedite_received-name"
+                            copiedField={copiedField} onCopy={onCopy}
+                        />
+                    )}
+                    <span className="expedite_received-about">
+                        {describeType(result.fileName ?? "", result.mimeType)} · {shortSize(result.size)}
+                    </span>
+                </div>
+            )}
+
             {error && <p className="expedite_error">{error}</p>}
 
-            {/* Actions */}
+            {/* One row of buttons: what most people came for, then what passes the drop on or removes it (its code, its
+                link, the trash). The two halves share a line where they fit, and take one each on a phone. */}
             {confirmingDelete ? (
                 // Keyed, so the question's buttons are new ones (autoFocus works only on a new element) rather than
-                // the row's own reused in place, the Link button turned into "Keep it".
+                // the row's own reused in place, the first one turned into "Keep it".
                 <div
                     key="confirm"
                     className="expedite_btn-row expedite_confirm"
@@ -229,74 +266,38 @@ export default function ResultView(
                 </div>
             ) : (
                 <div key="actions" className="expedite_btn-row">
-                    <Button
-                        ref={trash}
-                        variant={result.deletable ? "danger" : "plain"}
-                        start={Trash2}
-                        onClick={() => setConfirmingDelete(true)}
-                        disabled={!result.deletable}
-                        title={result.deletable ? "Delete drop" : "Deletion disabled by sender"}
-                    />
-                    {/* The code, to pass on: a click copies it, as the Live room's does. */}
-                    <Button
-                        className="expedite_code-btn"
-                        end={copiedField === "code" ? Check : Clipboard}
-                        title="Copy the code"
-                        onClick={(e) => onCopy(result.code, "code", e)}
-                    >
-                        {result.code}
-                    </Button>
-                    <Button
-                        start={copiedField === "link" ? Check : Link}
-                        onClick={(e) => onCopy(getDropUrl(result.code), "link", e)}
-                    >
-                        {copiedField === "link" ? "Copied" : "Link"}
-                    </Button>
-                    {content && (
+                    <div className="expedite_btn-row expedite_received-get">
+                        {isText ? <>{copyButton}{downloadButton}</> : <>{downloadButton}{copyButton}</>}
+                    </div>
+                    <div className="expedite_btn-row">
+                        {/* The code, to pass on: a click copies it, as the Live room's does. */}
                         <Button
-                            start={copiedField === "content" ? Check : Clipboard}
-                            onClick={(e) => onCopy(content, "content", e)}
+                            className="expedite_code-btn"
+                            end={copiedField === "code" ? Check : Clipboard}
+                            title="Copy the code"
+                            onClick={(e) => onCopy(result.code, "code", e)}
                         >
-                            {copiedField === "content" ? "Copied" : "Content"}
+                            {result.code}
                         </Button>
-                    )}
-                    {/* The downloaded copy, picked from the device, checked against the hash: the page never sees the
-                        download, which the browser's own downloader saves. A click while it checks picks another copy. */}
-                    {result.sha256 && (
-                        <>
-                            <Button
-                                className={check === "match" ? "is-match" : check === "mismatch" ? "is-mismatch" : undefined}
-                                start={check === "match" ? CircleCheck : check === "mismatch" ? CircleX : Fingerprint}
-                                busy={check === "checking"}
-                                onClick={() => picker.current?.click()}
-                            >
-                                {checkLabel}
-                            </Button>
-                            <input
-                                ref={picker}
-                                type="file"
-                                hidden
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) onCheckCopy(file);
-                                    e.target.value = ""; // the same file can be picked again
-                                }}
-                            />
-                        </>
-                    )}
-                    <Button
-                        variant="main" start={Download} busy={downloading}
-                        onClick={() => {
-                            setDownloading(true);
-                            void onDownload().finally(() => setDownloading(false));
-                        }}
-                    >
-                        Download
-                    </Button>
+                        <Button
+                            start={copiedField === "link" ? Check : Link}
+                            onClick={(e) => onCopy(getDropUrl(result.code), "link", e)}
+                        >
+                            {copiedField === "link" ? "Copied" : "Link"}
+                        </Button>
+                        <Button
+                            ref={trash}
+                            variant={result.deletable ? "danger" : "plain"}
+                            start={Trash2}
+                            onClick={() => setConfirmingDelete(true)}
+                            disabled={!result.deletable}
+                            title={result.deletable ? "Delete drop" : "Deletion disabled by sender"}
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* The file itself, under what to do with it and as wide as the page. */}
+            {/* The file itself, as wide as the page. */}
             {result.type === "file" && result.fileUrl && (
                 <FilePreview
                     key={result.fileUrl}
@@ -311,24 +312,42 @@ export default function ResultView(
             {/* A zip: the files in it, each one to show or download on its own. */}
             {zip && <ZipStack source={zip} remote onRead={setFileCount} />}
 
-            {/* Sent as code: shown like a code file, numbered and highlighted. */}
-            {isText && result.text && result.language && (
-                <CodeView text={shownText} language={isLanguage(result.language) ? result.language : null} />
-            )}
-
-            {isText && result.text && !result.language && (
-                <>
-                    <p className="expedite_content-label">Content</p>
-                    {/* A textarea rather than <pre> so the caret can be placed inside it and ranges selected */}
-                    <textarea
-                        className="expedite_text-preview"
-                        value={result.text}
-                        readOnly
-                        spellCheck={false}
-                        onFocus={(e) => e.target.select()}
-                    />
-                </>
-            )}
+            {/* Its details, last: what's looked up, after what's done. */}
+            <section className="expedite_meta">
+                <h2 className="expedite_meta-header">
+                    {isText ? <FileText size={14} /> : <File size={14} />}
+                    {isText ? "Text details" : "File details"}
+                </h2>
+                {/* The details, then the advanced ones, folded (whoever opens them finds them open next time): under the
+                    details on a phone, beside them from a laptop's width. */}
+                <div className="expedite_details">
+                    <dl>
+                        {!isText && <Detail label="Type">{typeOf(result.fileName ?? "", result.mimeType)}</Detail>}
+                        {result.language && <Detail label="Language">{languageLabel(result.language)}</Detail>}
+                        <Detail label="Size">{exactSize(result.size)}</Detail>
+                        {fileCount != null && <Detail label="Files">{fileCount.toLocaleString()}</Detail>}
+                        {lines != null && (
+                            <Detail label="Lines">{lines.toLocaleString()}{info.partial ? "+ (counted in the part shown)" : ""}</Detail>
+                        )}
+                        {info.lineEndings && <Detail label="Line endings">{info.lineEndings === "CRLF" ? "CRLF (Windows)" : "LF (Unix)"}</Detail>}
+                        {words && (
+                            <>
+                                <Detail label="Words">{words.words.toLocaleString()}</Detail>
+                                <Detail label="Reading time">{words.reading}</Detail>
+                            </>
+                        )}
+                        {isText && result.text && <Detail label="Characters">{characterCount(result.text).toLocaleString()}</Detail>}
+                        {info.width != null && info.height != null && (
+                            <Detail label="Dimensions">{info.width.toLocaleString()} × {info.height.toLocaleString()} px</Detail>
+                        )}
+                        {info.duration != null && Number.isFinite(info.duration) && <Detail label="Duration">{duration(info.duration)}</Detail>}
+                        <Detail label="Created">{Temporal.Instant.from(result.createdAt).toLocaleString()} ({timeSince(result.createdAt)})</Detail>
+                        <Detail label="Expires in">{timeUntil(result.expiresAt)}</Detail>
+                        <Detail label="Views">{result.views}{result.maxViews ? ` of ${result.maxViews}` : " (no limit)"}</Detail>
+                    </dl>
+                    {more && <Disclosure id="advanced" title="Advanced details">{more}</Disclosure>}
+                </div>
+            </section>
         </div>
     );
 }

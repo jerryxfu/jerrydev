@@ -6,6 +6,7 @@ import {formatBytes} from "../utils.ts";
 import {entryData, readZip, type ZipEntry, type ZipSource} from "../zip.ts";
 import FileStack, {type StackRow} from "./FileStack.tsx";
 import {LocalFilePreview, typeOf} from "./FilePreview.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 
 // From a drop's link, a file is fetched into the page to be shown or saved on its own, up to these sizes: a bigger one
 // comes with the zip (a link can't point at part of a file). From a copy here (Direct P2P), any size: it's a slice.
@@ -150,7 +151,7 @@ export default function ZipStack({source, remote = false, onRead}: ZipStackProps
             />
             {error && <p className="expedite_error">{error}</p>}
             {opened?.state === "loading" && (
-                <p className="expedite_status-line">Opening {name}... {Math.floor(opened.progress * 100)}%</p>
+                <p className="expedite_status-line"><Shimmer>Opening {name}...</Shimmer> {Math.floor(opened.progress * 100)}%</p>
             )}
             {opened?.state === "too-big" && (
                 <p className="expedite_status-line">{name} is too big to preview here. Download the file or the zip to view.</p>

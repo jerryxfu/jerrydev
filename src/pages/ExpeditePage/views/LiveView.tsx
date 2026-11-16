@@ -43,6 +43,7 @@ import FilePreview, {CodeView, kindOf, MINI_LINES} from "./FilePreview.tsx";
 import {STATE_LETTER} from "./UploadProgress.tsx";
 import {THUMB_MAX, useCanvasNearScreen} from "./FileStack.tsx";
 import {drawPdfPage} from "../pdfPage.ts";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import "./LiveView.scss";
 
 interface LiveViewProps {
@@ -346,7 +347,7 @@ function ItemCard({item, mine, fresh, downloaded, progress, copiedField, onCopy,
                     ? <div className="live_progress" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
                         <div style={{width: `${percent}%`}} />
                     </div>
-                    : <p className="live_hint">Sending...</p>
+                    : <p className="live_hint"><Shimmer>Sending...</Shimmer></p>
             )}
 
             <footer className="live_item-foot">
