@@ -16,6 +16,7 @@ import {
     SEND_POWERSHELL_COMMAND
 } from "../utils.ts";
 import CopyField from "./CopyField.tsx";
+import Disclosure from "./Disclosure.tsx";
 import "./LandingView.scss";
 
 interface LandingViewProps {
@@ -92,31 +93,25 @@ const SEND_TABS = [
     },
 ] as const;
 
-// Under the tiles' modes: the tabs (the composer's setting pills, UploadView.scss), the command, and when to use it.
-// Windows' tab first on Windows.
+// In Send's folded Terminal section: the tabs (the composer's setting pills, UploadView.scss), the command, and when to
+// use it. Windows' tab first on Windows.
 function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
     const [tabId, setTabId] = useState(() => (ON_WINDOWS ? "windows" : "sh"));
     const tab = SEND_TABS.find((t) => t.id === tabId) ?? SEND_TABS[0];
     return (
-        <div className="expedite_landing-terminal expedite_terminal-divided">
-            <div className="expedite_terminal-head">
-                <span className="expedite_terminal-title" id="expedite-terminal-label">
-                    <Terminal size={18} strokeWidth={1.5} aria-hidden />
-                    Terminal
-                </span>
-                <div className="expedite_terminal-tabs" role="group" aria-labelledby="expedite-terminal-label">
-                    {SEND_TABS.map((t) => (
-                        <button
-                            key={t.id}
-                            type="button"
-                            className={`expedite_setting-pill${t.id === tab.id ? " active" : ""}`}
-                            aria-pressed={t.id === tab.id}
-                            onClick={() => setTabId(t.id)}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
-                </div>
+        <div className="expedite_landing-terminal">
+            <div className="expedite_terminal-tabs" role="group" aria-label="The system and the way to send">
+                {SEND_TABS.map((t) => (
+                    <button
+                        key={t.id}
+                        type="button"
+                        className={`expedite_setting-pill${t.id === tab.id ? " active" : ""}`}
+                        aria-pressed={t.id === tab.id}
+                        onClick={() => setTabId(t.id)}
+                    >
+                        {t.label}
+                    </button>
+                ))}
             </div>
             <CopyField
                 value={tab.value}
@@ -134,7 +129,7 @@ function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField
     );
 }
 
-// Under Send's terminal: the line that installs the CLI (the expedite-cli repository), this system's. Not a tab above: one
+// After Send's commands, in the same folded section: the line that installs the CLI (the expedite-cli repository), this system's. Not a tab above: one
 // more would leave a tab on a line of its own on most phones.
 function InstallCommand({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
     return (
@@ -228,8 +223,13 @@ export default function LandingView(
                     ))}
                 </dl>
 
-                <SendCommands copiedField={copiedField} onCopy={onCopy} />
-                <InstallCommand copiedField={copiedField} onCopy={onCopy} />
+                {/* Folded: most people send with the tiles, and a command reads as something they'd have to do (Jerry, Nov 2026). */}
+                <div className="expedite_terminal-divided">
+                    <Disclosure id="terminal-send" title="Terminal (advanced)" icon={Terminal}>
+                        <SendCommands copiedField={copiedField} onCopy={onCopy} />
+                        <InstallCommand copiedField={copiedField} onCopy={onCopy} />
+                    </Disclosure>
+                </div>
             </section>
 
             <div className="expedite_landing-divider" role="separator" />
@@ -279,23 +279,27 @@ export default function LandingView(
                     </div>
                 )}
 
-                {/* The command with <code> for the code: the copy stops before it, for the code to be typed after. */}
-                <div className="expedite_landing-terminal expedite_terminal-divided">
-                    <p className="expedite_landing-hint">
-                        In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}
-                        <code className="expedite_landing-code">-L</code> to stream it):
-                    </p>
-                    <CopyField
-                        value={getCurlCommand("<code>", "text")}
-                        copy={getCurlCommand("", "text")}
-                        label="A command to get a drop from a terminal"
-                        copyLabel="Copy the command"
-                        icon={Terminal}
-                        field="curl"
-                        copiedField={copiedField}
-                        onCopy={onCopy}
-                        small
-                    />
+                {/* Folded, as Send's. The command with <code> for the code: the copy stops before it, for the code to be typed after. */}
+                <div className="expedite_terminal-divided">
+                    <Disclosure id="terminal-receive" title="Terminal (advanced)" icon={Terminal}>
+                        <div className="expedite_landing-terminal">
+                            <p className="expedite_landing-hint">
+                                In a terminal (add <code className="expedite_landing-code">-LOJ</code> to download a file, or{" "}
+                                <code className="expedite_landing-code">-L</code> to stream it):
+                            </p>
+                            <CopyField
+                                value={getCurlCommand("<code>", "text")}
+                                copy={getCurlCommand("", "text")}
+                                label="A command to get a drop from a terminal"
+                                copyLabel="Copy the command"
+                                icon={Terminal}
+                                field="curl"
+                                copiedField={copiedField}
+                                onCopy={onCopy}
+                                small
+                            />
+                        </div>
+                    </Disclosure>
                 </div>
             </section>
         </div>

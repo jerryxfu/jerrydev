@@ -34,27 +34,11 @@
     gap: 0.4rem;
 }
 
-// Send's and Receive's terminal, last in their column: a soft line sets it apart from what's above.
+// Send's and Receive's terminal, last in their column and folded (a Disclosure, "Terminal (advanced)"): a soft line sets
+// it apart from what's above.
 .expedite_terminal-divided {
     padding-top: 0.85rem;
     border-top: 1px solid var(--border);
-}
-
-// Send's terminal row: its name with an icon, like the tiles above, then the tabs. When the row is too narrow for both, the
-// tabs move under the name all together, rather than leaving one tab on a line of its own.
-.expedite_terminal-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.75rem;
-}
-
-.expedite_terminal-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--fs-sm);
-    font-weight: 500;
 }
 
 // A system and way each: one row from 375px.

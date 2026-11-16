@@ -407,9 +407,11 @@ clear of zsh's `?`).
 
 - The CLI (`expedite send`, `expedite get`; the `expedite-cli` repository, #87) uses the page's own routes through `/expedite/cli`, so it has what the
   commands above lack: several files or a folder as one zip, a progress bar, parallel parts with retries, `--expires` and `--views`, the hash check on
-  the way back. The landing view shows the line that installs it under the terminal commands (`InstallCommand` in `LandingView.tsx`), this system's:
+  the way back. The landing view shows the line that installs it after the terminal commands (`InstallCommand` in `LandingView.tsx`), this system's:
   `curl -fsSL https://jerryxf.net/expedite/install.sh | sh`, or `irm https://jerryxf.net/expedite/install.ps1 | iex` on Windows. The two scripts are
   in `public/expedite/`: they fetch the latest release from GitHub, check it against the release's checksums, and running them again updates.
+- On the landing view everything for a terminal is folded, closed at first, under "Terminal (advanced)" (a `Disclosure`, one in Send, one in Receive):
+  most people send with the tiles, and a command on the page reads as a step to take. Whoever opens one finds it open next time, in this browser.
 
 **From a terminal.** `curl https://api.jerryxf.net/expedite/raw/ABCDE` prints a text drop as it is. A file drop redirects to its download link:
 `curl -LOJ` saves it under its name (curl's `-J` takes the ASCII stand-in, so accents become `_`), `curl -L` streams it to stdout, to pipe it into a
