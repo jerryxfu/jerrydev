@@ -1,6 +1,7 @@
 import {type CSSProperties, useEffect, useState} from "react";
 import {Link, useParams} from "wouter";
 import Button from "@/components/Button/Button.tsx";
+import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import {ApiError, countVisit, getLink} from "./api.ts";
 import page, {REPORT_TO} from "./page.ts";
 import "./Go.scss";
@@ -70,7 +71,7 @@ export default function Go() {
                 const gone = err instanceof ApiError && err.status === 404;
                 setState({
                     at: "nowhere", gone,
-                    message: gone ? "This link doesn't exist, or it has ended." : err instanceof Error ? err.message : "Something went wrong. Try again.",
+                    message: gone ? "This link doesn't exist, or it has expired." : err instanceof Error ? err.message : "Something went wrong. Try again.",
                 });
             },
         );
@@ -91,7 +92,7 @@ export default function Go() {
                 <>
                     <p className="go_line">
                         {GO_AFTER_MS !== null && <Wait ms={GO_AFTER_MS} />}
-                        Taking you to
+                        <Shimmer>Taking you to</Shimmer>
                     </p>
                     <p className="go_host">{state.url.hostname}</p>
                     <button className="go_stay" onClick={() => setState({at: "stayed", url: state.url})}>Stay here</button>
@@ -103,7 +104,12 @@ export default function Go() {
                     <p className="go_line">This link goes to</p>
                     <p className="go_host">{state.url.hostname}</p>
                     <p className="go_address">{state.url.href}</p>
-                    <Button variant="main" onClick={() => leave(name, state.url)}>Go</Button>
+                    <div className="go_buttons">
+                        {/* The browser's own Back, for who'd rather not go. Only when this tab has a page before
+                            this one: in a tab the link opened, Back would do nothing. */}
+                        {window.history.length > 1 && <Button onClick={() => window.history.back()}>Back</Button>}
+                        <Button variant="main" onClick={() => leave(name, state.url)}>Go</Button>
+                    </div>
                     <p className="go_report">
                         Something wrong with this link? <a href={`mailto:${REPORT_TO}?subject=${encodeURIComponent(`Shortcut ${name}`)}`}>Report it</a>.
                     </p>

@@ -64,6 +64,11 @@ export const SEND_POWERSHELL_COMMAND = "& ([scriptblock]::Create((irm https://je
 export const SEND_PIPE_COMMAND = `curl -T - ${apiBaseUrl}/expedite/raw/`;
 export const SEND_PIPE_WINDOWS_COMMAND = `curl.exe -T - ${apiBaseUrl}/expedite/raw/`;
 
+// The CLI (the expedite-cli repository, #87), installed or updated by one line: the scripts are public/expedite/install.sh
+// and install.ps1, which fetch the latest release from GitHub.
+export const INSTALL_COMMAND = "curl -fsSL https://jerryxf.net/expedite/install.sh | sh";
+export const INSTALL_WINDOWS_COMMAND = "irm https://jerryxf.net/expedite/install.ps1 | iex";
+
 /**
  * Hands attachment links (the API's `downloadUrl`s) to the browser's downloads, half a second apart. Each opens in a
  * hidden frame of its own: opened in the page, a link would stop the one before it while it starts, and an error page

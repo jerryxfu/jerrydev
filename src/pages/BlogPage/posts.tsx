@@ -56,6 +56,16 @@ export const posts: Post[] = [
         tags: ["ai", "devlog"],
         lang: "en",
     },
+    // Visual support for a short class presentation. A draft until Jerry has reworked it: remove `draft` to show it on the live site.
+    {
+        slug: "math_ia-presentation",
+        title: "Comment GPT-2 range les nombres",
+        description: "Présentation de mon explo de maths: une droite, un cercle, et pourquoi additionner revient à tourner.",
+        date: "2026-11-15",
+        tags: ["ai"],
+        lang: "fr",
+        draft: true,
+    },
     // Robotics course. All drafts until each lesson is actually written; the topic page lists them either way, so the syllabus is visible from day one.
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.
     {

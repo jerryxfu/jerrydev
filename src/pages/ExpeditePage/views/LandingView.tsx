@@ -6,7 +6,15 @@ import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
 import {useFileDrag} from "../useFileDrag.ts";
 import {dropPath} from "../page.ts";
-import {getCurlCommand, SEND_FILE_COMMAND, SEND_PIPE_COMMAND, SEND_PIPE_WINDOWS_COMMAND, SEND_POWERSHELL_COMMAND} from "../utils.ts";
+import {
+    getCurlCommand,
+    INSTALL_COMMAND,
+    INSTALL_WINDOWS_COMMAND,
+    SEND_FILE_COMMAND,
+    SEND_PIPE_COMMAND,
+    SEND_PIPE_WINDOWS_COMMAND,
+    SEND_POWERSHELL_COMMAND
+} from "../utils.ts";
 import CopyField from "./CopyField.tsx";
 import "./LandingView.scss";
 
@@ -74,6 +82,8 @@ const MODES: ModeInfo[] = [
     },
 ];
 
+const ON_WINDOWS = /Windows/.test(navigator.userAgent);
+
 // Sending from a terminal, a tab per system and way: a file through the script, or a command's output piped. Each copy
 // stops at its placeholder: the file's path goes after it (typed, or a file dragged in), or it goes after the command.
 // The Windows pipe is curl.exe: in Windows PowerShell 5.1, `curl` is Invoke-WebRequest (cmd and PowerShell 7 take either).
@@ -103,7 +113,7 @@ const SEND_TABS = [
 // Under the tiles' modes: the tabs (the composer's setting pills, UploadView.scss), the command, and when to use it.
 // Windows' tab first on Windows.
 function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
-    const [tabId, setTabId] = useState(() => (/Windows/.test(navigator.userAgent) ? "windows" : "sh"));
+    const [tabId, setTabId] = useState(() => (ON_WINDOWS ? "windows" : "sh"));
     const tab = SEND_TABS.find((t) => t.id === tabId) ?? SEND_TABS[0];
     return (
         <div className="expedite_landing-terminal expedite_terminal-divided">
@@ -138,6 +148,28 @@ function SendCommands({copiedField, onCopy}: Pick<LandingViewProps, "copiedField
                 small
             />
             <p className="expedite_terminal-note">{tab.note}</p>
+        </div>
+    );
+}
+
+// Under Send's terminal: the line that installs the CLI (the expedite-cli repository), this system's. Not a tab above: one
+// more would leave a tab on a line of its own on most phones.
+function InstallCommand({copiedField, onCopy}: Pick<LandingViewProps, "copiedField" | "onCopy">) {
+    return (
+        <div className="expedite_landing-terminal">
+            <p className="expedite_landing-hint">
+                Or install the CLI, for several files, a progress bar and options:
+            </p>
+            <CopyField
+                value={ON_WINDOWS ? INSTALL_WINDOWS_COMMAND : INSTALL_COMMAND}
+                label="The command that installs the Expedite CLI"
+                copyLabel="Copy the command"
+                icon={Terminal}
+                field="curl-install"
+                copiedField={copiedField}
+                onCopy={onCopy}
+                small
+            />
         </div>
     );
 }
@@ -242,6 +274,7 @@ export default function LandingView(
                 </dl>
 
                 <SendCommands copiedField={copiedField} onCopy={onCopy} />
+                <InstallCommand copiedField={copiedField} onCopy={onCopy} />
             </section>
 
             <div className="expedite_landing-divider" role="separator" />

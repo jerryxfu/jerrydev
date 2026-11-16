@@ -44,7 +44,7 @@
     line-height: 1.55;
 }
 
-/* Notes block: plain, like the explanation */
+/* Notes block: plain, like the tab's explanation above it */
 .expedite_p2p-notes {
     ul {
         margin: 0.5rem 0 0;
@@ -61,21 +61,11 @@
     }
 }
 
-// The titles of the blocks beside the file (Explanation, Before you start, How does this work?): a bit bigger than
-// their text.
-.expedite_p2p-about-title,
+// The titles of the blocks beside the file (Before you start, How does this work?): a bit bigger than their text.
 .expedite_p2p-notes-title {
     margin: 0;
     text-transform: uppercase;
     font-size: var(--fs-md);
     font-weight: 600;
     color: var(--text-2);
-}
-
-// What the mode does.
-.expedite_p2p-about {
-    margin: 0.5rem 0 0;
-    font-size: var(--fs-base);
-    color: var(--text-2);
-    line-height: 1.55;
 }

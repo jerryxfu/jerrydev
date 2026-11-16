@@ -1,5 +1,5 @@
 import React, {type ReactNode, useId, useMemo, useRef, useState} from "react";
-import {Info} from "lucide-react";
+import {Info, Radio} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropSettings, type DropType, TTL_PRESETS} from "../types.ts";
 import {formatDuration} from "../utils.ts";
@@ -12,7 +12,14 @@ import {type PickedFile, shownFile} from "../files.ts";
 import "./UploadView.scss";
 
 interface UploadViewProps {
+    /** What's written: a text, or files. Files have two ways to go, a tab each: "file" is Upload, "p2p" is Direct. */
     dropType: DropType;
+    /** A tab picked on the files' screen. */
+    onWay: (way: "file" | "p2p") => void;
+    /** Direct's button: a code is made and the transfer's screen takes over. */
+    onDirect: () => void;
+    /** Monthly relay quota spent: direct transfers have no relay. */
+    relayDisabled: boolean;
     textContent: string;
     /** The text is code, in this language (Shiki's id, or Auto); null for plain text. */
     language: string | null;
@@ -58,10 +65,24 @@ const FULL_CHARACTERS = 20_000;
 // How many times a drop can be opened: the usual choices; any other number goes in the field beside them.
 const VIEW_PRESETS: (number | null)[] = [1, 5, null];
 
+// The two ways files go, a tab each, with what it does in plain words under the tabs. `limit` is the file zone's.
+const WAYS = [
+    {
+        id: "file", label: "Upload", limit: "Max 16 GB",
+        about: "Your file is uploaded first, like Google Drive. You get a code and a link, and the other person downloads it " +
+            "whenever they want, until it expires.",
+    },
+    {
+        id: "p2p", label: "Direct (peer-to-peer)", limit: "No size limit (well... capped by the receiver's free storage)",
+        about: "Your file goes straight from this device to the other one, like AirDrop. Nothing is uploaded first. You get a " +
+            "code, the other person enters it, and the file arrives while both pages stay open.",
+    },
+] as const;
+
 export default function UploadView(
     {
-        dropType, textContent, language, setLanguage, setTextContent, files, setFiles, settings, setSettings,
-        maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
+        dropType, onWay, onDirect, relayDisabled, textContent, language, setLanguage, setTextContent, files, setFiles,
+        settings, setSettings, maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
     }: UploadViewProps) {
     const createButton = useRef<HTMLButtonElement>(null);
 
@@ -282,20 +303,61 @@ export default function UploadView(
         );
     }
 
+    // Files: the same files whichever tab is picked, so the zone and the preview stay as the side changes.
+    const way = WAYS.find((w) => w.id === dropType) ?? WAYS[0];
+    const direct = way.id === "p2p";
+
     return (
         <div className="expedite_upload expedite_split">
             <div className="expedite_main expedite_main--fill">
                 <FileZone
-                    files={files} onFiles={setFiles} open={shown?.path ?? null} onOpen={setOpen} limit="Max 16 GB" disabled={loading}
+                    files={files} onFiles={setFiles} open={shown?.path ?? null} onOpen={setOpen} limit={way.limit} disabled={loading}
                 />
             </div>
 
             <div className="expedite_side">
-                {settingsPanel}
+                {/* Upload or Direct, and what the one picked does. Not while an upload runs. */}
+                <div className="expedite_way">
+                    <div className="expedite_way-tabs" role="tablist" aria-label="How to send">
+                        {WAYS.map((w) => (
+                            <button
+                                key={w.id} type="button" role="tab" className="expedite_way-tab"
+                                aria-selected={w.id === way.id} disabled={loading} onClick={() => onWay(w.id)}
+                            >
+                                {w.label}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="expedite_way-about">{way.about}</p>
+                </div>
+
+                {direct ? (
+                    <div className="expedite_p2p-notes">
+                        <p className="expedite_p2p-notes-title">Before you start</p>
+                        <ul>
+                            <li>Keep this tab open and awake for the whole transfer. Closing it will stop the transfer.</li>
+                            <li>The recipient needs a computer. For files over 1 GB, they will also need a Chromium-based browser (e.g. Google
+                                Chrome, Edge, Opera, Brave, etc.).
+                            </li>
+                            <li>Nothing is stored in the cloud during transfer because it's a (one-time) peer-to-peer transfer.</li>
+                            {relayDisabled && (
+                                <li>TURN relay not available. This month's relay quota is used up, so transfers are direct-only until it
+                                    resets.</li>
+                            )}
+                        </ul>
+                    </div>
+                ) : settingsPanel}
 
                 {error && <p className="expedite_error">{error}</p>}
 
-                {actions}
+                {direct ? (
+                    <div className="expedite_btn-row">
+                        <Button onClick={onCancel}>Cancel</Button>
+                        <Button variant="main" start={Radio} onClick={onDirect} disabled={!files.length}>
+                            Get a code
+                        </Button>
+                    </div>
+                ) : actions}
             </div>
 
             {/* Under the form, as wide as the view: the upload's progress, and the file itself (the one opened, of several). */}

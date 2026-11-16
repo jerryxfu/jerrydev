@@ -1,6 +1,6 @@
 import {lazy, type ReactNode, StrictMode, Suspense, useEffect} from "react";
 import {createRoot} from "react-dom/client";
-import {Route, Switch, useLocation} from "wouter";
+import {Redirect, Route, Switch, useLocation} from "wouter";
 
 import "@fontsource-variable/outfit/index.css";
 import "./index.scss";
@@ -113,13 +113,20 @@ function PageHead() {
     const [pathname] = useLocation();
 
     useEffect(() => {
+        // An address that has moved on before head.ts came (/e, sent on to /expedite) no longer gets its head: the two
+        // imports can answer in either order, and the old one would leave "404 Not Found" over the page.
+        let here = true;
         void import("./head.ts").then(({applyHead, headFor}) => {
+            if (!here) return;
             const head = headFor(pathname);
             if (!head && isDev) console.warn(`No entry for ${pathname} in src/head.ts: fine on a 404, otherwise add the page there.`);
             applyHead(head);
         }).catch(() => {
             // Offline, or a deploy swapped the chunk out: the tags already there stay.
         });
+        return () => {
+            here = false;
+        };
     }, [pathname]);
 
     return null;
@@ -158,16 +165,19 @@ root.render(
                     <Route path="/blog/:slug">{renderLazy(<LazyPost />)}</Route>
                     {/* A tool and its codes (a drop is /e/K7XQ4: the letter is in the tool's page.ts) are one page, which
                         reads the code with useParams. The same element on both routes, so React keeps the page as the
-                        address moves between them. Any other one-letter path is a 404. */}
+                        address moves between them. A letter with no code after it (/e or /e/) is sent to its tool. */}
                     <Route path="/expedite">{expedite}</Route>
                     <Route path="/e/:code">{expedite}</Route>
+                    <Route path="/e"><Redirect to="/expedite" replace /></Route>
                     <Route path="/scheduler">{renderLazy(<LazyScheduler />)}</Route>
                     <Route path="/rendezvous">{rendezvous}</Route>
                     <Route path="/r/:code">{rendezvous}</Route>
+                    <Route path="/r"><Redirect to="/rendezvous" replace /></Route>
                     <Route path="/shortcut">{renderLazy(<LazyShortcut />)}</Route>
                     {/* A short link: a page of its own, apart from the tool's. It's on the way to somewhere else, so
                         it loads as little as it can. */}
                     <Route path="/s/:name">{renderLazy(<LazyShortcutGo />)}</Route>
+                    <Route path="/s"><Redirect to="/shortcut" replace /></Route>
                     <Route path="/time">{renderLazy(<LazyTime />)}</Route>
                     <Route path="/firebreak">{renderLazy(<LazyFirebreak />)}</Route>
                     <Route path="/supericu">{renderLazy(<LazySuperIcu />)}</Route>

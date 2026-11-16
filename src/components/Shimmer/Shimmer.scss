@@ -1,0 +1,37 @@
+// Shimmer.tsx. The text is painted by its background, clipped to the letters: its own colour all over, and above it a
+// band of a lighter one, which moves. No mask and no blend mode (Firefox), and only the text's own box is repainted.
+// With reduced motion or forced colours, none of this applies: the text is plain text.
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+    .shimmer {
+        --shimmer-band: 4em;
+        --shimmer-light: color-mix(in srgb, currentColor 20%, white);
+
+        background-image: linear-gradient(to right, transparent, var(--shimmer-light), transparent),
+        linear-gradient(currentColor, currentColor);
+        background-size: var(--shimmer-band) 100%, 100% 100%;
+        background-repeat: no-repeat;
+        -webkit-background-clip: text;
+        background-clip: text;
+        // Not `color: transparent`: the two backgrounds are made from the text's colour.
+        -webkit-text-fill-color: transparent;
+
+        // Longhands: the build drops a shorthand whose name comes from elsewhere.
+        animation-name: shimmer-sweep;
+        animation-duration: var(--shimmer-cycle);
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+}
+
+// The band starts just off the text's left end and leaves by its right one. A position of 100% puts the band's right
+// edge on the text's, so the band's width more takes it out. Then it keeps going, unseen, for the rest: that same
+// distance (the text and the band, 100% and twice the band) times --shimmer-rest.
+@keyframes shimmer-sweep {
+    from {
+        background-position: calc(-1 * var(--shimmer-band)) 0, 0 0;
+    }
+
+    to {
+        background-position: calc((1 + var(--shimmer-rest)) * 100% + (1 + 2 * var(--shimmer-rest)) * var(--shimmer-band)) 0, 0 0;
+    }
+}

@@ -19,7 +19,7 @@ interface FileZoneProps {
     disabled?: boolean;
 }
 
-// The files to send, on the File and Direct P2P screens. Empty, a zone: a click or a drop chooses them, and from the
+// The files to send, on the files' screen, whichever tab is picked. Empty, a zone: a click or a drop chooses them, and from the
 // keyboard its input (Tab to it, then Enter or Space). With files, their stack, with buttons to add more, and it still
 // takes drops. A folder dropped or picked brings its files, with their paths. Styles in UploadView.scss and FileStack.scss.
 export default function FileZone({files, onFiles, open, onOpen, limit, disabled = false}: FileZoneProps) {

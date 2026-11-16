@@ -1,0 +1,152 @@
+import Callout from "@/pages/BlogPage/components/Callout.tsx"; // import obligatoire, voir hello-blog
+import _circle from "@/assets/blog/math_ia/main_theory_circle.png";
+import _line from "@/assets/blog/math_ia/main_numberline.png";
+import _cosine from "@/assets/blog/math_ia/main_cosine_by_gap.png";
+import _wheel from "@/assets/blog/math_ia/main_wheel10.png";
+import _layers from "@/assets/blog/math_ia/main_layers.png";
+
+{/* Draft, visual support for a short class presentation (Nov 2026). The five figures are copies of math-mvp/ia/figures/main_*.png. Every number about GPT-2 is copied from math-mvp/ia/tables/main_dictionary.md, main_layers.md, table3_validation.md or numbers.tex (keys cosine/space/gap9, gap10, gap11 and calc/r_n_logn/space/band10-99); none is typed from memory. The token splits come from GPT-2's own tokeniser (openai-community/gpt2). The section "Pour la culture" is general knowledge, not from the repo: check each item before saying it. */}
+
+Un modèle de langage ne voit jamais un nombre comme une quantité. Il voit un *token* : un morceau de texte comme un autre. Pourtant, pour bien prédire du texte, il doit savoir que 42 est proche de 43 et que 19 + 1 donne 20. Personne ne lui a programmé ça.
+
+La question de mon explo de maths :
+
+> Comment GPT-2 représente-t-il et organise-t-il les nombres à l'intérieur?
+
+## 1. Un nombre est un point
+
+GPT-2 découpe le texte en tokens. Il en connaît 50 257, et pour chacun il garde une liste de 768 nombres : un vecteur. J'appelle cette table le **dictionnaire**.
+
+| Texte | Tokens | Ce que GPT-2 va chercher |
+| --- | --- | --- |
+| `" 42"` | `" 42"` | 1 vecteur |
+| `" 361"` | `" 361"` | 1 vecteur |
+| `" 362"` | `" 36"` + `"2"` | 2 vecteurs |
+| `" 2026"` | `" 20"` + `"26"` | 2 vecteurs |
+
+De 0 à 361, chaque nombre a son propre token. À 362, ça casse. J'étudie donc ces 362 nombres.
+
+Une liste de 2 valeurs est un point dans un plan. Une liste de 3 est un point dans l'espace. Une liste de 768 est un point dans un espace à 768 dimensions. On ne peut pas le dessiner, mais la géométrie est la même : des distances, des directions, des angles.
+
+La question devient donc géométrique : **où GPT-2 a-t-il placé ces 362 points?** Je teste deux arrangements.
+
+- Une **droite** : les points avancent dans une direction quand le nombre grandit. Elle porte la grandeur du nombre.
+- Un **cercle de période 10** : les points font un tour tous les dix nombres. Il porte le dernier chiffre.
+
+## 2. Pourquoi un cercle?
+
+Pensez à une horloge : 9 h + 5 h = 2 h. Sur un cercle, additionner, c'est tourner.
+
+Avec les nombres complexes du cours, un point du cercle unité s'écrit
+
+$$
+\operatorname{cis}\theta = \cos\theta + i\sin\theta
+$$
+
+et multiplier deux points additionne leurs angles. Ce sont les identités de $\cos(\alpha + \beta)$ et de $\sin(\alpha + \beta)$ :
+
+$$
+\operatorname{cis}\alpha \cdot \operatorname{cis}\beta = \operatorname{cis}(\alpha + \beta)
+$$
+
+Je place chaque nombre $n$ sur le cercle, à 36° par pas, donc un tour complet en 10 pas :
+
+$$
+n \longmapsto \operatorname{cis}\left(\frac{2\pi n}{10}\right)
+$$
+
+<img className="diagram" src={_circle} alt="Les dix points d'un cercle de période 10, avec la rotation qui amène le 7 sur le 2 quand on ajoute 5" />
+
+Le 7 est à 252° et le 5 est à 180°. La somme des angles est 432°, soit 72° une fois le tour complet enlevé. C'est le point du 2, et 7 + 5 = 12 finit bien par 2. Le cercle garde le dernier chiffre de la somme, sans que personne ait à programmer la retenue.
+
+<Callout kind="important" label="Attention">
+    Ce calcul montre qu'un cercle *serait utile* pour additionner. Il ne dit pas que GPT-2 en a un. Ça, il faut le mesurer.
+</Callout>
+
+## 3. Comment je mesure
+
+Tout se fait avec des outils du cours, répétés pour chacune des 768 coordonnées.
+
+1. **Une règle** : une colonne calculée à partir de $n$. La droite est $x = n$. Le logarithme est $x = \ln(n + 1)$. Le cercle est la paire $\cos\left(\frac{2\pi n}{10}\right)$ et $\sin\left(\frac{2\pi n}{10}\right)$.
+2. **Une régression** par les moindres carrés entre la règle et chaque coordonnée.
+3. **Un score** : la variance expliquée. C'est le $R^2 = r^2$ de la calculatrice, calculé sur les 768 coordonnées ensemble. À 0 %, la règle ne dit rien. À 100 %, elle place chaque point exactement.
+4. **Un test du hasard** : une règle explique toujours un peu, même quand il n'y a rien à trouver. Je mélange donc les nombres 200 fois, pour que chaque vecteur reçoive un mauvais nombre, et je refais la régression. Une règle compte seulement si elle bat 99 % de ces mélanges.
+
+Pour une colonne et $m$ nombres, je démontre dans l'explo que le hasard donne en moyenne exactement
+
+$$
+E\left(R^2\right) = \frac{1}{m - 1}
+$$
+
+J'ai fixé les règles avant de regarder les données. Si on choisit la période après coup, il y en a toujours une qui marche.
+
+J'ai aussi testé la méthode sur un cas dont la réponse est connue. Les vecteurs de position de GPT-2 forment une hélice, et la méthode la retrouve : 83,9 % de variance expliquée.
+
+## 4. Ce que j'ai trouvé
+
+Variance expliquée dans le dictionnaire, en pourcentage, avec ce que donne le hasard (le 99ᵉ centile des mélanges) :
+
+| Règle | 0 à 361 | Hasard | 10 à 99 | Hasard |
+| --- | --- | --- | --- | --- |
+| Droite : $n$ | 11,9 | 0,5 | 17,6 | 2,3 |
+| Logarithme : $\ln(n + 1)$ | 11,1 | 0,5 | 17,1 | 2,3 |
+| Cercle de période 10 | 3,4 | 0,8 | 5,6 | 3,6 |
+
+Chaque score est au-dessus de son hasard.
+
+### La droite existe
+
+<img className="diagram" src={_line} alt="Position de chaque nombre le long de la direction trouvée par la régression, pour 10 à 99 et pour 0 à 361, avec la règle linéaire et la règle logarithmique" />
+
+Chaque point est un nombre, placé le long de la direction que la régression a trouvée. Les points montent quand $n$ grandit. La droite explique 11,9 % de la variance sur tous les nombres, contre 0,5 % pour le hasard.
+
+À droite, les points sautent à $n = 100$, quand un nombre passe de deux à trois chiffres. C'est pour ça que je mesure aussi sur 10 à 99, où tous les nombres ont deux chiffres. La droite y est encore : 17,6 %.
+
+Droite ou logarithme? Aucune des deux règles ne gagne. Sur 10 à 99, $n$ et $\ln(n + 1)$ sont presque la même colonne : leur corrélation est $r = 0{,}96$.
+
+### Le cercle aussi
+
+<img className="diagram" src={_cosine} alt="Cosinus moyen entre les vecteurs de deux nombres séparés par un écart g, avec un pic à chaque multiple de 10" />
+
+Ici, aucune régression. Je prends toutes les paires de nombres séparés par un écart $g$, et je calcule le cosinus moyen de l'angle entre leurs vecteurs, avec le produit scalaire comme en classe.
+
+La courbe descend : deux nombres voisins se ressemblent, et la ressemblance diminue avec l'écart. Mais elle a des pics à 10, 20, 30… Le cosinus moyen est de 0,42 pour un écart de 10, contre 0,28 pour 9 et 0,24 pour 11. Deux nombres qui ont le même dernier chiffre se ressemblent plus. Rien dans ce calcul ne mentionne le nombre 10.
+
+<img className="diagram" src={_wheel} alt="Les nombres 10 à 99 dans le plan du cercle de période 10, colorés par dernier chiffre, dans le dictionnaire et à la couche 11" />
+
+À gauche, le cercle dans le dictionnaire. Chaque point est un nombre, coloré par son dernier chiffre. Les dix lignes tournent dans l'ordre : 0, 1, 2, …, 9, puis on revient à 0. C'est l'arrangement de la section 2.
+
+Le cercle explique 3,4 % de la variance sur tous les nombres, contre 0,8 % pour le hasard. Il est petit, mais il est réel.
+
+### Où?
+
+<img className="diagram" src={_layers} alt="Variance expliquée par la droite, le logarithme et le cercle après chacune des couches 0 à 11" />
+
+Quand GPT-2 lit une phrase, 12 couches transforment le vecteur l'une après l'autre. Je mets chaque nombre dans la phrase « The number n » et je refais les mesures après chaque couche. La couche 0 est le dictionnaire.
+
+- La droite et le cercle sont déjà là à la couche 0. Les couches ne les créent pas.
+- Les couches renforcent le cercle : de 3,4 % à 5,8 % entre la couche 0 et la couche 11, un facteur de 1,7.
+
+## 5. Ce que ça ne montre pas
+
+- **Petit, mais réel.** La droite et le cercle laissent la plus grande partie de la variance inexpliquée. Ces vecteurs doivent aussi porter tout le reste de ce que le modèle sait sur un token.
+- **Mesurer n'est pas expliquer.** Je montre que le cercle existe. Je ne montre pas que GPT-2 s'en sert pour additionner.
+- **Droite ou logarithme?** Mes données ne peuvent pas trancher.
+
+En une phrase : GPT-2 range les nombres le long d'une droite et sur un cercle du dernier chiffre. Une droite avec des cercles, c'est ce que la recherche appelle une **hélice**.
+
+## Pour la culture
+
+- **GPT-2 était « trop dangereux ».** En février 2019, OpenAI a d'abord refusé de publier la plus grosse version de GPT-2, par peur qu'on s'en serve pour produire de faux textes en masse. Elle est sortie en novembre 2019. Aujourd'hui, la plus petite version (124 millions de paramètres) tourne sur mon MacBook Air.
+- **roi − homme + femme ≈ reine.** En 2013, word2vec a montré qu'on peut faire de l'arithmétique avec les vecteurs des mots. Le sens d'un mot devient une direction dans l'espace.
+- **L'arithmétique de l'horloge a un nom.** C'est l'arithmétique modulaire. Gauss l'a mise en forme en 1801, à 24 ans, dans ses *Disquisitiones Arithmeticae*. On écrit $7 + 5 \equiv 2 \pmod{10}$.
+- **Les gros modèles additionnent avec de la trigonométrie.** Kantamneni et Tegmark (2025) ont trouvé une hélice dans trois modèles de plusieurs milliards de paramètres. En modifiant les vecteurs, ils ont montré que ces modèles additionnent en tournant les cercles. Mon explo cherche les mêmes formes dans le plus petit GPT-2.
+- **Un réseau a réinventé les identités trigonométriques.** Nanda et ses collègues (2023) ont entraîné un petit réseau à faire une seule chose : additionner modulo 113. Il a appris tout seul à représenter les nombres avec des cosinus et des sinus, et à les combiner avec les identités d'addition d'angles.
+- **Notre droite numérique à nous est peut-être logarithmique.** Selon Stanislas Dehaene, les jeunes enfants, et les Mundurucus d'Amazonie qui ont peu de mots pour les nombres, placent les nombres sur une ligne de façon compressée : beaucoup de place pour 1, 2 et 3, et les grands nombres tassés au bout. C'est l'école qui nous apprend la version linéaire.
+
+## Pour aller plus loin
+
+- Kantamneni et Tegmark (2025), [Language Models Use Trigonometry to Do Addition](https://arxiv.org/abs/2502.00873).
+- Nanda et al. (2023), [Progress Measures for Grokking via Mechanistic Interpretability](https://arxiv.org/abs/2301.05217).
+- Dehaene (2011), *The Number Sense: How the Mind Creates Mathematics*.
+- Mes devlogs : [la question de départ](/blog/math_ia-devlog0) et [les premières figures](/blog/math_ia-devlog1).

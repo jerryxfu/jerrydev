@@ -17,7 +17,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    font-size: var(--fs-md);
+    font-size: var(--fs-lg);
     color: var(--text-3);
 }
 
@@ -71,7 +71,7 @@
 
 .go_host {
     max-width: 100%;
-    font-size: clamp(2rem, 9vw, 3.5rem);
+    font-size: clamp(1.875rem, 8.4vw, 3.25rem);
     font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.025em;
@@ -95,7 +95,7 @@
     background: none;
     color: var(--text-3);
     font-family: inherit;
-    font-size: var(--fs-sm);
+    font-size: var(--fs-base);
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
@@ -105,9 +105,17 @@
     }
 }
 
-.go .btn {
+// Back and Go, side by side.
+.go_buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
     margin-top: 0.9rem;
-    min-width: 8rem;
+
+    .btn {
+        min-width: 8rem;
+    }
 }
 
 .go_report {

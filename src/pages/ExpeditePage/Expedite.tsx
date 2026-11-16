@@ -253,8 +253,15 @@ export default function Expedite() {
             setCreatingRoom(false);
             return;
         }
+        // Files have one screen, with a tab for each way they go: File's tile opens it on Upload, Direct P2P's on Direct.
         setDropType(type);
-        await transitionTo(type === "p2p" ? "p2p-send" : "composing");
+        await transitionTo("composing");
+    };
+
+    // A tab picked on the files' screen: the files stay, what was said about the other way goes.
+    const pickWay = (way: "file" | "p2p") => {
+        setError(null);
+        setDropType(way);
     };
 
     // A live room, made (the Live tile) or joined (its code or link): you're in it, its stream open, before it shows.
@@ -416,6 +423,7 @@ export default function Expedite() {
     }, [linked]);
 
     // --- Direct P2P: send ---
+    // From the files' screen (its Direct tab) to the transfer's own.
     const startP2PSend = async () => {
         if (!selectedFiles.length) return;
 
@@ -423,6 +431,7 @@ export default function Expedite() {
         setP2pSnapshot(null);
         setP2pStatus(freshStatus());
         setP2pRunning(true);
+        setView("p2p-send");
 
         const controller = new AbortController();
         p2pAbortRef.current = controller;
@@ -436,6 +445,7 @@ export default function Expedite() {
             if ((err as Error).name !== "AbortError") {
                 setError(err instanceof Error ? err.message : "The files couldn't be read");
                 setP2pRunning(false);
+                setView("composing");
             }
             p2pAbortRef.current = null;
             return;
@@ -634,13 +644,15 @@ export default function Expedite() {
     const receiving = view === "result" || view === "p2p-receive";
     const bare = receiving || view === "live";
     // The kind of drop on screen, whose heading it shows: the sender's while it's written and once it's made, the
-    // receiver's when it's received. The landing page is Expedite itself.
+    // receiver's when it's received. The landing page is Expedite itself. The files' screen is "Send a file" on both
+    // its tabs: a direct transfer has its own heading once it starts.
     const kind: DropType | null =
-        view === "composing" || view === "created" ? dropType
-            : view === "p2p-send" ? "p2p"
-                : view === "live" ? "live"
-                    : receiving && result ? result.type
-                        : null;
+        view === "composing" ? (dropType === "p2p" ? "file" : dropType)
+            : view === "created" ? dropType
+                : view === "p2p-send" ? "p2p"
+                    : view === "live" ? "live"
+                        : receiving && result ? result.type
+                            : null;
     const title = kind ? TITLES[kind] : null;
 
     // A link made before 12 Nov 2026 (/expedite?code=K7XQ4) goes on to the drop's address. A drop lasts a day at most:
@@ -711,6 +723,9 @@ export default function Expedite() {
                     {view === "composing" && (
                         <UploadView
                             dropType={dropType}
+                            onWay={pickWay}
+                            onDirect={() => void startP2PSend()}
+                            relayDisabled={relayBlocked}
                             textContent={textContent}
                             setTextContent={setTextContent}
                             language={textLanguage}
@@ -750,18 +765,14 @@ export default function Expedite() {
                     {view === "p2p-send" && (
                         <P2PSendView
                             files={selectedFiles}
-                            setFiles={setSelectedFiles}
                             preparing={preparing}
                             code={p2pCode}
                             expiresAt={p2pExpiresAt}
                             status={p2pStatus}
                             snapshot={p2pSnapshot}
-                            running={p2pRunning}
                             error={error}
                             copiedField={copiedField}
                             onCopy={copyToClipboard}
-                            relayDisabled={relayBlocked}
-                            onStart={() => void startP2PSend()}
                             onCancel={back}
                         />
                     )}

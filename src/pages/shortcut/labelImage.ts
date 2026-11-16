@@ -1,7 +1,7 @@
 import {saveBlob} from "@/utils.ts";
 
-// A link's label as a picture, to keep, send or print: the link in big letters beside its QR code, on the label's own
-// colour. Drawn on a canvas from what the page shows (the label's computed colours, its font, its QR code), as a PNG
+// A link's label as a picture, to keep, send or print: what it is, the whole link, and its name in big letters, beside
+// its QR code, on the label's own colour. Drawn on a canvas from what the page shows (the label's computed colours, its font, its QR code), as a PNG
 // with see-through corners, then handed to the phone's share sheet or to the downloads. Straight, where the page's
 // label is tilted.
 
@@ -21,10 +21,10 @@ const loadImage = (src: string): Promise<HTMLImageElement> => new Promise((resol
 });
 
 /**
- * Saves or shares the label (`card`, the .sc_label on the page) as `shortcut-<name>.png`. `start` is the link's fixed start as
- * people read it ("jerryxf.net/s/"), `name` what follows.
+ * Saves or shares the label (`card`, the .sc_label on the page) as `shortcut-<name>.png`. `link` is the whole link as
+ * people read it ("jerryxf.net/s/party"), `name` its end ("party").
  */
-export async function saveLabelImage(card: HTMLElement, start: string, name: string): Promise<void> {
+export async function saveLabelImage(card: HTMLElement, link: string, name: string): Promise<void> {
     const style = getComputedStyle(card);
     const ink = style.borderTopColor;
     const family = style.fontFamily;
@@ -65,23 +65,32 @@ export async function saveLabelImage(card: HTMLElement, start: string, name: str
     ctx.drawImage(qr, qrX, qrY, QR, QR);
     ctx.restore();
 
-    // The link, on two lines: its fixed start, then its name as big as the room allows.
+    // The text, on three lines: what this is, the whole link, then its name as big as the room allows. The link and
+    // the name each get the biggest size at which they fit, and are squeezed past the smallest.
     const room = qrX - LINE - 2 * PAD;
+    const fit = (text: string, weight: number, biggest: number, smallest: number): number => {
+        let size = biggest;
+        for (; size > smallest; size -= 2) {
+            ctx.font = `${weight} ${size}px ${family}`;
+            if (ctx.measureText(text).width <= room) break;
+        }
+        return size;
+    };
+    const linkSize = fit(link, 700, 46, 24);
+    const lines = [
+        {text: "Short link", weight: 700, size: Math.min(34, linkSize)}, // never bigger than the link it's about
+        {text: link, weight: 700, size: linkSize},
+        {text: name, weight: 800, size: fit(name, 800, 150, 30)},
+    ];
+    const gap = 18;
     ctx.fillStyle = style.color;
     ctx.textBaseline = "alphabetic";
-    let size = 150;
-    do {
-        ctx.font = `800 ${size}px ${family}`;
-        size -= 2;
-    } while (ctx.measureText(name).width > room && size > 30);
-    const big = size + 2;
-    const small = 46;
-    const gap = 18;
-    const top = (height - (small + gap + big)) / 2;
-    ctx.font = `700 ${small}px ${family}`;
-    ctx.fillText(start, PAD, top + small * 0.8);
-    ctx.font = `800 ${big}px ${family}`;
-    ctx.fillText(name, PAD, top + small + gap + big * 0.8, room);
+    let y = (height - lines.reduce((sum, line) => sum + line.size, gap * (lines.length - 1))) / 2;
+    for (const line of lines) {
+        ctx.font = `${line.weight} ${line.size}px ${family}`;
+        ctx.fillText(line.text, PAD, y + line.size * 0.8, room);
+        y += line.size + gap;
+    }
 
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) throw new Error("The picture couldn't be made");

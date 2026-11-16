@@ -144,6 +144,9 @@
 // The name, typed after the fixed start of every link's address, and the die at the pill's end.
 .sc_name {
     flex: 1 1 13rem;
+    // Its width comes from that basis, not from what it holds: with the characters left beside the die, its content
+    // alone would be too wide to share the row with four lengths. The field inside takes what is left.
+    min-width: 0;
     display: flex;
     align-items: center;
     padding: 0.45rem 0.95rem;
@@ -188,6 +191,15 @@
             font-weight: 400;
         }
     }
+
+    // The characters left, in parentheses, between the name and the die.
+    .sc_left {
+        margin-left: 0.5rem;
+        color: var(--text-5);
+        font-size: var(--fs-sm);
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 // A random name: a small round button with no outline of its own, so the pill stays one shape. Its margins keep the
@@ -221,6 +233,18 @@
 .sc_lengths {
     display: flex;
     gap: 0.4rem;
+
+    // Four lengths at their own width are 334px, more than a small phone's column: there they share the row, a
+    // quarter each.
+    @media screen and (max-width: 420px) {
+        flex: 1 1 100%;
+
+        .sc_length {
+            flex: 1;
+            justify-content: center;
+            padding-inline: 0;
+        }
+    }
 }
 
 .sc_length,

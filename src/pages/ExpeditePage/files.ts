@@ -1,4 +1,4 @@
-// The files picked to send, on the File and Direct P2P screens: one goes as it is, several as a zip (zip.ts).
+// The files picked to send, on the files' screen (its Upload and Direct tabs): one goes as it is, several as a zip (zip.ts).
 
 /** A file to send, and where it goes in the zip: its name, or its path in a folder ("Photos/2026/a.jpg"). */
 export interface PickedFile {

@@ -13,7 +13,10 @@ import page, {hostOf, linkPath, REPORT_TO} from "./page.ts";
 import "./Shortcut.scss";
 
 // How long a link lasts, in days: 30 unless another is picked.
-const LENGTHS = [1, 7, 30];
+const LENGTHS = [1, 7, 30, 60];
+
+// A name's longest, as the API's.
+const NAME_MAX = 32;
 
 // A random name, as the API's own codes (lib/code.ts there): 5 characters, without i, o, 0 or 1, which look alike.
 const CODE_CHARS = "abcdefghjklmnpqrstuvwxyz23456789";
@@ -31,7 +34,7 @@ const inColour = (colour: Colour) => ({"--sc-colour": `var(--${colour})`}) as CS
 const shortUrl = (name: string) => window.location.origin + linkPath(name);
 const shortText = (name: string) => window.location.host + linkPath(name);
 
-const endsIn = (link: MyLink) => fromNow(Temporal.Instant.from(link.expiresAt).epochMilliseconds - Date.now());
+const expiresIn = (link: MyLink) => fromNow(Temporal.Instant.from(link.expiresAt).epochMilliseconds - Date.now());
 
 // Copy, which says so for a moment once it's really copied.
 function useCopied(): [string | null, (key: string, text: string) => void] {
@@ -105,11 +108,13 @@ function MakeForm({asked, onMade}: { asked: string; onMade: (name: string, link:
                             spellCheck={false}
                             placeholder="pick-a-name"
                             aria-label="A name for the short link. Empty for a random one."
-                            maxLength={32}
+                            maxLength={NAME_MAX}
                             value={name}
                             // As the API takes it: a to z, digits and hyphens. A space typed becomes a hyphen.
                             onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""))}
                         />
+                        {/* The characters left (Jerry). In the label: a click on it goes to the field. */}
+                        <span className="sc_left" aria-hidden>({NAME_MAX - name.length})</span>
                     </label>
                     {/* For those who'd rather not leave a field empty that asks for a name (Jerry): the die puts a
                         random one in it. Again for another. */}
@@ -133,10 +138,10 @@ function MakeForm({asked, onMade}: { asked: string; onMade: (name: string, link:
                 </div>
             </div>
 
-            {/* Always the same, whatever the name's field holds (Jerry): a line for the name, a line for the warning. */}
+            {/* Always the same, whatever the name's field holds (Jerry): a line for the warning, a line for the name. */}
             <p className="sc_note">
-                No name? The link gets a random one.<br />
-                Short links can be easy to guess. Avoid linking to sensitive information.
+                Shorter links can be easy to guess. Avoid linking to sensitive information.<br />
+                No name? The link gets a random one.
             </p>
             {error && <p className="sc_error" role="alert">{error}</p>}
         </form>
@@ -151,7 +156,7 @@ function Label({name, link}: { name: string; link: MyLink }) {
     const card = useRef<HTMLElement>(null);
 
     const save = () => {
-        if (card.current) void saveLabelImage(card.current, window.location.host + linkPath(""), name).catch(() => { /* no picture */
+        if (card.current) void saveLabelImage(card.current, shortText(name), name).catch(() => { /* no picture */
         });
     };
 
@@ -169,7 +174,7 @@ function Label({name, link}: { name: string; link: MyLink }) {
                         <Download size={15} aria-hidden />
                         Save image
                     </button>
-                    <span>Ends {endsIn(link)}</span>
+                    <span>Expires {expiresIn(link)}</span>
                 </div>
                 <div className="sc_swatches" role="group" aria-label="The label's colour">
                     {COLOURS.map((swatch) => (
@@ -204,7 +209,7 @@ function MyLinks({links, visits, onDeleted}: {
         try {
             await deleteLink(name, link.token);
         } catch (err) {
-            // Already gone (it ended, or was deleted from elsewhere) is as good as deleted.
+            // Already gone (it expired, or was deleted from elsewhere) is as good as deleted.
             if (!(err instanceof ApiError && err.status === 404)) {
                 setError(err instanceof Error ? err.message : "The link couldn't be deleted. Try again.");
                 return;
@@ -237,7 +242,7 @@ function MyLinks({links, visits, onDeleted}: {
                             <div className="sc_row-foot">
                                 <span>
                                     {visits[name] != null && `${visits[name]} visit${visits[name] === 1 ? "" : "s"} · `}
-                                    ends {endsIn(link)}
+                                    expires {expiresIn(link)}
                                 </span>
                                 <button className="sc_round" aria-label={`Copy ${linkPath(name)}`} onClick={() => copy(name, shortUrl(name))}>
                                     {copied === name ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
@@ -324,7 +329,7 @@ export default function Shortcut() {
                 {Object.keys(links).length > 0 && <MyLinks links={links} visits={visits} onDeleted={onDeleted} />}
 
                 <p className="sc_report">
-                    A link lasts up to 30 days, and where it goes never changes. Something wrong with one? <a href={`mailto:${REPORT_TO}`}>{REPORT_TO}</a>
+                    Something wrong with one? <a href={`mailto:${REPORT_TO}`}>{REPORT_TO}</a>
                 </p>
             </div>
 

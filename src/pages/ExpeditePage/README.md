@@ -45,7 +45,7 @@ ExpeditePage/
     useLiveRoom.ts      the room as the page has it: members, items, your files going up, and what to do in it
   views/
     LandingView         send tiles + retrieve field
-    UploadView          text/file composer + settings
+    UploadView          text/file composer + settings; a file's two tabs, Upload and Direct (the P2P form)
     CodeEditor          the text box for code: a textarea over its coloured copy
     TextStats           the text box's statistics, counted when the typing pauses
     CreatedView         code + share link + QR code
@@ -56,7 +56,7 @@ ExpeditePage/
     ZipStack            a received zip's files, each one shown or saved on its own
     Disclosure          folded section (P2P's technical side), open state remembered
     CopyField           read-only field with a copy button: a drop's link, or a curl command
-    P2PSendView         session code, countdown, notes
+    P2PSendView         a direct transfer under way: session code, countdown
     P2PReceiveView      offer preview, support gate
     UploadProgress      multipart part grid
     P2PProgress         phase ladder + transfer stats
@@ -104,7 +104,7 @@ counted in the 50 GB cap while the room lasts. One network sends 200 of them in 
 
 ## Several files
 
-Pick or drop several files, or a folder, on the File or Direct P2P screen: they make a stack (`FileZone`, `FileStack`), with Add files
+Pick or drop several files, or a folder, on the files' screen (its Upload or Direct tab): they make a stack (`FileZone`, `FileStack`), with Add files
 and, on a computer, Add a folder. One file goes as it is. Several go as one zip, made in the page as they're sent.
 
 - **A stored zip, made of the files themselves.** No compression, so its size is known before it's made, and each file inside is one
@@ -404,6 +404,12 @@ clear of zsh's `?`).
   stop it). Up to 32 MB they make the one request; bigger, `POST /raw/start` (name, size) answers the code, the type and a signed link per 100 MB part, each
   part goes to R2, and `POST /raw/:code/done` (the SHA-256, then the ETags) checks and completes the drop. Both read 100 MB parts: `PART_SIZE` changes
   them too. Not yet run on Windows PowerShell 5.1.
+
+- The CLI (`expedite send`, `expedite get`; the `expedite-cli` repository, #87) uses the page's own routes through `/expedite/cli`, so it has what the
+  commands above lack: several files or a folder as one zip, a progress bar, parallel parts with retries, `--expires` and `--views`, the hash check on
+  the way back. The landing view shows the line that installs it under the terminal commands (`InstallCommand` in `LandingView.tsx`), this system's:
+  `curl -fsSL https://jerryxf.net/expedite/install.sh | sh`, or `irm https://jerryxf.net/expedite/install.ps1 | iex` on Windows. The two scripts are
+  in `public/expedite/`: they fetch the latest release from GitHub, check it against the release's checksums, and running them again updates.
 
 **From a terminal.** `curl https://api.jerryxf.net/expedite/raw/ABCDE` prints a text drop as it is. A file drop redirects to its download link:
 `curl -LOJ` saves it under its name (curl's `-J` takes the ASCII stand-in, so accents become `_`), `curl -L` streams it to stdout, to pipe it into a

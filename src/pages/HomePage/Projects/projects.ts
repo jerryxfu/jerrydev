@@ -164,10 +164,10 @@ export const projects: Project[] = [
     // A draft (12 Nov 2026): the words and the picture are placeholders, for Jerry to redo.
     {
         title: "Shortcut",
-        subTitle: "Long links made short. Pick a name or get a random one. Up to 30 days, no account.",
+        subTitle: "Long links made short. Pick a name or get a random one. Up to 60 days, no account.",
         image: _shortcut,
         chipText: "🧩 MVP",
-        description: "A webpage that makes a long link short, like jerryxf.net/s/party. Pick a name for it or get a random one. A link lasts up to 30 days, shows where it goes before it takes you there, and needs no account.",
+        description: "A webpage that makes a long link short, like jerryxf.net/s/party. Pick a name for it or get a random one. A link lasts up to 60 days, shows where it goes before it takes you there, and needs no account.",
         url: "/shortcut",
         date: "2026-11-12",
         categories: ["web", "tools"],

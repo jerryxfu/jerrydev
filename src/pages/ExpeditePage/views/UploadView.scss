@@ -5,6 +5,58 @@
     gap: 1rem;
 }
 
+// The two ways files go, Upload or Direct: tabs (Rendezvous's look, EventView.scss), then what the one picked does. At
+// the top of the side column; on a phone, where the columns dissolve, before the file zone.
+.expedite_way {
+    order: -1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.expedite_way-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-5);
+}
+
+.expedite_way-tab {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--r-4);
+    background: transparent;
+    color: var(--text-4);
+    font-family: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+        color: var(--text);
+    }
+
+    &[aria-selected="true"] {
+        background: var(--surface-da);
+        color: var(--text);
+    }
+
+    &:disabled {
+        cursor: default;
+        opacity: var(--opacity-disabled);
+    }
+}
+
+.expedite_way-about {
+    margin: 0;
+    font-size: var(--fs-base);
+    color: var(--text-2);
+    line-height: 1.55;
+}
+
 // Writing a text drop: body-sized text with room between the lines, in a box as wide as the page that grows with what's
 // written (field-sizing), from 14rem, so the buttons under it start on screen, to 70% of the screen, then scrolls. No
 // drag handle: the box sizes itself.

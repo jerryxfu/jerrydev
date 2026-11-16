@@ -37,7 +37,10 @@ export const TOPICS: Record<TopicId, Topic> = {
         description: "Do the numbers inside GPT-2 have a geometric structure, and if so, which one? IBDP Internal Assessment (IA) in Math AA HL.",
         posts: [
             "math_ia-devlog0",
-            "math_ia-devlog1"
+            "math_ia-devlog1",
+            // The class presentation is not a devlog, so the break keeps it off "next" at the end of the latest devlog.
+            {break: true},
+            "math_ia-presentation",
         ]
     },
     "guides": {
