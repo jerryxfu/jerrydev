@@ -21,8 +21,9 @@ export default function Rendezvous() {
         });
     }, [code]);
 
-    // A link made before 12 Nov 2026 (/rendezvous?code=K3F9Q) goes on to the event's address. An event lasts 95 days
-    // at most: this and `oldCode` can go after 1 March 2027.
+    // A link made before 12 Nov 2026 (/rendezvous?code=K3F9Q) goes on to the event's address. This and `oldCode` go
+    // from 1 January 2027 (the main README has the list). An event lasts 95 days at most, so one made in early
+    // November for February can outlive it: its old link then opens this page without the event.
     if (oldCode) return <Redirect to={eventPath(oldCode)} replace />;
 
     const toMake = () => navigate(page.path);

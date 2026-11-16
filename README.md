@@ -2,6 +2,18 @@
 
 This is the repository for my personal website, [jerryxf.net](https://jerryxf.net).
 
+### To remove in January 2027
+
+Links made before 12 Nov 2026 carry their code after a question mark (`/expedite?code=K7XQ4`, `/rendezvous?code=ABCDE`). The site sends them on to
+`/e/K7XQ4` and `/r/ABCDE`. From 1 January 2027, that goes:
+
+- `src/pages/ExpeditePage/Expedite.tsx`: `oldCode` and its `<Redirect>`.
+- `src/pages/rendezvous/Rendezvous.tsx`: `oldCode` and its `<Redirect>`.
+- `src/head.ts`: the `Disallow: /*?code=` line in `robots`.
+- `src/pages/ExpeditePage/views/LandingView.tsx`: the `[?&]code=` half of `LINK`.
+- `src/pages/ExpeditePage/README.md`: the sentence about these links.
+- This section.
+
 ### Useful development resources
 
 - Color palette generator: [https://mycolor.space/](https://mycolor.space/)

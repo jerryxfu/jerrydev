@@ -657,7 +657,7 @@ export default function Expedite() {
     const title = kind ? TITLES[kind] : null;
 
     // A link made before 12 Nov 2026 (/expedite?code=K7XQ4) goes on to the drop's address. A drop lasts a day at most:
-    // this and `oldCode` can go after 1 March 2027, with Rendezvous's.
+    // this and `oldCode` go from 1 January 2027, with Rendezvous's (the main README has the list).
     if (oldCode) return <Redirect to={dropPath(oldCode)} replace />;
 
     return (

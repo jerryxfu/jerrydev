@@ -134,7 +134,7 @@ export const robots = (): string => [
     `Allow: /`,
     `# A link with a code opens someone's drop or event, and opening a drop uses up one of its views.`,
     ...[...byLetter.keys()].map((letter) => `Disallow: /${letter}/`),
-    // The links made before 12 Nov 2026, while they're sent on to the new address: goes with that, after 1 March 2027.
+    // The links made before 12 Nov 2026, while they're sent on to the new address: goes with that, from 1 January 2027.
     `Disallow: /*?code=`,
     ``,
     `Sitemap: ${SITE}/sitemap.xml`,

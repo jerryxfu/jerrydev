@@ -16,7 +16,7 @@ and the UI decides what to render from the returned `type`.
 in `page.ts` (`letter`, and `dropPath` for the links), the route in `main.tsx`, and `Expedite.tsx` reads the code with wouter's `useParams`. A code typed
 on the landing page, a link, Back and Forward and the palette all go through the address: the page compares it with what it shows, and follows. A code
 that can't be opened is said on `/expedite`, the code still in its field. Links made before 12 Nov 2026 (`/expedite?code=K7XQ4`) are sent on to the new
-address until 1 March 2027. At build, `pageHeads` (`vite.config.ts`) writes a `_redirects` line so Cloudflare Pages answers `/e/*` with Expedite's own
+address until 1 January 2027. At build, `pageHeads` (`vite.config.ts`) writes a `_redirects` line so Cloudflare Pages answers `/e/*` with Expedite's own
 HTML file (a chat's preview shows Expedite's card), and a `Disallow` in `robots.txt`: opening a drop uses up a view.
 
 ---
