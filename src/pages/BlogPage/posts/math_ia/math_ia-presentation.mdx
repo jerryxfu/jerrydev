@@ -4,6 +4,7 @@ import _line from "@/assets/blog/math_ia/main_numberline.png";
 import _cosine from "@/assets/blog/math_ia/main_cosine_by_gap.png";
 import _wheel from "@/assets/blog/math_ia/main_wheel10.png";
 import _layers from "@/assets/blog/math_ia/main_layers.png";
+import _table from "@/assets/blog/math_ia/table_heatmap.png";
 
 {/* Draft, visual support for a short class presentation (Nov 2026). The five figures are copies of math-mvp/ia/figures/main_*.png. Every number about GPT-2 is copied from math-mvp/ia/tables/main_dictionary.md, main_layers.md, table3_validation.md or numbers.tex (keys cosine/space/gap9, gap10, gap11 and calc/r_n_logn/space/band10-99); none is typed from memory. The token splits come from GPT-2's own tokeniser (openai-community/gpt2). The section "Pour la culture" is general knowledge, not from the repo: check each item before saying it. */}
 
@@ -65,7 +66,17 @@ Le 7 est à 252° et le 5 est à 180°. La somme des angles est 432°, soit 72°
 
 ## 3. Comment je mesure
 
-Tout se fait avec des outils du cours, répétés pour chacune des 768 coordonnées.
+{/* table_heatmap.png comes from scripts/math_ia_table_heatmap.py. It is a picture, not a measurement: the columns are sorted after looking at the data, and panel (c) is the control for that. No number of the post comes from it. */}
+
+Voici tout le tableau : une ligne par nombre, une colonne par coordonnée. Le rouge est une valeur haute, le bleu une valeur basse.
+
+<img className="diagram" src={_table} alt="Le tableau des vecteurs des nombres 0 à 361 en couleurs : dans l'ordre de GPT-2, avec les colonnes triées selon leur corrélation avec n, et le même tri sur des nombres mélangés" />
+
+- **(a)** Le tableau comme GPT-2 le garde. On ne voit presque rien, sauf une cassure à la ligne 100.
+- **(b)** Les mêmes colonnes, rangées selon leur corrélation avec $n$. À gauche, les colonnes qui descendent quand $n$ grandit. À droite, celles qui montent. C'est la droite.
+- **(c)** Le contrôle : je mélange les nombres, puis je fais le même tri. Il ne reste rien.
+
+Un tableau comme ça se lit de haut en bas : est-ce qu'une colonne change de façon prévisible quand le nombre change? Pour le mesurer, tout se fait avec des outils du cours, répétés pour chacune des 768 coordonnées.
 
 1. **Une règle** : une colonne calculée à partir de $n$. La droite est $x = n$. Le logarithme est $x = \ln(n + 1)$. Le cercle est la paire $\cos\left(\frac{2\pi n}{10}\right)$ et $\sin\left(\frac{2\pi n}{10}\right)$.
 2. **Une régression** par les moindres carrés entre la règle et chaque coordonnée.
