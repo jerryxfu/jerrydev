@@ -96,61 +96,10 @@
 }
 
 .expedite_mode-term {
-    display: flex;
-    align-items: center;
-    gap: 0.15rem;
     font-size: var(--fs-smm);
     font-weight: 600;
     line-height: 1.3;
     color: var(--text-3);
-}
-
-// Question mark beside a mode name. The padding is the touch target (~28px);
-// the negative margin pulls it back out of the layout so the icon still sits
-// tight against the label and the row keeps its original height.
-.expedite_help-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem;
-    margin: -0.4rem -0.4rem -0.4rem -0.15rem;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text-5);
-    cursor: pointer;
-    transition: color 0.15s;
-
-    &:hover,
-    &[aria-expanded="true"] {
-        color: var(--text-2);
-    }
-}
-
-.expedite_help-panel {
-    margin-top: 0.55rem;
-    padding: 0.7rem 0.85rem;
-    border: 1px solid var(--border);
-    // Accent edge instead of a caret: --surface is translucent, so a rotated
-    // square would let the panel's own border show through it.
-    border-left: 2px solid color-mix(in srgb, var(--primary) 60%, transparent);
-    border-radius: var(--r-4);
-    background: var(--surface);
-    color: var(--text-3);
-
-    p {
-        margin: 0;
-        line-height: 1.6;
-
-        + p {
-            margin-top: 0.55rem;
-        }
-    }
-
-    strong {
-        color: var(--text-2);
-        font-weight: 600;
-    }
 }
 
 .expedite_mode-desc {
@@ -198,15 +147,11 @@
     width: auto;
 }
 
-// Four in a row; two by two on a phone, where four would be too narrow for their words.
+// Three in a row, on a phone too.
 .expedite_tiles {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.7rem;
-
-    @media (max-width: 439px) {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 .expedite_tile {
@@ -236,6 +181,11 @@
     text-align: center;
     transition: background 0.15s, border-color 0.15s, transform 0.15s;
 
+    // Three in a row on a phone: less room at the sides, so "up to 6 people" stays on one line down to 350px.
+    @media (max-width: 439px) {
+        padding-inline: 0.3rem;
+    }
+
     &:hover {
         background: var(--surface);
         border-color: var(--border-da);
@@ -245,42 +195,14 @@
         transform: scale(0.98);
     }
 
-    // While a file is dragged over the page, the two tiles that take it: dashed, in their colour; filled under the file.
+    // While a file is dragged over the page, the tile that takes it: dashed, in its colour; filled under the file.
     &.is-target {
         border-style: dashed;
         border-color: var(--kind-file);
     }
 
-    &.is-target[data-kind="p2p"] {
-        border-color: var(--kind-p2p);
-    }
-
     &.is-over {
         background: var(--surface-da);
-    }
-}
-
-// A soft line in the gap before Direct P2P: the drops (Text, File), then what happens with both people there (Direct P2P,
-// Live). From the padding box: half the grid's gap, the border, then half the line. None two by two, where the rows
-// already split them.
-.expedite_tile[data-kind="p2p"] {
-    position: relative;
-
-    @media (max-width: 439px) {
-        &::before {
-            display: none;
-        }
-    }
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: 20%;
-        bottom: 20%;
-        left: calc(-0.35rem - 1.5px);
-        width: 1px;
-        background: var(--border);
-        pointer-events: none;
     }
 }
 
@@ -289,8 +211,7 @@
     font-weight: 500;
     line-height: 1.15;
 
-    // A phone's tiles are about 104px wide: there the words keep their smaller sizes, or "Direct P2P" and "peer-to-peer"
-    // break in two.
+    // A phone's tiles are about 104px wide: there the words keep their smaller sizes, or the notes break in two.
     @media (max-width: 439px) {
         font-size: var(--fs-base);
     }

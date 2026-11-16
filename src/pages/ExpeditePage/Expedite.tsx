@@ -253,7 +253,7 @@ export default function Expedite() {
             setCreatingRoom(false);
             return;
         }
-        // Files have one screen, with a tab for each way they go: File's tile opens it on Upload, Direct P2P's on Direct.
+        // Files have one screen, with a tab for each way they go: it opens on Upload.
         setDropType(type);
         await transitionTo("composing");
     };
@@ -627,16 +627,16 @@ export default function Expedite() {
         setSettings(s => ({...s, maxViews: (num > 0) ? num : null}));
     };
 
-    // Files are taken where they're dropped on purpose: the landing's File and Direct P2P tiles, and the file zones on
-    // those screens. Anywhere else the page refuses them, or the browser would open the file in place of Expedite (and a
-    // stray drop used to switch screens, even mid-transfer). While one is dragged over the page, the landing shows
+    // Files are taken where they're dropped on purpose: the landing's File tile, and the file zone on its screen.
+    // Anywhere else the page refuses them, or the browser would open the file in place of Expedite (and a stray drop
+    // used to switch screens, even mid-transfer). While one is dragged over the page, the landing shows
     // where it can go. In a live room, the whole page takes them, for your box.
     const pageDrag = useFileDrag(view === "live" ? (files) => live.postFiles(files.map((f) => f.file)) : undefined);
 
-    // Files dropped on the landing's File or Direct P2P tile: that screen, with them chosen.
-    const handleDropFile = async (type: "file" | "p2p", files: PickedFile[]) => {
+    // Files dropped on the landing's File tile: its screen, with them chosen.
+    const handleDropFile = async (files: PickedFile[]) => {
         setSelectedFiles(addFiles([], files));
-        await handleSelect(type);
+        await handleSelect("file");
     };
 
     // Someone receiving a drop came for it, not for the site: no navbar on those screens. Nor in a live room, which wants

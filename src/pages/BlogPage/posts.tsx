@@ -64,7 +64,6 @@ export const posts: Post[] = [
         date: "2026-11-15",
         tags: ["ai"],
         lang: "fr",
-        draft: true,
     },
     // Robotics course. All drafts until each lesson is actually written; the topic page lists them either way, so the syllabus is visible from day one.
     // Same date on every lesson on purpose: the topic page orders by syllabus, and /blog would otherwise scatter them by whichever day each was finished.

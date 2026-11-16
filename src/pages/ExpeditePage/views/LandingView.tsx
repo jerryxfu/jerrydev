@@ -1,5 +1,5 @@
-import {type MouseEvent, type ReactNode, useRef, useState} from "react";
-import {CircleQuestionMark, File, FileText, LoaderCircle, MonitorSmartphone, Radio, Terminal, Users} from "lucide-react";
+import {type MouseEvent, useRef, useState} from "react";
+import {File, FileText, LoaderCircle, MonitorSmartphone, Terminal, Users} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
@@ -20,9 +20,9 @@ import "./LandingView.scss";
 
 interface LandingViewProps {
     onSelect: (type: DropType) => void;
-    // Files dropped on the File or Direct P2P tile.
-    onDropFile: (type: "file" | "p2p", files: PickedFile[]) => void;
-    // A file is being dragged over the page: the tiles that take it show it.
+    // Files dropped on the File tile.
+    onDropFile: (files: PickedFile[]) => void;
+    // A file is being dragged over the page: the tile that takes it shows it.
     dragging: boolean;
     // The Live tile's room being made: the tile spins.
     creatingRoom: boolean;
@@ -37,44 +37,26 @@ interface LandingViewProps {
     onCopy: (text: string, field: string, e?: MouseEvent) => void;
 }
 
+// What the landing sends: a text, files (uploaded or direct, a tab each on their screen), a live room.
 type TileInfo = {
-    type: DropType; label: string; note: string; icon: typeof File;
+    type: Exclude<DropType, "p2p">; label: string; note: string; icon: typeof File;
 };
 
 const TILES: TileInfo[] = [
     {type: "text", label: "Text", note: "text or code", icon: FileText},
     {type: "file", label: "File", note: "up to 16 GB", icon: File},
-    {type: "p2p", label: "Direct P2P", note: "peer-to-peer", icon: Radio},
     {type: "live", label: "Live", note: "up to 6 people", icon: Users},
 ];
 
-// The tiles' ways to send, as the list under them describes them: Text and File together, then Direct P2P, then Live.
-// `help` is the long-form answer behind the question mark. Optional because only the mode people actually have to
-// choose between needs one.
+// The tiles' ways to send, as the list under them describes them: Text and File together, then Live.
 type ModeInfo = {
-    id: string; label: string; desc: string; help?: ReactNode;
+    id: string; label: string; desc: string;
 };
 
 const MODES: ModeInfo[] = [
     {
         id: "cloud", label: "Text & File",
         desc: "Stored in the cloud, up to 500 KB and 16 GB respectively. Expires between 5 minutes and 24 hours. You can send multiple files at once.",
-    },
-    {
-        id: "p2p", label: "Direct P2P",
-        desc: "Sent directly from one device to the other. Nothing stored online, no size limit. Faster.",
-        help: (
-            <>
-                <p>
-                    <strong>File</strong> is the "Google Drive" approach: the file is uploaded first, then you send a link, and the other person
-                    downloads it whenever they get around to it. Use this when you're sending it off and getting on with your day.
-                </p>
-                <p>
-                    <strong>Direct P2P</strong> is the "AirDrop" approach: there's no upload step; the transfer happens live while both tabs are open.
-                    Use this when you're both at your devices right now, or when you're moving something between your own.
-                </p>
-            </>
-        ),
     },
     {
         id: "live", label: "Live",
@@ -184,8 +166,8 @@ function toCode(input: string): string {
     return (fromLink?.[1] ?? input.replace(/[^A-Za-z0-9]/g, "").slice(0, 5)).toUpperCase();
 }
 
-// A tile: a click opens its screen (Live's makes a room first). File and Direct P2P also take a dropped file, and open
-// their screen with it.
+// A tile: a click opens its screen (Live's makes a room first). File's also takes dropped files, and opens its screen
+// with them.
 function Tile({
                   type,
                   label,
@@ -196,9 +178,9 @@ function Tile({
                   dragging,
                   busy
               }: TileInfo & Pick<LandingViewProps, "onSelect" | "onDropFile" | "dragging"> & { busy: boolean }) {
-    const takesFiles = type === "file" || type === "p2p";
+    const takesFiles = type === "file";
     const drag = useFileDrag((files) => {
-        if (type === "file" || type === "p2p") onDropFile(type, files);
+        if (takesFiles) onDropFile(files);
     });
     return (
         <button
@@ -218,10 +200,6 @@ function Tile({
 export default function LandingView(
     {onSelect, onDropFile, dragging, creatingRoom, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
 ) {
-    // Which mode's help panel is expanded, if any. A plain disclosure rather
-    // than a hover tooltip: hover has no touch equivalent, and this much text
-    // in a floating bubble would run off the side of a phone.
-    const [openHelp, setOpenHelp] = useState<string | null>(null);
     // The code field ready to type or paste in (sending starts with a click on a tile anyway).
     const codeField = useRef<HTMLInputElement>(null);
     useAutoFocus(codeField);
@@ -242,33 +220,10 @@ export default function LandingView(
                 </div>
 
                 <dl className="expedite_landing-modes">
-                    {MODES.map(({id, label, desc, help}) => (
+                    {MODES.map(({id, label, desc}) => (
                         <div key={id} className="expedite_mode">
-                            <dt className="expedite_mode-term">
-                                {label}
-                                {help && (
-                                    <button
-                                        type="button"
-                                        className="expedite_help-toggle"
-                                        aria-expanded={openHelp === id}
-                                        aria-controls={`expedite-help-${id}`}
-                                        aria-label={`Which mode should I use? (${label})`}
-                                        onClick={() => setOpenHelp(openHelp === id ? null : id)}
-                                    >
-                                        <CircleQuestionMark size={14} strokeWidth={2} />
-                                    </button>
-                                )}
-                            </dt>
-                            {/* The panel lives inside the <dd>: a <div> in a <dl>
-                                may only group a <dt> with its <dd>. */}
-                            <dd className="expedite_mode-desc">
-                                {desc}
-                                {help && openHelp === id && (
-                                    <div className="expedite_help-panel" id={`expedite-help-${id}`}>
-                                        {help}
-                                    </div>
-                                )}
-                            </dd>
+                            <dt className="expedite_mode-term">{label}</dt>
+                            <dd className="expedite_mode-desc">{desc}</dd>
                         </div>
                     ))}
                 </dl>

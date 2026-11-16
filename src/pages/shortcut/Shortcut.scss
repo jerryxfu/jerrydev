@@ -12,9 +12,10 @@
     flex-direction: column;
     align-items: center;
     padding: 0.6rem 1.5rem 0;
-    // The theme's accent, lightened: sand in Light, foam in Latte. The dark themes keep their own ground (below): a
-    // light page would glare there, and the ink, light on dark, carries the look.
-    background: var(--accent-lt);
+    // The theme's lightened accent (sand in Light, foam in Latte), half way to the theme's own ground: a tint, enough
+    // for the white pills to read as stickers on it. The dark themes keep their own ground (below): a light page
+    // would glare there, and the ink, light on dark, carries the look.
+    background: color-mix(in srgb, var(--accent-lt) 50%, var(--bg));
 
     @media screen and (max-width: 768px) {
         padding: 0.5rem 1.25rem 0;
@@ -50,7 +51,7 @@
         span {
             display: block;
             width: fit-content;
-            transform-origin: left center;
+            transform: scaleX(var(--stretch));
         }
     }
 }
@@ -59,12 +60,91 @@
 // (the first try, 1.73 and 0.6, was way too much). Sideways only, by a transform, so the lines keep their height and
 // their place. 1.25 is as far as the first line goes and still fits the narrowest column (264 of 265px on a 305px
 // page): past it, the headline would have to be sized from the column.
+// Each line is held by its left end, half way between its middle and the side of the other line (Jerry: from the
+// left side, not from the corner). So the landing brings it in from the left, and when it makes a line taller, the
+// line grows mostly away from the other one. At rest it changes nothing (the lines are only made wider).
 .sc_long {
-    transform: scaleX(1.25);
+    --stretch: 1.25;
+    transform-origin: left 75%;
 }
 
 .sc_short {
-    transform: scaleX(0.8);
+    --stretch: 0.8;
+    transform-origin: left 25%;
+}
+
+// The landing (Jerry, 15 Nov), a line at a time, alive rather than plain: the line swells in from small, fast then
+// slower and slower as if something held it, until it is bigger than it will end, taller above all; it lets go and
+// pops past its mark; it springs back and forth, and rests. The second line does the same toward its squish, once
+// the first has come to rest (Jerry: one after the other; started while the first still moved, at 0.3s, the two got
+// in each other's way). The swell is one move: growing in, then straining, read as two steps (Jerry).
+//
+// A line's shape at one moment: `$x` of the way from its plain width to its stretch (past 1, beyond it), and thinner
+// by `$y` of that same distance, as rubber thins when pulled and swells when pressed. The first line's furthest is
+// 1.32: out of the column on the narrowest phone, but inside the page's margin, which has room up to 1.33.
+@function landing($x, $y: 0) {
+    @return #{"scale(calc(1 + (var(--stretch) - 1) * #{$x}), calc(1 - (var(--stretch) - 1) * #{$y}))"};
+}
+
+$landing: 0.98s;        // one line, from nothing to rest: 0.45s of swell, 0.1s of pop, the rest of spring
+$landing-second: $landing; // the second line starts once the first has come to rest: one after the other
+
+@media (prefers-reduced-motion: no-preference) {
+    .sc_long,
+    .sc_short {
+        animation-name: sc-land;
+        animation-duration: $landing;
+        animation-fill-mode: backwards;
+    }
+
+    .sc_short {
+        animation-delay: $landing-second;
+    }
+}
+
+// Each step's easing is for the way to the next one.
+@keyframes sc-land {
+    // It swells in: most of the way at once, then it creeps, held back.
+    0% {
+        opacity: 0;
+        transform: scale(0.2);
+        animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1);
+    }
+
+    9% {
+        opacity: 1;
+    }
+
+    // It lets go: fast, and too far.
+    46% {
+        transform: scale(1.08, 1.16); // swollen: wider than plain, and taller than it will ever be again
+        animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    // It springs back, forth, and rests.
+    56% {
+        transform: landing(1.28, 0.3);
+        animation-timing-function: ease-in-out;
+    }
+
+    70% {
+        transform: landing(0.88, -0.12);
+        animation-timing-function: ease-in-out;
+    }
+
+    82% {
+        transform: landing(1.05, 0.04);
+        animation-timing-function: ease-in-out;
+    }
+
+    92% {
+        transform: landing(0.99);
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        transform: landing(1);
+    }
 }
 
 // The tool's name, as a small sticker.
