@@ -127,10 +127,11 @@ export default function Expedite() {
     const [p2pStatus, setP2pStatus] = useState<P2PStatus>(freshStatus);
     const [p2pSnapshot, setP2pSnapshot] = useState<P2PSnapshot | null>(null);
     const [p2pCode, setP2pCode] = useState<string | null>(null);
-    const [p2pExpiresAt, setP2pExpiresAt] = useState<string | null>(null);
     const [p2pRunning, setP2pRunning] = useState(false);
     const p2pAbortRef = useRef<AbortController | null>(null);
-    const p2pCodeRef = useRef<string | null>(null);
+    // The session this page is a side of, with its token for it: what it ends when it stops. A sender's from its code on,
+    // a receiver's once paired (before that, the session isn't its to end).
+    const p2pSessionRef = useRef<{ code: string; token: string } | null>(null);
     const p2pMode = p2pReceiveMode();
     // The drop received, as the page can read it until leaving it: kept in memory (no save picker), to save again; or
     // read back from the file it was written to. A zip's files are shown from it.
@@ -170,6 +171,13 @@ export default function Expedite() {
         });
     }, [view]);
 
+    // Ends the P2P session this page is a side of, if any: the API is told, with this side's token.
+    const endP2PSession = (): void => {
+        const session = p2pSessionRef.current;
+        p2pSessionRef.current = null;
+        if (session) closeSession(apiBaseUrl, session.code, session.token);
+    };
+
     // Leaving Expedite stops whatever runs, as Cancel or Back would: an upload and its hashing (the server is told, so it
     // frees the drop), a P2P transfer, and its session (else a sender's keeps handing out an offer nobody is listening
     // for until its TTL runs out, and the other side waits to reconnect until it gives up), a download's hash check.
@@ -181,8 +189,7 @@ export default function Expedite() {
             uploadAbortRef.current?.abort();
             p2pAbortRef.current?.abort();
             checkRef.current?.cancel();
-            if (p2pCodeRef.current) closeSession(apiBaseUrl, p2pCodeRef.current);
-            p2pCodeRef.current = null;
+            endP2PSession();
         };
         window.addEventListener("pagehide", stop);
         return () => {
@@ -203,10 +210,8 @@ export default function Expedite() {
 
         p2pAbortRef.current?.abort();
         p2pAbortRef.current = null;
-        if (p2pCodeRef.current) closeSession(apiBaseUrl, p2pCodeRef.current);
-        p2pCodeRef.current = null;
+        endP2PSession();
         setP2pCode(null);
-        setP2pExpiresAt(null);
         setP2pRunning(false);
         setP2pSnapshot(null);
         setP2pStatus(freshStatus());
@@ -460,22 +465,17 @@ export default function Expedite() {
                 signal: controller.signal,
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
-                onCode: (code, expiresAt) => {
-                    // Ref mirrors state so the unload handler can read it without
-                    // re-subscribing on every rotation.
-                    p2pCodeRef.current = code;
+                onCode: (code, token) => {
+                    // The ref is for the unload handler, which reads it without subscribing to the state.
+                    p2pSessionRef.current = {code, token};
                     setP2pCode(code);
-                    setP2pExpiresAt(expiresAt);
                 },
             });
         } catch {
             // A failure is shown in the progress (the status's error, with its technical part), so not here as well.
         } finally {
             p2pAbortRef.current = null;
-            if (p2pCodeRef.current) {
-                closeSession(apiBaseUrl, p2pCodeRef.current);
-                p2pCodeRef.current = null;
-            }
+            endP2PSession();
         }
     };
 
@@ -506,13 +506,12 @@ export default function Expedite() {
 
         const controller = new AbortController();
         p2pAbortRef.current = controller;
-        // Ended when this side stops, as the sender's is: the sender's reconnect then finds no session and stops at once.
-        p2pCodeRef.current = result.code;
 
         try {
             const received = await receiveP2P({
                 code: result.code,
                 offer: result.offer,
+                rev: result.rev ?? 0,
                 fileName,
                 fileSize: result.size,
                 handle,
@@ -520,6 +519,11 @@ export default function Expedite() {
                 signal: controller.signal,
                 onStatus: setP2pStatus,
                 onSnapshot: setP2pSnapshot,
+                // Ended when this side stops, as the sender's is: the sender's reconnect then finds no session and
+                // stops at once.
+                onPaired: (token) => {
+                    p2pSessionRef.current = {code: result.code, token};
+                },
             });
             // Received in memory: to the downloads, as any download (Safari may ask first). Kept for Save again.
             if (received) {
@@ -533,10 +537,7 @@ export default function Expedite() {
             // A failure is shown in the progress (the status's error, with its technical part), so not here as well.
         } finally {
             p2pAbortRef.current = null;
-            if (p2pCodeRef.current) {
-                closeSession(apiBaseUrl, p2pCodeRef.current);
-                p2pCodeRef.current = null;
-            }
+            endP2PSession();
         }
     };
 
@@ -768,7 +769,6 @@ export default function Expedite() {
                             files={selectedFiles}
                             preparing={preparing}
                             code={p2pCode}
-                            expiresAt={p2pExpiresAt}
                             status={p2pStatus}
                             snapshot={p2pSnapshot}
                             error={error}

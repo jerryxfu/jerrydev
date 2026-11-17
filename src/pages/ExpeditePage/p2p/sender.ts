@@ -45,33 +45,36 @@ export interface SendOptions {
     files?: number;
     apiBaseUrl: string;
     onStatus: (status: P2PStatus) => void;
-    onCode: (code: string, expiresAt: string) => void;
+    /** The session's code, and this side's token for it (closeSession). Again with each new session. */
+    onCode: (code: string, token: string) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
     signal: AbortSignal;
 }
 
 type SessionOutcome = "done" | "expired";
 
-/** Fire-and-forget session teardown; survives page unload. */
-export function closeSession(apiBaseUrl: string, code: string): void {
+/** A new offer is made this long before the last one runs out: time to gather it (up to 9 s with the relay) and post it. */
+const RENEW_AHEAD_MS = 60_000;
+
+/** Fire-and-forget session teardown, with this side's token; survives page unload. */
+export function closeSession(apiBaseUrl: string, code: string, token: string): void {
     try {
         void fetch(`${apiBaseUrl}/expedite/p2p/${code}`, {
             method: "DELETE",
+            headers: {"X-P2P-Token": token},
             keepalive: true,
         });
     } catch {
-        // Best effort: the API reaps it regardless (10 min unclaimed, 24 h once paired).
+        // Best effort: the API reaps it regardless (10 min after its last offer, 24 h once paired).
     }
 }
 
 /**
  * Send a file over a direct data channel.
  *
- * Loops on session expiry: if nobody claims the code within its TTL, the peer
- * connection is torn down and a brand new offer is published under a new code.
- * Reusing the old offer would not work because its ICE candidates reference NAT
- * bindings that have long since lapsed without keepalive traffic, so the
- * connection would fail at the checking stage with nothing to show for it.
+ * The code stays the same while it waits for a receiver, and the offer under it is renewed (renewOffers has the why).
+ * A session that ends unanswered all the same (its 24 hours are up, or this page couldn't renew it in time, as after
+ * a laptop's sleep) is followed by a new one, under a new code.
  */
 export async function sendP2P(opts: SendOptions): Promise<void> {
     const {signal} = opts;
@@ -80,37 +83,31 @@ export async function sendP2P(opts: SendOptions): Promise<void> {
         if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
         const outcome = await runSession(opts);
         if (outcome === "done") return;
-        // "expired" -> rotate and publish a fresh offer.
+        // "expired" -> a new session, with a new code.
     }
 }
 
-async function runSession(opts: SendOptions): Promise<SessionOutcome> {
-    const {file, files = 1, apiBaseUrl, onStatus, onCode, onSnapshot, signal} = opts;
-    const {status, emit} = trackStatus(onStatus);
+/** An offer of this page's that a receiver can still answer, by its number in the session, with its connection. */
+interface Offered {
+    rev: number;
+    pc: RTCPeerConnection;
+    channel: RTCDataChannel;
+}
 
-    // The current connection's: a reconnect replaces it.
-    let pc: RTCPeerConnection | null = null;
-    let statsTimer = 0;
+/**
+ * A new connection, its data channel and its offer, once ICE gathering is done. `emit` for the first one, which the
+ * page follows step by step; the ones that renew it are made quietly.
+ */
+async function makeOffer(apiBaseUrl: string, signal: AbortSignal, emit: Emit = () => undefined) {
+    emit({phase: "gathering", detail: "resolving ICE servers"});
 
-    const teardown = (): void => {
-        window.clearInterval(statsTimer);
-        try {
-            pc?.close();
-        } catch {
-            // already closed
-        }
-        pc = null;
-    };
+    const {servers, turnError, gatherMs} = await buildIceServers(apiBaseUrl, signal);
+    if (turnError) {
+        emit({detail: `${turnError} · continuing with STUN only`});
+    }
 
+    const pc = createPeer(servers);
     try {
-        emit({phase: "gathering", detail: "resolving ICE servers"});
-
-        const {servers, turnError, gatherMs} = await buildIceServers(apiBaseUrl, signal);
-        if (turnError) {
-            emit({detail: `${turnError} · continuing with STUN only`});
-        }
-
-        pc = createPeer(servers);
         const channel = openChannel(pc);
 
         const offer = await pc.createOffer();
@@ -120,10 +117,10 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         await waitForGathering(pc, gatherMs);
         throwIfAborted(signal);
 
-        const localSdp = pc.localDescription?.sdp;
-        if (!localSdp) throw new P2PError("Something went wrong while connecting. Try again.", "No local description after ICE gathering.");
+        const sdp = pc.localDescription?.sdp;
+        if (!sdp) throw new P2PError("Something went wrong while connecting. Try again.", "No local description after ICE gathering.");
 
-        const candidates = countCandidates(localSdp);
+        const candidates = countCandidates(sdp);
         emit({candidates, detail: describeCandidates(candidates)});
 
         // A candidate-less offer can never connect; publishing it would burn a
@@ -135,15 +132,88 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
                 "No ICE candidates gathered."
             );
         }
+        return {pc, channel, sdp};
+    } catch (err: unknown) {
+        pc.close();
+        throw err;
+    }
+}
+
+/**
+ * While nobody has answered: a new offer under the same code each time the last one is about to run out (#85). The
+ * code stays, so one sent in a chat keeps working; the offer can't, because its ICE candidates reference NAT bindings
+ * and relay allocations that lapse without keepalive traffic, and a connection to them would fail at the checking
+ * stage with nothing to show for it.
+ *
+ * Each offer has its number (`rev`, this page's own count), and the answer says which one it's for. The new connection
+ * is gathered while the old one stays open, and joins `offers` before it's posted: a receiver can answer either until
+ * the API has taken the new one, and then only the new one, so the old ones close. Until `signal` aborts (the answer
+ * came, or the page stopped), or the API has nothing left to renew: a receiver answered the offer before this one
+ * (409), or the session is over (404, 403). The stream says which.
+ */
+async function renewOffers(pairing: Pairing, offers: Offered[], ttlMs: number, signal: AbortSignal, emit: Emit): Promise<void> {
+    for (let rev = 1; ; rev++) {
+        await sleep(Math.max(0, ttlMs - RENEW_AHEAD_MS), signal);
+
+        // No network, or no candidates right now: again shortly, while the last offer lasts.
+        let next: Awaited<ReturnType<typeof makeOffer>> | null = null;
+        while (!next) {
+            next = await makeOffer(pairing.apiBaseUrl, signal).catch(() => null);
+            throwIfAborted(signal);
+            if (!next) await sleep(OFFLINE_RETRY_MS, signal);
+        }
+        offers.push({rev, pc: next.pc, channel: next.channel});
+
+        // Posted until the API answers: the same offer under the same number is taken twice, should an answer be lost.
+        let renewed: { ttlMs: number } | null = null;
+        while (!renewed) {
+            const res = await postSignal<{ ttlMs: number }>(pairing, "/offer", {offer: next.sdp, rev}, within(signal)).catch(() => null);
+            throwIfAborted(signal);
+            if (res && [403, 404, 409].includes(res.status)) return;
+            renewed = res?.data ?? null;
+            if (!renewed) await sleep(OFFLINE_RETRY_MS, signal);
+        }
+
+        // Taken: the offers before it can't be answered any more.
+        for (const old of offers.splice(0, offers.length - 1)) old.pc.close();
+        ttlMs = renewed.ttlMs;
+        emit({candidates: countCandidates(next.sdp), detail: `code ${pairing.code} live · offer renewed · waiting for a receiver`});
+    }
+}
+
+async function runSession(opts: SendOptions): Promise<SessionOutcome> {
+    const {file, files = 1, apiBaseUrl, onStatus, onCode, onSnapshot, signal} = opts;
+    const {status, emit} = trackStatus(onStatus);
+
+    // While waiting: the offers a receiver can still answer (one, or two while it's renewed).
+    const offers: Offered[] = [];
+    // The current connection's: a reconnect replaces it.
+    let pc: RTCPeerConnection | null = null;
+    let statsTimer = 0;
+
+    const teardown = (): void => {
+        window.clearInterval(statsTimer);
+        try {
+            for (const offered of offers.splice(0)) offered.pc.close();
+            pc?.close();
+        } catch {
+            // already closed
+        }
+        pc = null;
+    };
+
+    try {
+        const first = await makeOffer(apiBaseUrl, signal, emit);
+        offers.push({rev: 0, pc: first.pc, channel: first.channel});
 
         // --- Publish the offer ---
-        emit({phase: "signalling", detail: `POST /p2p/init · ${formatSdpSize(localSdp)} SDP`});
+        emit({phase: "signalling", detail: `POST /p2p/init · ${formatSdpSize(first.sdp)} SDP`});
 
         const initRes = await fetch(`${apiBaseUrl}/expedite/p2p/init`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                offer: localSdp,
+                offer: first.sdp,
                 fileName: file.name,
                 fileSize: file.size,
                 mimeType: file.type || "application/octet-stream",
@@ -160,27 +230,45 @@ async function runSession(opts: SendOptions): Promise<SessionOutcome> {
         }
 
         const code = initJson.data.code as string;
-        onCode(code, initJson.data.expiresAt as string);
-        // For reconnecting once paired.
+        // The sender's token: to renew the offer, to reconnect once paired, and to end the session.
         const pairing: Pairing = {apiBaseUrl, code, token: initJson.data.token as string};
+        onCode(code, pairing.token);
 
         emit({
             phase: "awaiting-peer",
             detail: `code ${code} live · SSE open · waiting for a receiver`,
         });
 
-        // --- Wait for the answer ---
-        const result = await waitForAnswer(apiBaseUrl, code, signal, (d) => emit({detail: d}));
+        // --- Wait for the answer, renewing the offer meanwhile ---
+        const waiting = new AbortController();
+        const renewing = renewOffers(pairing, offers, initJson.data.ttlMs as number, AbortSignal.any([signal, waiting.signal]), emit)
+            .catch(() => undefined); // stopped: the wait below says why
+        let result: AnswerResult;
+        try {
+            result = await waitForAnswer(apiBaseUrl, code, signal, (d) => emit({detail: d}));
+        } finally {
+            waiting.abort();
+            await renewing;
+        }
         if (result.kind !== "answer") {
             emit({
                 phase: "expired",
                 detail: result.kind === "expired"
-                    ? "session expired · rotating code"
-                    : "session closed · rotating code",
+                    ? "session expired · new code"
+                    : "session closed · new code",
             });
             teardown();
             return "expired";
         }
+
+        // The connection whose offer was answered; the others close.
+        const answered = offers.find((offered) => offered.rev === result.rev);
+        for (const offered of offers.splice(0)) if (offered !== answered) offered.pc.close();
+        if (!answered) {
+            throw new P2PError("Something went wrong while connecting. Try again.", `The answer is for offer ${result.rev}, which this page no longer holds.`);
+        }
+        pc = answered.pc;
+        const channel = answered.channel;
 
         emit({phase: "negotiating", detail: "answer received · applying remote description"});
 
@@ -259,7 +347,7 @@ function openChannel(pc: RTCPeerConnection): RTCDataChannel {
 // --- Signalling ---
 
 type AnswerResult =
-    | { kind: "answer"; answer: string }
+    | { kind: "answer"; answer: string; rev: number }
     | { kind: "expired" }
     | { kind: "gone" };
 
@@ -299,7 +387,7 @@ function waitForAnswer(
         source.addEventListener("answer", (ev) => {
             try {
                 const data = JSON.parse((ev as MessageEvent<string>).data);
-                finish({kind: "answer", answer: data.answer as string});
+                finish({kind: "answer", answer: data.answer as string, rev: (data.rev as number | undefined) ?? 0});
             } catch {
                 cleanup();
                 reject(new P2PError("Something went wrong while connecting. Try again.", "Malformed answer on the signalling stream."));

@@ -63,3 +63,7 @@ export function fromNow(ms: number): string {
     if (hours < 48) return relativeTime.format(hours, "hour");
     return relativeTime.format(Math.round(hours / 24), "day");
 }
+
+/** Whether a key press was typed in a field: a page's own keys (Space, letters, /) leave those alone. */
+export const inField = (target: EventTarget | null): boolean =>
+    target instanceof Element && target.closest("input, textarea, select, [contenteditable]") !== null;

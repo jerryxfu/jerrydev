@@ -8,7 +8,7 @@ import "./Shimmer.scss";
 //     <Shimmer>Taking you to</Shimmer>                        a sweep of 1.2 s, then 0.4 s of rest
 //     <Shimmer sweep={2} pause={1}>Waiting for them</Shimmer>  slower, with a longer rest between two sweeps
 //
-// Its colour is its parent's. The band's width and colour can be set from a class: --shimmer-band (4em) and
+// Its colour is its parent's. The band's width and colour can be set from a class: --shimmer-band (6em) and
 // --shimmer-light (the text's colour, most of the way to white).
 //
 // Every shimmer runs on the wall clock: where the band is depends on the time of day alone, so two lines with the same
@@ -23,10 +23,18 @@ type Props = {
     className?: string;
 };
 
+// The band speeds up as it crosses (Jerry): it enters at this share of its average speed and leaves at 2 less this
+// (0.4: from 0.4 to 1.6 times). The curve in Shimmer.scss is made from the same number.
+const START_SPEED = 0.4;
+
 export default function Shimmer({children, sweep = 1.2, pause = 0.4, className}: Props) {
     // The rest is made of distance, not of time: the band keeps going past the text's end, unseen, for as long as the
-    // pause lasts. So the styles need the whole cycle's length, and the pause as a share of the sweep.
-    const style = {"--shimmer-cycle": `${sweep + pause}s`, "--shimmer-rest": pause / sweep} as CSSProperties;
+    // pause lasts. So the styles need the whole cycle's length, and how much further than the sweep the band goes. As
+    // it speeds up, that's more than the pause's share of the time: `crossed` is how much of the whole way is done when
+    // the sweep's time is up, on the curve a·t + (1 - a)·t².
+    const time = sweep / (sweep + pause);
+    const crossed = START_SPEED * time + (1 - START_SPEED) * time * time;
+    const style = {"--shimmer-cycle": `${sweep + pause}s`, "--shimmer-rest": 1 / crossed - 1} as CSSProperties;
 
     // The clock: the animation is put where the wall clock says it is in its cycle. Before the first paint and when
     // the pace changes; and again whenever the browser starts the animation or a cycle ends, which brings back a line

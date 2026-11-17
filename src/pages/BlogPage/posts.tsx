@@ -1,4 +1,5 @@
-import {type ComponentType, lazy, type ReactElement} from "react";
+import {type ComponentType, type ReactElement} from "react";
+import lazyPage from "@/lazyPage.ts";
 import {type SyllabusEntry, type TopicId, topicIds, TOPICS} from "./topics.tsx";
 import {type IsoDay} from "@/utils.ts";
 
@@ -370,10 +371,10 @@ const postBodies = import.meta.glob<{ default: ComponentType }>("./posts/**/*.md
 const SUFFIX = ".mdx";
 const slugOf = (key: string): string => key.slice(key.lastIndexOf("/") + 1, -SUFFIX.length);
 
-// lazy() only stores the loader, so building the whole map up front fetches nothing and every post keeps its own chunk. Module scope rather than inside
+// lazyPage() only stores the loader, so building the whole map up front fetches nothing and every post keeps its own chunk. Module scope rather than inside
 // the page because creating components during render is exactly what react-hooks/static-components exists to catch.
 export const postComponents: Record<string, ComponentType> = Object.fromEntries(
-    Object.entries(postBodies).map(([key, loader]) => [slugOf(key), lazy(loader)])
+    Object.entries(postBodies).map(([key, loader]) => [slugOf(key), lazyPage(loader)])
 );
 
 // Newest first. Everything is listed now, drafts included, so the spread matters: sort() mutates in place and posts is exported.

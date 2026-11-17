@@ -27,6 +27,7 @@ export interface DropMeta {
     /** The file's SHA-256 (hex) as the sender's browser computed it while uploading; absent if skipped. */
     sha256?: string;
     offer?: string; // (p2p only, SDP offer from the sender)
+    rev?: number;   // (p2p only) which of the sender's offers that is: it renews it while it waits
 }
 
 // --- Live rooms ---
@@ -120,7 +121,7 @@ export type P2PPhase =
     | "transferring"
     | "done"
     | "failed"
-    | "expired";         // session TTL elapsed without a peer; sender rotates the code
+    | "expired";         // the session ended without a peer; the sender starts a new one, with a new code
 
 export type CandidateType = "host" | "srflx" | "prflx" | "relay";
 

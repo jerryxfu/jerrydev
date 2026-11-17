@@ -1,4 +1,5 @@
 import {useEffect, useEffectEvent} from "react";
+import {inField} from "@/utils.ts";
 
 // Keys for the tool on screen: "Space", or a letter in lower case. Not while typing in a field, nor Space on a focused
 // button (it presses it already; letters still work there, so F right after a click on Start goes fullscreen), nor with
@@ -7,8 +8,8 @@ import {useEffect, useEffectEvent} from "react";
 export default function useShortcuts(keys: Record<string, (() => void) | undefined>, active = true) {
     const onKey = useEffectEvent((e: KeyboardEvent) => {
         if (!active || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+        if (inField(e.target)) return;
         const target = e.target instanceof Element ? e.target : null;
-        if (target?.closest("input, textarea, select, [contenteditable]")) return;
         const key = e.key === " " ? "Space" : e.key.toLowerCase();
         if (key === "Space" && target?.closest("button")) return;
         const action = keys[key];

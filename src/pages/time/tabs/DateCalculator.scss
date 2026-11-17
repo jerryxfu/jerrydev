@@ -10,6 +10,10 @@
     }
 }
 
+.datecalc_wide {
+    grid-column: 1 / -1;
+}
+
 .datecalc_status {
     display: flex;
     align-items: center;

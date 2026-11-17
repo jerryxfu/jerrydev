@@ -1,4 +1,5 @@
 import {type ComponentType, useEffect, useState, useSyncExternalStore} from "react";
+import {inField} from "@/utils.ts";
 import {useLocation} from "wouter";
 import {APPLE, isOpen, loadPalette, setPaletteOpen, subscribeOpen, takeAfterNavigation} from "./host.ts";
 
@@ -33,8 +34,7 @@ export default function PaletteHost() {
                 return;
             }
             if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey || isOpen()) return;
-            const target = e.target instanceof Element ? e.target : null;
-            if (target?.closest("input, textarea, select, [contenteditable]")) return;
+            if (inField(e.target)) return;
             e.preventDefault(); // Firefox's quick find
             setPaletteOpen(true);
         };

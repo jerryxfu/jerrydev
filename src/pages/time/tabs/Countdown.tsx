@@ -80,6 +80,7 @@ export default function Countdown({active}: { active: boolean }) {
     const [now, setNow] = useState(Date.now);         // while a moment is picked, for the time left to it
     const endRef = useRef(resumed?.end ?? 0);         // Date.now() at zero, while running: the wall clock, so a laptop's sleep counts
     const audioRef = useRef<AudioContext | null>(null);
+    const cutChime = useRef<(() => void) | null>(null); // the chime playing, if any: Mute cuts it
     const [muted, setMuted] = useState(loadMuted);    // remembered per browser
     const until = mode === "until";
     const targetMs = momentOf(target);
@@ -89,7 +90,7 @@ export default function Countdown({active}: { active: boolean }) {
         setLeft(0);
         setPhase("done");
         saveUntil(null);
-        if (!muted) chime(audioRef.current);
+        if (!muted) cutChime.current = chime(audioRef.current);
     });
 
     // The end comes from a timeout set for it, which a hidden tab still fires (on time to the second); the display
@@ -181,11 +182,12 @@ export default function Countdown({active}: { active: boolean }) {
         setLeft(Math.max(0, endRef.current - Date.now()));
         setPhase("paused");
     };
-    // Muting cuts a chime already playing; it plays again from the next Start.
+    // Muting cuts a chime already playing. Only its notes: the sound itself stays awake, so unmuting before zero brings
+    // the chime back with nothing more to do.
     const toggleMute = () => {
         const next = !muted;
         setMuted(next);
-        if (next) void audioRef.current?.suspend();
+        if (next) cutChime.current?.();
         try {
             localStorage.setItem(MUTED, next ? "1" : "0");
         } catch {

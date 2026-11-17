@@ -149,7 +149,7 @@ ends on one machine) stops there, so its answer can carry host candidates only. 
 **Sender creates the code.** Matches text and file drops, matches the WebRTC convention that the offerer initiates, and means the session doc can carry
 `fileName`/`fileSize`/`mimeType` for the receiver's preview and save dialog.
 
-**SSE, not polling.** The sender may hold a code for ten minutes. Polling that would blow through the rate limiter; one long-lived `EventSource` doesn't.
+**SSE, not polling.** The sender may hold a code for hours. Polling that would blow through the rate limiter; one long-lived `EventSource` doesn't.
 Headers are flushed immediately so Cloudflare's ~100s time-to-headers limit never applies, with heartbeat comments every 25s for intermediate proxies.
 
 **Receiving depends on the browser** (`p2pReceiveMode` in `types.ts`):
@@ -173,6 +173,7 @@ sender                          server                        receiver
   |-- POST /p2p/init ----------->|  store offer, mint code
   |<-- code, sender's token -----|
   |-- GET /p2p/:code/events ---->|  SSE held open
+  |-- POST /p2p/:code/offer ---->|  a new offer every 9 min, while nobody answers
   |                              |<-- GET /drop/:code -------- |  returns offer
   |                              |<-- POST /p2p/:code/answer -- |
   |                              |--- receiver's token ------->|
@@ -215,10 +216,22 @@ reach the server at all, so `waitForSignal` opens it again every 3 s, and only t
 and the why are in `p2p/peer.ts` (`STALL_MS`); the loss is `watchLink`, the attempts `reconnect` in `sender.ts` and
 `answerReconnect` in `receiver.ts`.
 
-Unclaimed sessions expire after 10 minutes. The client tears down and publishes a **new offer under a new code**: it can't reuse the old one, because the ICE
-candidates in a ten-minute-old SDP reference NAT bindings that have lapsed, so reconnecting would fail at the checking stage with nothing to show for it.
+**The code stays, the offer is renewed** (#85). An unanswered offer lasts 10 minutes: the ICE candidates in an older SDP reference NAT bindings and relay
+allocations that have lapsed, so connecting to them would fail at the checking stage with nothing to show for it. So a minute before its offer runs out, the
+sender gathers a new connection while the old one stays open and posts its offer under the same code (`POST /p2p/:code/offer`, with its token and the offer's
+number, `rev`, its own count). Taken, the old connection closes, and the code has 10 more minutes, up to 24 hours from its start. A code sent in a chat keeps
+working for as long as the sender's page waits; a closed tab ends it at once (or within 10 minutes if the page couldn't say so).
 
-Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't be used because it only issues POSTs.
+- The receiver gets `rev` with the offer (`GET /drop/:code`) and says which one it answers. An answer to an offer replaced since is refused (409, `replaced`):
+  the receiver reads the offer again and answers once more (`receiveP2P`). It happens whenever someone opens the link, then takes a while to press Receive.
+- The answer on the sender's stream carries its `rev`, and the sender keeps the connection of that offer. It holds two while one is being replaced.
+- A receiver that answers just before a renewal wins: the new offer is refused (409), and the answer to the old one is on the stream.
+- The same offer posted twice under the same `rev` is taken twice, so a lost response is just sent again.
+- A session that ends unanswered all the same (24 hours, or a laptop that slept through a renewal) is followed by a new one, under a new code (`sendP2P`).
+
+Teardown on tab close uses `fetch(..., {keepalive: true})`. `sendBeacon` can't be used because it only issues POSTs. `DELETE /p2p/:code` asks for that side's
+token (`X-P2P-Token`), the sender's or the receiver's: knowing a code ends nothing, and a receiver that backs out before answering has no token yet, so the
+sender's session stays.
 
 ### Transfer mechanics
 
@@ -370,7 +383,7 @@ routes/expedite/
   shared.ts   config constants + generateCode, parseTtl, getUsedBytes, countView, newR2Key, sendJsonError
   text.ts     POST /drop/text; createTextDrop (shared with raw.ts)
   file.ts     POST /drop/file/init, /drop/file/complete; startFileUpload, finishFileUpload (shared with raw.ts), signUpload (and live.ts)
-  p2p.ts      POST /p2p/init, /p2p/:code/answer, /p2p/turn, /p2p/:code/reconnect, /p2p/:code/reconnect/answer
+  p2p.ts      POST /p2p/init, /p2p/:code/offer, /p2p/:code/answer, /p2p/turn, /p2p/:code/reconnect, /p2p/:code/reconnect/answer
               GET  /p2p/:code/events, /p2p/:code/reconnect/events (SSE)
               DELETE /p2p/:code
   live.ts     POST /live, /live/:code/join, /live/:code/here, /live/:code/items, /live/:code/items/:id/complete

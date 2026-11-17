@@ -5,10 +5,13 @@ const UNTIL = "time:until";
 // (for the bar), in ms.
 export type Until = { end: number; from: number };
 
+const MAX_MS = 8.64e15; // the last moment a date, and Temporal's Instant, can be
+
 export function loadUntil(): Until | null {
     try {
         const saved = JSON.parse(localStorage.getItem(UNTIL) ?? "null") as Partial<Until> | null;
-        if (typeof saved?.end === "number" && typeof saved.from === "number" && saved.end > Date.now()) {
+        // Within what a date can hold: a number the page didn't write could be past it, and reading it would throw.
+        if (typeof saved?.end === "number" && typeof saved.from === "number" && saved.end > Date.now() && saved.end <= MAX_MS) {
             return {end: saved.end, from: saved.from};
         }
     } catch {

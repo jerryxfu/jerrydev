@@ -46,7 +46,7 @@ export default function EventView({code, onNew}: { code: string; onNew: () => vo
         // Shown only while there's no event yet: a refresh that fails keeps the one on screen.
         setFailed(err instanceof ApiError && err.status === 404
             ? "This event has ended, or the link is wrong."
-            : err instanceof Error ? err.message : "Couldn't open the event. Try again.");
+            : err instanceof ApiError ? err.message : "Couldn't open the event. Try again.");
     }), [code]);
 
     useEffect(() => {
@@ -76,18 +76,28 @@ export default function EventView({code, onNew}: { code: string; onNew: () => vo
     }, []);
 
     const save = async () => {
-        if (!name.trim() || saving) return;
+        if (!event || !name.trim() || saving) return;
         setSaving(true);
         setError(null);
         try {
-            await respond(code, name.trim(), [...slots]);
+            const before = myAnswer(code)?.name.toLowerCase();
+            const picked = [...slots];
+            const saved = await respond(code, name.trim(), picked, event.expiresAt);
             edited.current = false;
-            await load();
+            // On screen at once, from what was just saved: in the place of your last answer, or after the others'. Then
+            // the event as the API has it now, with the answers given meanwhile; if that fails, this stays.
+            const mine = {name: saved, slots: picked, submittedAt: Temporal.Now.instant().toString()};
+            const isMine = (r: { name: string }) => [before, saved.toLowerCase()].includes(r.name.toLowerCase());
+            setEvent(now => now && {
+                ...now,
+                responses: now.responses.some(isMine) ? now.responses.map(r => (isMine(r) ? mine : r)) : [...now.responses, mine],
+            });
             setTab("everyone");
+            void load();
         } catch (err) {
             setError(err instanceof ApiError && err.status === 409
                 ? `${err.message}. Pick another name.`
-                : err instanceof Error ? err.message : "Couldn't save. Try again.");
+                : err instanceof ApiError ? err.message : "Couldn't save. Try again.");
         } finally {
             setSaving(false);
         }

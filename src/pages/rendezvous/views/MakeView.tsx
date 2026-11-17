@@ -3,7 +3,7 @@ import {CalendarPlus} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import Calendar from "@/components/Calendar/Calendar.tsx";
 import {DEFAULT_SETTINGS, type EventSettings, WHEN_OPTIONS} from "../types.ts";
-import {createEvent} from "../api.ts";
+import {ApiError, createEvent} from "../api.ts";
 import usePaint from "../usePaint.ts";
 import "./MakeView.scss";
 
@@ -39,7 +39,7 @@ export default function MakeView({onMade}: { onMade: (code: string) => void }) {
             const {code} = await createEvent({...settings, title: settings.title.trim()});
             onMade(code);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Couldn't make the event. Try again.");
+            setError(err instanceof ApiError ? err.message : "Couldn't make the event. Try again.");
             setBusy(false);
         }
     };

@@ -3,7 +3,7 @@ import {useLocation, useSearch} from "wouter";
 import {CalendarDays, Check, Copy, Eye, EyeOff, Flame, RotateCcw, Shuffle, Undo2} from "lucide-react";
 import Navbar from "@/components/Nav/Navbar.tsx";
 import Button from "@/components/Button/Button.tsx";
-import {copyText, type IsoDay} from "@/utils.ts";
+import {copyText, inField, type IsoDay} from "@/utils.ts";
 import {type Board, canSpread, CELLS, count, FIRE, flood, GRASS, ROCK, spread, times, WALL} from "./rules.ts";
 import type {Solution} from "./solver.ts";
 import {dayName, LAUNCH, numberedName} from "./grids.ts";
@@ -279,9 +279,11 @@ function Game({name, start, best, share, link}: {
         setSteps(steps.slice(0, 1));
     };
 
-    // U, or Ctrl or Cmd with Z, to undo.
+    // U, or Ctrl or Cmd with Z, to undo. Not in a field (the palette's): a "u" typed there is a letter, and its
+    // Ctrl+Z the field's own.
     useEffect(() => {
         const onKey = (event: KeyboardEvent) => {
+            if (inField(event.target)) return;
             const key = event.key.toLowerCase();
             const mod = event.ctrlKey || event.metaKey;
             if ((key === "u" && !mod && !event.altKey) || (key === "z" && mod && !event.shiftKey)) {

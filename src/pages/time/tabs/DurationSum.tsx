@@ -2,8 +2,8 @@ import {useMemo, useState} from "react";
 import "./DurationSum.scss";
 
 const UNIT_SECONDS: Record<string, number> = {h: 3600, m: 60, s: 1};
-// A number and its unit, in the usual ways of writing them: 2h, 15 min, 1.5 hours, 1,5 h, 30s.
-const PART = /(\d+(?:[.,]\d+)?)\s*(hours|hour|hrs|hr|h|minutes|minute|mins|min|m|seconds|second|secs|sec|s)(?![a-z])/g;
+// A number and its unit, in the usual ways of writing them: 2h, 15 min, 1.5 hours, 1,5 h, 30s, 1,000 min.
+const PART = /(\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d+)?)\s*(hours|hour|hrs|hr|h|minutes|minute|mins|min|m|seconds|second|secs|sec|s)(?![a-z])/g;
 
 // One duration, in seconds: "2h 15m", "1:30" (hours and minutes), "1:30:15", "45 min", "1.5h". Null when it can't be
 // read: a bare number has no unit, and 90 could be minutes or seconds.
@@ -11,9 +11,13 @@ function secondsOf(text: string): number | null {
     const item = text.trim().toLowerCase();
     const clock = /^(\d+):([0-5]\d)(?::([0-5]\d))?$/.exec(item);
     if (clock) return Number(clock[1]) * 3600 + Number(clock[2]) * 60 + Number(clock[3] ?? 0);
+    // Hours, then minutes with no unit of their own: 1h30, 2h 15.
+    const short = /^(\d+)\s*h\s*([0-5]?\d)$/.exec(item);
+    if (short) return Number(short[1]) * 3600 + Number(short[2]) * 60;
     let total = 0;
     const rest = item.replace(PART, (_, n: string, unit: string) => {
-        total += Number(n.replace(",", ".")) * (UNIT_SECONDS[unit[0] ?? ""] ?? 0);
+        // A comma before three digits groups thousands (1,000 min); any other is a decimal (1,5 h).
+        total += Number(/,\d{3}/.test(n) ? n.replaceAll(",", "") : n.replace(",", ".")) * (UNIT_SECONDS[unit[0] ?? ""] ?? 0);
         return "";
     });
     return rest !== item && rest.trim() === "" ? Math.round(total) : null;
@@ -30,7 +34,8 @@ export default function DurationSum() {
         const items = text.split(/\n|\+|;|,\s/).map((item) => item.trim()).filter(Boolean);
         const read = items.map(secondsOf);
         const seconds = read.reduce<number>((total, s) => total + (s ?? 0), 0);
-        const {hours, minutes, seconds: rest} = Temporal.Duration.from({seconds}).round({largestUnit: "hours"});
+        // By hand, not with Temporal.Duration: it throws past its range, and a number typed here can be any size.
+        const [hours, minutes, rest] = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60];
         return {
             count: items.length,
             unread: items.filter((_, i) => read[i] === null),
@@ -53,7 +58,7 @@ export default function DurationSum() {
                 onChange={(e) => setText(e.target.value)}
                 spellCheck={false}
             />
-            <p className="sum_note">One per line, or with + between them. 2h 15m, 45 min, 1.5h and 1:30 all work.</p>
+            <p className="sum_note">One per line, or with + between them. 2h 15m, 45 min, 1.5h, 1h30 and 1:30 all work.</p>
 
             {sum.count > 0 && (
                 <div className="sum_out">

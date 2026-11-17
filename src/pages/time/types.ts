@@ -1,6 +1,6 @@
-import {CalendarDays, Clock, Hourglass, type LucideIcon, Radar, Timer, Wrench} from "lucide-react";
+import {CalendarDays, Clock, Hourglass, type LucideIcon, Radar, Timer} from "lucide-react";
 
-export type TabId = "time" | "countdown" | "stopwatch" | "calculator" | "sync" | "tools";
+export type TabId = "time" | "countdown" | "stopwatch" | "calculator" | "sync";
 
 export interface Tab {
     id: TabId;
@@ -14,5 +14,4 @@ export const TABS: Tab[] = [
     {id: "stopwatch", label: "Stopwatch", icon: Timer},
     {id: "calculator", label: "Date calc", icon: CalendarDays},
     {id: "sync", label: "Sync", icon: Radar},
-    {id: "tools", label: "Tools", icon: Wrench},
 ];

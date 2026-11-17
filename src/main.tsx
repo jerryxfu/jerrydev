@@ -1,4 +1,4 @@
-import {lazy, type ReactNode, StrictMode, Suspense, useEffect} from "react";
+import {type ReactNode, StrictMode, Suspense, useEffect} from "react";
 import {createRoot} from "react-dom/client";
 import {Redirect, Route, Switch, useLocation} from "wouter";
 
@@ -11,35 +11,20 @@ import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import OfflineToast from "./components/OfflineToast/OfflineToast.tsx";
 import HangToast from "./components/HangToast/HangToast.tsx";
 import PaletteHost from "./components/Palette/PaletteHost.tsx";
+import lazyPage from "./lazyPage.ts";
 
-// A deploy replaces every hashed filename, so a tab opened against an older build can ask for a chunk that no longer exists.
-// Vite fires this instead of throwing, and a reload lands on the current build.
-// Timestamped so a deploy that is actually broken surfaces the error instead of reloading forever.
-const PRELOAD_RELOAD_KEY = "preload-reloaded-at";
-
-window.addEventListener("vite:preloadError", (event) => {
-    try {
-        if (Date.now() - Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY) ?? 0) < 10_000) return;
-        sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(Date.now()));
-    } catch {
-        return; // storage blocked: without the timestamp a reload could loop, so the error shows instead
-    }
-    event.preventDefault();
-    window.location.reload();
-});
-
-const LazyExpedite = lazy(() => import("./pages/ExpeditePage/Expedite.tsx"));
-const LazyElementsPage = lazy(() => import("./pages/ElementsPage/ElementsPage.tsx"));
-const LazySuperIcu = lazy(() => import("./pages/supericu/SuperICU.tsx"));
-const LazyScheduler = lazy(() => import("./pages/scheduler/Scheduler.tsx"));
-const LazyRendezvous = lazy(() => import("./pages/rendezvous/Rendezvous.tsx"));
-const LazyShortcut = lazy(() => import("./pages/shortcut/Shortcut.tsx"));
-const LazyShortcutGo = lazy(() => import("./pages/shortcut/Go.tsx"));
-const LazyTime = lazy(() => import("./pages/time/Time.tsx"));
-const LazyFirebreak = lazy(() => import("./pages/firebreak/Firebreak.tsx"));
-const LazyBlog = lazy(() => import("./pages/BlogPage/BlogPage.tsx"));
-const LazyPost = lazy(() => import("./pages/BlogPage/PostPage.tsx"));
-const LazyTopic = lazy(() => import("./pages/BlogPage/TopicPage.tsx"));
+const LazyExpedite = lazyPage(() => import("./pages/ExpeditePage/Expedite.tsx"));
+const LazyElementsPage = lazyPage(() => import("./pages/ElementsPage/ElementsPage.tsx"));
+const LazySuperIcu = lazyPage(() => import("./pages/supericu/SuperICU.tsx"));
+const LazyScheduler = lazyPage(() => import("./pages/scheduler/Scheduler.tsx"));
+const LazyRendezvous = lazyPage(() => import("./pages/rendezvous/Rendezvous.tsx"));
+const LazyShortcut = lazyPage(() => import("./pages/shortcut/Shortcut.tsx"));
+const LazyShortcutGo = lazyPage(() => import("./pages/shortcut/Go.tsx"));
+const LazyTime = lazyPage(() => import("./pages/time/Time.tsx"));
+const LazyFirebreak = lazyPage(() => import("./pages/firebreak/Firebreak.tsx"));
+const LazyBlog = lazyPage(() => import("./pages/BlogPage/BlogPage.tsx"));
+const LazyPost = lazyPage(() => import("./pages/BlogPage/PostPage.tsx"));
+const LazyTopic = lazyPage(() => import("./pages/BlogPage/TopicPage.tsx"));
 
 const LOCAL_STORAGE_VERSION = "v1";
 

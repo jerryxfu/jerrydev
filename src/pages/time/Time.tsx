@@ -11,8 +11,6 @@ import {untilUnderWay} from "./until.ts";
 import DateCalculator from "./tabs/DateCalculator.tsx";
 import LocalTime from "./tabs/LocalTime.tsx";
 import SyncPattern from "./tabs/SyncPattern.tsx";
-import DiscordTimestamp from "./tabs/DiscordTimestamp.tsx";
-import DurationSum from "./tabs/DurationSum.tsx";
 
 export default function Time() {
     // On the countdown when one to a moment is under way (it's remembered until it's over), else on Time.
@@ -65,13 +63,6 @@ export default function Time() {
                     <div hidden={tab !== "stopwatch"}><Stopwatch active={tab === "stopwatch"} /></div>
                     {tab === "calculator" && <DateCalculator />}
                     {tab === "sync" && <SyncPattern />}
-                    {/* Small tools, a card each. */}
-                    {tab === "tools" && (
-                        <div className="time_stack">
-                            <DiscordTimestamp />
-                            <DurationSum />
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

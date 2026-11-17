@@ -38,6 +38,8 @@ import {
 export interface ReceiveOptions {
     code: string;
     offer: string;
+    /** Which of the sender's offers that is (it renews it while it waits): the answer says which it's for. */
+    rev: number;
     fileName: string;
     fileSize: number;
     /**
@@ -48,6 +50,8 @@ export interface ReceiveOptions {
     apiBaseUrl: string;
     onStatus: (status: P2PStatus) => void;
     onSnapshot: (snapshot: P2PSnapshot) => void;
+    /** Paired: this side's token for the session (closeSession). Before that, the session isn't this side's to end. */
+    onPaired: (token: string) => void;
     signal: AbortSignal;
 }
 
@@ -79,8 +83,8 @@ interface Sink {
  */
 export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
     const {
-        code, offer, fileName, fileSize, handle,
-        apiBaseUrl, onStatus, onSnapshot, signal,
+        code, offer, rev, fileName, fileSize, handle,
+        apiBaseUrl, onStatus, onSnapshot, onPaired, signal,
     } = opts;
     const {status, emit} = trackStatus(onStatus);
 
@@ -119,68 +123,85 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
     };
 
     try {
-        // A candidate-less offer can never connect, so refuse it before minting
-        // TURN credentials or gathering anything of our own.
-        const remoteCandidates = countCandidates(offer);
-        emit({remoteCandidates});
-        if (totalCandidates(remoteCandidates) === 0) {
-            throw new P2PError("The sender's device found no way to connect. Ask them to try again.", "Their offer has no ICE candidates.");
+        // The offer as the page read it; if the sender renewed it since (it does while it waits), the new one, once.
+        let current = {offer, rev};
+        let channelPromise: Promise<RTCDataChannel>;
+        let pairing: Pairing;
+        for (let attempt = 0; ; attempt++) {
+            // A candidate-less offer can never connect, so refuse it before minting
+            // TURN credentials or gathering anything of our own.
+            const remoteCandidates = countCandidates(current.offer);
+            emit({remoteCandidates});
+            if (totalCandidates(remoteCandidates) === 0) {
+                throw new P2PError("The sender's device found no way to connect. Ask them to try again.", "Their offer has no ICE candidates.");
+            }
+
+            emit({phase: "gathering", detail: "resolving ICE servers"});
+
+            const {servers, turnError, gatherMs} = await buildIceServers(apiBaseUrl, signal);
+            if (turnError) emit({detail: `${turnError} · continuing with STUN only`});
+
+            pc = createPeer(servers);
+
+            // Channel arrives from the sender; capture it before the answer goes out
+            // so there is no window where it could fire unobserved.
+            channelPromise = waitForRemoteChannel(pc, status, signal);
+
+            await pc.setRemoteDescription({type: "offer", sdp: current.offer});
+
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            emit({phase: "gathering", detail: "gathering ICE candidates"});
+            await waitForGathering(pc, gatherMs);
+            throwIfAborted(signal);
+
+            const localSdp = pc.localDescription?.sdp;
+            if (!localSdp) throw new P2PError("Something went wrong while connecting. Try again.", "No local description after ICE gathering.");
+
+            const candidates = countCandidates(localSdp);
+            emit({candidates, detail: describeCandidates(candidates)});
+
+            // Claiming the session is first-answer-wins and consumes the code, so
+            // an unusable answer must never be posted: abort before the claim and
+            // the sender's code stays live for a receiver that can actually connect.
+            if (totalCandidates(candidates) === 0) {
+                throw new P2PError(
+                    "This device found no way to connect. Check your connection, VPN or firewall, and on a Mac, this browser's Local Network permission.",
+                    "No ICE candidates gathered."
+                );
+            }
+
+            // --- Publish the answer ---
+            emit({phase: "signalling", detail: `POST /p2p/${code}/answer`});
+
+            const res = await fetch(`${apiBaseUrl}/expedite/p2p/${code}/answer`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({answer: localSdp, rev: current.rev}),
+                signal,
+            });
+            // Null when the answer isn't the API's JSON (a proxy's error page).
+            const json = await res.json().catch(() => null);
+            if (res.status === 409 && json?.error?.replaced && attempt === 0) {
+                // This answer was for an offer the sender has replaced, and whose connection it closed.
+                channelPromise.catch(() => undefined);
+                pc.close();
+                pc = null;
+                emit({detail: "the sender renewed its offer · reading it again"});
+                current = await readOffer(apiBaseUrl, code, signal);
+                continue;
+            }
+            if (!res.ok) {
+                throw json?.error?.message
+                    ? new P2PError(json.error.message)
+                    : new P2PError("Couldn't join the transfer. Try again.", `Answer rejected (HTTP ${res.status}).`);
+            }
+            // This side's token: to reconnect once paired, and to end the session.
+            pairing = {apiBaseUrl, code, token: json.data.token as string};
+            onPaired(pairing.token);
+            break;
         }
-
-        emit({phase: "gathering", detail: "resolving ICE servers"});
-
-        const {servers, turnError, gatherMs} = await buildIceServers(apiBaseUrl, signal);
-        if (turnError) emit({detail: `${turnError} · continuing with STUN only`});
-
-        pc = createPeer(servers);
-
-        // Channel arrives from the sender; capture it before the answer goes out
-        // so there is no window where it could fire unobserved.
-        const channelPromise = waitForRemoteChannel(pc, status, signal);
-
-        await pc.setRemoteDescription({type: "offer", sdp: offer});
-
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        emit({phase: "gathering", detail: "gathering ICE candidates"});
-        await waitForGathering(pc, gatherMs);
-        throwIfAborted(signal);
-
-        const localSdp = pc.localDescription?.sdp;
-        if (!localSdp) throw new P2PError("Something went wrong while connecting. Try again.", "No local description after ICE gathering.");
-
-        const candidates = countCandidates(localSdp);
-        emit({candidates, detail: describeCandidates(candidates)});
-
-        // Claiming the session is first-answer-wins and consumes the code, so
-        // an unusable answer must never be posted: abort before the claim and
-        // the sender's code stays live for a receiver that can actually connect.
-        if (totalCandidates(candidates) === 0) {
-            throw new P2PError(
-                "This device found no way to connect. Check your connection, VPN or firewall, and on a Mac, this browser's Local Network permission.",
-                "No ICE candidates gathered."
-            );
-        }
-
-        // --- Publish the answer ---
-        emit({phase: "signalling", detail: `POST /p2p/${code}/answer`});
-
-        const res = await fetch(`${apiBaseUrl}/expedite/p2p/${code}/answer`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({answer: localSdp}),
-            signal,
-        });
-        // Null when the answer isn't the API's JSON (a proxy's error page).
-        const json = await res.json().catch(() => null);
-        if (!res.ok) {
-            throw json?.error?.message
-                ? new P2PError(json.error.message)
-                : new P2PError("Couldn't join the transfer. Try again.", `Answer rejected (HTTP ${res.status}).`);
-        }
-        // For reconnecting once paired.
-        const pairing: Pairing = {apiBaseUrl, code, token: json.data.token as string};
 
         emit({phase: "negotiating", detail: "answer posted · awaiting data channel"});
         const stopWatchingIce = watchIce(pc, status, emit);
@@ -296,6 +317,16 @@ export async function receiveP2P(opts: ReceiveOptions): Promise<Blob | null> {
 }
 
 // --- Channel handling ---
+
+/** The sender's offer as the API has it now, with its number. */
+async function readOffer(apiBaseUrl: string, code: string, signal: AbortSignal): Promise<{ offer: string; rev: number }> {
+    const res = await fetch(`${apiBaseUrl}/expedite/drop/${code}`, {signal});
+    const data = (await res.json().catch(() => null))?.data;
+    if (!res.ok || data?.type !== "p2p" || typeof data.offer !== "string") {
+        throw new P2PError("This transfer has ended. Ask the sender for a new code.", `No offer to read (HTTP ${res.status}).`);
+    }
+    return {offer: data.offer, rev: (data.rev as number | undefined) ?? 0};
+}
 
 function waitForRemoteChannel(pc: RTCPeerConnection, status: P2PStatus, signal: AbortSignal): Promise<RTCDataChannel> {
     return new Promise((resolve, reject) => {

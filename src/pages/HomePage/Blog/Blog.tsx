@@ -1,14 +1,15 @@
-import {lazy, Suspense} from "react";
+import {Suspense} from "react";
 import {Link} from "wouter";
 import "./Blog.scss";
 import "./BlogFeed.scss";
 import SectionTitle from "../../../components/SectionTitle/SectionTitle.tsx";
 import useLatestPost from "@/hooks/useLatestPost.ts";
+import lazyPage from "@/lazyPage.ts";
 
 // The feed is the only thing here that touches posts.tsx, and posts.tsx drags in the topic manifests and
-// a glob over every .mdx body. Behind lazy() that lands in its own chunk instead of in the home page's
+// a glob over every .mdx body. Behind lazyPage() that lands in its own chunk instead of in the home page's
 // first one, the same reason Card.tsx refuses to validate specialLink against the manifest.
-const BlogFeed = lazy(() => import("./BlogFeed.tsx"));
+const BlogFeed = lazyPage(() => import("./BlogFeed.tsx"));
 
 // Matches the row count in BlogFeed. Rendered at the same height, so the arriving list replaces the placeholder in place rather than pushing the page down.
 const SKELETON_ROWS = 7;

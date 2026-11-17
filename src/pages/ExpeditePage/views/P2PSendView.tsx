@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {Check, Clipboard, Link} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type P2PSnapshot, type P2PStatus} from "../types.ts";
@@ -13,8 +13,8 @@ interface P2PSendViewProps {
     files: PickedFile[];
     /** Several files being zipped before the code is made: how far it's got, 0 to 1. */
     preparing: number | null;
+    /** It stays the same for as long as the page waits for a receiver. */
     code: string | null;
-    expiresAt: string | null;
     status: P2PStatus;
     snapshot: P2PSnapshot | null;
     error: string | null;
@@ -24,38 +24,12 @@ interface P2PSendViewProps {
 }
 
 /**
- * Seconds remaining until the session code rotates.
- *
- * Ticks a clock and derives the remainder during render rather than storing the
- * countdown in state (setState inside an effect body cascades renders).
- */
-function useCountdown(expiresAt: string | null): number | null {
-    const [now, setNow] = useState(() => Date.now());
-
-    useEffect(() => {
-        if (!expiresAt) return;
-        const id = window.setInterval(() => setNow(Date.now()), 1000);
-        return () => window.clearInterval(id);
-    }, [expiresAt]);
-
-    if (!expiresAt) return null;
-    return Math.max(0, Math.round((Temporal.Instant.from(expiresAt).epochMilliseconds - now) / 1000));
-}
-
-function mmss(secs: number): string {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-/**
  * A direct transfer under way, from the sender's side: the code to pass on, then the progress. The form before it (the
  * files, what Direct does, Get a code) is the files' screen's Direct tab, in UploadView.
  */
 export default function P2PSendView(
-    {files, preparing, code, expiresAt, status, snapshot, error, copiedField, onCopy, onCancel}: P2PSendViewProps
+    {files, preparing, code, status, snapshot, error, copiedField, onCopy, onCancel}: P2PSendViewProps
 ) {
-    const remaining = useCountdown(expiresAt);
     const transferring = status.phase === "transferring" || status.phase === "connected";
 
     return (
@@ -77,12 +51,6 @@ export default function P2PSendView(
                         copiedField={copiedField}
                         onCopy={onCopy}
                     />
-
-                    {remaining != null && (
-                        <p className={`expedite_p2p-countdown${remaining <= 60 ? " is-low" : ""}`}>
-                            New code in {mmss(remaining)}
-                        </p>
-                    )}
                 </div>
             )}
 

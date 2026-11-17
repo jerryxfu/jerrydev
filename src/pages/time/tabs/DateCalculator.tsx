@@ -2,6 +2,7 @@ import {useMemo, useState} from "react";
 import {Minus, Plus} from "lucide-react";
 import Roll from "@/components/Roll/Roll.tsx";
 import RangeCalendar from "./RangeCalendar.tsx";
+import DurationSum from "./DurationSum.tsx";
 import "./DateCalculator.scss";
 
 const UNITS = ["days", "weeks", "months", "years", "hours", "minutes"] as const;
@@ -231,6 +232,11 @@ export default function DateCalculator() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Under the two columns, across both. */}
+            <div className="datecalc_wide">
+                <DurationSum />
             </div>
         </div>
     );

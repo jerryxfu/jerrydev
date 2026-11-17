@@ -12,10 +12,11 @@ export function clockText(seconds: number): string {
 
 // Three soft pairs of notes over two seconds, made by the browser (no sound file). The AudioContext has to be made on a
 // click, or the browser keeps it silent: the countdown makes it on Start and plays this at zero, even from a hidden tab.
-export function chime(audio: AudioContext | null): void {
-    if (!audio) return;
+// Gives the way to cut it short (Mute): its own notes go, and the AudioContext stays awake for the next one.
+export function chime(audio: AudioContext | null): () => void {
+    if (!audio) return () => undefined;
     const start = audio.currentTime;
-    [0, 0.25, 0.9, 1.15, 1.8, 2.05].forEach((at, i) => {
+    const notes = [0, 0.25, 0.9, 1.15, 1.8, 2.05].map((at, i) => {
         const osc = audio.createOscillator();
         const gain = audio.createGain();
         osc.type = "sine";
@@ -26,5 +27,7 @@ export function chime(audio: AudioContext | null): void {
         osc.connect(gain).connect(audio.destination);
         osc.start(start + at);
         osc.stop(start + at + 0.65);
+        return gain;
     });
+    return () => notes.forEach((gain) => gain.disconnect());
 }

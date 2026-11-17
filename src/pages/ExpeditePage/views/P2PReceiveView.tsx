@@ -2,7 +2,7 @@ import {useMemo} from "react";
 import {Download, MonitorSmartphone, Radio} from "lucide-react";
 import Button from "@/components/Button/Button.tsx";
 import {type DropMeta, P2P_MEMORY_MAX, type P2PReceiveMode, type P2PSnapshot, type P2PStatus} from "../types.ts";
-import {formatBytes, timeUntil} from "../utils.ts";
+import {formatBytes} from "../utils.ts";
 import P2PProgress from "./P2PProgress.tsx";
 import ZipStack from "./ZipStack.tsx";
 import {blobSource, isZip} from "../zip.ts";
@@ -74,7 +74,6 @@ export default function P2PReceiveView(
                 <div className="expedite_p2p-summary">
                     <span>{meta.fileName ?? "unnamed"}</span>
                     <span>{formatBytes(meta.size)}</span>
-                    <span>expires in {timeUntil(meta.expiresAt)}</span>
                 </div>
 
                 <div className="expedite_btn-row">
@@ -98,7 +97,6 @@ export default function P2PReceiveView(
                                 <p className="expedite_p2p-offer-meta">
                                     {formatBytes(meta.size)}
                                     {meta.mimeType ? ` · ${meta.mimeType}` : ""}
-                                    {" · the code expires in "}{timeUntil(meta.expiresAt)}
                                 </p>
                             </div>
                         </div>
