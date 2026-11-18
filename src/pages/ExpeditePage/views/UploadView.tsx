@@ -10,6 +10,8 @@ import CodeEditor from "./CodeEditor.tsx";
 import TextStats, {MoreTextStats, useTextStats} from "./TextStats.tsx";
 import {AUTO, isLanguage, languageLabel, LANGUAGES, PLAIN, resolveLanguage} from "../highlight.ts";
 import {type PickedFile, shownFile} from "../files.ts";
+import {type Pasted} from "../paste.ts";
+import PasteLink from "./PasteLink.tsx";
 import "./UploadView.scss";
 
 interface UploadViewProps {
@@ -28,6 +30,8 @@ interface UploadViewProps {
     setTextContent: (text: string) => void;
     files: PickedFile[];
     setFiles: (files: PickedFile[]) => void;
+    /** What the Paste link read in the clipboard: this screen's kind is added to what's there. False when it took nothing. */
+    onPaste: (pasted: Pasted) => boolean;
     settings: DropSettings;
     setSettings: React.Dispatch<React.SetStateAction<DropSettings>>;
     maxViewsInput: string;
@@ -83,7 +87,7 @@ const WAYS = [
 export default function UploadView(
     {
         dropType, onWay, onDirect, relayDisabled, textContent, language, setLanguage, setTextContent, files, setFiles,
-        settings, setSettings, maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
+        onPaste, settings, setSettings, maxViewsInput, onMaxViewsChange, error, loading, onUpload, onCancel, progress,
     }: UploadViewProps) {
     const createButton = useRef<HTMLButtonElement>(null);
 
@@ -294,6 +298,7 @@ export default function UploadView(
             <div className="expedite_upload expedite_compose">
                 {textTools}
                 {textBox}
+                <PasteLink label="Paste text" none="No text to paste." onPaste={onPaste} disabled={loading} />
                 <div className="expedite_compose-row">
                     <div className="expedite_compose-controls">
                         {settingsPanel}
@@ -318,6 +323,7 @@ export default function UploadView(
                 <FileZone
                     files={files} onFiles={setFiles} open={shown?.path ?? null} onOpen={setOpen} limit={way.limit} disabled={loading}
                 />
+                <PasteLink label="Paste a picture" none="No picture to paste." onPaste={onPaste} disabled={loading} />
             </div>
 
             <div className="expedite_side">

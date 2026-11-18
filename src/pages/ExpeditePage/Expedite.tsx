@@ -22,7 +22,7 @@ import {
 } from "./types.ts";
 import {formatBytes} from "./utils.ts";
 import page, {dropPath} from "./page.ts";
-import {copyText, saveBlob} from "@/utils.ts";
+import {copyText, inField, saveBlob} from "@/utils.ts";
 import LandingView from "./views/LandingView.tsx";
 import UploadView from "./views/UploadView.tsx";
 import CreatedView, {type CreatedInfo} from "./views/CreatedView.tsx";
@@ -34,6 +34,7 @@ import {useLiveRoom} from "./live/useLiveRoom.ts";
 import {uploadFile} from "./uploadEngine.ts";
 import {hashBlob, type Hashing} from "./sha256.ts";
 import {addFiles, type PickedFile, stackName} from "./files.ts";
+import {type Pasted, pastedBy} from "./paste.ts";
 import {zipFiles} from "./zip.ts";
 import {resolveLanguage} from "./highlight.ts";
 import {useFileDrag} from "./useFileDrag.ts";
@@ -641,6 +642,40 @@ export default function Expedite() {
         await handleSelect("file");
     };
 
+    // --- Pasting (#98) ---
+    // What's pasted goes by its kind: files (a picture, mostly) are for the files' screen, a text for the text's. On
+    // the landing it opens that screen with it. On a screen, it's added to what's there, and the other kind is left: a
+    // text in the clipboard is no reason to leave the files chosen (a file copied in a folder comes as its name when
+    // the page reads the clipboard). False when nothing was taken.
+    const takePaste = ({text, files}: Pasted): boolean => {
+        if (loading || (view !== "landing" && view !== "composing")) return false;
+        const writing = view === "landing" ? null : dropType === "text" ? "text" : "files";
+        if (files.length && writing !== "text") {
+            const picked = files.map((file) => ({file, path: file.name}));
+            if (writing) setSelectedFiles(addFiles(selectedFiles, picked));
+            else void handleDropFile(picked);
+            return true;
+        }
+        if (text.trim() && writing !== "files") {
+            setTextContent(textContent + text);
+            if (!writing) void handleSelect("text");
+            return true;
+        }
+        return false;
+    };
+
+    // By the keys, on those screens (a live room has its own, LiveView). A text pasted in a field is the field's: the
+    // code's, the text box's. Files pasted there go too, as a field has no use for them.
+    const onKeysPaste = useEffectEvent((e: ClipboardEvent) => {
+        const pasted = pastedBy(e);
+        if (takePaste(inField(e.target) ? {...pasted, text: ""} : pasted)) e.preventDefault();
+    });
+    useEffect(() => {
+        const listener = (e: ClipboardEvent) => onKeysPaste(e);
+        document.addEventListener("paste", listener);
+        return () => document.removeEventListener("paste", listener);
+    }, []);
+
     // Someone receiving a drop came for it, not for the site: no navbar on those screens. Nor in a live room, which wants
     // the screen's height for its boxes.
     const receiving = view === "result" || view === "p2p-receive";
@@ -709,6 +744,7 @@ export default function Expedite() {
                         <LandingView
                             onSelect={handleSelect}
                             onDropFile={handleDropFile}
+                            onPaste={takePaste}
                             dragging={pageDrag.over}
                             creatingRoom={creatingRoom}
                             code={retrieveCode}
@@ -734,6 +770,7 @@ export default function Expedite() {
                             setLanguage={setTextLanguage}
                             files={selectedFiles}
                             setFiles={setSelectedFiles}
+                            onPaste={takePaste}
                             settings={settings}
                             setSettings={setSettings}
                             maxViewsInput={maxViewsInput}

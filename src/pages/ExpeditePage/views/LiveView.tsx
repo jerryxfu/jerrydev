@@ -43,6 +43,7 @@ import FilePreview, {CodeView, kindOf, MINI_LINES} from "./FilePreview.tsx";
 import {STATE_LETTER} from "./UploadProgress.tsx";
 import {THUMB_MAX, useCanvasNearScreen} from "./FileStack.tsx";
 import {drawPdfPage} from "../pdfPage.ts";
+import {CAN_READ_CLIPBOARD, readClipboard} from "../paste.ts";
 import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import "./LiveView.scss";
 
@@ -193,8 +194,6 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
     const [note, setNote] = useState<string | null>(null);
     const picker = useRef<HTMLInputElement>(null);
     const laptop = useMediaQuery("(hover: hover) and (pointer: fine)");
-    // Reading the clipboard from a button: Chromium and Safari, Firefox from 127. A phone's way to paste a picture.
-    const canRead = typeof navigator !== "undefined" && typeof navigator.clipboard?.read === "function";
 
     const send = async (e?: FormEvent) => {
         e?.preventDefault();
@@ -211,17 +210,7 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
     const pasteClipboard = async () => {
         setNote(null);
         try {
-            const files: File[] = [];
-            let pasted = "";
-            for (const item of await navigator.clipboard.read()) {
-                const image = item.types.find((type) => type.startsWith("image/"));
-                if (image) {
-                    const blob = await item.getType(image);
-                    files.push(new File([blob], `pasted.${image.split("/")[1]?.replace("+xml", "") ?? "png"}`, {type: image}));
-                } else if (item.types.includes("text/plain")) {
-                    pasted += await (await item.getType("text/plain")).text();
-                }
-            }
+            const {files, text: pasted} = await readClipboard();
             if (files.length) onFiles(files);
             else if (pasted.trim()) await onText(pasted);
             else setNote("Nothing to paste.");
@@ -242,7 +231,7 @@ function Composer({onText, onFiles}: { onText: (text: string) => Promise<boolean
                     <div className="live_composer-buttons">
                         {/* Their icons in the landing tiles' colours (Expedite.scss): File's, and Text's for pasting. */}
                         <Button start={Paperclip} data-kind="file" onClick={() => picker.current?.click()}>File</Button>
-                        {canRead && <Button start={ClipboardPaste} data-kind="text" onClick={() => void pasteClipboard()}>Paste</Button>}
+                        {CAN_READ_CLIPBOARD && <Button start={ClipboardPaste} data-kind="text" onClick={() => void pasteClipboard()}>Paste</Button>}
                     </div>
                     {laptop && <p className="live_hint">Paste or drop anywhere</p>}
                 </div>

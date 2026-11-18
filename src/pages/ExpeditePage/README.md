@@ -69,6 +69,19 @@ ExpeditePage/
 
 ---
 
+## Pasting
+
+On the landing and on the Text and File screens (#98). A live room has its own, below.
+
+- **By the keys** (`takePaste` in `Expedite.tsx`, a `paste` listener on the document). On the landing, a pasted file opens File with it and a pasted text
+  opens Text with it. On a screen, its own kind is added to what's there and the other kind is left. A text pasted in a field stays the field's (the code
+  field, the text box); a file pasted in one goes too.
+- **By the Paste link** (`views/PasteLink.tsx`): a small underlined caption with the paste icon, under the landing's tiles, the text box and the file zone, at
+  the left. It reads the clipboard (`readClipboard` in `paste.ts`, which live rooms' Paste button uses too), so it isn't shown in a browser that can't.
+  Firefox shows its own small Paste prompt first.
+- **Only pictures come as files from the link.** A browser doesn't give a page the files copied in a folder that way: their names come as text. That's why
+  a text is left alone on the File screen, where it would otherwise take you away from the files chosen. The keys do give those files.
+
 ## Live rooms
 
 A room for live work: one code, up to 6 people (its creator included) for an hour from its creation. Each person has a box; what they paste or drop

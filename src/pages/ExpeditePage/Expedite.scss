@@ -268,6 +268,43 @@
     }
 }
 
+// A caption that pastes (PasteLink): under what it fills, at its left. Subtle: small, grey, underlined, its icon in
+// front. Pulled up towards what it belongs to, in columns that space their blocks a rem apart.
+.expedite_paste {
+    margin: -0.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.75rem;
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--text-4);
+}
+
+.expedite_paste-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    &:hover:not(:disabled) {
+        color: var(--text-2);
+    }
+
+    &:disabled {
+        cursor: default;
+        opacity: 0.5;
+    }
+}
+
 .expedite_btn-full {
     width: 100%;
     margin-top: 0.25rem;

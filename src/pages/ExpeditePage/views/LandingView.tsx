@@ -5,6 +5,7 @@ import Shimmer from "@/components/Shimmer/Shimmer.tsx";
 import useAutoFocus from "@/hooks/useAutoFocus.ts";
 import {type DropType, type P2PReceiveMode} from "../types.ts";
 import {type PickedFile} from "../files.ts";
+import {type Pasted} from "../paste.ts";
 import {useFileDrag} from "../useFileDrag.ts";
 import {dropPath} from "../page.ts";
 import {
@@ -18,12 +19,15 @@ import {
 } from "../utils.ts";
 import CopyField from "./CopyField.tsx";
 import Disclosure from "./Disclosure.tsx";
+import PasteLink from "./PasteLink.tsx";
 import "./LandingView.scss";
 
 interface LandingViewProps {
     onSelect: (type: DropType) => void;
     // Files dropped on the File tile.
     onDropFile: (files: PickedFile[]) => void;
+    // What the Paste link read in the clipboard: a text opens Text with it, a picture File. False when it took nothing.
+    onPaste: (pasted: Pasted) => boolean;
     // A file is being dragged over the page: the tile that takes it shows it.
     dragging: boolean;
     // The Live tile's room being made: the tile spins.
@@ -194,7 +198,7 @@ function Tile({
 }
 
 export default function LandingView(
-    {onSelect, onDropFile, dragging, creatingRoom, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
+    {onSelect, onDropFile, onPaste, dragging, creatingRoom, code, setCode, error, loading, onRetrieve, p2pMode, copiedField, onCopy}: LandingViewProps
 ) {
     // The code field ready to type or paste in (sending starts with a click on a tile anyway).
     const codeField = useRef<HTMLInputElement>(null);
@@ -214,6 +218,8 @@ export default function LandingView(
                         />
                     ))}
                 </div>
+
+                <PasteLink label="Paste text or a picture" none="Nothing to paste." onPaste={onPaste} />
 
                 <dl className="expedite_landing-modes">
                     {MODES.map(({id, label, desc}) => (
